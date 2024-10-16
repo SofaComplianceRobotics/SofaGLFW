@@ -221,10 +221,9 @@ jobs:
             echo "Getting TinyXML2 from Windows dependencies pack: $url"
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            ls "${{ runner.temp }}/tinyxml_tmp/binaries"
-            ls "${{ env.WORKSPACE_SRC_PATH }}"
             mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "${{ env.WORKSPACE_SRC_PATH }}"
-            ls "${{ env.WORKSPACE_SRC_PATH }}"
+            echo "TinyXML2_INCLUDE_DIR=${{ env.WORKSPACE_SRC_PATH }}/include" | tee -a $GITHUB_ENV
+            echo "TinyXML2_LIBRARY=${{ env.WORKSPACE_SRC_PATH }}/lib/win32" | tee -a $GITHUB_ENV
           fi
 
       - name: Build and install
