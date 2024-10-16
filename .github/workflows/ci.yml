@@ -171,6 +171,19 @@ jobs:
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_scope: 'standard'
 
+      - name: Install TinyXML2
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get -qq install libtinyxml2-dev
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew update && brew upgrade
+            brew install tinyxml2
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "TODO download tinyXML2"
+          fi
+
       - name: Install SoftRobots
         shell: bash
         run: |
