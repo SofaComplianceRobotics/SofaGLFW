@@ -222,9 +222,9 @@ jobs:
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
             ls "${{ runner.temp }}/tinyxml_tmp/binaries"
-            ls "${{ runner.temp }}/tinyxml_tmp/binaries/SOFA_WinDepPack*/"
             ls "${{ env.WORKSPACE_SRC_PATH }}"
-            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack*/* "${{ env.WORKSPACE_SRC_PATH }}"
+            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "${{ env.WORKSPACE_SRC_PATH }}"
+            ls "${{ env.WORKSPACE_SRC_PATH }}"
           fi
 
       - name: Build and install
