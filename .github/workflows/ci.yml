@@ -197,7 +197,7 @@ jobs:
           unzip -qq "${{ runner.temp }}/sri_tmp/SoftRobots.Inverse.zip" -d "${{ runner.temp }}/sri_tmp/binaries"
           mv "${{ runner.temp }}"/sri_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_ROOT"
           echo "SoftRobotsInverse_ROOT=$SoftRobotsInverse_ROOT" | tee -a $GITHUB_ENV
-          env "SoftRobots.Inverse_DIR=$SoftRobotsInverse_ROOT/lib/cmake/SoftRobots.Inverse" | grep Inverse_DIR | tee -a $GITHUB_ENV
+          echo "SoftRobotsInverse_DIR=$SoftRobotsInverse_ROOT/lib/cmake/SoftRobots.Inverse" | tee -a $GITHUB_ENV
 
       - name: Checkout source code
         uses: actions/checkout@v2
