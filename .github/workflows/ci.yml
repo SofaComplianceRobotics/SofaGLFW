@@ -218,15 +218,14 @@ jobs:
             brew install tinyxml2
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
-            ls $GITHUB_WORKSPACE
             mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
-            ls $GITHUB_WORKSPACE
             url="https://www.sofa-framework.org/download/WinDepPack/VS-2017/latest"
             echo "Getting TinyXML2 from Windows dependencies pack: $url"
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
-            ls "$TinyXML2_ROOT"
+            mv -r "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
+            ls "$TinyXML2_ROOT/lib"
+            ls "$TinyXML2_ROOT/lib/win64"
             echo "TINYXML2_ROOT=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
           fi
 
@@ -234,9 +233,6 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            ls "$TinyXML2_ROOT/lib/"
-            ls "$TinyXML2_ROOT/lib/win64"
-            set PATH=%PATH%;"$TinyXML2_ROOT;"$TinyXML2_ROOT/lib/win64;"$TinyXML2_ROOT/include"
             cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} \
               && cd /d $WORKSPACE_BUILD_PATH \
               && cmake \
