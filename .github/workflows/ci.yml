@@ -223,7 +223,7 @@ jobs:
             echo "Getting TinyXML2 from Windows dependencies pack: $url"
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            mv -r "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
+            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
             ls "$TinyXML2_ROOT/lib"
             ls "$TinyXML2_ROOT/lib/win64"
             echo "TINYXML2_ROOT=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
