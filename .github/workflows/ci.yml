@@ -229,6 +229,8 @@ jobs:
             echo "TINYXML2_INSTALL_DIR=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
             echo "TinyXML2_INSTALL_DIR=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
             echo "$TinyXML2_ROOT" >> $GITHUB_PATH
+            echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
+            echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
           fi
 
       - name: Build and install
