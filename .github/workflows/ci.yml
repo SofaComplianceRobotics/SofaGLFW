@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+        os: [windows-2022]
         sofa_branch: [master]
 
     steps:
@@ -159,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+        os: [windows-2022] #ubuntu-22.04, macos-13, 
         sofa_branch: [master]
 
     steps:          
@@ -239,7 +239,8 @@ jobs:
               && cd /d $WORKSPACE_BUILD_PATH \
               && cmake \
                   -GNinja \
-                  "-DCMAKE_PREFIX_PATH=$SOFA_ROOT/lib/cmake;$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
+                  -DCMAKE_MODULE_PATH="$SOFA_ROOT/lib/cmake" \
+                  -DCMAKE_PREFIX_PATH="$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DCMAKE_INSTALL_PREFIX="$WORKSPACE_INSTALL_PATH" \
                   -DAPPLICATION_RUNSOFAGLFW=ON \
