@@ -208,6 +208,7 @@ jobs:
       - name: Install deps
         shell: bash
         run: |
+          cmake --version 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get -qq install xorg-dev libgtk-3-dev
@@ -234,7 +235,7 @@ jobs:
               && cd /d $WORKSPACE_BUILD_PATH \
               && cmake \
                   -GNinja \
-                  -DCMAKE_PREFIX_PATH="$SOFA_ROOT/lib/cmake;$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
+                  "-DCMAKE_PREFIX_PATH=$SOFA_ROOT/lib/cmake;$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DCMAKE_INSTALL_PREFIX="$WORKSPACE_INSTALL_PATH" \
                   -DAPPLICATION_RUNSOFAGLFW=ON \
