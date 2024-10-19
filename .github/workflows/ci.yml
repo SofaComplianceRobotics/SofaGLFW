@@ -236,7 +236,7 @@ jobs:
               && cmake \
                   -GNinja \
                   -DCMAKE_MODULE_PATH="$SOFA_ROOT/lib/cmake" \
-                  -DCMAKE_PREFIX_PATH="$TINYXML2_ROOT/include;$TINYXML2_ROOT/lib/win64" \
+                  -DCMAKE_PREFIX_PATH="$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DCMAKE_INSTALL_PREFIX="$WORKSPACE_INSTALL_PATH" \
                   -DAPPLICATION_RUNSOFAGLFW=ON \
