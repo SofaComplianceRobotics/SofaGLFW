@@ -228,7 +228,7 @@ jobs:
             mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
             ls "$TinyXML2_ROOT"
             echo "TINYXML2_ROOT=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
-            set PATH=%PATH%;"$TinyXML2_ROOT"
+            set PATH=%PATH%;"$TinyXML2_ROOT;"$TinyXML2_ROOT/lib/win64;"$TinyXML2_ROOT/include"
           fi
 
       - name: Build and install
