@@ -223,8 +223,12 @@ jobs:
             echo "Getting TinyXML2 from Windows dependencies pack: $url"
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
+            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"            
             echo "TINYXML2_ROOT=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
+            echo "TinyXML2_ROOT=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
+            echo "TINYXML2_INSTALL_DIR=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
+            echo "TinyXML2_INSTALL_DIR=$TinyXML2_ROOT" | tee -a $GITHUB_ENV
+            echo "$TinyXML2_ROOT" >> $GITHUB_PATH
           fi
 
       - name: Build and install
@@ -235,14 +239,13 @@ jobs:
               && cd /d $WORKSPACE_BUILD_PATH \
               && cmake \
                   -GNinja \
-                  -DCMAKE_MODULE_PATH="$SOFA_ROOT/lib/cmake" \
-                  -DCMAKE_PREFIX_PATH="$TINYXML2_ROOT;$TINYXML2_ROOT/lib/win64" \
+                  -DCMAKE_PREFIX_PATH="$SOFA_ROOT/lib/cmake" \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DCMAKE_INSTALL_PREFIX="$WORKSPACE_INSTALL_PATH" \
                   -DAPPLICATION_RUNSOFAGLFW=ON \
                   -DPLUGIN_SOFAGLFW=ON \
                   -DPLUGIN_SOFAIMGUI=ON \
-                  -S ../src \
+                  ../src \
               && ninja -v install"
           else
             cd "$WORKSPACE_BUILD_PATH"
