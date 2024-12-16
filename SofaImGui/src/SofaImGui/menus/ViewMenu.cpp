@@ -29,7 +29,7 @@
 #include <filesystem>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Buttons.h>
-#include <tinyxml2.h>
+//#include <tinyxml2.h>
 
 namespace sofaimgui::menus {
 
@@ -108,14 +108,14 @@ void ViewMenu::addSaveCamera()
         groot->get(camera);
         if (camera)
         {
-            if (camera->exportParametersInFile(viewFileName) == tinyxml2::XML_SUCCESS)
-            {
-                msg_info("GUI") << "Current camera parameters have been exported to "<< viewFileName << ".";
-            }
-            else
-            {
-                msg_error("GUI") << "Could not export camera parameters to " << viewFileName << ".";
-            }
+            //if (camera->exportParametersInFile(viewFileName) == tinyxml2::XML_SUCCESS)
+            //{
+            //    msg_info("GUI") << "Current camera parameters have been exported to "<< viewFileName << ".";
+            //}
+            //else
+            //{
+            //    msg_error("GUI") << "Could not export camera parameters to " << viewFileName << ".";
+            //}
         }
     }
 }
