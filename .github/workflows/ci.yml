@@ -206,28 +206,28 @@ jobs:
         with:
           path: ${{ env.WORKSPACE_SRC_PATH }}
 
-      - name: Install deps
-        shell: bash
-        run: |
-          cmake --version 
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            sudo apt-get update
-            sudo apt-get -qq install xorg-dev libgtk-3-dev
-            sudo apt-get -qq install libtinyxml2-dev
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            brew update 
-            brew install tinyxml2
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
-            mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
-            url="https://www.sofa-framework.org/download/WinDepPack/VS-2017/latest"
-            echo "Getting TinyXML2 from Windows dependencies pack: $url"
-            curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
-            unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT" 
-            echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
-            echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
-          fi
+#      - name: Install deps
+#        shell: bash
+#        run: |
+#          cmake --version
+#          if [[ "$RUNNER_OS" == "Linux" ]]; then
+#            sudo apt-get update
+#            sudo apt-get -qq install xorg-dev libgtk-3-dev
+#            sudo apt-get -qq install libtinyxml2-dev
+#          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+#            brew update
+#            brew install tinyxml2
+#          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+#            TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
+#            mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
+#            url="https://www.sofa-framework.org/download/WinDepPack/VS-2017/latest"
+#            echo "Getting TinyXML2 from Windows dependencies pack: $url"
+#            curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
+#            unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
+#            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT"
+#            echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
+#            echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
+#          fi
 
       - name: Build and install
         shell: bash

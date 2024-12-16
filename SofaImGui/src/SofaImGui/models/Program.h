@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include <tinyxml2.h>
+//#include <tinyxml2.h>
 
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <SofaImGui/models/Track.h>
@@ -69,7 +69,7 @@ class SOFAIMGUI_API Program
     bool checkExtension(const std::string &filename);
 
     // Deprecation, remove after v25.06
-    bool checkDocument(const std::string &filename, tinyxml2::XMLNode *root);
+    //bool checkDocument(const std::string &filename, tinyxml2::XMLNode *root);
 
 };
 

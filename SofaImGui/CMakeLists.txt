@@ -13,7 +13,7 @@ sofa_find_package(Sofa.Component.Playback REQUIRED)
 sofa_find_package(SoftRobots REQUIRED)
 sofa_find_package(SoftRobots.Inverse REQUIRED)
 sofa_find_package(SofaPython3 REQUIRED)
-sofa_find_package(TinyXML2 REQUIRED)
+# sofa_find_package(TinyXML2 REQUIRED)
 
 
 option(SOFAIMGUI_FORCE_OPENGL2 "Force OpenGL2 mode (mandatory for MacOS). If false, OpenGL3 mode is activated (default)." OFF)
@@ -204,7 +204,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_SOURCE_DIR} ${QPOASES
 
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D Sofa.Component.Playback SoftRobots SoftRobots.Inverse ${CMAKE_DL_LIBS})
 set_target_properties(nfd PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE nfd glfw tinyxml2::tinyxml2)
+target_link_libraries(${PROJECT_NAME} PRIVATE nfd glfw) # tinyxml2::tinyxml2)
 
 option(SOFAIMGUI_WITH_ROS "If true, will enable ROS communication." OFF)
 if(NOT ROS_FOUND)
