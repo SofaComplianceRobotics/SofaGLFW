@@ -300,11 +300,11 @@ jobs:
           fi
           echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
           # Add execution right on the tests
-          echo '------ ls -la "$WORKSPACE_BUILD_PATH" ------'
-          ls -la "$WORKSPACE_BUILD_PATH"
-          echo '------ ls -la "$WORKSPACE_BUILD_PATH/bin" ------'
-          ls -la "$WORKSPACE_BUILD_PATH/bin"
-          chmod +x $WORKSPACE_BUILD_PATH/bin/*_test${{ steps.sofa.outputs.exe }}
+          echo '------ ls -la "$WORKSPACE_BUILD_PATH/SofaImGui" ------'
+          ls -la "$WORKSPACE_BUILD_PATH"/SofaImGui
+          echo '------ ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/bin" ------'
+          ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/bin"
+          chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/bin/*_test${{ steps.sofa.outputs.exe }}
 
       - name: Check environment for tests
         shell: bash
@@ -326,7 +326,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          cd $WORKSPACE_BUILD_PATH
+          cd $WORKSPACE_BUILD_PATH/SofaImGui
           ./bin/SofaImGui_test${{ steps.sofa.outputs.exe }}
 
   deploy-with-imgui:
