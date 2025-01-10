@@ -198,7 +198,6 @@ jobs:
           unzip -qq "${{ runner.temp }}/sri_tmp/SoftRobots.Inverse.zip" -d "${{ runner.temp }}/sri_tmp/binaries"
           mv "${{ runner.temp }}"/sri_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_ROOT"
           echo "SoftRobotsInverse_ROOT=$SoftRobotsInverse_ROOT" | tee -a $GITHUB_ENV
-          echo "SoftRobotsInverse_LIB=$SoftRobotsInverse_ROOT/lib" | tee -a $GITHUB_ENV
           env "SoftRobots.Inverse_DIR=$SoftRobotsInverse_ROOT/lib/cmake/SoftRobots.Inverse" | grep Inverse_DIR | tee -a $GITHUB_ENV
           echo "libqpOASES_DIR=$SoftRobotsInverse_ROOT/lib/cmake/libqpOASES" | tee -a $GITHUB_ENV
 
@@ -300,7 +299,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             echo "DYLD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$DYLD_LIBRARY_PATH" | tee -a $GITHUB_ENV
           fi
-          echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$SoftRobotsInverse_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$SoftRobotsInverse_ROOT/lib:$SoftRobots_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
           # Add execution right on the tests
           chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/tests/*_test${{ steps.sofa.outputs.exe }}
 
