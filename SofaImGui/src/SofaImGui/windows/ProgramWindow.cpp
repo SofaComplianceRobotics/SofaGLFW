@@ -755,7 +755,7 @@ void ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const i
 
 void ProgramWindow::initFilePath(const std::string& filename)
 {
-    const auto absFilename = std::filesystem::absolute(filename);
+    const auto absFilename = (filename.empty())? filename: std::filesystem::absolute(filename);
     const std::string extension = ".crprog";
 
     if (m_programDirPath.empty())
