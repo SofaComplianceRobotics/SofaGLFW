@@ -302,9 +302,9 @@ jobs:
           # Add execution right on the tests
           echo '------ ls -la "$WORKSPACE_BUILD_PATH/SofaImGui" ------'
           ls -la "$WORKSPACE_BUILD_PATH"/SofaImGui
-          echo '------ ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/bin" ------'
-          ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/bin"
-          chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/bin/*_test${{ steps.sofa.outputs.exe }}
+          echo '------ ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/tests" ------'
+          ls -la "$WORKSPACE_BUILD_PATH/SofaImGui/tests"
+          chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/tests/*_test${{ steps.sofa.outputs.exe }}
 
       - name: Check environment for tests
         shell: bash
@@ -326,8 +326,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          cd $WORKSPACE_BUILD_PATH/SofaImGui
-          ./bin/SofaImGui_test${{ steps.sofa.outputs.exe }}
+          cd $WORKSPACE_BUILD_PATH/SofaImGui/tests
+          ./SofaImGui_test${{ steps.sofa.outputs.exe }}
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
