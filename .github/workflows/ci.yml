@@ -30,6 +30,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
+          ref: robotics
           path: ${{ env.WORKSPACE_SRC_PATH }}
 
       - name: Install deps
@@ -172,6 +173,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
+          ref: robotics
           path: ${{ env.WORKSPACE_SRC_PATH }}
 
       - name: Install deps
