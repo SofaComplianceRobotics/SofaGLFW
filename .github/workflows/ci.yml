@@ -105,9 +105,11 @@ jobs:
     needs: [build-and-test]
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: write
     steps:
       - name: Get artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           path: artifacts
 
@@ -146,9 +148,9 @@ jobs:
           body: |
             Last updated on ${{ env.RELEASE_DATE }}
           files: |
-            artifacts/${{ env.PROJECT_NAME }}_*_Linux.zip
-            artifacts/${{ env.PROJECT_NAME }}_*_Windows.zip
-            artifacts/${{ env.PROJECT_NAME }}_*_macOS.zip
+            artifacts/${{ env.PROJECT_NAME }}_${{ env.RELEASE_NAME }}_for*_Linux.zip
+            artifacts/${{ env.PROJECT_NAME }}_${{ env.RELEASE_NAME }}_for*_Windows.zip
+            artifacts/${{ env.PROJECT_NAME }}_${{ env.RELEASE_NAME }}_for*_macOS.zip
 
 
   build-and-test-with-imgui:
@@ -158,7 +160,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
+        os: [ubuntu-22.04, macos-14, windows-2022] 
         sofa_branch: [master]
 
     steps:          
@@ -168,7 +170,37 @@ jobs:
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'standard'
+          sofa_scope: 'standard'      
+          python_version: '3.10'
+
+      - name: Install SoftRobots
+        shell: bash
+        run: |
+          SoftRobots_ROOT="$GITHUB_WORKSPACE/SoftRobots"
+          mkdir -p "${{ runner.temp }}/sr_tmp/zip" "${{ runner.temp }}/sr_tmp/binaries" "$SoftRobots_ROOT"
+          url="https://github.com/SofaDefrost/SoftRobots/releases/download"
+          url="${url}/release-${{ matrix.sofa_branch }}/SoftRobots_${{ matrix.sofa_branch }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots from $url"
+          curl --output "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -L $url
+          unzip -qq "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -d "${{ runner.temp }}/sr_tmp/binaries"
+          mv "${{ runner.temp }}"/sr_tmp/binaries/SoftRobots_*/* "$SoftRobots_ROOT"
+          echo "SoftRobots_ROOT=$SoftRobots_ROOT" | tee -a $GITHUB_ENV
+          echo "SoftRobots_DIR=$SoftRobots_ROOT/lib/cmake/SoftRobots" | tee -a $GITHUB_ENV
+
+      - name: Install SoftRobots.Inverse
+        shell: bash
+        run: |
+          SoftRobotsInverse_ROOT="$GITHUB_WORKSPACE/SoftRobots.Inverse"
+          mkdir -p "${{ runner.temp }}/sri_tmp/zip" "${{ runner.temp }}/sri_tmp/binaries" "$SoftRobotsInverse_ROOT"
+          url="https://github.com/SofaDefrost/SoftRobots.Inverse/releases/download"
+          url="${url}/release-main/SoftRobots.Inverse_main_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots.Inverse from $url"
+          curl --output "${{ runner.temp }}/sri_tmp/SoftRobots.Inverse.zip" -L $url
+          unzip -qq "${{ runner.temp }}/sri_tmp/SoftRobots.Inverse.zip" -d "${{ runner.temp }}/sri_tmp/binaries"
+          mv "${{ runner.temp }}"/sri_tmp/binaries/SoftRobots.Inverse_*/* "$SoftRobotsInverse_ROOT"
+          echo "SoftRobotsInverse_ROOT=$SoftRobotsInverse_ROOT" | tee -a $GITHUB_ENV
+          env "SoftRobots.Inverse_DIR=$SoftRobotsInverse_ROOT/lib/cmake/SoftRobots.Inverse" | grep Inverse_DIR | tee -a $GITHUB_ENV
+          echo "libqpOASES_DIR=$SoftRobotsInverse_ROOT/lib/cmake/libqpOASES" | tee -a $GITHUB_ENV
 
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -179,9 +211,24 @@ jobs:
       - name: Install deps
         shell: bash
         run: |
+          cmake --version 
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get -qq install xorg-dev libgtk-3-dev
+            sudo apt-get -qq install libtinyxml2-dev
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew update 
+            brew install tinyxml2
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
+            mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
+            url="https://www.sofa-framework.org/download/WinDepPack/VS-2017/latest"
+            echo "Getting TinyXML2 from Windows dependencies pack: $url"
+            curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
+            unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
+            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT" 
+            echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
+            echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
           fi
 
       - name: Build and install
@@ -239,6 +286,44 @@ jobs:
           name: ${{ steps.sanitize.outputs.artifact_name }}
           path: ${{ env.WORKSPACE_ARTIFACT_PATH }}
 
+      - name: Set env vars for tests
+        shell: bash
+        run: |
+          # Set env vars for tests
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "$(cd $WORKSPACE_ARTIFACT_PATH/lib && pwd -W)" >> $GITHUB_PATH
+            echo "$(cd $WORKSPACE_ARTIFACT_PATH/bin && pwd -W)" >> $GITHUB_PATH
+            echo "$(cd $SoftRobots_ROOT/bin && pwd -W)" >> $GITHUB_PATH
+            echo "$(cd $SoftRobotsInverse_ROOT/bin && pwd -W)" >> $GITHUB_PATH
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "DYLD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$DYLD_LIBRARY_PATH" | tee -a $GITHUB_ENV
+          fi
+          echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$SoftRobotsInverse_ROOT/lib:$SoftRobots_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
+          # Add execution right on the tests
+          chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/tests/*_test${{ steps.sofa.outputs.exe }}
+
+      - name: Check environment for tests
+        shell: bash
+        run: |
+          echo '------ ls -la "$WORKSPACE_SRC_PATH" ------'
+          ls -la "$WORKSPACE_SRC_PATH"
+          echo '------ ls -la "$WORKSPACE_BUILD_PATH" ------'
+          ls -la "$WORKSPACE_BUILD_PATH"
+          echo '------ ls -la "$WORKSPACE_INSTALL_PATH" ------'
+          ls -la "$WORKSPACE_INSTALL_PATH"
+          echo '------ ls -la "$WORKSPACE_ARTIFACT_PATH" ------'
+          ls -la "$WORKSPACE_ARTIFACT_PATH"
+          echo '----------------------'
+          echo "SOFA_ROOT = $SOFA_ROOT"=
+          echo '----------------------'
+          python -c "import sys; print('sys.version = ' + str(sys.version)); print('sys.path = ' + str(sys.path))"
+
+      - name: Run tests
+        if: always()
+        shell: bash
+        run: |
+          cd $WORKSPACE_BUILD_PATH/SofaImGui/tests
+          ./SofaImGui_test${{ steps.sofa.outputs.exe }}
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
@@ -246,9 +331,11 @@ jobs:
     needs: [build-and-test-with-imgui]
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: write
     steps:
       - name: Get artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           path: artifacts
 
