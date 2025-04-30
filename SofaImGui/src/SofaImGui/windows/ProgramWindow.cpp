@@ -85,10 +85,11 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
 
             float width = ImGui::GetWindowWidth();
             float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
-            static float zoomCoef = 6.;
+            static const float defaultZoomCoef = 6.5;
+            static float zoomCoef = defaultZoomCoef;
             static float minSize = ImGui::GetFrameHeight() * 1.5;
             ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
-            ProgramSizes().StartMoveBlockSize = 6.5 * minSize;
+            ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
             if (ImGui::BeginChild(ImGui::GetID(m_name.c_str()), ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
@@ -129,7 +130,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
                 zoomCoef = (zoomCoef > coefMax)? coefMax : zoomCoef;
             }
             else
-                zoomCoef = 6.;
+                zoomCoef = defaultZoomCoef;
         }
         ImGui::End();
     }
