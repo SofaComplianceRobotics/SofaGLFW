@@ -373,6 +373,7 @@ jobs:
           tag_name: ${{ env.RELEASE_TAGNAME }}
           fail_on_unmatched_files: false
           target_commitish: ${{ env.RELEASE_RAWNAME }}
+          draft: false
           body: |
             Last updated on ${{ env.RELEASE_DATE }}
           files: |
