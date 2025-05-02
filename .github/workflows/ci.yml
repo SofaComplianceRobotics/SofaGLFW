@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
   push:
+    branches: 
+      - robotics
   schedule:
     - cron: '0 3 * * *' # nightly job at midnight UTC
 
@@ -100,7 +102,7 @@ jobs:
 
   deploy:
     name: Deploy artifacts
-    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
+    if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR)
     needs: [build-and-test]
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -325,7 +327,7 @@ jobs:
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
-    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR)
+    if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR)
     needs: [build-and-test-with-imgui]
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -371,6 +373,7 @@ jobs:
           tag_name: ${{ env.RELEASE_TAGNAME }}
           fail_on_unmatched_files: false
           target_commitish: ${{ env.RELEASE_RAWNAME }}
+          draft: false
           body: |
             Last updated on ${{ env.RELEASE_DATE }}
           files: |
