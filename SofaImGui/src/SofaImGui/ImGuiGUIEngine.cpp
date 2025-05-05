@@ -129,6 +129,15 @@ void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
     m_IOWindow.setIPController(m_IPController);
 }
 
+void ImGuiGUIEngine::setRobotConnectionToggle(const bool& robotConnectionToggle)
+{
+    m_robotConnectionToggle = robotConnectionToggle;
+    if (m_robotConnectionToggle)
+        FooterStatusBar::getInstance().setTempMessage("Robot connected. See Windows>Log for more information.");
+    else
+        FooterStatusBar::getInstance().setTempMessage("Robot disconnected. See Windows>Log for more information.");
+}
+
 void ImGuiGUIEngine::init()
 {
     IMGUI_CHECKVERSION();
@@ -606,9 +615,15 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::SetCursorPosX(ImGui::GetColumnWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
 
             { // Simulation / Robot button
-                ImGui::LocalToggleButton("Connection", &m_robotConnection);
+                if (ImGui::LocalToggleButton("Connection", &m_robotConnectionToggle))
+                {
+                    if (m_robotConnectionToggle)
+                        FooterStatusBar::getInstance().setTempMessage("Connecting the robot.");
+                    else
+                        FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
+                }
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-                ImGui::Text(m_robotConnection? "Robot" : "Simulation");
+                ImGui::Text(m_robotConnectionToggle? "Robot" : "Simulation");
                 ImGui::PopStyleColor();
             }
 
