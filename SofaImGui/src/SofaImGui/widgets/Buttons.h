@@ -11,7 +11,7 @@ bool LocalInputDouble(const char* label, double* v, double step = 0.0, double st
 
 bool LocalSliderFloatWithSteps(const char* label, float* v, float v_min, float v_max, const char* display_format, ImGuiSliderFlags flags=ImGuiSliderFlags_None);
 
-void LocalToggleButton(const char* str_id, bool* v);
+bool LocalToggleButton(const char* str_id, bool* v);
 
 void LocalPushButton(const char* str_id, bool *v, const ImVec2 &buttonSize = ImVec2(0, 0));
 
