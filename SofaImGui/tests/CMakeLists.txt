@@ -5,6 +5,7 @@ find_package(Sofa.Testing REQUIRED)
 set(SOURCE_FILES
     windows/ProgramWindow_test.cpp
     windows/IOWindow_test.cpp
+    bindings/SofaImGui_test.cpp
     )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
