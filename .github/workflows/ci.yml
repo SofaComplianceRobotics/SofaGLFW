@@ -174,7 +174,7 @@ jobs:
           sofa_scope: 'standard'      
           python_version: '3.10'
           sofa_with_sofapython3: 'true'
-          pybind11_version: '2.12.0'
+          pybind11_version: '2.9.1'
           numpy_version: '1.26.3'
 
       - name: Install SoftRobots
