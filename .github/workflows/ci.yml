@@ -171,22 +171,25 @@ jobs:
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'full'      
+          sofa_scope: 'standard'      
           python_version: '3.10'
+          sofa_with_sofapython3: 'true'
+          pybind11_version: '2.12.0'
+          numpy_version: '1.26.3'
 
-      # - name: Install SoftRobots
-      #   shell: bash
-      #   run: |
-      #     SoftRobots_ROOT="$GITHUB_WORKSPACE/SoftRobots"
-      #     mkdir -p "${{ runner.temp }}/sr_tmp/zip" "${{ runner.temp }}/sr_tmp/binaries" "$SoftRobots_ROOT"
-      #     url="https://github.com/SofaDefrost/SoftRobots/releases/download"
-      #     url="${url}/release-${{ matrix.sofa_branch }}/SoftRobots_${{ matrix.sofa_branch }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
-      #     echo "Getting SoftRobots from $url"
-      #     curl --output "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -L $url
-      #     unzip -qq "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -d "${{ runner.temp }}/sr_tmp/binaries"
-      #     mv "${{ runner.temp }}"/sr_tmp/binaries/SoftRobots_*/* "$SoftRobots_ROOT"
-      #     echo "SoftRobots_ROOT=$SoftRobots_ROOT" | tee -a $GITHUB_ENV
-      #     echo "SoftRobots_DIR=$SoftRobots_ROOT/lib/cmake/SoftRobots" | tee -a $GITHUB_ENV
+      - name: Install SoftRobots
+        shell: bash
+        run: |
+          SoftRobots_ROOT="$GITHUB_WORKSPACE/SoftRobots"
+          mkdir -p "${{ runner.temp }}/sr_tmp/zip" "${{ runner.temp }}/sr_tmp/binaries" "$SoftRobots_ROOT"
+          url="https://github.com/SofaDefrost/SoftRobots/releases/download"
+          url="${url}/release-${{ matrix.sofa_branch }}/SoftRobots_${{ matrix.sofa_branch }}_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}.zip"
+          echo "Getting SoftRobots from $url"
+          curl --output "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -L $url
+          unzip -qq "${{ runner.temp }}/sr_tmp/SoftRobots.zip" -d "${{ runner.temp }}/sr_tmp/binaries"
+          mv "${{ runner.temp }}"/sr_tmp/binaries/SoftRobots_*/* "$SoftRobots_ROOT"
+          echo "SoftRobots_ROOT=$SoftRobots_ROOT" | tee -a $GITHUB_ENV
+          echo "SoftRobots_DIR=$SoftRobots_ROOT/lib/cmake/SoftRobots" | tee -a $GITHUB_ENV
 
       - name: Install SoftRobots.Inverse
         shell: bash
@@ -332,6 +335,7 @@ jobs:
           echo "SOFA_ROOT = $SOFA_ROOT"=
           echo '----------------------'
           python -c "import sys; print('sys.version = ' + str(sys.version)); print('sys.path = ' + str(sys.path))"
+          python -m pip list
 
       - name: Run tests
         if: always()
