@@ -66,7 +66,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     void showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags);
     bool enabled() override {return !m_data.empty();}
     void addData(const PlottingData data) {m_data.push_back(data);}
-    void clearData();
+    void clearWindow() override;
 
    protected:
     std::vector<PlottingData> m_data;

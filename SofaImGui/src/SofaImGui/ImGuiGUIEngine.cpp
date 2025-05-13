@@ -129,6 +129,22 @@ void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
     m_IOWindow.setIPController(m_IPController);
 }
 
+void ImGuiGUIEngine::clearGUI()
+{
+    m_IPController = nullptr;
+
+    m_simulationState.clearData();
+
+    m_logWindow.clearWindow();
+    m_sceneGraphWindow.clearWindow();
+    m_viewportWindow.clearWindow();
+    m_IOWindow.clearWindow();
+    m_programWindow.clearWindow();
+    m_myRobotWindow.clearWindow();
+    m_moveWindow.clearWindow();
+    m_plottingWindow.clearWindow();
+}
+
 void ImGuiGUIEngine::init()
 {
     IMGUI_CHECKVERSION();
@@ -222,22 +238,9 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (firstTime)
     {
         firstTime = false;
-
         m_baseGUI = baseGUI;
         m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
-
-        if(!m_programWindow.enabled())
-            m_programWindow.setOpen(false);
-
-        if(!m_plottingWindow.enabled())
-            m_plottingWindow.setOpen(false);
-
-        if(!m_myRobotWindow.enabled())
-            m_myRobotWindow.setOpen(false);
-
-        if(!m_moveWindow.enabled())
-            m_moveWindow.setOpen(false);
     }
 
     showViewportWindow(baseGUI);
@@ -448,7 +451,6 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_myRobotWindow.showWindow(windowFlags);
     m_moveWindow.showWindow(windowFlags);
     m_sceneGraphWindow.showWindow(groot, windowFlags);
-
 }
 
 void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -456,10 +458,11 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (ImGui::BeginMainMenuBar())
     {
         menus::FileMenu fileMenu(baseGUI);
-        if(fileMenu.addMenu())
-        {
-            reloadSimulation();
-        }
+        fileMenu.addMenu();
+        if(fileMenu.m_loadSimulation)
+            loadSimulation(false, fileMenu.getFilename());
+        if(fileMenu.m_reloadSimulation)
+            loadSimulation(true, fileMenu.getFilename());
 
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
 
@@ -687,7 +690,7 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
         {
             if (action == GLFW_PRESS && isCtrlKeyPressed)
             {
-                reloadSimulation();
+                loadSimulation(true, m_baseGUI->getFilename());
             }
         }
         else if (strcmp(keyName, "e") == 0)
@@ -725,17 +728,10 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
     }
 }
 
-void ImGuiGUIEngine::reloadSimulation()
+void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filename)
 {
-    m_simulationState.clearStateData();
-    m_myRobotWindow.clearData();
-    m_moveWindow.clearData();
-    m_plottingWindow.clearData();
-
-    Utils::reloadSimulation(m_baseGUI, m_baseGUI->getFilename());
-
-    auto groot = m_baseGUI->getRootNode().get();
-    m_programWindow.addTrajectoryComponents(groot);
+    clearGUI();
+    Utils::loadSimulation(m_baseGUI, reload, filename);
     m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
 }

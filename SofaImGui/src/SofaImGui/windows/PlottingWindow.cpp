@@ -41,7 +41,7 @@ PlottingWindow::PlottingWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
-void PlottingWindow::clearData()
+void PlottingWindow::clearWindow()
 {
     m_data.clear();
     m_buffers.clear();
@@ -85,7 +85,7 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
 {
     SOFA_UNUSED(windowFlags);
 
-    if(!m_data.empty() && groot->getAnimate())
+    if(!m_data.empty() && m_data.size() == m_buffers.size() && groot->getAnimate())
     {
         size_t nbData = m_data.size();
         for (size_t k=0; k<nbData; k++)
@@ -109,7 +109,7 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
             auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
             size_t nbData = m_data.size();
-            if (m_buffers.empty())
+            if (m_buffers.size() != nbData)
                 m_buffers.resize(nbData);
 
             if (ImGui::Button("Clear"))
@@ -272,7 +272,7 @@ void PlottingWindow::showMenu()
         ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
         if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
         {
-            size_t nbData = m_data.size();
+            size_t nbData = m_buffers.size();
             for (size_t i=0; i<nbData; i++)
             {
                 auto& buffer = m_buffers[i];

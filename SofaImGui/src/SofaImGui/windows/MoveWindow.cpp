@@ -39,6 +39,12 @@ MoveWindow::MoveWindow(const std::string& name,
     m_isDrivingSimulation = true;
 }
 
+void MoveWindow::clearWindow()
+{
+    m_IPController = nullptr;
+    m_accessories.clear();
+    m_actuators.clear();
+}
 
 void MoveWindow::setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription)
 {

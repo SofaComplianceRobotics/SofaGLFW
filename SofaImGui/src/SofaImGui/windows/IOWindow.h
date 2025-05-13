@@ -145,6 +145,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     void addSubscribableData(const std::string& name, sofa::core::BaseData* data);
 
+    void clearWindow() override {m_IPController=nullptr;}
+
    protected:
     
     models::IPController::SPtr m_IPController;
