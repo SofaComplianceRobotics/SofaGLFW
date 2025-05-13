@@ -85,9 +85,12 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
 {
     SOFA_UNUSED(windowFlags);
 
-    if(!m_data.empty() && m_data.size() == m_buffers.size() && groot->getAnimate())
+    size_t nbData = m_data.size();
+    if (m_buffers.size() != nbData)
+        m_buffers.resize(nbData);
+
+    if(!m_data.empty() && groot->getAnimate())
     {
-        size_t nbData = m_data.size();
         for (size_t k=0; k<nbData; k++)
         {
             auto& data = m_data[k];
@@ -108,14 +111,10 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
             auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
             auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
-            size_t nbData = m_data.size();
-            if (m_buffers.size() != nbData)
-                m_buffers.resize(nbData);
-
             if (ImGui::Button("Clear"))
             {
                 for(auto& buffer: m_buffers)
-                    buffer.data.clear();
+                    buffer.clear();
             }
 
             ImGui::SameLine();

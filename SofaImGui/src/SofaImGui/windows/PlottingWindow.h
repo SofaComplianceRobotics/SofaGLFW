@@ -36,20 +36,31 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
     struct RollingBuffer
     {
-        float span;
-        float ratio = 1;
+        float span = 20.f;
+        float xStart = 0.f;
+        float ratio = 1.f;
         ImVector<ImVec2> data;
         RollingBuffer()
         {
-            span = 20.0f;
-            data.reserve(2000);
+            clear();
         }
         void addPoint(float x, float y)
         {
-            float xmod = fmodf(x, span);
-            if (!data.empty() && xmod < data.back().x)
+            float xmod = fmodf(x - xStart, span);
+            if (!data.empty() && xmod < data.back().x - xStart)
+            {
+                xStart = data.front().x;
                 data.erase(data.begin());
+            }
             data.push_back(ImVec2(x, y * ratio));
+        }
+        void clear()
+        {
+            if (!data.empty())
+                xStart = data.front().x;
+
+            data.clear();
+            data.reserve(2000);
         }
     };
 
