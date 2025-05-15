@@ -165,8 +165,16 @@ jobs:
         sofa_branch: [master]
 
     steps:          
-      - name: Setup SOFA and environment
-        id: sofa
+      - name: Setup SOFA and environment 
+        if: runner.os != 'Windows'
+        uses: sofa-framework/sofa-setup-action@v5
+        with:
+          sofa_root: ${{ github.workspace }}/sofa
+          sofa_version: ${{ matrix.sofa_branch }}
+          sofa_scope: 'standard'      
+    
+      - name: Setup SOFA and environment for Windows
+        if: runner.os == 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
           sofa_root: ${{ github.workspace }}/sofa
@@ -174,7 +182,7 @@ jobs:
           sofa_scope: 'standard'      
           python_version: '3.10'
           sofa_with_sofapython3: 'true'
-          pybind11_version: '2.12.0'
+          pybind11_version: '2.9.1'
           numpy_version: '1.26.4'
 
       - name: Install SoftRobots
