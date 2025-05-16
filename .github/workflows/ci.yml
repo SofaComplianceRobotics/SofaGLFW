@@ -281,7 +281,7 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          if ("${{ runner.os }}" == "Windows")
+          if ("${{ runner.os }}" -eq "Windows")
           {
             $originalName = "SofaGLFW_${{ steps.sofawin.outputs.run_branch }}_for-SOFA-${{ steps.sofawin.outputs.sofa_version }}_${{ runner.os }}"
           }
