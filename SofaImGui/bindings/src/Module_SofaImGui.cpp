@@ -77,7 +77,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
     }
 }
 
-bool getRobotConnection()
+bool getRobotConnectionToggle()
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
 
@@ -86,16 +86,30 @@ bool getRobotConnection()
         std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
         if (engine)
-            return engine->getRobotConnection();
+            return engine->getRobotConnectionToggle();
     }
 
     return false;
 }
 
+void setRobotConnectionToggle(const bool& robotConnectionToggle)
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+
+    if (gui)
+    {
+        std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+        if (engine)
+            engine->setRobotConnectionToggle(robotConnectionToggle);
+    }
+}
+
 PYBIND11_MODULE(ImGui, m)
 {
     m.def("setIPController", &setIPController);
-    m.def("getRobotConnection", &getRobotConnection);
+    m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
+    m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
 
     moduleAddIOWindow(m);
     moduleAddMoveWindow(m);

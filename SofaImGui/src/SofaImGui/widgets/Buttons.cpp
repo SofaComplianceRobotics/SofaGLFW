@@ -37,7 +37,7 @@ bool LocalSliderFloatWithSteps(const char* label, float* v, float v_min, float v
     return value_changed;
 }
 
-void LocalToggleButton(const char* str_id, bool* v)
+bool LocalToggleButton(const char* str_id, bool* v)
 {
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -46,10 +46,14 @@ void LocalToggleButton(const char* str_id, bool* v)
     float radius = height * 0.40f;
     float innerRadius = radius * 0.88f;
     float width = innerRadius * 4.0f;
+    bool clicked = false;
 
     ImGui::InvisibleButton(str_id, ImVec2(width, height));
     if (ImGui::IsItemClicked())
+    {
         *v = !*v;
+        clicked = true;
+    }
 
     float t = *v ? 1.0f : 0.0f;
 
@@ -75,6 +79,8 @@ void LocalToggleButton(const char* str_id, bool* v)
                              ImVec2(p.x + width, p.y + height - (height - 2 * radius) / 2.f), col_bg, height * 0.5f);
     draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + height / 2), innerRadius,
                                IM_COL32(255, 255, 255, 255));
+
+    return clicked;
 }
 
 void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
