@@ -281,11 +281,14 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
+          if ([[ "$RUNNER_OS" == "Windows" ]])
+          {
             $originalName = "SofaGLFW_${{ steps.sofawin.outputs.run_branch }}_for-SOFA-${{ steps.sofawin.outputs.sofa_version }}_${{ runner.os }}"
+          }
           else
+          {
             $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
-          fi
+          }
           $artifact_name = $originalName -replace '[":;<>|*?\r\n\\/]', '' -replace ' ', '_'
           echo "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
