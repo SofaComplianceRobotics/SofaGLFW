@@ -342,7 +342,6 @@ jobs:
           echo "SOFA_ROOT = $SOFA_ROOT"=
           echo '----------------------'
           python -c "import sys; print('sys.version = ' + str(sys.version)); print('sys.path = ' + str(sys.path))"
-          python -m pip list
 
       - name: Run tests
         if: always()
