@@ -133,7 +133,7 @@ void ImGuiGUIEngine::setRobotConnectionToggle(const bool& robotConnectionToggle)
 {
     m_robotConnectionToggle = robotConnectionToggle;
     if (m_robotConnectionToggle)
-        FooterStatusBar::getInstance().setTempMessage("Robot connected. See Windows>Log for more information.");
+        FooterStatusBar::getInstance().setTempMessage("Robot connected.");
     else
         FooterStatusBar::getInstance().setTempMessage("Robot disconnected.");
 }
