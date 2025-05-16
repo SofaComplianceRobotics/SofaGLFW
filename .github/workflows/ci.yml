@@ -166,6 +166,7 @@ jobs:
 
     steps:          
       - name: Setup SOFA and environment 
+        id: sofa
         if: runner.os != 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
@@ -174,7 +175,7 @@ jobs:
           sofa_scope: 'standard'      
     
       - name: Setup SOFA and environment for Windows
-        id: sofa
+        id: sofawin
         if: runner.os == 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
@@ -280,7 +281,14 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
+          if ("${{ runner.os }}" -eq "Windows")
+          {
+            $originalName = "SofaGLFW_${{ steps.sofawin.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofawin.outputs.sofa_version }}_${{ runner.os }}"
+          }
+          else
+          {
+            $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
+          }
           $artifact_name = $originalName -replace '[":;<>|*?\r\n\\/]', '' -replace ' ', '_'
           echo "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
