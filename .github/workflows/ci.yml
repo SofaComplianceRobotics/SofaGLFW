@@ -352,7 +352,7 @@ jobs:
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
-    if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR)
+    if: always() && startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR), always() is used to run even if needed steps fail
     needs: [build-and-test-with-imgui]
     runs-on: ubuntu-latest
     continue-on-error: true
