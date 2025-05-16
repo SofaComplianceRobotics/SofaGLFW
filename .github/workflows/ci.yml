@@ -279,7 +279,7 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          $originalName = "SofaGLFW_${{ github.ref_name }}_with_imgui_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}"
+          $originalName = "SofaGLFW_${GITHUB_REF#refs/heads/}_with_imgui_for-SOFA-${{ matrix.sofa_branch }}_${{ runner.os }}"
           $artifact_name = $originalName -replace '[":;<>|*?\r\n\\/]', '' -replace ' ', '_'
           echo "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
