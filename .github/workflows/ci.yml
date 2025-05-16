@@ -165,14 +165,24 @@ jobs:
         sofa_branch: [master]
 
     steps:          
-      - name: Setup SOFA and environment
+      - name: Setup SOFA and environment 
+        if: runner.os != 'Windows'
+        uses: sofa-framework/sofa-setup-action@v5
+        with:
+          sofa_root: ${{ github.workspace }}/sofa
+          sofa_version: ${{ matrix.sofa_branch }}
+          sofa_scope: 'standard'      
+    
+      - name: Setup SOFA and environment for Windows
         id: sofa
+        if: runner.os == 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_scope: 'standard'      
           python_version: '3.10'
+          pybind11_version: '2.9.1'
 
       - name: Install SoftRobots
         shell: bash
@@ -301,6 +311,21 @@ jobs:
           echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$SoftRobotsInverse_ROOT/lib:$SoftRobots_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
           # Add execution right on the tests
           chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/tests/*_test${{ steps.sofa.outputs.exe }}
+          
+      - name: Move python packages
+        shell: bash
+        run: |    
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # Copy packages
+            find ./ -type f |  sed -n 's|\(.*python3/site-packages\).*|\1|p' | uniq | grep -v '.*SofaPython3.*' | while IFS= read -r line; do
+                cp -R ${line}/* $SOFA_ROOT/plugins/SofaPython3/lib/python3/site-packages
+            done
+          else
+            # Copy packages
+            find ./ -type f |  sed -n 's|\(.*python3/site-packages\).*|\1|p' | uniq | grep -v '.*SofaPython3.*' | while IFS= read -r line; do
+                cp -r --preserve=links ${line}/* $SOFA_ROOT/plugins/SofaPython3/lib/python3/site-packages            
+            done
+          fi
 
       - name: Check environment for tests
         shell: bash
