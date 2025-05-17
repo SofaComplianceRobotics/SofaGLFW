@@ -83,7 +83,9 @@ public:
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                          softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
 
-    bool getRobotConnection() {return m_robotConnection;}
+    bool getRobotConnectionToggle() {return m_robotConnectionToggle;}
+    void setRobotConnectionToggle(const bool& robotConnectionToggle);
+
     models::SimulationState& getSimulationState() {return m_simulationState;}
 
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
@@ -120,7 +122,7 @@ protected:
     bool m_animate{false};
     int m_mode{0};
     bool m_darkMode{false};
-    bool m_robotConnection{false};
+    bool m_robotConnectionToggle{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
 
 };

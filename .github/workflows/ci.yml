@@ -165,14 +165,25 @@ jobs:
         sofa_branch: [master]
 
     steps:          
-      - name: Setup SOFA and environment
+      - name: Setup SOFA and environment 
         id: sofa
+        if: runner.os != 'Windows'
+        uses: sofa-framework/sofa-setup-action@v5
+        with:
+          sofa_root: ${{ github.workspace }}/sofa
+          sofa_version: ${{ matrix.sofa_branch }}
+          sofa_scope: 'standard'      
+    
+      - name: Setup SOFA and environment for Windows
+        id: sofawin
+        if: runner.os == 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_scope: 'standard'      
           python_version: '3.10'
+          pybind11_version: '2.9.1'
 
       - name: Install SoftRobots
         shell: bash
@@ -270,7 +281,14 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
+          if ("${{ runner.os }}" -eq "Windows")
+          {
+            $originalName = "SofaGLFW_${{ steps.sofawin.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofawin.outputs.sofa_version }}_${{ runner.os }}"
+          }
+          else
+          {
+            $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
+          }
           $artifact_name = $originalName -replace '[":;<>|*?\r\n\\/]', '' -replace ' ', '_'
           echo "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
@@ -301,6 +319,21 @@ jobs:
           echo "LD_LIBRARY_PATH=$WORKSPACE_ARTIFACT_PATH/lib:$SOFA_ROOT/lib:$SoftRobotsInverse_ROOT/lib:$SoftRobots_ROOT/lib:$LD_LIBRARY_PATH" | tee -a $GITHUB_ENV
           # Add execution right on the tests
           chmod +x $WORKSPACE_BUILD_PATH/SofaImGui/tests/*_test${{ steps.sofa.outputs.exe }}
+          
+      - name: Move python packages
+        shell: bash
+        run: |    
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # Copy packages
+            find ./ -type f |  sed -n 's|\(.*python3/site-packages\).*|\1|p' | uniq | grep -v '.*SofaPython3.*' | while IFS= read -r line; do
+                cp -R ${line}/* $SOFA_ROOT/plugins/SofaPython3/lib/python3/site-packages
+            done
+          else
+            # Copy packages
+            find ./ -type f |  sed -n 's|\(.*python3/site-packages\).*|\1|p' | uniq | grep -v '.*SofaPython3.*' | while IFS= read -r line; do
+                cp -r --preserve=links ${line}/* $SOFA_ROOT/plugins/SofaPython3/lib/python3/site-packages            
+            done
+          fi
 
       - name: Check environment for tests
         shell: bash
@@ -327,7 +360,7 @@ jobs:
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
-    if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR)
+    if: always() && startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR), always() is used to run even if needed steps fail
     needs: [build-and-test-with-imgui]
     runs-on: ubuntu-latest
     continue-on-error: true
