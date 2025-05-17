@@ -23,4 +23,11 @@
 
 namespace sofaimgui::windows {
 
+bool& BaseWindow::isOpen()
+{
+    if (!enabled())
+        m_isOpen = false;
+    return m_isOpen;
+}
+
 }

@@ -43,21 +43,22 @@ FileMenu::~FileMenu()
 {
 }
 
-bool FileMenu::addMenu()
+void FileMenu::addMenu()
 {
-    if (m_baseGUI == nullptr)
-        return false;
+    m_loadSimulation = false;
+    m_reloadSimulation = false;
 
-    bool loadSimulation = false;
+    if (m_baseGUI == nullptr)
+        return;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
     if (ImGui::BeginMenu("File"))
     {
         ImGui::PopStyleColor();
         if(addOpenSimulation())
-            loadSimulation = true;
+            m_loadSimulation = true;
         if(addReloadSimulation())
-            loadSimulation = true;
+            m_reloadSimulation = true;
 
         ImGui::Separator();
 
@@ -74,7 +75,7 @@ bool FileMenu::addMenu()
         ImGui::PopStyleColor();
     }
 
-    return loadSimulation;
+    return;
 }
 
 bool FileMenu::addOpenSimulation()

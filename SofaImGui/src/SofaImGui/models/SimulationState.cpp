@@ -25,7 +25,7 @@
 namespace sofaimgui::models {
 
 
-void SimulationState::clearStateData()
+void SimulationState::clearData()
 {
     m_stateData.clear();
 }

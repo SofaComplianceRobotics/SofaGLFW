@@ -114,7 +114,8 @@ protected:
     void applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseGUI* baseGUI=nullptr);
 
     void saveSettings();
-    void reloadSimulation();
+    void loadSimulation(const bool& reload, const std::string &filename);
+    void clearGUI();
 
     models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;

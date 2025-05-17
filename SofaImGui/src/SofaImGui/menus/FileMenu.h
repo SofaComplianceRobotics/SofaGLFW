@@ -33,10 +33,13 @@ class FileMenu
     FileMenu(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     ~FileMenu();
 
-    bool addMenu();
+    void addMenu();
     const std::string& getFilename() const {return m_filename;}
 
     sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
+
+    bool m_loadSimulation{false};
+    bool m_reloadSimulation{false};
 
    protected:
 

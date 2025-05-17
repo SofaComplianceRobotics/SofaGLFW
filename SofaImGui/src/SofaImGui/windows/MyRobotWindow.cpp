@@ -41,7 +41,7 @@ MyRobotWindow::MyRobotWindow(const std::string& name,
     m_isDrivingSimulation = true;
 }
 
-void MyRobotWindow::clearData()
+void MyRobotWindow::clearWindow()
 {
     m_informationGroups.clear();
     m_settingGroups.clear();

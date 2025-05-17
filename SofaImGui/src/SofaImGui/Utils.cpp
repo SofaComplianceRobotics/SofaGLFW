@@ -27,13 +27,15 @@
 
 namespace sofaimgui::Utils {
 
-void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string filePathName)
+static bool withArguments = true;
+
+void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string &filePathName)
 {
     if (baseGUI && !filePathName.empty() && sofa::helper::system::FileSystem::exists(filePathName))
     {
         sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
         sofa::simulation::node::unload(groot);
-        const std::vector<std::string> sceneArgs = sofa::gui::common::ArgumentParser::extra_args();
+        const std::vector<std::string> sceneArgs = (reload && withArguments)? sofa::gui::common::ArgumentParser::extra_args(): std::vector<std::string>(0);
 
         groot = sofa::simulation::node::load(filePathName.c_str(), reload, sceneArgs);
         if(!groot)
@@ -77,9 +79,11 @@ void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI)
     }
 }
 
-void reloadSimulation(sofaglfw::SofaGLFWBaseGUI *baseGUI, const std::string filePathName)
+void loadSimulation(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string& filePathName)
 {
-    loadFile(baseGUI, true, filePathName);
+    if(!reload)
+        withArguments = false; // Forget python arguments once the user opens a new simulation from the GUI
+    loadFile(baseGUI, reload, filePathName);
     resetSimulationView(baseGUI);
 }
 

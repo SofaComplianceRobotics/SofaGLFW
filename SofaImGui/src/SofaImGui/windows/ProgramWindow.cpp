@@ -994,27 +994,13 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
 void ProgramWindow::setIPController(models::IPController::SPtr IPController)
 {
     m_IPController = IPController;
-    m_program = models::Program(IPController);
+    if (m_IPController)
+        m_program = models::Program(IPController);
 }
 
 void ProgramWindow::setDrivingTCPTarget(const bool &isDrivingSimulation)
 {
     m_isDrivingSimulation=isDrivingSimulation;
-}
-
-void ProgramWindow::addTrajectoryComponents(sofa::simulation::Node* groot)
-{
-    const auto& tracks = m_program.getTracks();
-    for (const auto& track: tracks)
-    {
-        const auto& actions = track->getActions();
-        for (const auto& action: actions)
-        {
-            std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
-            if(move)
-                move->addTrajectoryComponent(groot);
-        }
-    }
 }
 
 } // namespace

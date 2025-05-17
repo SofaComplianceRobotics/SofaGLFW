@@ -40,6 +40,13 @@ class SOFAIMGUI_API BaseWindow
     /// Set the window as able to drive the robot in simulation.
     virtual void setDrivingTCPTarget(const bool &isDrivingSimulation) {m_isDrivingSimulation=isDrivingSimulation;}
 
+    /// The window may have nothing to display. It should override this method with the corresponding checks.
+    /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
+    virtual bool enabled() {return true;}
+
+    /// This is called before loading / reloading a simulation.
+    virtual void clearWindow() {}
+
     /// Does the window have tools to drive the robot in simulation.
     bool isDrivingSimulation() {return m_isDrivingSimulation;}
 
@@ -47,11 +54,7 @@ class SOFAIMGUI_API BaseWindow
     void setOpen(const bool &isOpen) {m_isOpen=isOpen;}
 
     /// Does the user choose to open the window or not.
-    bool& isOpen() {return m_isOpen;}
-
-    /// The window may have nothing to display. It should override this method with the corresponding checks.
-    /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool enabled() {return true;}
+    bool& isOpen();
 
    protected:
 
