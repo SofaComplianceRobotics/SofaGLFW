@@ -42,7 +42,7 @@ class SOFAIMGUI_API SimulationState
     SimulationState() = default;
     ~SimulationState() = default;
 
-    void clearStateData();
+    void clearData();
     void addStateData(StateData &data);
     const std::vector<StateData>& getStateData() const;
 

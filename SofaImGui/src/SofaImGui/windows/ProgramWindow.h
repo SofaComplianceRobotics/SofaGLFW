@@ -48,6 +48,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     const ImGuiWindowFlags &windowFlags);
     bool enabled() override {return m_IPController!=nullptr;}
+    void clearWindow() override {m_IPController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
@@ -58,8 +59,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void importProgram();
     void exportProgram(const bool &exportAs = true);
-
-    void addTrajectoryComponents(sofa::simulation::Node* groot); /// Add to the simulation graph components to draw the trajectory in the 3D view.
 
    protected:
     

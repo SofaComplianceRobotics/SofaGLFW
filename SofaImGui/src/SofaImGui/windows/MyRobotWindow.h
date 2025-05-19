@@ -60,7 +60,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
         std::vector<Setting> settings;
     };
 
-    void clearData();
+    void clearWindow() override;
     void addInformation(const Information &info, const std::string &group);
     void addSetting(const Setting &setting, const std::string &group);
 
