@@ -102,7 +102,7 @@ jobs:
 
   deploy:
     name: Deploy artifacts
-    if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR)
+    if: always() && startsWith(github.ref, 'refs/heads/')  # we are on a branch (not a PR)
     needs: [build-and-test]
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -164,26 +164,15 @@ jobs:
         os: [ubuntu-22.04, macos-14, windows-2022] 
         sofa_branch: [master]
 
-    steps:          
+    steps:        
       - name: Setup SOFA and environment 
         id: sofa
-        if: runner.os != 'Windows'
         uses: sofa-framework/sofa-setup-action@v5
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'standard'      
-    
-      - name: Setup SOFA and environment for Windows
-        id: sofawin
-        if: runner.os == 'Windows'
-        uses: sofa-framework/sofa-setup-action@v5
-        with:
-          sofa_root: ${{ github.workspace }}/sofa
-          sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'standard'      
-          python_version: '3.10'
-          pybind11_version: '2.9.1'
+          sofa_scope: 'standard'     
+          pybind11_version: "${{ runner.os == 'Windows' && '2.9.1' || '2.12.0' }}"
 
       - name: Install SoftRobots
         shell: bash
@@ -281,14 +270,7 @@ jobs:
         # This sanitization prevents errors in artifact creation and retrieval
         shell: pwsh
         run: |
-          if ("${{ runner.os }}" -eq "Windows")
-          {
-            $originalName = "SofaGLFW_${{ steps.sofawin.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofawin.outputs.sofa_version }}_${{ runner.os }}"
-          }
-          else
-          {
-            $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
-          }
+          $originalName = "SofaGLFW_${{ steps.sofa.outputs.run_branch }}_with_imgui_for-SOFA-${{ steps.sofa.outputs.sofa_version }}_${{ runner.os }}"
           $artifact_name = $originalName -replace '[":;<>|*?\r\n\\/]', '' -replace ' ', '_'
           echo "artifact_name=$artifact_name" >> $env:GITHUB_OUTPUT
 
@@ -360,7 +342,7 @@ jobs:
 
   deploy-with-imgui:
     name: Deploy artifacts (with imgui)
-    if: always() && startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/pr_') != true  # we are on a branch (not a PR), always() is used to run even if needed steps fail
+    if: always() && startsWith(github.ref, 'refs/heads/') # we are on a branch (not a PR), always() is used to run even if needed steps fail
     needs: [build-and-test-with-imgui]
     runs-on: ubuntu-latest
     continue-on-error: true
