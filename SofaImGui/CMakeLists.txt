@@ -198,13 +198,18 @@ find_package(ROS QUIET)
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources ${imgui_SOURCE_DIR} ${implot_SOURCE_DIR} ${iconfontcppheaders_SOURCE_DIR} ${simpleini_SOURCE_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_SOURCE_DIR} ${QPOASES_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${QPOASES_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D ${CMAKE_DL_LIBS})
 target_link_libraries(${PROJECT_NAME} PRIVATE nfd)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D Sofa.Component.Playback SoftRobots SoftRobots.Inverse ${CMAKE_DL_LIBS})
 set_target_properties(nfd PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${PROJECT_NAME} PRIVATE nfd glfw tinyxml2::tinyxml2)
+
+# setup the same API exports for imgui
+target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_API=SOFAIMGUI_API)
+target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_USER_CONFIG=<SofaImGui/config.h>)
 
 option(SOFAIMGUI_WITH_ROS "If true, will enable ROS communication." OFF)
 if(NOT ROS_FOUND)
