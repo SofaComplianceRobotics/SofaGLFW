@@ -43,9 +43,11 @@
 
 #include <SofaImGui/models/IPController.h>
 #include <SofaImGui/models/SimulationState.h>
+
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/Robot.h>
 
 
 struct GLFWwindow;
@@ -83,9 +85,6 @@ public:
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                          softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
 
-    bool getRobotConnectionToggle() {return m_robotConnectionToggle;}
-    void setRobotConnectionToggle(const bool& robotConnectionToggle);
-
     models::SimulationState& getSimulationState() {return m_simulationState;}
 
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
@@ -98,6 +97,7 @@ public:
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("       Plotting", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("       My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("       Move", true);
+
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
@@ -122,9 +122,7 @@ protected:
     bool m_animate{false};
     int m_mode{0};
     bool m_darkMode{false};
-    bool m_robotConnectionToggle{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
-
 };
 
 } // namespace sofaimgui
