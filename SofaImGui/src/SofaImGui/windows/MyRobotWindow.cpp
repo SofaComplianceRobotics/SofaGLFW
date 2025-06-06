@@ -28,6 +28,8 @@
 #include <string>
 #include <SofaImGui/widgets/Buttons.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
+#include <SofaImGui/Robot.h>
+
 
 namespace sofaimgui::windows {
 
@@ -50,6 +52,22 @@ void MyRobotWindow::clearWindow()
 bool MyRobotWindow::isInEmptyGroup(const std::string &group)
 {
     return DEFAULTGROUP.find(group) != std::string::npos;
+}
+
+void MyRobotWindow::setAvailablePorts(const std::vector<std::string> &ports)
+{
+    m_connection.ports.clear();
+    m_connection.ports.reserve(ports.size());
+    for(auto port: ports)
+        m_connection.ports.push_back(port);
+}
+
+std::string MyRobotWindow::getSelectedPort()
+{
+    if (!m_connection.ports.empty())
+        return m_connection.ports[m_connection.portId];
+
+    return std::string();
 }
 
 void MyRobotWindow::addInformation(const Information &info, const std::string &group)
@@ -112,9 +130,44 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         {
             ImGui::Spacing();
 
+            { // Connection
+                if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    bool connected = Robot::getInstance().getConnection();
+
+                    ImGui::Text("Available ports:");
+
+                    if(connected)
+                        ImGui::BeginDisabled();
+
+                    ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
+                    const size_t nbPorts = m_connection.ports.size();
+                    const char* ports[nbPorts];
+                    for (size_t i=0; i<nbPorts; i++)
+                    {
+                        ports[i] = m_connection.ports[i].c_str();
+                    }
+                    ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports, IM_ARRAYSIZE(ports));
+                    ImGui::PopItemWidth();
+
+                    if(connected)
+                        ImGui::EndDisabled();
+
+                    ImGui::Text("Status:");
+                    ImGui::SameLine();
+
+                    ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImVec4(0.56f, 0.83f, 0.26f, 1.f): ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
+                    ImGui::Text((connected)? "Connected": "Disconnected");
+                    ImGui::PopStyleColor();
+
+                    ImGui::LocalEndCollapsingHeader();
+                }
+            }
+
+            // Information
             if (!m_informationGroups.empty())
             {
-                if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_DefaultOpen))
+                if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
                 {
                     std::string groups;
                     int k=0;
@@ -158,6 +211,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 }
             }
 
+            // Settings
             if (!m_settingGroups.empty())
             {
                 if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))

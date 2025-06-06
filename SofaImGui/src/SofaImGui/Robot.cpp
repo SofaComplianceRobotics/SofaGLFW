@@ -19,68 +19,28 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <imgui.h>
+#include <SofaImGui/Robot.h>
+#include <SofaImGui/FooterStatusBar.h>
 
-namespace sofaimgui::windows {
 
-class SOFAIMGUI_API MyRobotWindow : public BaseWindow
+namespace sofaimgui {
+
+Robot &Robot::getInstance()
 {
-   public:
-    MyRobotWindow(const std::string& name, const bool& isWindowOpen);
-    ~MyRobotWindow() = default;
-
-    void showWindow(const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return (!m_informationGroups.empty() || !m_settingGroups.empty());}
-
-    struct Connection{
-        std::vector<std::string> ports;
-        int portId;
-    };
-
-    struct Information{
-        std::string description;
-        sofa::core::BaseData* data;
-    };
-
-    struct Setting{
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        double min;
-        double max;
-    };
-
-    static std::string DEFAULTGROUP;
-
-    struct InformationGroup{
-        std::string description;
-        std::vector<Information> information;
-    };
-
-    struct SettingGroup{
-        std::string description;
-        std::vector<Setting> settings;
-    };
-
-    void clearWindow() override;
-    void setAvailablePorts(const std::vector<std::string> &ports);
-    std::string getSelectedPort();
-    void addInformation(const Information &info, const std::string &group);
-    void addSetting(const Setting &setting, const std::string &group);
-
-   protected:
-
-    Connection m_connection;
-    std::vector<InformationGroup> m_informationGroups;
-    std::vector<SettingGroup> m_settingGroups;
-
-    bool isInEmptyGroup(const std::string &group);
-    bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max, const int nbIndents);
-};
-
+    static Robot robot;
+    return robot;
 }
+
+void Robot::setConnection(const bool& connected)
+{
+    m_status.connected = connected;
+    if (m_status.connected)
+        FooterStatusBar::getInstance().setTempMessage("Robot connected.");
+    else
+        FooterStatusBar::getInstance().setTempMessage("Robot disconnected.");
+}
+
+} // namespace
 
 

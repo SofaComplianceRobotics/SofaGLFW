@@ -19,6 +19,7 @@
  ******************************************************************************/
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pybind11/cast.h>
 
 #include <SofaPython3/Sofa/Core/Binding_Base.h>
@@ -93,6 +94,27 @@ void moduleAddMyRobotWindow(py::module &m)
         {
             addSetting(engine, description, data, min, max, group);
         }, "Add a setting to the window."
+        );
+
+    m_a.def("setAvailablePorts",
+        [engine](const std::vector<std::string> &ports)
+        {
+            if (engine)
+            {
+                engine->m_myRobotWindow.setAvailablePorts(ports);
+            }
+        }, "Set available ports to the window."
+        );
+
+    m_a.def("getSelectedPort",
+        [engine]() -> std::string
+        {
+            if (engine)
+            {
+                return engine->m_myRobotWindow.getSelectedPort();
+            }
+            return std::string();
+        }, "Get the port selected from the window."
         );
 }
 
