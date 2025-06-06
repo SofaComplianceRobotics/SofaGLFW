@@ -71,8 +71,8 @@ def createScene(root):
     MyGui.MoveWindow.setActuatorsDescription('Motor Displacement (mm)')
     # 3. MyGui.MoveWindow.setActuators(list<SofaObject> actuators, list<int> indicesInProblem, string valueType)
     #    Sets and links the actuators
-    MyGui.MoveWindow.setActuators([cable.CableActuator.displacement], [0], 'displacement')
     MyGui.MoveWindow.setActuatorsLimits(0, 40)
+    MyGui.MoveWindow.setActuators([cable.CableActuator.displacement], [0], 'displacement')
 
     # __Plotting__ Window
     # 1. MyGui.PlottingWindow.addData(string description, SofaData (scalar) value)
