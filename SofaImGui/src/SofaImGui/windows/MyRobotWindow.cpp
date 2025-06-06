@@ -148,6 +148,10 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         ports[i] = m_connection.ports[i].c_str();
                     }
                     ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports, IM_ARRAYSIZE(ports));
+                    if (ImGui::IsItemClicked())
+                    {
+                        m_selectPortToggle = true;
+                    }
                     ImGui::PopItemWidth();
 
                     if(connected)

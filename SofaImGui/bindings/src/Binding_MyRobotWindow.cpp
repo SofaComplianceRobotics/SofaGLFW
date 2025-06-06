@@ -116,6 +116,27 @@ void moduleAddMyRobotWindow(py::module &m)
             return std::string();
         }, "Get the port selected from the window."
         );
+
+    m_a.def("getSelectPortToggle",
+        [engine]() -> bool
+        {
+            if (engine)
+            {
+                return engine->m_myRobotWindow.getSelectPortToggle();
+            }
+            return false;
+        }
+        );
+
+    m_a.def("setSelectPortToggle",
+        [engine](const bool selectPortToggle)
+        {
+            if (engine)
+            {
+                engine->m_myRobotWindow.setSelectPortToggle(selectPortToggle);
+            }
+        }
+        );
 }
 
 }
