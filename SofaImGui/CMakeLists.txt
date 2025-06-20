@@ -137,6 +137,7 @@ set(HEADER_FILES
 
     ${SOFAIMGUI_SOURCE_DIR}/Utils.h
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.h
+    ${SOFAIMGUI_SOURCE_DIR}/Robot.h
     ${SOFAIMGUI_SOURCE_DIR}/config.h.in
     ${SOFAIMGUI_SOURCE_DIR}/init.h
 
@@ -186,6 +187,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Utils.cpp
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/Robot.cpp
     ${SOFAIMGUI_SOURCE_DIR}/initSofaImGui.cpp
 
     # ${SOFAIMGUI_SOURCE_DIR}/windows/Performances.cpp
