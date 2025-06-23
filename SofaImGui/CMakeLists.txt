@@ -71,6 +71,7 @@ set(IMGUI_HEADER_FILES
     ${imgui_SOURCE_DIR}/imconfig.h
     ${imgui_SOURCE_DIR}/imgui.h
     ${imgui_SOURCE_DIR}/imgui_internal.h
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.h
     ${implot_SOURCE_DIR}/implot.h
     ${implot_SOURCE_DIR}/implot_internal.h
     ${iconfontcppheaders_SOURCE_DIR}/IconsFontAwesome6.h
@@ -91,6 +92,7 @@ set(IMGUI_SOURCE_FILES
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
     resources/Style.cpp
@@ -112,6 +114,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
 
@@ -161,6 +164,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/menus/FileMenu.cpp
     ${SOFAIMGUI_SOURCE_DIR}/menus/ViewMenu.cpp
