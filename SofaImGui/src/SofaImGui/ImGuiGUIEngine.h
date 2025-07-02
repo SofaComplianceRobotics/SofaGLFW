@@ -85,6 +85,9 @@ public:
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                          softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
 
+    void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
+    bool getRobotConnection() { return Robot::getInstance().getConnection(); }
+
     models::SimulationState& getSimulationState() {return m_simulationState;}
 
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);

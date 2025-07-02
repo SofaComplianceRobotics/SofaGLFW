@@ -370,11 +370,10 @@ void IOWindow::showROSInput()
     // List of found nodes
     const std::vector<std::string>& nodelist = m_rosnode->get_node_names();
     const size_t nbNodes = nodelist.size();
-    const char* nodes[nbNodes];
+    std::vector<const char*> nodes;
+    nodes.reserve(nbNodes);
     for (size_t i=0; i<nbNodes; i++)
-    {
-        nodes[i] = nodelist[i].c_str();
-    }
+        nodes.push_back(nodelist[i].c_str());
 
     // Subscription parameters
     static bool subscribeFirstTime = true;
@@ -382,7 +381,7 @@ void IOWindow::showROSInput()
 
     ImGui::Text("Select a node:");
     ImGui::PushItemWidth(m_itemWidth);
-    ImGui::LocalCombo("##NodeSubscription", &nodeID, nodes, IM_ARRAYSIZE(nodes));
+    ImGui::LocalCombo("##NodeSubscription", &nodeID, nodes.data(), nbNodes);
     ImGui::PopItemWidth();
 
     // List of found topics

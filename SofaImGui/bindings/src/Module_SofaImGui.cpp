@@ -36,7 +36,6 @@
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
 #include <sofa/component/constraint/lagrangian/solver/ConstraintSolverImpl.h>
-#include <SofaImGui/Robot.h>
 
 
 namespace py { using namespace pybind11; }
@@ -88,8 +87,7 @@ bool getRobotConnectionToggle()
 
         if (engine)
         {
-            bool connected = Robot::getInstance().getConnection();
-            return connected;
+            return engine->getRobotConnection();
         }
     }
 
@@ -106,7 +104,7 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
 
         if (engine)
         {
-            Robot::getInstance().setConnection(robotConnectionToggle);
+            engine->setRobotConnection(robotConnectionToggle);
         }
     }
 }

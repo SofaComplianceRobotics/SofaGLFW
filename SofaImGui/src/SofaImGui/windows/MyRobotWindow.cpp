@@ -142,12 +142,11 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
                     const size_t nbPorts = m_connection.ports.size();
-                    const char* ports[nbPorts];
+                    std::vector<const char*> ports;
+                    ports.reserve(nbPorts);
                     for (size_t i=0; i<nbPorts; i++)
-                    {
-                        ports[i] = m_connection.ports[i].c_str();
-                    }
-                    ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports, IM_ARRAYSIZE(ports));
+                        ports.push_back(m_connection.ports[i].c_str());
+                    ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
                     if (ImGui::IsItemClicked())
                     {
                         m_selectPortToggle = true;
