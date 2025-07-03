@@ -106,6 +106,7 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     m_filename = filename;
 
     sofa::core::visual::VisualParams::defaultInstance()->drawTool() = m_glDrawTool;
+    sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
 }
 
 void SofaGLFWBaseGUI::setSimulationIsRunning(bool running)
