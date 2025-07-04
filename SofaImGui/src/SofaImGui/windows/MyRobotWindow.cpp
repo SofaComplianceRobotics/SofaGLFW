@@ -130,6 +130,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         {
             ImGui::Spacing();
 
+            if (m_connection.listAvailablePortsCallback)
             { // Connection
                 if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
                 {
@@ -147,9 +148,12 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     for (size_t i=0; i<nbPorts; i++)
                         ports.push_back(m_connection.ports[i].c_str());
                     ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
-                    if (ImGui::IsItemClicked())
+                    static bool firstTime = true;
+                    if (ImGui::IsItemClicked() || firstTime)
                     {
-                        m_selectPortToggle = true;
+                        firstTime = false;
+                        auto ports = m_connection.listAvailablePortsCallback();
+                        setAvailablePorts(ports);
                     }
                     ImGui::PopItemWidth();
 

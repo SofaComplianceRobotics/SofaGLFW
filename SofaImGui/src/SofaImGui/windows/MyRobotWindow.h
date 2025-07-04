@@ -38,6 +38,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     struct Connection{
         std::vector<std::string> ports;
         int portId;
+        std::function<std::vector<std::string>()> listAvailablePortsCallback;
     };
 
     struct Information{
@@ -68,15 +69,13 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     void clearWindow() override;
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
-    bool getSelectPortToggle() {return m_selectPortToggle;}
-    void setSelectPortToggle(const bool& selectPortToggle) {m_selectPortToggle=selectPortToggle;}
     void addInformation(const Information &info, const std::string &group);
     void addSetting(const Setting &setting, const std::string &group);
+    Connection& getConnection() {return m_connection;}
 
    protected:
 
     Connection m_connection;
-    bool m_selectPortToggle{false};
     std::vector<InformationGroup> m_informationGroups;
     std::vector<SettingGroup> m_settingGroups;
 

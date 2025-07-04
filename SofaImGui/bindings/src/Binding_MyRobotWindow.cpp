@@ -64,6 +64,19 @@ void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &descr
     }
 }
 
+std::vector<std::string> listAvailablePortsCallback(const py::object& instance, const std::string& callbackName)
+{
+    sofapython3::PythonEnvironment::gil acquire;
+
+    if (py::hasattr(instance, callbackName.c_str()))
+    {
+        py::object fct = instance.attr(callbackName.c_str());
+        if (PyCallable_Check(fct.ptr()))
+            return fct().cast<std::vector<std::string>>();
+    }
+    return std::vector<std::string>();
+}
+
 void moduleAddMyRobotWindow(py::module &m)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
@@ -96,16 +109,17 @@ void moduleAddMyRobotWindow(py::module &m)
         }, "Add a setting to the window."
         );
 
-    m_a.def("setAvailablePorts",
-        [engine](const std::vector<std::string> &ports)
+    m_a.def("listAvailablePortsCallback",
+        [engine](const py::object &instance, const std::string& callbackName)
         {
             if (engine)
             {
-                engine->m_myRobotWindow.setAvailablePorts(ports);
+                auto& connection = engine->m_myRobotWindow.getConnection();
+                connection.listAvailablePortsCallback = [instance, callbackName]() -> std::vector<std::string> {
+                    return listAvailablePortsCallback(instance, callbackName);
+                };
             }
-        }, "Set available ports to the window."
-        );
-
+        });
     m_a.def("getSelectedPort",
         [engine]() -> std::string
         {
@@ -115,28 +129,8 @@ void moduleAddMyRobotWindow(py::module &m)
             }
             return std::string();
         }, "Get the port selected from the window."
-        );
+    );
 
-    m_a.def("getSelectPortToggle",
-        [engine]() -> bool
-        {
-            if (engine)
-            {
-                return engine->m_myRobotWindow.getSelectPortToggle();
-            }
-            return false;
-        }
-        );
-
-    m_a.def("setSelectPortToggle",
-        [engine](const bool selectPortToggle)
-        {
-            if (engine)
-            {
-                engine->m_myRobotWindow.setSelectPortToggle(selectPortToggle);
-            }
-        }
-        );
 }
 
 }
