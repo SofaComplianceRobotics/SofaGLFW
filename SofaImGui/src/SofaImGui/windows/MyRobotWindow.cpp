@@ -152,8 +152,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     if (ImGui::IsItemClicked() || firstTime)
                     {
                         firstTime = false;
-                        auto ports = m_connection.listAvailablePortsCallback();
-                        setAvailablePorts(ports);
+                        setAvailablePorts(m_connection.listAvailablePortsCallback());
                     }
                     ImGui::PopItemWidth();
 

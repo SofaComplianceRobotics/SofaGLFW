@@ -130,6 +130,16 @@ void moduleAddMyRobotWindow(py::module &m)
             return std::string();
         }, "Get the port selected from the window."
     );
+    m_a.def("updateAvailablePorts",
+        [engine]()
+        {
+            if (engine)
+            {
+                auto connection = engine->m_myRobotWindow.getConnection();
+                return engine->m_myRobotWindow.setAvailablePorts(connection.listAvailablePortsCallback());
+            }
+        }, "Update the list of available ports."
+    );
 
 }
 
