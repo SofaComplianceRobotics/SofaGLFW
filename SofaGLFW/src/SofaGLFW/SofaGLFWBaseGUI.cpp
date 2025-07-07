@@ -348,6 +348,19 @@ void SofaGLFWBaseGUI::setBackgroundImage(const std::string& /* filename */, unsi
 
 }
 
+void SofaGLFWBaseGUI::setWindowTitle(GLFWwindow* window, const char* title)
+{
+    if(hasWindow())
+    {
+        auto* glfwWindow = (window) ? window : m_firstWindow ;
+        glfwSetWindowTitle(glfwWindow, title);
+    }
+    else
+    {
+        msg_error("SofaGLFWBaseGUI") << "No window to set the title on"; // can happen with runSofa/BaseGUI
+    }
+}
+
 void SofaGLFWBaseGUI::makeCurrentContext(GLFWwindow* glfwWindow)
 {
     glfwMakeContextCurrent(glfwWindow);
@@ -445,11 +458,9 @@ void SofaGLFWBaseGUI::initVisual()
     float lightAmbient[4] = { 0.5f, 0.5f, 0.5f,1.0f };
     float lightDiffuse[4] = { 0.9f, 0.9f, 0.9f,1.0f };
     float lightSpecular[4] = { 1.0f, 1.0f, 1.0f,1.0f };
-    float lightPosition[4] = { -0.7f, 0.3f, 0.0f,1.0f };
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
    
     // Enable color tracking
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);

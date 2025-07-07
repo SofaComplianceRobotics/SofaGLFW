@@ -70,9 +70,11 @@ public:
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
 
     bool isFullScreen(GLFWwindow* glfwWindow = nullptr) const;
+
     void switchFullScreen(GLFWwindow* glfwWindow = nullptr, unsigned int /* screenID */ = 0);
     void setBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int /* windowID */ = 0);
     void setBackgroundImage(const std::string& /* filename */, unsigned int /* windowID */ = 0);
+    void setWindowTitle(GLFWwindow* window, const char* title);
 
     sofa::core::sptr<sofa::simulation::Node> getRootNode() const;
     bool hasWindow() const { return m_firstWindow != nullptr; }

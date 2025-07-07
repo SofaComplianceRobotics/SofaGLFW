@@ -41,6 +41,7 @@ void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std:
         if(!groot)
             groot = sofa::simulation::getSimulation()->createNewGraph("");
         baseGUI->setSimulation(groot, filePathName);
+        baseGUI->setWindowTitle(nullptr, std::string("SOFA - " + filePathName).c_str());
 
         sofa::simulation::node::initRoot(groot.get());
         auto camera = baseGUI->findCamera(groot);
