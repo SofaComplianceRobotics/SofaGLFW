@@ -135,8 +135,7 @@ void moduleAddMyRobotWindow(py::module &m)
         {
             if (engine)
             {
-                auto connection = engine->m_myRobotWindow.getConnection();
-                return engine->m_myRobotWindow.setAvailablePorts(connection.listAvailablePortsCallback());
+                engine->m_myRobotWindow.setAvailablePorts(engine->m_myRobotWindow.getConnection().listAvailablePortsCallback());
             }
         }, "Update the list of available ports."
     );
