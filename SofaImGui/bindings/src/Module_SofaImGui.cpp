@@ -86,7 +86,9 @@ bool getRobotConnectionToggle()
         std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
         if (engine)
-            return engine->getRobotConnectionToggle();
+        {
+            return engine->getRobotConnection();
+        }
     }
 
     return false;
@@ -101,7 +103,9 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
         std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
         if (engine)
-            engine->setRobotConnectionToggle(robotConnectionToggle);
+        {
+            engine->setRobotConnection(robotConnectionToggle);
+        }
     }
 }
 

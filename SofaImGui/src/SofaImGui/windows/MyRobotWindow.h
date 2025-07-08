@@ -35,6 +35,12 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     void showWindow(const ImGuiWindowFlags &windowFlags);
     bool enabled() override {return (!m_informationGroups.empty() || !m_settingGroups.empty());}
 
+    struct Connection{
+        std::vector<std::string> ports;
+        int portId;
+        std::function<std::vector<std::string>()> listAvailablePortsCallback;
+    };
+
     struct Information{
         std::string description;
         sofa::core::BaseData* data;
@@ -61,11 +67,15 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     };
 
     void clearWindow() override;
+    void setAvailablePorts(const std::vector<std::string> &ports);
+    std::string getSelectedPort();
     void addInformation(const Information &info, const std::string &group);
     void addSetting(const Setting &setting, const std::string &group);
+    Connection& getConnection() {return m_connection;}
 
    protected:
 
+    Connection m_connection;
     std::vector<InformationGroup> m_informationGroups;
     std::vector<SettingGroup> m_settingGroups;
 

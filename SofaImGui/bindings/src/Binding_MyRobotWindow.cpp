@@ -19,6 +19,7 @@
  ******************************************************************************/
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pybind11/cast.h>
 
 #include <SofaPython3/Sofa/Core/Binding_Base.h>
@@ -63,6 +64,19 @@ void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &descr
     }
 }
 
+std::vector<std::string> listAvailablePortsCallback(const py::object& instance, const std::string& callbackName)
+{
+    sofapython3::PythonEnvironment::gil acquire;
+
+    if (py::hasattr(instance, callbackName.c_str()))
+    {
+        py::object fct = instance.attr(callbackName.c_str());
+        if (PyCallable_Check(fct.ptr()))
+            return fct().cast<std::vector<std::string>>();
+    }
+    return std::vector<std::string>();
+}
+
 void moduleAddMyRobotWindow(py::module &m)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
@@ -94,6 +108,38 @@ void moduleAddMyRobotWindow(py::module &m)
             addSetting(engine, description, data, min, max, group);
         }, "Add a setting to the window."
         );
+
+    m_a.def("listAvailablePortsCallback",
+        [engine](const py::object &instance, const std::string& callbackName)
+        {
+            if (engine)
+            {
+                auto& connection = engine->m_myRobotWindow.getConnection();
+                connection.listAvailablePortsCallback = [instance, callbackName]() -> std::vector<std::string> {
+                    return listAvailablePortsCallback(instance, callbackName);
+                };
+            }
+        });
+    m_a.def("getSelectedPort",
+        [engine]() -> std::string
+        {
+            if (engine)
+            {
+                return engine->m_myRobotWindow.getSelectedPort();
+            }
+            return std::string();
+        }, "Get the port selected from the window."
+    );
+    m_a.def("updateAvailablePorts",
+        [engine]()
+        {
+            if (engine)
+            {
+                engine->m_myRobotWindow.setAvailablePorts(engine->m_myRobotWindow.getConnection().listAvailablePortsCallback());
+            }
+        }, "Update the list of available ports."
+    );
+
 }
 
 }
