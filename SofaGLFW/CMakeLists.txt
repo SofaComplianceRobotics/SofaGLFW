@@ -13,7 +13,11 @@ include(FetchContent)
 
 find_package(glfw3 CONFIG QUIET)
 
-if(NOT TARGET glfw)
+if(TARGET glfw)
+    if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+        sofa_install_libraries(TARGETS glfw)
+    endif()
+else()
     message("glfw3 not found, fetching source code...")
     FetchContent_Declare(glfw
             GIT_REPOSITORY https://github.com/glfw/glfw
