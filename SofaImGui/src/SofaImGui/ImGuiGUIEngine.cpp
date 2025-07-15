@@ -108,7 +108,14 @@ void ImGuiGUIEngine::saveSettings()
 {
     const std::string settingsFile = sofaimgui::AppIniFile::getSettingsIniFile();
     msg_info("") << "Saving application settings in " << settingsFile;
-    ini.SaveFile(settingsFile.c_str());
+    iniGUISettings.SaveFile(settingsFile.c_str());
+}
+
+void ImGuiGUIEngine::saveProject()
+{
+    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
+    msg_info("") << "Saving project in " << projectFile;
+    iniProject.SaveFile(projectFile.c_str());
 }
 
 void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
@@ -135,14 +142,9 @@ void ImGuiGUIEngine::clearGUI()
 
     m_simulationState.clearData();
 
-    m_logWindow.clearWindow();
-    m_sceneGraphWindow.clearWindow();
-    m_viewportWindow.clearWindow();
-    m_IOWindow.clearWindow();
-    m_programWindow.clearWindow();
-    m_myRobotWindow.clearWindow();
-    m_moveWindow.clearWindow();
-    m_plottingWindow.clearWindow();
+    for (auto& window : m_windows) {
+        window.get().clearWindow();
+    }
 }
 
 void ImGuiGUIEngine::init()
@@ -160,15 +162,15 @@ void ImGuiGUIEngine::init()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ini.SetUnicode();
+    iniGUISettings.SetUnicode();
     if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getSettingsIniFile()))
     {
-        SI_Error rc = ini.LoadFile(sofaimgui::AppIniFile::getSettingsIniFile().c_str());
+        SI_Error rc = iniGUISettings.LoadFile(sofaimgui::AppIniFile::getSettingsIniFile().c_str());
         SOFA_UNUSED(rc);
         assert(rc == SI_OK);
     }
 
-    const char* darkMode = ini.GetValue("Style", "darkMode");
+    const char* darkMode = iniGUISettings.GetValue("Style", "darkMode");
     if (darkMode)
     {
         std::string m = darkMode;
@@ -176,7 +178,7 @@ void ImGuiGUIEngine::init()
     }
     else
     {
-        ini.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
+        iniGUISettings.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
     }
     applyDarkMode(m_darkMode);
 
@@ -228,6 +230,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
 
     initDockSpace();
     showMainMenuBar(baseGUI);
@@ -241,10 +244,25 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         m_baseGUI = baseGUI;
         m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
+
+        if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+        {
+            SI_Error rc = iniProject.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+            SOFA_UNUSED(rc);
+            assert(rc == SI_OK);
+
+            // Set enable the right windows basesd on file
+            for (const auto& window : m_windows) {
+                std::string name = "Window." + window.get().getName();
+                if(iniProject.KeyExists(name.c_str(), "open"))
+                    window.get().setOpen(iniProject.GetBoolValue(name.c_str(), "open"));
+            }
+        }
     }
 
     showViewportWindow(baseGUI);
     showOptionWindows(baseGUI);
+    ImGui::PopStyleVar();
 
     ImGui::Render();
 
@@ -296,9 +314,19 @@ void ImGuiGUIEngine::afterDraw()
 void ImGuiGUIEngine::terminate()
 {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ini.SetDoubleValue("Window", "width", viewport->Size.x);
-    ini.SetDoubleValue("Window", "height", viewport->Size.y);
+    iniGUISettings.SetDoubleValue("Window", "width", viewport->Size.x);
+    iniGUISettings.SetDoubleValue("Window", "height", viewport->Size.y);
     saveSettings();
+
+    iniProject.SetBoolValue("Window.Move", "open", m_moveWindow.isOpen());
+    iniProject.SetBoolValue("Window.Program", "open", m_programWindow.isOpen());
+
+    for (const auto& window : m_windows) {
+        std::string name = "Window." + window.get().getName();
+        iniProject.SetBoolValue(name.c_str(), "open", window.get().isOpen());
+    }
+
+    saveProject();
 
     NFD_Quit();
 
@@ -464,63 +492,21 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(fileMenu.m_reloadSimulation)
             loadSimulation(true, fileMenu.getFilename());
 
+
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
         if (ImGui::BeginMenu("Windows"))
         {
             ImGui::PopStyleColor();
-            if (!m_IOWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_IOWindow.getName().c_str(), &m_IOWindow.isOpen());
-            if (!m_IOWindow.enabled())
-                ImGui::EndDisabled();
 
-            if (!m_programWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_programWindow.getName().c_str(), &m_programWindow.isOpen());
-            if (!m_programWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_plottingWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_plottingWindow.getName().c_str(), &m_plottingWindow.isOpen());
-            if (!m_plottingWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_myRobotWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_myRobotWindow.getName().c_str(), &m_myRobotWindow.isOpen());
-            if (!m_myRobotWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_moveWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_moveWindow.getName().c_str(), &m_moveWindow.isOpen());
-            if (!m_moveWindow.enabled())
-                ImGui::EndDisabled();
-
-            ImGui::Separator();
-
-            if (!m_viewportWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_viewportWindow.getName().c_str(), &m_viewportWindow.isOpen());
-            if (!m_viewportWindow.enabled())
-                ImGui::EndDisabled();
-
-            ImGui::Separator();
-
-            if (!m_sceneGraphWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_sceneGraphWindow.getName().c_str(), &m_sceneGraphWindow.isOpen());
-            if (!m_sceneGraphWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_logWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_logWindow.getName().c_str(), &m_logWindow.isOpen());
-            if (!m_logWindow.enabled())
-                ImGui::EndDisabled();
+            for (auto& window : m_windows) {
+                if (!window.get().enabled())
+                    ImGui::BeginDisabled();
+                    ImGui::LocalCheckBox(window.get().getName().c_str(), &window.get().isOpen());
+                    if (!window.get().enabled())
+                        ImGui::EndDisabled();
+            }
 
             ImGui::EndMenu();
         }
@@ -587,7 +573,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::PopStyleColor(4);
             m_darkMode = !m_darkMode;
             applyDarkMode(m_darkMode, baseGUI);
-            ini.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
+            iniGUISettings.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
         }
         else
         {

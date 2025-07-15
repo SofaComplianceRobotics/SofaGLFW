@@ -32,6 +32,7 @@ namespace sofaimgui
     public:
         static const std::string& getWindowsIniFile();
         static const std::string& getSettingsIniFile();
+        static const std:: string getProjectFile(std::string sceneFilename);
 
     private:
         static std::string getIniFile(const std::string filename);

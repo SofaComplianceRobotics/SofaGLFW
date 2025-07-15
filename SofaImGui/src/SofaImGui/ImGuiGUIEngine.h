@@ -102,11 +102,21 @@ public:
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("       Move", true);
 
 
+
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
 
-    CSimpleIniA ini;
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_windows{ m_viewportWindow, 
+                                                                        m_sceneGraphWindow, 
+                                                                        m_logWindow, m_IOWindow, 
+                                                                        m_programWindow, 
+                                                                        m_plottingWindow, 
+                                                                        m_myRobotWindow, 
+                                                                        m_moveWindow};
+
+    CSimpleIniA iniGUISettings;
+    CSimpleIniA iniProject;
 
     void showFrameOnViewport(sofaglfw::SofaGLFWBaseGUI *baseGUI);
     void initDockSpace();
@@ -117,6 +127,7 @@ protected:
     void applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseGUI* baseGUI=nullptr);
 
     void saveSettings();
+    void saveProject();
     void loadSimulation(const bool& reload, const std::string &filename);
     void clearGUI();
 

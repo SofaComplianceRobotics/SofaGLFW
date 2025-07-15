@@ -39,6 +39,12 @@ namespace sofaimgui
         return settingsIniFile;
     }
 
+    const std::string AppIniFile::getProjectFile(std::string sceneFilename)
+    {
+        return sceneFilename + ".crproj";
+    }
+
+
     std::string AppIniFile::getIniFile(const std::string filename)
     {
         std::string appIniFile(sofa::helper::Utils::getSofaUserLocalDirectory() + "/" + filename);
