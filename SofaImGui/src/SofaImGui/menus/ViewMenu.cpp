@@ -413,13 +413,21 @@ void ViewMenu::addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fb
         std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
         nfdchar_t *outPath;
         std::array<nfdfilteritem_t, 1> filterItem{ {{"Image", "jpg,png"}} };
+
+        // Add the date and time to the filename
+        auto now = std::chrono::system_clock::now();
+        auto localTime = std::chrono::system_clock::to_time_t(now);
+        std::stringstream ss;
+
         auto sceneFilename = m_baseGUI->getFilename();
         if (!sceneFilename.empty())
         {
             std::filesystem::path path(sceneFilename);
-            path = path.replace_extension(".png");
-            sceneFilename = path.filename().string();
+            ss << path.filename().replace_extension("").string() << "_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
+        } else {
+            ss << "screenshot_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
         }
+        sceneFilename = ss.str();
 
         nfdresult_t result = NFD_SaveDialog(&outPath, filterItem.data(), filterItem.size(), screenshotPath.c_str(), sceneFilename.c_str());
         if (result == NFD_OKAY)
