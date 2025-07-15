@@ -42,6 +42,7 @@ class ViewMenu
 
     void showGrid(const bool& show, const float &squareSize, const float &thickness);
     void showOriginFrame(const bool& show);
+    void showBoundingBox(const bool& show);
 
     void addViewport();
     void addAlignCamera();

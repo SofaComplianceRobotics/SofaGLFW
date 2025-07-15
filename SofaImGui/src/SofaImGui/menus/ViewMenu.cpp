@@ -25,6 +25,8 @@
 
 #include <sofa/component/visual/VisualGrid.h>
 #include <sofa/component/visual/LineAxis.h>
+#include <sofa/component/visual/VisualBoundingBox.h>
+
 #include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/FooterStatusBar.h>
 
@@ -141,8 +143,32 @@ void ViewMenu::showOriginFrame(const bool& show)
             newOriginFrame->d_thickness.setValue(2.f);
             newOriginFrame->d_vanishing.setValue(true);
             newOriginFrame->init();
-        } else {
+        } else
+        {
             originFrame->d_enable.setValue(show);
+        }
+    }
+}
+
+void ViewMenu::showBoundingBox(const bool& show)
+{
+    const auto& groot = m_baseGUI->getRootNode();
+    if (groot)
+    {
+        auto bbox = groot->get<sofa::component::visual::VisualBoundingBox>();
+        if (!bbox)
+        {
+            auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
+            groot->addObject(newBBox);
+            newBBox->setName("VisualBoundingBox");
+            newBBox->d_enable.setValue(show);
+            newBBox->f_bbox.setParent(&groot->f_bbox);
+            newBBox->d_color.setValue(sofa::type::RGBAColor::white());
+            newBBox->d_thickness.setValue(1.0f);
+        }
+        else
+        {
+            bbox->d_enable.setValue(show);
         }
     }
 }
@@ -175,6 +201,13 @@ void ViewMenu::addViewport()
             static bool show = false;
             if (ImGui::LocalCheckBox("Origin Frame", &show))
                 showOriginFrame(show);
+            ImGui::SetItemTooltip("Show / hide");
+        }
+
+        {
+            static bool show = false;
+            if (ImGui::LocalCheckBox("Bounding Box", &show))
+                showBoundingBox(show);
             ImGui::SetItemTooltip("Show / hide");
         }
 
