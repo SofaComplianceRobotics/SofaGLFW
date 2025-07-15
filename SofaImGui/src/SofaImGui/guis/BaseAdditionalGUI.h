@@ -19,45 +19,53 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/loader/SceneLoader.h>
-#include <sofa/simulation/SceneLoaderFactory.h>
-#include <sofa/helper/AdvancedTimer.h>
-#include <imgui.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#pragma once
+
+#include <SofaImGui/config.h>
+#include <SofaImGui/windows/WindowState.h>
 #include <sofa/simulation/Node.h>
-#include <sofa/component/visual/VisualStyle.h>
-#include <sofa/core/visual/VisualParams.h>
-#include <sofa/gui/common/BaseGUI.h>
-#include <sofa/simulation/graph/DAGNode.h>
 
-#include "DisplayFlags.h"
-#include "WindowState.h"
-
-#include <SofaImGui/widgets/DisplayFlagsWidget.h>
-
-namespace windows
+namespace sofaimgui::guis
 {
 
-    void showDisplayFlags(sofa::core::sptr<sofa::simulation::Node> groot,
-                          const char* const& windowNameDisplayFlags,
-                          WindowState& winManagerDisplayFlags)
-    {
-        if (*winManagerDisplayFlags.getStatePtr())
-        {
-            if (ImGui::Begin(windowNameDisplayFlags, winManagerDisplayFlags.getStatePtr()))
-            {
-                sofa::component::visual::VisualStyle::SPtr visualStyle = nullptr;
-                groot->get(visualStyle);
-                
-                if (visualStyle)
-                {
-                    sofaimgui::showDisplayFlagsWidget(visualStyle->d_displayFlags);
-                }
-            }
-            ImGui::End();
-        }
-    }
+/**
+ * @brief Base class for additional GUI module that can be injected into the main ImGui loop.
+ *
+ * Inherit from this to create custom GUI components that are automatically drawn each frame.
+ */
+class SOFAIMGUI_API BaseAdditionalGUI
+{
 
-}
+public:
+    virtual ~BaseAdditionalGUI() = default;
+
+    /**
+     * @brief Draw the GUI component.
+     *
+     * You must override this method to implement the GUI logic.
+     */
+    void draw(sofa::core::sptr<sofa::simulation::Node> groot, windows::WindowState& winManager);
+
+    /**
+     * @brief Get the name of the window.
+     *
+     * This will be used as the title of the ImGui window.
+     *
+     * @return The name of the window.
+     */
+    virtual std::string getWindowName() const = 0;
+
+    /**
+     * @brief Get the icon for the window.
+     *
+     * This will be used as the icon of the ImGui window.
+     *
+     * @return The icon string, default is a cube icon.
+     */
+    virtual std::string getWindowIcon() const;
+
+private:
+    virtual void doDraw(sofa::core::sptr<sofa::simulation::Node> groot) = 0;
+};
+
+} // namespace sofaimgui::guis

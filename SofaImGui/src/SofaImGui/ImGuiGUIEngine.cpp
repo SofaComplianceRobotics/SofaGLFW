@@ -39,46 +39,50 @@
 
 #include <GLFW/glfw3.h>
 
-#include <imgui.h>
-#include <imgui_internal.h> //imgui_internal.h is included in order to use the DockspaceBuilder API (which is still in development)
-#include <implot.h>
-#include <nfd.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_opengl2.h>
+#include "AppIniFile.h"
+#include "guis/AdditionalGUIRegistry.h"
+#include "windows/Components.h"
+#include "windows/DisplayFlags.h"
+#include "windows/Log.h"
+#include "windows/MouseManager.h"
+#include "windows/Performances.h"
+#include "windows/Plugins.h"
+#include "windows/Profiler.h"
+#include "windows/SceneGraph.h"
+#include "windows/Settings.h"
+#include "windows/ViewPort.h"
+#include "windows/WindowState.h"
 #include <IconsFontAwesome4.h>
 #include <IconsFontAwesome6.h>
+#include <Roboto-Medium.h>
+#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/UIStrings.h>
+#include <Style.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl2.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <fa-regular-400.h>
 #include <fa-solid-900.h>
 #include <filesystem>
 #include <fstream>
-#include <Roboto-Medium.h>
-#include <Style.h>
-#include <SofaImGui/ImGuiDataWidget.h>
-#include <sofa/helper/Utils.h>
-#include <sofa/simulation/Node.h>
+#include <imgui.h>
+#include <imgui_internal.h> //imgui_internal.h is included in order to use the DockspaceBuilder API (which is still in development)
+#include <implot.h>
+#include <nfd.h>
 #include <sofa/component/visual/VisualStyle.h>
 #include <sofa/core/ObjectFactory.h>
-#include <sofa/helper/system/PluginManager.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/io/File.h>
 #include <sofa/gl/component/rendering3d/OglSceneFrame.h>
 #include <sofa/gui/common/BaseGUI.h>
+#include <sofa/helper/Utils.h>
+#include <sofa/helper/io/File.h>
 #include <sofa/helper/io/STBImage.h>
+#include <sofa/helper/system/PluginManager.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/simulation/graph/DAGNode.h>
-#include <SofaImGui/UIStrings.h>
-#include "windows/Performances.h"
-#include "windows/Log.h"
-#include "windows/MouseManager.h"
-#include "windows/Profiler.h"
-#include "windows/SceneGraph.h"
-#include "windows/DisplayFlags.h"
-#include "windows/Plugins.h"
-#include "windows/Components.h"
-#include "windows/Settings.h"
-#include "AppIniFile.h"
-#include "windows/ViewPort.h"
-#include "windows/WindowState.h"
+
+#include <clocale>
+
 
 using namespace sofa;
 
@@ -97,6 +101,7 @@ ImGuiGUIEngine::ImGuiGUIEngine()
     , winManagerSettings(helper::system::FileSystem::append(sofaimgui::getConfigurationFolderPath(), std::string("settings.txt")))
     , winManagerViewPort(helper::system::FileSystem::append(sofaimgui::getConfigurationFolderPath(), std::string("viewport.txt")))
     , firstRunState(helper::system::FileSystem::append(sofaimgui::getConfigurationFolderPath(), std::string("firstrun.txt")))
+    , m_imguiNeedViewReset(false)
 {
 }
 
@@ -109,11 +114,15 @@ void ImGuiGUIEngine::init()
 
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    static const std::string imguiIniFile(helper::Utils::getExecutableDirectory() + "/imgui.ini");
+    static const std::string imguiIniFile(sofaimgui::getConfigurationFolderPath() + "/imgui.ini");
+
+    m_imguiNeedViewReset = !std::filesystem::exists(imguiIniFile);
+
     io.IniFilename = imguiIniFile.c_str();
 
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
 
 
     ini.SetUnicode();
@@ -121,6 +130,7 @@ void ImGuiGUIEngine::init()
     {
         SI_Error rc = ini.LoadFile(sofaimgui::AppIniFile::getAppIniFile().c_str());
         assert(rc == SI_OK);
+        msg_info("ImGuiGUIEngine") << "Fetching settings from " << sofaimgui::AppIniFile::getAppIniFile();
     }
 
     const char* pv;
@@ -142,6 +152,7 @@ void ImGuiGUIEngine::init()
 
     sofa::helper::system::PluginManager::getInstance().readFromIniFile(
         sofa::gui::common::BaseGUI::getConfigDirectoryPath() + "/loadedPlugins.ini");
+
 }
 
 void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
@@ -155,15 +166,15 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
     ImGui_ImplOpenGL3_Init(nullptr);
 #endif // SOFAIMGUI_FORCE_OPENGL2 == 1
 
-    GLFWmonitor* monitor = glfwGetWindowMonitor(glfwWindow);
-    if (!monitor)
+    GLFWmonitor* windowMonitor = glfwGetWindowMonitor(glfwWindow);
+    if (!windowMonitor)
     {
-        monitor = glfwGetPrimaryMonitor();
+        windowMonitor = glfwGetPrimaryMonitor();
     }
-    if (monitor)
+    if (windowMonitor)
     {
         float xscale{}, yscale{};
-        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        glfwGetMonitorContentScale(windowMonitor, &xscale, &yscale);
         
         ImGuiIO& io = ImGui::GetIO();
 
@@ -178,7 +189,83 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
 
         // restore the global scale stored in the Settings ini file
         const float globalScale = static_cast<float>(ini.GetDoubleValue("Visualization", "globalScale", 1.0));
-        this->setScale(globalScale, monitor);
+        this->setScale(globalScale, windowMonitor);
+    }
+ 
+    // restore window settings if set
+    const bool rememberWindowPosition = ini.GetBoolValue("Window", "rememberWindowPosition", true);
+    if(rememberWindowPosition)
+    {
+        if(ini.KeyExists("Window", "windowPosX") && ini.KeyExists("Window", "windowPosY"))
+        {
+            const long windowPosX = ini.GetLongValue("Window", "windowPosX");
+            const long windowPosY = ini.GetLongValue("Window", "windowPosY");
+
+            int monitorCount;
+            GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+
+            bool foundValidMonitor = false;
+            for (int i = 0; i < monitorCount; ++i)
+            {
+                if (GLFWmonitor* monitor = monitors[i])
+                {
+                    //retrieve the work area of the monitor in the whole desktop space, in screen coordinates
+                    int monitorXPos{0}, monitorYPos{0}, monitorWidth{0}, monitorHeight{0};
+                    glfwGetMonitorWorkarea(monitor, &monitorXPos, &monitorYPos, &monitorWidth, &monitorHeight);
+                    if(!monitorWidth || !monitorHeight)
+                    {
+                        msg_error("ImGuiGUIEngine") << "Unknown error while trying to fetch the monitor information.";
+                    }
+                    else
+                    {
+                        constexpr long margin = 5; // avoid the case where the window is positioned on the border of the monitor (almost invisible/non-selectable)
+
+                        if(windowPosX  > (monitorXPos) &&
+                           windowPosX  < (monitorXPos + monitorWidth-margin) &&
+                           windowPosY  > (monitorYPos) &&
+                           windowPosY  < (monitorYPos + monitorHeight-margin))
+                        {
+                            glfwSetWindowPos(glfwWindow, static_cast<int>(windowPosX), static_cast<int>(windowPosY));
+                            foundValidMonitor = true;
+                            break;
+                        }
+
+                    }
+                }
+            }
+
+            if (!foundValidMonitor)
+            {
+                msg_error("ImGuiGUIEngine") << "The window position from settings is invalid for any monitor.";
+            }
+        }
+        else
+        {
+            msg_error("ImGuiGUIEngine") << "Cannot set window position from settings.";
+        }
+
+    }
+
+    const bool rememberWindowSize = ini.GetBoolValue("Window", "rememberWindowSize", true);
+    if(rememberWindowSize)
+    {
+        if(ini.KeyExists("Window", "windowSizeX") && ini.KeyExists("Window", "windowSizeY"))
+        {
+            const long windowSizeX = ini.GetLongValue("Window", "windowSizeX");
+            const long windowSizeY = ini.GetLongValue("Window", "windowSizeY");
+            if(windowSizeX > 0 && windowSizeY > 0)
+            {
+                glfwSetWindowSize(glfwWindow, static_cast<int>(windowSizeX), static_cast<int>(windowSizeY));
+            }
+            else
+            {
+                msg_error("ImGuiGUIEngine") << "Invalid window size from settings.";
+            }
+        }
+        else
+        {
+            msg_error("ImGuiGUIEngine") << "Cannot set window size from settings.";
+        }
     }
 }
 
@@ -190,6 +277,7 @@ void ImGuiGUIEngine::loadFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sp
     if( !groot )
         groot = sofa::simulation::getSimulation()->createNewGraph("");
     baseGUI->setSimulation(groot, filePathName);
+    baseGUI->setWindowTitle(nullptr, std::string("SOFA - " + filePathName).c_str());
     
     sofa::simulation::node::initRoot(groot.get());
     auto camera = baseGUI->findCamera(groot);
@@ -200,10 +288,25 @@ void ImGuiGUIEngine::loadFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sp
     }
 
     baseGUI->initVisual();
+    
+    resetCounter();
+
+    // update camera if a sidecar file is present
+    baseGUI->restoreCamera(baseGUI->findCamera(groot));
+}
+
+void ImGuiGUIEngine::resetCounter()
+{
+    // reset screenshot counter when a file is loaded
+    m_screenshotCounter = 0;
 }
 
 void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
+    m_localeBackup = std::setlocale(LC_NUMERIC, nullptr);
+    std::setlocale(LC_NUMERIC, "C.UTF-8");
+
+
     auto groot = baseGUI->getRootNode();
 
     bool alwaysShowFrame = ini.GetBoolValue("Visualization", "alwaysShowFrame", true);
@@ -233,7 +336,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-
+    
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     ImGui::SetNextWindowViewport(viewport->ID);
@@ -428,16 +531,20 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             {
                 nfdchar_t *outPath;
                 std::array<nfdfilteritem_t, 1> filterItem{ {"Image", "jpg,png"} };
-                auto sceneFilename = baseGUI->getFilename();
+                const auto sceneFilename = baseGUI->getFilename();
+                std::string baseFilename{};
                 if (!sceneFilename.empty())
                 {
                     std::filesystem::path path(sceneFilename);
-                    path = path.replace_extension(".png");
-                    sceneFilename = path.filename().string();
+                    baseFilename = path.stem().string();
                 }
+                
+                std::ostringstream oss{};
+                oss << baseFilename << "_" << std::setfill('0') << std::setw(4) << m_screenshotCounter << ".png";
+                m_screenshotCounter++;
 
                 nfdresult_t result = NFD_SaveDialog(&outPath,
-                    filterItem.data(), filterItem.size(), nullptr, sceneFilename.c_str());
+                    filterItem.data(), filterItem.size(), nullptr, oss.str().c_str());
                 if (result == NFD_OKAY)
                 {
                     helper::io::STBImage image;
@@ -478,6 +585,12 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::Checkbox(windowNameLog, winManagerLog.getStatePtr());
 
             ImGui::Checkbox(windowNameMouse, winManagerMouse.getStatePtr());
+
+            if (guis::MainAdditionGUIRegistry::getAllGUIs().empty() == false)
+            {
+                ImGui::Separator();
+                sofaimgui::guis::drawWindowMenuCheckboxes(winManagerAdditionalGUIs, getConfigurationFolderPath());
+            }
 
             ImGui::Separator();
 
@@ -545,6 +658,12 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImGui::EndMainMenuBar();
     }
 
+    if (m_imguiNeedViewReset)
+    {
+      resetView(dockspace_id, windowNameSceneGraph, windowNameLog, windowNameViewport);
+      m_imguiNeedViewReset = false;
+    }
+
     /***************************************
      * Viewport window
      **************************************/
@@ -596,15 +715,20 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     windows::showLog(windowNameLog, winManagerLog);
 
     /***************************************
-     * Log window
+     * Mouse window
      **************************************/
     windows::showManagerMouseWindow(windowNameMouse, winManagerMouse, baseGUI);
+
+    /***************************************
+     * Additional GUIs
+     **************************************/
+    sofaimgui::guis::showVisibleGUIs(groot, winManagerAdditionalGUIs);
 
     /***************************************
      * Settings window
      **************************************/
     windows::showSettings(windowNameSettings,ini, winManagerSettings, this);
-
+    
     ImGui::Render();
 #if SOFAIMGUI_FORCE_OPENGL2 == 1
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
@@ -612,13 +736,23 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif // SOFAIMGUI_FORCE_OPENGL2 == 1
 
+
     // Update and Render additional Platform Windows
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
+
+
+
 }
+
+void ImGuiGUIEngine::endFrame()
+{
+    std::setlocale(LC_NUMERIC, m_localeBackup.c_str());
+}
+
 void ImGuiGUIEngine::resetView(ImGuiID dockspace_id, const char* windowNameSceneGraph, const char *windowNameLog, const char *windowNameViewport)
 {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -642,6 +776,7 @@ void ImGuiGUIEngine::resetView(ImGuiID dockspace_id, const char* windowNameScene
 
 void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
 {
+
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -660,7 +795,9 @@ void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
             m_currentFBOSize = {static_cast<unsigned int>(m_viewportWindowSize.first), static_cast<unsigned int>(m_viewportWindowSize.second)};
         }
     }
-    sofa::core::visual::VisualParams::defaultInstance()->viewport() = {0,0,m_currentFBOSize.first, m_currentFBOSize.second};
+    sofa::core::visual::VisualParams::defaultInstance()->viewport() = {0, 0,
+        static_cast<int>(m_currentFBOSize.first),
+        static_cast<int>(m_currentFBOSize.second)};
 
     m_fbo->start();
 }
@@ -668,10 +805,22 @@ void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
 void ImGuiGUIEngine::afterDraw()
 {
     m_fbo->stop();
+
 }
 
 void ImGuiGUIEngine::terminate()
 {
+    // store window state (position and size)
+    const auto lastWindowPos = ImGui::GetMainViewport()->Pos;
+    const auto lastWindowSize = ImGui::GetMainViewport()->Size;
+    
+    // save latest window state
+    ini.SetLongValue("Window", "windowPosX", static_cast<long>(lastWindowPos.x));
+    ini.SetLongValue("Window", "windowPosY", static_cast<long>(lastWindowPos.y));
+    ini.SetLongValue("Window", "windowSizeX", static_cast<long>(lastWindowSize.x));
+    ini.SetLongValue("Window", "windowSizeY", static_cast<long>(lastWindowSize.y));
+    [[maybe_unused]] SI_Error rc = ini.SaveFile(sofaimgui::AppIniFile::getAppIniFile().c_str());
+        
     NFD_Quit();
 
 #if SOFAIMGUI_FORCE_OPENGL2 == 1

@@ -23,7 +23,11 @@ FetchContent_MakeAvailable(imgui)
 
 find_package(nfd CONFIG QUIET)
 
-if(NOT TARGET nfd::nfd)
+if(TARGET nfd::nfd)
+    if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+        sofa_install_libraries(TARGETS nfd::nfd)
+    endif()
+else()
     message("nativefiledialog-extended not found, fetching source code...")
     FetchContent_Declare(nfd
             GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended
@@ -63,6 +67,7 @@ set(IMGUI_HEADER_FILES
     ${imgui_SOURCE_DIR}/imconfig.h
     ${imgui_SOURCE_DIR}/imgui.h
     ${imgui_SOURCE_DIR}/imgui_internal.h
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.h
     ${implot_SOURCE_DIR}/implot.h
     ${implot_SOURCE_DIR}/implot_internal.h
     ${iconfontcppheaders_SOURCE_DIR}/IconsFontAwesome4.h
@@ -82,6 +87,7 @@ set(IMGUI_SOURCE_FILES
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
     resources/Style.cpp
@@ -97,6 +103,10 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.h
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.h
     ${SOFAIMGUI_SOURCE_DIR}/UIStrings.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/DisplayFlagsWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/Performances.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/Log.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MouseManager.h
@@ -109,6 +119,8 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewPort.h
     ${SOFAIMGUI_SOURCE_DIR}/AppIniFile.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowState.h
+    ${SOFAIMGUI_SOURCE_DIR}/guis/BaseAdditionalGUI.h
+    ${SOFAIMGUI_SOURCE_DIR}/guis/AdditionalGUIRegistry.h
 )
 
 set(SOURCE_FILES
@@ -117,6 +129,8 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.cpp
     ${SOFAIMGUI_SOURCE_DIR}/initSofaImGui.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/DisplayFlagsWidget.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/Performances.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/Log.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/MouseManager.cpp
@@ -129,7 +143,8 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewPort.cpp
     ${SOFAIMGUI_SOURCE_DIR}/AppIniFile.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowState.cpp
-
+    ${SOFAIMGUI_SOURCE_DIR}/guis/AdditionalGUIRegistry.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/guis/BaseAdditionalGUI.cpp
 )
 
 
@@ -137,9 +152,13 @@ set(SOURCE_FILES
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources ${imgui_SOURCE_DIR} ${implot_SOURCE_DIR} ${iconfontcppheaders_SOURCE_DIR} ${simpleini_SOURCE_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D ${CMAKE_DL_LIBS})
 target_link_libraries(${PROJECT_NAME} PRIVATE nfd)
+
+# setup the same API exports for imgui
+target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_API=SOFAIMGUI_API)
+target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_USER_CONFIG=<SofaImGui/config.h>)
 
 find_package(SofaPython3 QUIET)
 if(SofaPython3_FOUND)
@@ -154,3 +173,5 @@ sofa_create_package_with_targets(
     INCLUDE_INSTALL_DIR "${PROJECT_NAME}"
     RELOCATABLE "plugins"
 )
+
+sofa_add_subdirectory(plugin extensions/SofaImGui.Camera SofaImGui.Camera)

@@ -26,10 +26,11 @@
 #include <SofaGLFW/BaseGUIEngine.h>
 #include <sofa/gl/FrameBufferObject.h>
 
+#include "guis/AdditionalGUIRegistry.h"
+#include "windows/WindowState.h"
+#include <SimpleIni.h>
 #include <imgui.h>
 #include <sofa/simulation/Node.h>
-#include <SimpleIni.h>
-#include "windows/WindowState.h"
 
 using windows::WindowState;
 
@@ -54,7 +55,7 @@ public:
     void init() override;
     void initBackend(GLFWwindow*) override;
     void startFrame(sofaglfw::SofaGLFWBaseGUI*) override;
-    void endFrame() override {}
+    void endFrame() override;
     void beforeDraw(GLFWwindow* window) override;
     void afterDraw() override;
     void terminate() override;
@@ -62,6 +63,9 @@ public:
     
     // apply global scale on the given monitor (if null, it will fetch the main monitor)
     void setScale(double globalScale, GLFWmonitor* monitor);
+
+    // reset counters
+    void resetCounter() override;
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
@@ -83,10 +87,14 @@ protected:
     windows::WindowState winManagerMouse;
     windows::WindowState winManagerSettings;
     windows::WindowState winManagerViewPort;
+    std::map<std::string, windows::WindowState> winManagerAdditionalGUIs;
     windows::WindowState firstRunState;
 
     bool isViewportDisplayedForTheFirstTime{true};
     sofa::type::Vec2f lastViewPortPos;
+    bool m_imguiNeedViewReset;
+    std::string m_localeBackup;
+    unsigned long m_screenshotCounter{0};
 };
 
 } // namespace sofaimgui

@@ -19,45 +19,54 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/loader/SceneLoader.h>
-#include <sofa/simulation/SceneLoaderFactory.h>
-#include <sofa/helper/AdvancedTimer.h>
-#include <imgui.h>
-#include <SofaImGui/ImGuiDataWidget.h>
-#include <sofa/simulation/Node.h>
-#include <sofa/component/visual/VisualStyle.h>
-#include <sofa/core/visual/VisualParams.h>
-#include <sofa/gui/common/BaseGUI.h>
-#include <sofa/simulation/graph/DAGNode.h>
+#include <SofaImGui.Camera/CameraGUI.h>
 
-#include "DisplayFlags.h"
-#include "WindowState.h"
+#include <SofaImGui.Camera/init.h>
+#include <SofaImGui/guis/AdditionalGUIRegistry.h>
+#include <sofa/core/ObjectFactory.h>
 
-#include <SofaImGui/widgets/DisplayFlagsWidget.h>
-
-namespace windows
+namespace sofaimguicamera
 {
 
-    void showDisplayFlags(sofa::core::sptr<sofa::simulation::Node> groot,
-                          const char* const& windowNameDisplayFlags,
-                          WindowState& winManagerDisplayFlags)
+void initializePlugin() 
+{
+    static bool first = true;
+    if (first)
     {
-        if (*winManagerDisplayFlags.getStatePtr())
-        {
-            if (ImGui::Begin(windowNameDisplayFlags, winManagerDisplayFlags.getStatePtr()))
-            {
-                sofa::component::visual::VisualStyle::SPtr visualStyle = nullptr;
-                groot->get(visualStyle);
-                
-                if (visualStyle)
-                {
-                    sofaimgui::showDisplayFlagsWidget(visualStyle->d_displayFlags);
-                }
-            }
-            ImGui::End();
-        }
+        first = false;
+
+        const bool registrationSuccessful =
+            sofaimgui::guis::MainAdditionGUIRegistry::registerAdditionalGUI(
+                new CameraGUI());
+    }
+}
+
+}
+
+extern "C" 
+{
+    SOFAIMGUI_CAMERA_API void initExternalModule() 
+    {
+        sofaimguicamera::initializePlugin();
     }
 
+    SOFAIMGUI_CAMERA_API const char* getModuleName() 
+    {
+        return sofaimguicamera::MODULE_NAME;
+    }
+
+    SOFAIMGUI_CAMERA_API const char* getModuleVersion() 
+    {
+        return sofaimguicamera::MODULE_VERSION;
+    }
+
+    SOFAIMGUI_CAMERA_API const char* getModuleLicense() 
+    {
+        return "LGPL";
+    }
+
+    SOFAIMGUI_CAMERA_API const char* getModuleDescription() 
+    {
+        return "SOFA plugin for SofaImGui.Camera";
+    }
 }

@@ -19,45 +19,35 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/loader/SceneLoader.h>
-#include <sofa/simulation/SceneLoaderFactory.h>
-#include <sofa/helper/AdvancedTimer.h>
+#include <SofaImGui.Camera/CameraGUI.h>
+#include <SofaImGui/guis/AdditionalGUIRegistry.h>
 #include <imgui.h>
+#include <sofa/component/visual/BaseCamera.h>
 #include <SofaImGui/ImGuiDataWidget.h>
-#include <sofa/simulation/Node.h>
-#include <sofa/component/visual/VisualStyle.h>
-#include <sofa/core/visual/VisualParams.h>
-#include <sofa/gui/common/BaseGUI.h>
-#include <sofa/simulation/graph/DAGNode.h>
 
-#include "DisplayFlags.h"
-#include "WindowState.h"
-
-#include <SofaImGui/widgets/DisplayFlagsWidget.h>
-
-namespace windows
+namespace sofaimguicamera
 {
 
-    void showDisplayFlags(sofa::core::sptr<sofa::simulation::Node> groot,
-                          const char* const& windowNameDisplayFlags,
-                          WindowState& winManagerDisplayFlags)
+void CameraGUI::doDraw(sofa::core::sptr<sofa::simulation::Node> groot)
+{
+    sofa::component::visual::BaseCamera::SPtr camera;
+    groot->get(camera);
+    if (camera)
     {
-        if (*winManagerDisplayFlags.getStatePtr())
+        // GUI of fov is custom (not the default widget)
+        float fov = static_cast<float>(camera->d_fieldOfView.getValue());
+        if(ImGui::SliderFloat("Camera field of view", &fov, 0.0f, 200.0f))
         {
-            if (ImGui::Begin(windowNameDisplayFlags, winManagerDisplayFlags.getStatePtr()))
-            {
-                sofa::component::visual::VisualStyle::SPtr visualStyle = nullptr;
-                groot->get(visualStyle);
-                
-                if (visualStyle)
-                {
-                    sofaimgui::showDisplayFlagsWidget(visualStyle->d_displayFlags);
-                }
-            }
-            ImGui::End();
+            camera->d_fieldOfView.setValue(fov);
         }
-    }
 
+        sofaimgui::showWidget(camera->d_type);
+    }
 }
+
+std::string CameraGUI::getWindowName() const
+{
+    return "Camera";
+}
+
+} // namespace sofaimguicamera
