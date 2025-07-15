@@ -46,6 +46,8 @@ class StartMove : public Action
 
     virtual ~StartMove();
     
+    std::shared_ptr<Action> duplicate() override {return nullptr;}
+
     bool apply(RigidCoord&, const double &time) override;
     void computeDuration() override;
     void computeSpeed() override;

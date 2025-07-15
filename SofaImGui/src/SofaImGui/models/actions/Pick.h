@@ -42,6 +42,8 @@ class SOFAIMGUI_API Pick : public Action
          const double& openingDistance = maxOpeningDistance);
     ~Pick() = default;
 
+    std::shared_ptr<Action> duplicate() override;
+
     void setDuration(const double &duration) override;
     bool getState() {return m_release;}
     bool apply(RigidCoord &position, const double &time) override;

@@ -51,6 +51,8 @@ class Move : public StartMove
 
     virtual ~Move();
 
+    std::shared_ptr<Action> duplicate() override;
+
     void setInitialPoint(const RigidCoord& initialPoint) override;
     void setWaypoint(const RigidCoord& waypoint) override;
     RigidCoord getInterpolatedPosition(const double& time) override;

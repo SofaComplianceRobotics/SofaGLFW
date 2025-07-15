@@ -63,7 +63,7 @@ class Track
     void popAction();
 
     void insertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action);
-    void insertMove(const sofa::Index &actionIndex);
+    void insertMove(const sofa::Index &actionIndex, std::shared_ptr<actions::Move> move);
 
     void deleteAction(const sofa::Index &actionIndex);
     void deleteMove(const sofa::Index &actionIndex);

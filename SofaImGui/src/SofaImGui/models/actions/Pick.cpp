@@ -40,6 +40,16 @@ Pick::Pick(const double &duration, const bool& release, const double &closingDis
     setComment("Pick");
 }
 
+std::shared_ptr<Action> Pick::duplicate()
+{
+    auto pick = std::make_shared<models::actions::Pick>(m_duration,
+                                                        m_release,
+                                                        m_closingDistance,
+                                                        m_openingDistance);
+    return pick;
+}
+
+
 void Pick::setDuration(const double& duration)
 {
     m_duration = duration;

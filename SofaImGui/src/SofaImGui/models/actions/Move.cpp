@@ -39,6 +39,17 @@ Move::Move(const RigidCoord& initialPoint,
     addTrajectoryComponent(m_groot);
 }
 
+std::shared_ptr<Action> Move::duplicate()
+{
+    auto move = std::make_shared<models::actions::Move>(m_initialPoint,
+                                                        m_waypoint,
+                                                        m_duration,
+                                                        m_IPController,
+                                                        m_freeInRotation,
+                                                        m_type);
+    return move;
+}
+
 Move::~Move()
 {
     if (m_groot)

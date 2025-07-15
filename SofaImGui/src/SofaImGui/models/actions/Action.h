@@ -44,6 +44,7 @@ class Action
     }
 
     virtual ~Action() = default;
+    virtual std::shared_ptr<Action> duplicate() = 0;
     
     virtual bool apply(RigidCoord &/*position*/, const double &/*time*/){return false;}
     virtual void computeDuration(){}

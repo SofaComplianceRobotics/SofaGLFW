@@ -626,6 +626,20 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
 
         if (ImGui::BeginPopup(menuLabel.c_str()))
         {
+            if (ImGui::MenuItem("Duplicate"))
+            {
+                sofa::Index newActionIndex = actionIndex+1;
+                std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+                if(move)
+                {
+                    std::shared_ptr<models::actions::Move> newMove = std::dynamic_pointer_cast<models::actions::Move>(move->duplicate());
+                    track->insertMove(newActionIndex, newMove);
+                }
+                else
+                {
+                    track->insertAction(newActionIndex, action->duplicate());
+                }
+            }
             if (ImGui::BeginMenu("Add before"))
             {
                 showActionMenu(track, trackIndex, actionIndex);
@@ -764,7 +778,13 @@ void ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const i
 {
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
-        track->insertMove(actionIndex);
+        auto move = std::make_shared<models::actions::Move>(RigidCoord(),
+                                                            m_IPController->getTCPTargetPosition(),
+                                                            models::actions::Action::DEFAULTDURATION,
+                                                            m_IPController,
+                                                            true,
+                                                            models::actions::Move::Type::LINE);
+        track->insertMove(actionIndex, move);
     }
     if (models::actions::Pick::gripperInstalled && ImGui::MenuItem(("Pick##" + std::to_string(trackIndex)).c_str()))
     {

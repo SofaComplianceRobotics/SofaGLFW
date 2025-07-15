@@ -114,15 +114,10 @@ void Track::insertAction(const sofa::Index &actionIndex, std::shared_ptr<actions
         pushAction(action);
 }
 
-void Track::insertMove(const sofa::Index &actionIndex)
+void Track::insertMove(const sofa::Index &actionIndex, std::shared_ptr<actions::Move> move)
 {
     std::shared_ptr<actions::Move> previous = getPreviousMove(actionIndex);
-    auto move = std::make_shared<actions::Move>((previous!=nullptr)? previous->getWaypoint(): m_startmove->getWaypoint(),
-                                                m_IPController->getTCPTargetPosition(),
-                                                actions::Action::DEFAULTDURATION,
-                                                m_IPController,
-                                                true,
-                                                actions::Move::Type::LINE);
+    move->setInitialPoint((previous!=nullptr)? previous->getWaypoint(): m_startmove->getWaypoint());
 
     // insert the new move
     insertAction(actionIndex, move);
