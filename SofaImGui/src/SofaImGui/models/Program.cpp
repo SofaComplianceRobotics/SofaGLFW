@@ -129,7 +129,7 @@ bool Program::importProgram(const std::string &filename)
 
                                 if (e->FindAttribute("comment"))
                                     move->setComment(e->Attribute("comment"));
-                                track->pushAction(move);
+                                move->pushToTrack(track);
                             }
                         }
                         else if (strcmp(e->FirstAttribute()->Value(), "pick") == 0)
@@ -153,7 +153,7 @@ bool Program::importProgram(const std::string &filename)
                             std::shared_ptr<actions::Pick> pick = std::make_shared<actions::Pick>(duration, release, closing, opening);
                             if (e->FindAttribute("comment"))
                                 pick->setComment(e->Attribute("comment"));
-                            track->pushAction(pick);
+                            pick->pushToTrack(track);
                         }
                         else if (strcmp(e->FirstAttribute()->Value(), "wait") == 0)
                         {
@@ -164,7 +164,7 @@ bool Program::importProgram(const std::string &filename)
                             std::shared_ptr<actions::Wait> wait = std::make_shared<actions::Wait>(duration);
                             if (e->FindAttribute("comment"))
                                 wait->setComment(e->Attribute("comment"));
-                            track->pushAction(wait);
+                            wait->pushToTrack(track);
                         }
                     }
 

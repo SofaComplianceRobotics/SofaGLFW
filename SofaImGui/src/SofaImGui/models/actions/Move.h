@@ -64,6 +64,10 @@ class Move : public StartMove
     void highlightTrajectory(const bool &highlight);
     void setDrawTrajectory(const bool &drawTrajectory);
 
+    void pushToTrack(std::shared_ptr<models::Track> track) override;
+    void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+    void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+
    protected:
 
     const Trajectory::SPtr m_trajectory = sofa::core::objectmodel::New<Trajectory>();

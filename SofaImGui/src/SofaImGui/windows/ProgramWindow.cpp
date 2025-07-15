@@ -628,13 +628,13 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
         {
             if (ImGui::MenuItem("Duplicate"))
             {
-                track->insertAction(actionIndex+1, action->duplicate());
+                action->duplicate()->insertInTrack(track, actionIndex + 1);
             }
             if (ImGui::BeginMenu("Replace"))
             {
                 if (showActionMenu(track, trackIndex, actionIndex+1))
                 {
-                    track->deleteAction(actionIndex, action);
+                    action->deleteFromTrack(track, actionIndex);
                 }
                 ImGui::EndMenu();
             }
@@ -680,7 +680,7 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
         {
             if (ImGui::MenuItem("Delete"))
             {
-                track->deleteAction(actionIndex, action);
+                action->deleteFromTrack(track, actionIndex);
             }
             else
                 actionIndex++;
@@ -779,13 +779,14 @@ bool ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const i
                                                             m_IPController,
                                                             true,
                                                             models::actions::Move::Type::LINE);
-        track->insertAction(actionIndex, move);
+        move->insertInTrack(track, actionIndex);
         return true;
     }
 
     if (models::actions::Pick::gripperInstalled && ImGui::MenuItem(("Pick##" + std::to_string(trackIndex)).c_str()))
     {
-        track->insertAction(actionIndex, std::make_shared<models::actions::Pick>());
+        auto pick = std::make_shared<models::actions::Pick>();
+        pick->insertInTrack(track, actionIndex);
         return true;
     }
 
@@ -793,13 +794,14 @@ bool ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const i
     {
         auto pick = std::make_shared<models::actions::Pick>(models::actions::Action::DEFAULTDURATION, true);
         pick->setComment("Place");
-        track->insertAction(actionIndex, pick);
+        pick->insertInTrack(track, actionIndex);
         return true;
     }
 
     if (ImGui::MenuItem(("Wait##" + std::to_string(trackIndex)).c_str()))
     {
-        track->insertAction(actionIndex, std::make_shared<models::actions::Wait>());
+        auto wait = std::make_shared<models::actions::Wait>();
+        wait->insertInTrack(track, actionIndex);
         return true;
     }
 

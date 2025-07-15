@@ -26,9 +26,13 @@
 #include <imgui.h>
 #include <string>
 
+namespace sofaimgui::models {
+    class Track;
+}
+
 namespace sofaimgui::models::actions {
 
-class Action
+class Action: public std::enable_shared_from_this< Action >
 {
     typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
@@ -64,6 +68,10 @@ class Action
         m_speed = speed;
         computeDuration();
     }
+
+    virtual void pushToTrack(std::shared_ptr<models::Track> track);
+    virtual void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex);
+    virtual void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex);
 
     void setComment(const char* comment) {strncpy(m_comment, comment, COMMENTSIZE); m_comment[COMMENTSIZE-1]='\0';}
     void getComment(char* comment) {strncpy(comment, m_comment, COMMENTSIZE); comment[COMMENTSIZE-1]='\0';}

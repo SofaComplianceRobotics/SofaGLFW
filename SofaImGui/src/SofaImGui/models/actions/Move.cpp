@@ -21,6 +21,7 @@
  ******************************************************************************/
 
 #include <SofaImGui/models/actions/Move.h>
+#include <SofaImGui/models/Track.h>
 
 namespace sofaimgui::models::actions {
 
@@ -39,6 +40,12 @@ Move::Move(const RigidCoord& initialPoint,
     addTrajectoryComponent(m_groot);
 }
 
+Move::~Move()
+{
+    if (m_groot)
+        m_groot->removeObject(m_trajectory);
+}
+
 std::shared_ptr<Action> Move::duplicate()
 {
     auto move = std::make_shared<models::actions::Move>(m_initialPoint,
@@ -50,10 +57,40 @@ std::shared_ptr<Action> Move::duplicate()
     return move;
 }
 
-Move::~Move()
+void Move::pushToTrack(std::shared_ptr<models::Track> track)
 {
-    if (m_groot)
-        m_groot->removeObject(m_trajectory);
+    auto actions = track->getActions();
+    std::shared_ptr<actions::Move> previous = track->getPreviousMove(actions.size());
+    this->setInitialPoint((previous!=nullptr)? previous->getWaypoint(): track->getStartMove()->getWaypoint());
+    Action::pushToTrack(track);
+}
+
+void Move::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    std::shared_ptr<actions::Move> previous = track->getPreviousMove(actionIndex);
+    setInitialPoint((previous!=nullptr)? previous->getWaypoint(): track->getStartMove()->getWaypoint());
+
+    // insert the new move
+    Action::insertInTrack(track, actionIndex);
+
+    // update the next move
+    std::shared_ptr<actions::Move> next = track->getNextMove(actionIndex);
+    if (next)
+        next->setInitialPoint(m_waypoint);
+}
+
+void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    auto actions = track->getActions();
+    if (actionIndex + 1 == actions.size()) // nothing after, just pop the move
+    {
+        actions.pop_back();
+    }
+    else
+    {
+        track->updateNextMoveInitialPoint(actionIndex, m_initialPoint);
+        Action::deleteFromTrack(track, actionIndex);
+    }
 }
 
 void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
