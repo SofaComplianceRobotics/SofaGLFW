@@ -129,7 +129,7 @@ bool Program::importProgram(const std::string &filename)
 
                                 if (e->FindAttribute("comment"))
                                     move->setComment(e->Attribute("comment"));
-                                track->pushMove(move);
+                                track->pushAction(move);
                             }
                         }
                         else if (strcmp(e->FirstAttribute()->Value(), "pick") == 0)

@@ -80,6 +80,15 @@ std::shared_ptr<actions::Move> Track::getNextMove(const sofa::Index &actionIndex
 
 void Track::pushAction(std::shared_ptr<actions::Action> action)
 {
+    std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+    if (move)
+        pushMove(move);
+    else
+        internalPushAction(action);
+}
+
+void Track::internalPushAction(std::shared_ptr<actions::Action> action)
+{
     m_actions.push_back(action);
 }
 
@@ -87,18 +96,7 @@ void Track::pushMove(std::shared_ptr<actions::Move> move)
 {
     std::shared_ptr<actions::Move> previous = getPreviousMove(m_actions.size());
     move->setInitialPoint((previous!=nullptr)? previous->getWaypoint(): m_startmove->getWaypoint());
-    pushAction(move);
-}
-
-void Track::pushMove()
-{
-    auto move = std::make_shared<actions::Move>(RigidCoord(),
-                                                m_IPController->getTCPTargetPosition(),
-                                                actions::Action::DEFAULTDURATION,
-                                                m_IPController,
-                                                true,
-                                                actions::Move::Type::LINE);
-    pushMove(move);
+    internalPushAction(move);
 }
 
 void Track::popAction()
@@ -107,6 +105,19 @@ void Track::popAction()
 }
 
 void Track::insertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action)
+{
+    std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+    if (move)
+    {
+        insertMove(actionIndex, move);
+    }
+    else
+    {
+        internalInsertAction(actionIndex, action);
+    }
+}
+
+void Track::internalInsertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action)
 {
     if (actionIndex < m_actions.size())
         m_actions.insert(m_actions.begin() + actionIndex, action);
@@ -120,12 +131,21 @@ void Track::insertMove(const sofa::Index &actionIndex, std::shared_ptr<actions::
     move->setInitialPoint((previous!=nullptr)? previous->getWaypoint(): m_startmove->getWaypoint());
 
     // insert the new move
-    insertAction(actionIndex, move);
+    internalInsertAction(actionIndex, move);
 
     // update the next move
     std::shared_ptr<actions::Move> next = getNextMove(actionIndex);
     if (next)
         next->setInitialPoint(move->getWaypoint());
+}
+
+void Track::deleteAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action)
+{
+    std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+    if (move)
+        deleteMove(actionIndex);
+    else
+        deleteAction(actionIndex);
 }
 
 void Track::deleteAction(const sofa::Index &actionIndex)

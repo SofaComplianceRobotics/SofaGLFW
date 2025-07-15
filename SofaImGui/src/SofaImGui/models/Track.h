@@ -56,17 +56,10 @@ class Track
     const std::vector<std::shared_ptr<modifiers::Modifier>>& getModifiers() {return m_modifiers;}
     std::shared_ptr<modifiers::Modifier> getModifier(const sofa::Index& modifierIndex) {return m_modifiers[modifierIndex];}
 
-    void pushAction(std::shared_ptr<actions::Action> action);
-    void pushMove(std::shared_ptr<actions::Move> move);
-    void pushMove();
-
-    void popAction();
-
     void insertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action);
-    void insertMove(const sofa::Index &actionIndex, std::shared_ptr<actions::Move> move);
-
-    void deleteAction(const sofa::Index &actionIndex);
-    void deleteMove(const sofa::Index &actionIndex);
+    void deleteAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action);
+    void pushAction(std::shared_ptr<actions::Action> action);
+    void popAction();
 
     void updateNextMoveInitialPoint(const sofa::Index &actionIndex, const RigidCoord &initialPoint);
 
@@ -89,6 +82,13 @@ class Track
 
     std::shared_ptr<actions::Move> getPreviousMove(const sofa::Index &actionIndex);
     std::shared_ptr<actions::Move> getNextMove(const sofa::Index &actionIndex);
+
+    void deleteAction(const sofa::Index &actionIndex);
+    void deleteMove(const sofa::Index &actionIndex);
+    void internalInsertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action);
+    void insertMove(const sofa::Index &actionIndex, std::shared_ptr<actions::Move> move);
+    void internalPushAction(std::shared_ptr<actions::Action> action);
+    void pushMove(std::shared_ptr<actions::Move> move);
 
 };
 

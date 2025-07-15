@@ -628,17 +628,15 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
         {
             if (ImGui::MenuItem("Duplicate"))
             {
-                sofa::Index newActionIndex = actionIndex+1;
-                std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
-                if(move)
+                track->insertAction(actionIndex+1, action->duplicate());
+            }
+            if (ImGui::BeginMenu("Replace"))
+            {
+                if (showActionMenu(track, trackIndex, actionIndex+1))
                 {
-                    std::shared_ptr<models::actions::Move> newMove = std::dynamic_pointer_cast<models::actions::Move>(move->duplicate());
-                    track->insertMove(newActionIndex, newMove);
+                    track->deleteAction(actionIndex, action);
                 }
-                else
-                {
-                    track->insertAction(newActionIndex, action->duplicate());
-                }
+                ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Add before"))
             {
@@ -682,10 +680,7 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
         {
             if (ImGui::MenuItem("Delete"))
             {
-                if (move)
-                    track->deleteMove(actionIndex);
-                else
-                    track->deleteAction(actionIndex);
+                track->deleteAction(actionIndex, action);
             }
             else
                 actionIndex++;
@@ -774,7 +769,7 @@ void ProgramWindow::showBlockOptionButton(const std::string &menulabel,
     window->DC.CursorPosPrevLine = backuppos;
 }
 
-void ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex)
+bool ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex)
 {
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
@@ -784,22 +779,31 @@ void ProgramWindow::showActionMenu(std::shared_ptr<models::Track> track, const i
                                                             m_IPController,
                                                             true,
                                                             models::actions::Move::Type::LINE);
-        track->insertMove(actionIndex, move);
+        track->insertAction(actionIndex, move);
+        return true;
     }
+
     if (models::actions::Pick::gripperInstalled && ImGui::MenuItem(("Pick##" + std::to_string(trackIndex)).c_str()))
     {
         track->insertAction(actionIndex, std::make_shared<models::actions::Pick>());
+        return true;
     }
+
     if (models::actions::Pick::gripperInstalled && ImGui::MenuItem(("Place##" + std::to_string(trackIndex)).c_str()))
     {
         auto pick = std::make_shared<models::actions::Pick>(models::actions::Action::DEFAULTDURATION, true);
         pick->setComment("Place");
         track->insertAction(actionIndex, pick);
+        return true;
     }
+
     if (ImGui::MenuItem(("Wait##" + std::to_string(trackIndex)).c_str()))
     {
         track->insertAction(actionIndex, std::make_shared<models::actions::Wait>());
+        return true;
     }
+
+    return false;
 }
 
 void ProgramWindow::initFilePath(const std::string& filename)
