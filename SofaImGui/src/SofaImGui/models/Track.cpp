@@ -65,7 +65,7 @@ std::shared_ptr<actions::Move> Track::getPreviousMove(const sofa::Index &actionI
 
 std::shared_ptr<actions::Move> Track::getNextMove(const sofa::Index &actionIndex)
 {
-    if (actionIndex + 1==m_actions.size() || m_actions.empty())
+    if (actionIndex + 1 == m_actions.size() || m_actions.empty())
         return nullptr; // no next move
 
     for (size_t i=actionIndex + 1; i<m_actions.size(); i++)

@@ -81,16 +81,8 @@ void Move::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index
 
 void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
 {
-    auto actions = track->getActions();
-    if (actionIndex + 1 == actions.size()) // nothing after, just pop the move
-    {
-        actions.pop_back();
-    }
-    else
-    {
-        track->updateNextMoveInitialPoint(actionIndex, m_initialPoint);
-        Action::deleteFromTrack(track, actionIndex);
-    }
+    track->updateNextMoveInitialPoint(actionIndex, m_initialPoint);
+    Action::deleteFromTrack(track, actionIndex);
 }
 
 void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
