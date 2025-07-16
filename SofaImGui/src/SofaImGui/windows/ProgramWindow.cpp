@@ -988,6 +988,19 @@ sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
 
     if (ImGui::BeginPopup(menuLabel.c_str()))
     {
+        if (ImGui::BeginMenu("Add before"))
+        {
+            actionMenu(track, trackIndex, index);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Add after"))
+        {
+            actionMenu(track, trackIndex, index+1);
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("Duplicate"))
         {
             action->duplicate()->insertInTrack(track, index + 1);
@@ -1000,14 +1013,26 @@ sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Add before"))
+        if (ImGui::BeginMenu("Swap"))
         {
-            actionMenu(track, trackIndex, index);
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Add after"))
-        {
-            actionMenu(track, trackIndex, index+1);
+            sofa::Size nbActions = track->getActions().size();
+
+            bool disableLeft = (index == 0);
+            if (disableLeft)
+                ImGui::BeginDisabled();
+            if (ImGui::MenuItem("Left"))
+                track->swapActions(index-1, index);
+            if (disableLeft)
+                ImGui::EndDisabled();
+
+            bool disableRight = (index == nbActions-1);
+            if (disableRight)
+                ImGui::BeginDisabled();
+            if (ImGui::MenuItem("Right"))
+                track->swapActions(index, index+1);
+            if (disableRight)
+                ImGui::EndDisabled();
+
             ImGui::EndMenu();
         }
 

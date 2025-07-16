@@ -85,6 +85,13 @@ void Track::updateNextMoveInitialPoint(const sofa::Index &actionIndex, const Rig
         next->setInitialPoint(initialPoint);
 }
 
+void Track::swapActions(const sofa::Index& actionIndex1, const sofa::Index& actionIndex2)
+{
+    sofa::Size nbActions = m_actions.size();
+    if (actionIndex1 <= nbActions - 1 && actionIndex2 <= nbActions - 1)
+        iter_swap(m_actions.begin() + actionIndex1, m_actions.begin() + actionIndex2);
+}
+
 } // namespace
 
 

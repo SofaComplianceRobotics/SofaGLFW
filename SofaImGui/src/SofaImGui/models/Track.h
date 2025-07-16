@@ -61,6 +61,8 @@ class Track
     std::shared_ptr<actions::Move> getPreviousMove(const sofa::Index &actionIndex);
     std::shared_ptr<actions::Move> getNextMove(const sofa::Index &actionIndex);
 
+    void swapActions(const sofa::Index& actionIndex1, const sofa::Index& actionIndex2);
+
    protected:
     
     models::IPController::SPtr m_IPController;
