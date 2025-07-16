@@ -21,63 +21,36 @@
  ******************************************************************************/
 #pragma once
 
-#include <imgui.h>
-#include <memory>
-#include <string>
-#include <SofaImGui/config.h>
 
-namespace sofaimgui::models {
-class Track;
-}
+#include <SofaImGui/models/modifiers/Modifier.h>
+#include <SofaImGui/models/Track.h>
+
 
 namespace sofaimgui::models::modifiers {
 
-class Modifier : public std::enable_shared_from_this<Modifier>
+void Modifier::pushToTrack(std::shared_ptr<models::Track> track)
 {
-   public:
+    auto& modifiers = track->getModifiers();
+    modifiers.push_back(shared_from_this());
+}
 
-    inline static const int COMMENTSIZE = 18;
-    Modifier(const double& duration): m_duration(duration)
-    {
-    }
+void Modifier::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
+{
+    auto& modifiers = track->getModifiers();
+    if (modifierIndex < modifiers.size())
+        modifiers.insert(modifiers.begin() + modifierIndex, shared_from_this());
+    else
+        pushToTrack(track);
+}
 
-    ~Modifier() = default;
-
-    virtual void modify(double &time) = 0;
-    virtual void reset() = 0;
-    virtual void computeDuration(){};
-    virtual void computeSpeed(){};
-
-    const double& getDuration() {return m_duration;}
-    virtual void setDuration(const double& duration) {m_duration = duration;}
-
-    void setComment(const char* comment) {strncpy(m_comment, comment, COMMENTSIZE); m_comment[COMMENTSIZE-1]='\0';}
-    void getComment(char* comment) {strncpy(comment, m_comment, COMMENTSIZE); comment[COMMENTSIZE-1]='\0';}
-
-    char* getComment() {return m_comment;}
-
-    virtual void pushToTrack(std::shared_ptr<models::Track> track);
-    virtual void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex);
-    virtual void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex);
-
-   protected:
-
-    double m_duration;
-    char m_comment[COMMENTSIZE];
-
-    class ModifierView
-    {
-       public:
-        virtual bool showBlock(const std::string &,
-                               const ImVec2 &,
-                               const ImVec2 &) {return false;}
-    };
-    ModifierView view;
-
-   public :
-
-    virtual ModifierView* getView() {return &view;}
-};
+void Modifier::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
+{
+    auto& modifiers = track->getModifiers();
+    if (modifierIndex < modifiers.size())
+        modifiers.erase(modifiers.begin() + modifierIndex);
+    else
+        dmsg_error("Track") << "modifierIndex";
+}
 
 } // namespace
 

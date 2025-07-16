@@ -192,7 +192,7 @@ bool Program::importProgram(const std::string &filename)
                             if (e->FindAttribute("comment"))
                                 repeat->setComment(e->Attribute("comment"));
 
-                            track->pushModifier(repeat);
+                            repeat->pushToTrack(track);
                         }
                     }
 

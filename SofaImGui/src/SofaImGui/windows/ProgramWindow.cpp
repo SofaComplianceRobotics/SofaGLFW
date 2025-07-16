@@ -403,7 +403,10 @@ int ProgramWindow::showTracks()
                     ImGui::BeginDisabled();
 
                 if (ImGui::MenuItem(("Repeat##" + std::to_string(trackIndex)).c_str()))
-                    track->pushRepeat();
+                {
+                    std::shared_ptr<models::modifiers::Repeat> repeat = std::make_shared<models::modifiers::Repeat>(1, 0);
+                    repeat->pushToTrack(track);
+                }
 
                 if (track->getActions().empty() || !track->getModifiers().empty())
                     ImGui::EndDisabled();
@@ -592,7 +595,7 @@ void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
         {
             if (ImGui::MenuItem("Delete"))
             {
-                track->deleteModifier(modifierIndex);
+                modifier->deleteFromTrack(track, modifierIndex);
             }
             else
                 modifierIndex++;

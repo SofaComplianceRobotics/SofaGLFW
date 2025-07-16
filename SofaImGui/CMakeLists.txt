@@ -178,6 +178,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Pick.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/StartMove.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Wait.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Modifier.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Repeat.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/MoveView.cpp

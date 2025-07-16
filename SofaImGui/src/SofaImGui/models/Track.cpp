@@ -85,45 +85,6 @@ void Track::updateNextMoveInitialPoint(const sofa::Index &actionIndex, const Rig
         next->setInitialPoint(initialPoint);
 }
 
-void Track::pushModifier(std::shared_ptr<modifiers::Modifier> modifier)
-{
-    m_modifiers.push_back(modifier);
-}
-
-void Track::pushRepeat()
-{
-    double endTime = 0.;
-    for (const auto& action: m_actions)
-        endTime += action->getDuration();
-    std::shared_ptr<modifiers::Repeat> repeat = std::make_shared<modifiers::Repeat>(1, endTime);
-    pushModifier(repeat);
-}
-
-void Track::insertModifier(const sofa::Index &modifierIndex, std::shared_ptr<modifiers::Modifier> modifier)
-{
-    if (modifierIndex < m_modifiers.size())
-        m_modifiers.insert(m_modifiers.begin() + modifierIndex, modifier);
-    else
-        pushModifier(modifier);
-}
-
-void Track::insertRepeat(const sofa::Index &modifierIndex)
-{
-    double endTime = 0.;
-    for (sofa::Index i=0; i<modifierIndex; i++)
-        endTime += m_modifiers[i]->getDuration();
-    std::shared_ptr<modifiers::Repeat> repeat = std::make_shared<modifiers::Repeat>(0.f, endTime);
-    insertModifier(modifierIndex, repeat);
-}
-
-void Track::deleteModifier(const sofa::Index &modifierIndex)
-{
-    if (modifierIndex < m_modifiers.size())
-        m_modifiers.erase(m_modifiers.begin() + modifierIndex);
-    else
-        dmsg_error("Track") << "modifierIndex";
-}
-
 } // namespace
 
 
