@@ -450,7 +450,7 @@ int ProgramWindow::showTracks()
         }
 
         const std::vector<std::shared_ptr<models::actions::Action>> &actions = track->getActions();
-        showAddActionButton(ImVec2(x + ImGui::GetStyle().ItemSpacing.x, y + ProgramSizes().TrackHeight / 2.f), actions.size(), track, trackIndex);
+        showBetweenBlocksButtons(ImVec2(x + ImGui::GetStyle().ItemSpacing.x, y + ProgramSizes().TrackHeight / 2.f), actions.size(), track, trackIndex);
 
         trackIndex++;
     }
@@ -637,17 +637,18 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
         if (blockWidth > ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2.0f)
             showBlockOptionButton(menuLabel, blockLabel);
 
-        showAddActionButton(ImVec2(x, y + blockHeight / 2.f), actionIndex - 1, track, trackIndex);
+        showBetweenBlocksButtons(ImVec2(x, y + blockHeight / 2.f), actionIndex - 1, track, trackIndex);
     }
 }
 
-void ProgramWindow::showAddActionButton(const ImVec2 &position,
-                                        const unsigned int &actionIndex,
-                                        std::shared_ptr<models::Track> track,
-                                        const int& trackIndex)
+void ProgramWindow::showBetweenBlocksButtons(const ImVec2 &position,
+                                            const unsigned int &actionIndex,
+                                            std::shared_ptr<models::Track> track,
+                                            const int& trackIndex)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     auto backuppos = window->DC.CursorPosPrevLine;
+    size_t nbActions = track->getActions().size();
 
     const float buttonSize = ImGui::GetFrameHeight();
     const float x = position.x - ImGui::GetFrameHeight() - ImGui::GetStyle().ItemSpacing.x / 2.f;
@@ -659,32 +660,64 @@ void ProgramWindow::showAddActionButton(const ImVec2 &position,
     ImRect bb{ImVec2(x, position.y - buttonSize),
               ImVec2(x + buttonSize * 2.f, position.y + buttonSize)};
 
-    ImGui::PushID(actionIndex);
-    const ImGuiID id = window->GetID("##InvisibleActionBlockAddButtons");
-    ImGui::ItemAdd(bb, id);
+    bool enableSwapButton = (actionIndex!=0 && actionIndex!=track->getActions().size());
 
-    window->DC.CursorPos.x = position.x - ImGui::GetFrameHeight() / 2.f - ImGui::GetStyle().ItemSpacing.x / 2.f;
-    window->DC.CursorPos.y = position.y - ImGui::GetFrameHeight() / 2.f;
-
-    const std::string menulabel = "##ActionBlockAddButtonsMenu";
-    const std::string buttonlabel = ICON_FA_PLUS"##ActionBlockAddButtons";
-    if (ImGui::BeginPopup(menulabel.c_str()))
+    // Add button
     {
-        actionMenu(track, trackIndex, actionIndex);
-        ImGui::EndPopup();
-    }
+        ImGui::PushID(actionIndex);
+        const ImGuiID idAddButton = window->GetID("##InvisibleActionBlockAddButtons");
+        ImGui::ItemAdd(bb, idAddButton);
 
-    size_t nbActions = track->getActions().size();
-    if (ImGui::IsItemHovered() || ImGui::IsPopupOpen(menulabel.c_str()) || actionIndex == nbActions)
-    {
-        ImGui::Button(buttonlabel.c_str(), ImVec2(buttonSize, buttonSize));
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+        window->DC.CursorPos.x = position.x - ImGui::GetFrameHeight() / 2.f - ImGui::GetStyle().ItemSpacing.x / 2.f;
+        window->DC.CursorPos.y = position.y - ImGui::GetFrameHeight();
+        if (!enableSwapButton)
+            window->DC.CursorPos.y = position.y - ImGui::GetFrameHeight() / 2.f;
+
+        const std::string menulabel = "##ActionBlockAddButtonsMenu";
+        const std::string buttonlabel = ICON_FA_PLUS"##ActionBlockAddButtons";
+
+        if (ImGui::BeginPopup(menulabel.c_str()))
         {
-            ImGui::OpenPopup(menulabel.c_str());
+            actionMenu(track, trackIndex, actionIndex);
+            ImGui::EndPopup();
         }
+
+        if (ImGui::IsItemHovered() || ImGui::IsPopupOpen(menulabel.c_str()) || actionIndex == nbActions)
+        {
+            ImGui::Button(buttonlabel.c_str(), ImVec2(buttonSize, buttonSize));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                ImGui::OpenPopup(menulabel.c_str());
+            }
+        }
+
+        ImGui::PopID();
     }
 
-    ImGui::PopID();
+    // Swap button
+    if (enableSwapButton)
+    {
+        ImGui::PushID(actionIndex + nbActions);
+        const ImGuiID idSwapButton = window->GetID("##InvisibleActionBlockSwapButtons");
+        ImGui::ItemAdd(bb, idSwapButton);
+
+        window->DC.CursorPos.x = position.x - ImGui::GetFrameHeight() / 2.f - ImGui::GetStyle().ItemSpacing.x / 2.f ;
+        window->DC.CursorPos.y = position.y + ImGui::GetStyle().ItemSpacing.x / 2.f;
+
+        const std::string menulabel = "##ActionBlockSwapButtonsMenu";
+        const std::string buttonlabel = ICON_FA_RIGHT_LEFT"##ActionSwapBlockButtons";
+
+        if (ImGui::IsItemHovered() || ImGui::IsPopupOpen(menulabel.c_str()) || actionIndex == nbActions)
+        {
+            ImGui::Button(buttonlabel.c_str(), ImVec2(buttonSize, buttonSize));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                track->swapActions(actionIndex, actionIndex-1);
+            }
+        }
+
+        ImGui::PopID();
+    }
 
     window->DC.CursorPosPrevLine = backuppos;
 }

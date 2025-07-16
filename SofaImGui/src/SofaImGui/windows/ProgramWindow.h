@@ -98,8 +98,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
                          const sofa::Index& trackIndex,
                          std::shared_ptr<models::Track> track);
 
-
-    void showAddActionButton(const ImVec2 &position, const unsigned int &actionIndex, std::shared_ptr<models::Track> track, const int& trackIndex); /// Add action (plus) button
+    void showBetweenBlocksButtons(const ImVec2 &position, const unsigned int &actionIndex, std::shared_ptr<models::Track> track, const int& trackIndex); /// Add action (plus & swap) buttons
     void showBlockOptionButton(const std::string &menulabel, const std::string &label); /// Menu (add before, add after, delete, etc.).
 
     void stepProgram(const double &dt=0., const bool &reverse=false);
