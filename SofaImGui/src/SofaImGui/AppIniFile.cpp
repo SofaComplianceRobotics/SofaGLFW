@@ -19,6 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include <filesystem>
+
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <sofa/helper/Utils.h>
 #include <SofaImGui/AppIniFile.h>
@@ -41,7 +43,10 @@ namespace sofaimgui
 
     const std::string AppIniFile::getProjectFile(std::string sceneFilename)
     {
-        return sceneFilename + ".crproj";
+        std::filesystem::path path(sceneFilename);
+        path = path.replace_extension(".crproj");
+        std::string projectFilename(path.string());
+        return projectFilename;
     }
 
 
