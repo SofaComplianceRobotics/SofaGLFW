@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include <sofa/core/visual/VisualParams.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaImGui/Utils.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
@@ -125,6 +126,7 @@ void alignCamera(sofaglfw::SofaGLFWBaseGUI *baseGUI, const CameraAlignement& ali
         auto distance = *std::max_element(box.begin(), box.end());
         const auto& position = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -distance*2.f, orientation);
         camera->setView(position + bbCenter, orientation);
+        camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
     }
 }
 } // namespace
