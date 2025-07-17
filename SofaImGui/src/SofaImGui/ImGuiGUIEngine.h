@@ -130,6 +130,7 @@ protected:
     void saveProject();
     void loadSimulation(const bool& reload, const std::string &filename);
     void clearGUI();
+    void setDockSizeFromFile(const ImGuiID& id);
 
     models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;
@@ -137,6 +138,7 @@ protected:
     int m_mode{0};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
+    std::vector<ImGuiID> m_dockIDs;
 };
 
 } // namespace sofaimgui
