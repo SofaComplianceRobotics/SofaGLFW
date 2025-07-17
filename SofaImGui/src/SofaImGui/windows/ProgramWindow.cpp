@@ -310,9 +310,6 @@ void ProgramWindow::showTimeline()
     float width = ImGui::GetWindowWidth() + ImGui::GetScrollX();
     int nbSteps = width / ProgramSizes().TimelineOneSecondSize + 1;
 
-    float indentSize = ImGui::GetFrameHeight();
-    ImGui::Indent(indentSize);
-
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     const ImRect frame_bb(ImVec2(m_trackBeginPos.x, m_trackBeginPos.y - ImGui::GetFrameHeight() * 1.5),
                           ImVec2(m_trackBeginPos.x + width, m_trackBeginPos.y));
@@ -320,9 +317,9 @@ void ProgramWindow::showTimeline()
     if (!ImGui::ItemAdd(frame_bb, id))
         return;
     ImGui::SetItemTooltip("Simulation time");
+    window->DC.CursorPos.x = m_trackBeginPos.x;
 
     ImGui::BeginGroup(); // Timeline's number (seconds)
-    window->DC.CursorPos.x = m_trackBeginPos.x;
     for (int i=0 ; i<nbSteps; i++)
     {
         std::string text = std::to_string(i) + " s";
@@ -360,8 +357,6 @@ void ProgramWindow::showTimeline()
     }
     ImGui::PopStyleVar();
     ImGui::EndGroup();
-
-    ImGui::Unindent(indentSize);
 }
 
 int ProgramWindow::showTracks()
