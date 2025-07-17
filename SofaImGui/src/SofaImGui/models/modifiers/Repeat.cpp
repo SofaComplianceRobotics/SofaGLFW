@@ -43,19 +43,23 @@ Repeat::Repeat(const int &iterations,
 
 void Repeat::pushToTrack(std::shared_ptr<models::Track> track)
 {
-    const auto& actions = track->getActions();
-    m_endTime = 0.;
-    for (const auto& action: actions)
-        m_endTime += action->getDuration();
+    if (m_endTime <= 0)
+    {
+        const auto& actions = track->getActions();
+        for (const auto& action: actions)
+            m_endTime += action->getDuration();
+    }
     Modifier::pushToTrack(track);
 }
 
 void Repeat::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
 {
-    auto& modifiers = track->getModifiers();
-    m_endTime = 0.;
-    for (sofa::Index i=0; i<modifierIndex; i++)
-        m_endTime += modifiers[i]->getDuration();
+    if (m_endTime <= 0)
+    {
+        auto& modifiers = track->getModifiers();
+        for (sofa::Index i=0; i<modifierIndex; i++)
+            m_endTime += modifiers[i]->getDuration();
+    }
     Modifier::insertInTrack(track, modifierIndex);
 }
 
