@@ -204,9 +204,11 @@ void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    ImGui::ItemSize(bb.GetSize());
+    ImRect blockbb = bb;
+    blockbb.Min.y -= offset;
+    ImGui::ItemSize(blockbb.GetSize());
     const ImGuiID id = ImGui::GetID(label);
-    if (!ImGui::ItemAdd(bb, id))
+    if (!ImGui::ItemAdd(blockbb, id))
         return;
 
     { // Block background
