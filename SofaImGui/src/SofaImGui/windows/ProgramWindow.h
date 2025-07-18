@@ -105,23 +105,26 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void initFilePath(const std::string& filename);
 
     // Menus
-    void startMoveBlockMenu(const std::string& menuLabel,
+    void addStartMoveBlockMenu(const std::string& menuLabel,
                        const sofa::Index& trackIndex,
                        std::shared_ptr<models::Track> track,
                        std::shared_ptr<models::actions::StartMove> startmove);
 
-    sofa::Index modifierBlockMenu(const std::string& menuLabel,
+    sofa::Index addModifierBlockMenu(const std::string& menuLabel,
                              const sofa::Index &modifierIndex,
                              std::shared_ptr<models::Track> track,
                              std::shared_ptr<models::modifiers::Modifier> modifier);
 
-    sofa::Index actionBlockMenu(const std::string& menuLabel,
+    sofa::Index addActionBlockMenu(const std::string& menuLabel,
                             const sofa::Index& actionIndex,
                             const sofa::Index& trackIndex,
                             std::shared_ptr<models::Track> track,
                             std::shared_ptr<models::actions::Action> action);
 
-    bool actionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex); /// Menu (add move, wait, pick, etc.).
+    bool addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex);
+
+
+    sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
 
 };
 

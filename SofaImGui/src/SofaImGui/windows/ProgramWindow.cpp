@@ -370,46 +370,7 @@ int ProgramWindow::showTracks()
     {
         // Track options menu
         std::string menuLabel = "##TrackMenu" + std::to_string(trackIndex);
-        if (ImGui::BeginPopup(menuLabel.c_str()))
-        {
-            if (ImGui::MenuItem(("Clear track##" + std::to_string(trackIndex)).c_str()))
-            {
-                track->clear();
-            }
-            if (ImGui::MenuItem(("Add track##" + std::to_string(trackIndex)).c_str(), nullptr, false, false))
-            {
-                m_program.addTrack(std::make_shared<models::Track>(m_IPController));
-            }
-            if (ImGui::MenuItem(("Remove track##" + std::to_string(trackIndex)).c_str(), nullptr, false, (trackIndex>0)? true : false))
-            {
-                m_program.removeTrack(trackIndex--);
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::BeginMenu(("Add action##" + std::to_string(trackIndex)).c_str()))
-            {
-                actionMenu(track, trackIndex, track->getActions().size());
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu(("Add modifier##" + std::to_string(trackIndex)).c_str()))
-            {
-                if (track->getActions().empty() || !track->getModifiers().empty()) // TODO: handle showing multiple modifiers
-                    ImGui::BeginDisabled();
-
-                if (ImGui::MenuItem(("Repeat##" + std::to_string(trackIndex)).c_str()))
-                {
-                    std::shared_ptr<models::modifiers::Repeat> repeat = std::make_shared<models::modifiers::Repeat>(1, 0);
-                    repeat->pushToTrack(track);
-                }
-
-                if (track->getActions().empty() || !track->getModifiers().empty())
-                    ImGui::EndDisabled();
-
-                ImGui::EndMenu();
-            }
-            ImGui::EndPopup();
-        }
+        trackIndex = addTrackMenu(menuLabel, trackIndex, track);
 
         bool collapsed = showTrackButtons(trackIndex, menuLabel.c_str());
         if (collapsed)
@@ -558,7 +519,7 @@ void ProgramWindow::showStartMoveBlock(const float& blockHeight,
         std::string blockLabel = "##StartMove" + std::to_string(trackIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
 
-        startMoveBlockMenu(menuLabel, trackIndex, track, startmove);
+        addStartMoveBlockMenu(menuLabel, trackIndex, track, startmove);
 
         ImGui::SameLine();
         float blockWidth = ProgramSizes().StartMoveBlockSize;
@@ -585,7 +546,7 @@ void ProgramWindow::showModifierBlocks(const float& blockHeight,
         std::string blockLabel = "##Modifier" + std::to_string(trackIndex) + std::to_string(modifierIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
 
-        modifierIndex = modifierBlockMenu(menuLabel, modifierIndex, track, modifier);
+        modifierIndex = addModifierBlockMenu(menuLabel, modifierIndex, track, modifier);
 
         ImGui::SameLine();
         modifier->getView()->showBlock(blockLabel, ImVec2(blockWidth, blockHeight), m_trackBeginPos);
@@ -628,7 +589,7 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
             action->getView()->showBlock(blockLabel, blockSize);
         }
 
-        actionIndex = actionBlockMenu(menuLabel, actionIndex, trackIndex, track, action);
+        actionIndex = addActionBlockMenu(menuLabel, actionIndex, trackIndex, track, action);
         if (blockWidth > ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2.0f)
             showBlockOptionButton(menuLabel, blockLabel);
 
@@ -673,7 +634,7 @@ void ProgramWindow::showBetweenBlocksButtons(const ImVec2 &position,
 
         if (ImGui::BeginPopup(menulabel.c_str()))
         {
-            actionMenu(track, trackIndex, actionIndex);
+            addAddActionMenu(track, trackIndex, actionIndex);
             ImGui::EndPopup();
         }
 
@@ -963,7 +924,7 @@ void ProgramWindow::setDrivingTCPTarget(const bool &isDrivingSimulation)
     m_isDrivingSimulation=isDrivingSimulation;
 }
 
-void ProgramWindow::startMoveBlockMenu(const std::string& menuLabel,
+void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
                                       const sofa::Index& trackIndex,
                                       std::shared_ptr<models::Track> track,
                                       std::shared_ptr<models::actions::StartMove> startmove)
@@ -972,7 +933,7 @@ void ProgramWindow::startMoveBlockMenu(const std::string& menuLabel,
     {
         if (ImGui::BeginMenu("Add after"))
         {
-            actionMenu(track, trackIndex, 0);
+            addAddActionMenu(track, trackIndex, 0);
             ImGui::EndMenu();
         }
         ImGui::Separator();
@@ -985,7 +946,7 @@ void ProgramWindow::startMoveBlockMenu(const std::string& menuLabel,
     }
 }
 
-sofa::Index ProgramWindow::modifierBlockMenu(const std::string& menuLabel,
+sofa::Index ProgramWindow::addModifierBlockMenu(const std::string& menuLabel,
                                              const sofa::Index& modifierIndex,
                                              std::shared_ptr<models::Track> track,
                                              std::shared_ptr<models::modifiers::Modifier> modifier)
@@ -1006,7 +967,7 @@ sofa::Index ProgramWindow::modifierBlockMenu(const std::string& menuLabel,
     return index;
 }
 
-sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
+sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
                                            const sofa::Index& actionIndex,
                                            const sofa::Index& trackIndex,
                                            std::shared_ptr<models::Track> track,
@@ -1018,12 +979,12 @@ sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
     {
         if (ImGui::BeginMenu("Add before"))
         {
-            actionMenu(track, trackIndex, index);
+            addAddActionMenu(track, trackIndex, index);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Add after"))
         {
-            actionMenu(track, trackIndex, index+1);
+            addAddActionMenu(track, trackIndex, index+1);
             ImGui::EndMenu();
         }
 
@@ -1035,7 +996,7 @@ sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
         }
         if (ImGui::BeginMenu("Replace"))
         {
-            if (actionMenu(track, trackIndex, index+1))
+            if (addAddActionMenu(track, trackIndex, index+1))
             {
                 action->deleteFromTrack(track, index);
             }
@@ -1099,7 +1060,7 @@ sofa::Index ProgramWindow::actionBlockMenu(const std::string& menuLabel,
     return index;
 }
 
-bool ProgramWindow::actionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex)
+bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex)
 {
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
@@ -1136,6 +1097,52 @@ bool ProgramWindow::actionMenu(std::shared_ptr<models::Track> track, const int &
     }
 
     return false;
+}
+
+sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track)
+{
+    auto index = trackIndex;
+    if (ImGui::BeginPopup(menuLabel.c_str()))
+    {
+        if (ImGui::MenuItem(("Clear track##" + std::to_string(index)).c_str()))
+        {
+            track->clear();
+        }
+        if (ImGui::MenuItem(("Add track##" + std::to_string(index)).c_str(), nullptr, false, false))
+        {
+            m_program.addTrack(std::make_shared<models::Track>(m_IPController));
+        }
+        if (ImGui::MenuItem(("Remove track##" + std::to_string(index)).c_str(), nullptr, false, (index>0)? true : false))
+        {
+            m_program.removeTrack(index--);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu(("Add action##" + std::to_string(index)).c_str()))
+        {
+            addAddActionMenu(track, index, track->getActions().size());
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(("Add modifier##" + std::to_string(index)).c_str()))
+        {
+            if (track->getActions().empty() || !track->getModifiers().empty()) // TODO: handle showing multiple modifiers
+                ImGui::BeginDisabled();
+
+            if (ImGui::MenuItem(("Repeat##" + std::to_string(index)).c_str()))
+            {
+                std::shared_ptr<models::modifiers::Repeat> repeat = std::make_shared<models::modifiers::Repeat>(1, 0);
+                repeat->pushToTrack(track);
+            }
+
+            if (track->getActions().empty() || !track->getModifiers().empty())
+                ImGui::EndDisabled();
+
+            ImGui::EndMenu();
+        }
+        ImGui::EndPopup();
+    }
+    return index;
 }
 
 } // namespace
