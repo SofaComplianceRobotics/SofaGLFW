@@ -283,7 +283,7 @@ void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
             m_currentFBOSize = {static_cast<unsigned int>(m_viewportWindow.m_windowSize.first), static_cast<unsigned int>(m_viewportWindow.m_windowSize.second)};
         }
     }
-    sofa::core::visual::VisualParams::defaultInstance()->viewport() = {0,0,m_currentFBOSize.first, m_currentFBOSize.second};
+    sofa::core::visual::VisualParams::defaultInstance()->viewport() = {0,0, static_cast<int>(m_currentFBOSize.first), static_cast<int>(m_currentFBOSize.second)};
 
     m_fbo->start();
 }
@@ -709,7 +709,7 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
         }
     }
 
-    if(m_viewportWindow.isFocusOnViewport())
+    if(m_viewportWindow.isFocusOnViewport() && action==GLFW_PRESS)
     {
         switch (key)
         {

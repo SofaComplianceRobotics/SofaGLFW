@@ -94,7 +94,6 @@ void SofaGLFWWindow::draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::
     vparams->setModelViewMatrix(mvMatrix);
 
     sofa::simulation::node::draw(vparams, groot.get());
-
 }
 
 void SofaGLFWWindow::setBackgroundColor(const sofa::type::RGBAColor& newColor)
@@ -148,6 +147,12 @@ void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos)
         m_currentCamera->manageEvent(mEvent);
         m_currentXPos = xpos;
         m_currentYPos = ypos;
+
+        // If we rotate the view, we should use the perspective mode
+        if(m_currentCamera->d_activated.getValue())
+            if(mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
+                m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+
         break;
     }
     case GLFW_RELEASE:

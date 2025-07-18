@@ -90,6 +90,7 @@ bool SofaGLFWBaseGUI::init(int nbMSAASamples)
     }
     else
     {
+        msg_error("SofaGLFWBaseGUI") << "Cannot initialize GLFW";
         return false;
     }
 }
@@ -105,6 +106,7 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     m_filename = filename;
 
     sofa::core::visual::VisualParams::defaultInstance()->drawTool() = m_glDrawTool;
+    sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
 }
 
 void SofaGLFWBaseGUI::setSimulationIsRunning(bool running)
@@ -195,6 +197,7 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
     {
         glfwWindow = glfwCreateWindow(width > 0 ? width : 100, height > 0 ? height : 100, title, nullptr, m_firstWindow);
     }
+    assert(glfwWindow);
 
     setWindowIcon(glfwWindow);
 

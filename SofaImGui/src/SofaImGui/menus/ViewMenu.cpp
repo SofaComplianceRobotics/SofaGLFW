@@ -25,6 +25,8 @@
 
 #include <sofa/component/visual/VisualGrid.h>
 #include <sofa/component/visual/LineAxis.h>
+#include <sofa/component/visual/VisualBoundingBox.h>
+
 #include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/FooterStatusBar.h>
 
@@ -141,8 +143,32 @@ void ViewMenu::showOriginFrame(const bool& show)
             newOriginFrame->d_thickness.setValue(2.f);
             newOriginFrame->d_vanishing.setValue(true);
             newOriginFrame->init();
-        } else {
+        } else
+        {
             originFrame->d_enable.setValue(show);
+        }
+    }
+}
+
+void ViewMenu::showBoundingBox(const bool& show)
+{
+    const auto& groot = m_baseGUI->getRootNode();
+    if (groot)
+    {
+        auto bbox = groot->get<sofa::component::visual::VisualBoundingBox>();
+        if (!bbox)
+        {
+            auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
+            groot->addObject(newBBox);
+            newBBox->setName("VisualBoundingBox");
+            newBBox->d_enable.setValue(show);
+            newBBox->f_bbox.setParent(&groot->f_bbox);
+            newBBox->d_color.setValue(sofa::type::RGBAColor::white());
+            newBBox->d_thickness.setValue(1.0f);
+        }
+        else
+        {
+            bbox->d_enable.setValue(show);
         }
     }
 }
@@ -157,16 +183,16 @@ void ViewMenu::addViewport()
         {
             static bool show01 = false;
             if (ImGui::LocalCheckBox("Square size: 0.1", &show01))
-                showGrid(show01, 0.1f, 1.f);
+                showGrid(show01, 0.1f, 0.5f);
             static bool show1 = false;
             if (ImGui::LocalCheckBox("Square size: 1", &show1))
-                showGrid(show1, 1.f, 1.f);
+                showGrid(show1, 1.f, 0.5f);
             static bool show10 = false;
             if (ImGui::LocalCheckBox("Square size: 10", &show10))
-                showGrid(show10, 10.f, 2.f);
+                showGrid(show10, 10.f, 1.f);
             static bool show100 = false;
             if (ImGui::LocalCheckBox("Square size: 100", &show100))
-                showGrid(show100, 100.f, 3.f);
+                showGrid(show100, 100.f, 2.f);
 
             ImGui::EndMenu();
         }
@@ -175,6 +201,13 @@ void ViewMenu::addViewport()
             static bool show = false;
             if (ImGui::LocalCheckBox("Origin Frame", &show))
                 showOriginFrame(show);
+            ImGui::SetItemTooltip("Show / hide");
+        }
+
+        {
+            static bool show = false;
+            if (ImGui::LocalCheckBox("Bounding Box", &show))
+                showBoundingBox(show);
             ImGui::SetItemTooltip("Show / hide");
         }
 
