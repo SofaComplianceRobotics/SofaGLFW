@@ -183,16 +183,16 @@ void ViewMenu::addViewport()
         {
             static bool show01 = false;
             if (ImGui::LocalCheckBox("Square size: 0.1", &show01))
-                showGrid(show01, 0.1f, 1.f);
+                showGrid(show01, 0.1f, 0.5f);
             static bool show1 = false;
             if (ImGui::LocalCheckBox("Square size: 1", &show1))
-                showGrid(show1, 1.f, 1.f);
+                showGrid(show1, 1.f, 0.5f);
             static bool show10 = false;
             if (ImGui::LocalCheckBox("Square size: 10", &show10))
-                showGrid(show10, 10.f, 2.f);
+                showGrid(show10, 10.f, 1.f);
             static bool show100 = false;
             if (ImGui::LocalCheckBox("Square size: 100", &show100))
-                showGrid(show100, 100.f, 3.f);
+                showGrid(show100, 100.f, 2.f);
 
             ImGui::EndMenu();
         }
