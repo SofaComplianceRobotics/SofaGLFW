@@ -51,6 +51,8 @@ class Move : public StartMove
 
     virtual ~Move();
 
+    std::shared_ptr<Action> duplicate() override;
+
     void setInitialPoint(const RigidCoord& initialPoint) override;
     void setWaypoint(const RigidCoord& waypoint) override;
     RigidCoord getInterpolatedPosition(const double& time) override;
@@ -61,6 +63,10 @@ class Move : public StartMove
     void addTrajectoryComponent(sofa::simulation::Node::SPtr groot);
     void highlightTrajectory(const bool &highlight);
     void setDrawTrajectory(const bool &drawTrajectory);
+
+    void pushToTrack(std::shared_ptr<models::Track> track) override;
+    void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+    void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
 
    protected:
 

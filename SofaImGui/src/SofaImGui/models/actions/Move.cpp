@@ -21,6 +21,7 @@
  ******************************************************************************/
 
 #include <SofaImGui/models/actions/Move.h>
+#include <SofaImGui/models/Track.h>
 
 namespace sofaimgui::models::actions {
 
@@ -43,6 +44,45 @@ Move::~Move()
 {
     if (m_groot)
         m_groot->removeObject(m_trajectory);
+}
+
+std::shared_ptr<Action> Move::duplicate()
+{
+    auto move = std::make_shared<models::actions::Move>(m_initialPoint,
+                                                        m_waypoint,
+                                                        m_duration,
+                                                        m_IPController,
+                                                        m_freeInRotation,
+                                                        m_type);
+    return move;
+}
+
+void Move::pushToTrack(std::shared_ptr<models::Track> track)
+{
+    auto actions = track->getActions();
+    std::shared_ptr<actions::Move> previous = track->getPreviousMove(actions.size());
+    this->setInitialPoint((previous!=nullptr)? previous->getWaypoint(): track->getStartMove()->getWaypoint());
+    Action::pushToTrack(track);
+}
+
+void Move::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    std::shared_ptr<actions::Move> previous = track->getPreviousMove(actionIndex);
+    setInitialPoint((previous!=nullptr)? previous->getWaypoint(): track->getStartMove()->getWaypoint());
+
+    // insert the new move
+    Action::insertInTrack(track, actionIndex);
+
+    // update the next move
+    std::shared_ptr<actions::Move> next = track->getNextMove(actionIndex);
+    if (next)
+        next->setInitialPoint(m_waypoint);
+}
+
+void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    track->updateNextMoveInitialPoint(actionIndex, m_initialPoint);
+    Action::deleteFromTrack(track, actionIndex);
 }
 
 void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)

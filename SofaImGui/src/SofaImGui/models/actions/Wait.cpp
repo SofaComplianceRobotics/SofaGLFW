@@ -30,6 +30,12 @@ Wait::Wait(const double &duration): Action(duration),
     setComment("Wait");
 }
 
+std::shared_ptr<Action> Wait::duplicate()
+{
+    auto wait = std::make_shared<models::actions::Wait>(m_duration);
+    return wait;
+}
+
 void Wait::setDuration(const double& duration)
 {
     m_duration = duration;

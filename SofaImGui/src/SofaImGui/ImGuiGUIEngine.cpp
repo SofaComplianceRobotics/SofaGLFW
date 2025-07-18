@@ -736,7 +736,7 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
         }
     }
 
-    if(m_viewportWindow.isFocusOnViewport())
+    if(m_viewportWindow.isFocusOnViewport() && action==GLFW_PRESS)
     {
         switch (key)
         {
