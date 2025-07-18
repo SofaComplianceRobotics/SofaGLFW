@@ -119,7 +119,7 @@ protected:
     CSimpleIniA iniProject;
 
     void showFrameOnViewport(sofaglfw::SofaGLFWBaseGUI *baseGUI);
-    void initDockSpace();
+    void initDockSpace(const bool& firstTime);
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI);
@@ -139,6 +139,7 @@ protected:
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
     std::vector<ImGuiID> m_dockIDs;
+    std::string m_sceneFilename;
 };
 
 } // namespace sofaimgui

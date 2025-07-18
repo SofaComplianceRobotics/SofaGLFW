@@ -112,7 +112,7 @@ void ImGuiGUIEngine::saveSettings()
 
 void ImGuiGUIEngine::saveProject()
 {
-    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
+    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_sceneFilename);
     msg_info("") << "Saving project in " << projectFile;
     iniProject.SaveFile(projectFile.c_str());
 }
@@ -249,26 +249,15 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     {
         firstTime = false;
         m_baseGUI = baseGUI;
-        m_IOWindow.setSimulationState(m_simulationState);
-        m_stateWindow->setSimulationState(m_simulationState);
 
-        if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
-        {
-            SI_Error rc = iniProject.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
-            SOFA_UNUSED(rc);
-            assert(rc == SI_OK);
-
-            // Set enable the right windows basesd on file
-            for (const auto& window : m_windows) 
-            {
-                std::string name = "Window." + window.get().getName();
-                if(iniProject.KeyExists(name.c_str(), "open"))
-                    window.get().setOpen(iniProject.GetBoolValue(name.c_str(), "open"));
-            }
-        }
+        loadSimulation(true, m_baseGUI->getFilename());        
+    }
+    else
+    {
+        initDockSpace(false);
     }
 
-    initDockSpace();
+
     showMainMenuBar(baseGUI);
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
@@ -276,7 +265,6 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     showViewportWindow(baseGUI);
     showOptionWindows(baseGUI);
-
 
     ImGui::PopStyleVar();
 
@@ -335,7 +323,7 @@ void ImGuiGUIEngine::terminate()
     saveSettings();
 
     // Save windows settings in project file
-    for (const auto& window : m_windows) 
+    for (const auto& window : m_windows)
     {
         std::string name = "Window." + window.get().getName();
         iniProject.SetBoolValue(name.c_str(), "open", window.get().isOpen());
@@ -345,18 +333,25 @@ void ImGuiGUIEngine::terminate()
             auto size = imguiWindow->SizeFull;
             iniProject.SetDoubleValue(name.c_str(), "width", size[0]);
             iniProject.SetDoubleValue(name.c_str(), "height", size[1]);
-            iniProject.SetValue(name.c_str(), "dockId", std::to_string(imguiWindow->DockNode->ID).c_str());
+            iniProject.SetValue(name.c_str(), "dockId", std::to_string(imguiWindow->DockId).c_str());
         }
     }
 
-    // Save docks settings in project file
-    for (const auto& dockID : m_dockIDs)
+    auto g = ImGui::GetCurrentContext();
+    if (g)
     {
-        auto dock = ImGui::DockContextFindNodeByID(ImGui::GetCurrentContext(), dockID);
-        iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posx", dock->Pos[0]);
-        iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posy", dock->Pos[1]);
-        iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "width", dock->Size[0]);
-        iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "height", dock->Size[1]);
+        // Save docks settings in project file
+        for (const auto& dockID : m_dockIDs)
+        {
+            auto dock = ImGui::DockContextFindNodeByID(g, dockID);
+            if (dock)
+            {
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posx", dock->Pos[0]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posy", dock->Pos[1]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "width", dock->Size[0]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "height", dock->Size[1]);
+            }
+        }
     }
 
     saveProject();
@@ -379,26 +374,24 @@ bool ImGuiGUIEngine::dispatchMouseEvents()
     return !ImGui::GetIO().WantCaptureMouse || m_viewportWindow.isMouseOnViewport();
 }
 
-void ImGuiGUIEngine::initDockSpace()
+void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 {
-    static auto firstTime = true;
-
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     ImGui::SetNextWindowViewport(viewport->ID);
 
     ImGui::Begin("DockSpace", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
-                                       ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                       ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMove | ImGuiDockNodeFlags_PassthruCentralNode
-                 );
-
+                                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                    ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMove | ImGuiDockNodeFlags_PassthruCentralNode
+                );
+    
     ImGuiID dockspaceID = ImGui::GetID("WorkSpaceDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+
     if (firstTime)
     {
-        firstTime = false;
         ImGui::DockBuilderRemoveNode(dockspaceID); // clear any previous layout
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
@@ -775,6 +768,24 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     Utils::loadSimulation(m_baseGUI, reload, filename);
     m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
+    m_sceneFilename = filename;
+
+    if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+    {
+        SI_Error rc = iniProject.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+        SOFA_UNUSED(rc);
+        assert(rc == SI_OK);
+
+        // Set enable the right windows basesd on file
+        for (const auto& window : m_windows)
+        {
+            std::string name = "Window." + window.get().getName();
+            if (iniProject.KeyExists(name.c_str(), "open"))
+                window.get().setOpen(iniProject.GetBoolValue(name.c_str(), "open"));
+        }
+
+        initDockSpace(true);
+    }
 }
 
 } //namespace sofaimgui
