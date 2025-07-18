@@ -19,6 +19,8 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include <filesystem>
+
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <sofa/helper/Utils.h>
 #include <SofaImGui/AppIniFile.h>
@@ -38,6 +40,15 @@ namespace sofaimgui
         static const std::string settingsIniFile = getIniFile("settings.ini");
         return settingsIniFile;
     }
+
+    const std::string AppIniFile::getProjectFile(std::string sceneFilename)
+    {
+        std::filesystem::path path(sceneFilename);
+        path = path.replace_extension(".crproj");
+        std::string projectFilename(path.string());
+        return projectFilename;
+    }
+
 
     std::string AppIniFile::getIniFile(const std::string filename)
     {

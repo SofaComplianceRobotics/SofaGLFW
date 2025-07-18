@@ -19,7 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
@@ -108,7 +107,14 @@ void ImGuiGUIEngine::saveSettings()
 {
     const std::string settingsFile = sofaimgui::AppIniFile::getSettingsIniFile();
     msg_info("") << "Saving application settings in " << settingsFile;
-    ini.SaveFile(settingsFile.c_str());
+    iniGUISettings.SaveFile(settingsFile.c_str());
+}
+
+void ImGuiGUIEngine::saveProject()
+{
+    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_sceneFilename);
+    msg_info("") << "Saving project in " << projectFile;
+    iniProject.SaveFile(projectFile.c_str());
 }
 
 void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
@@ -135,14 +141,22 @@ void ImGuiGUIEngine::clearGUI()
 
     m_simulationState.clearData();
 
-    m_logWindow.clearWindow();
-    m_sceneGraphWindow.clearWindow();
-    m_viewportWindow.clearWindow();
-    m_IOWindow.clearWindow();
-    m_programWindow.clearWindow();
-    m_myRobotWindow.clearWindow();
-    m_moveWindow.clearWindow();
-    m_plottingWindow.clearWindow();
+    for (auto& window : m_windows) 
+    {
+        window.get().clearWindow();
+    }
+}
+
+void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
+{
+    auto dock = ImGui::DockBuilderGetNode(id);
+    if (iniProject.KeyExists(std::to_string(id).c_str(), "width") && iniProject.KeyExists(std::to_string(id).c_str(), "height")) {
+        if (dock)
+        {
+            auto size = ImVec2(iniProject.GetDoubleValue(std::to_string(id).c_str(), "width"), iniProject.GetDoubleValue(std::to_string(id).c_str(), "height"));
+            ImGui::DockBuilderSetNodeSize(id, size);
+        }
+    }
 }
 
 void ImGuiGUIEngine::init()
@@ -154,21 +168,21 @@ void ImGuiGUIEngine::init()
 
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    static const std::string windowsIniFile(sofaimgui::AppIniFile::getWindowsIniFile());
-    io.IniFilename = windowsIniFile.c_str();
+    //static const std::string windowsIniFile(sofaimgui::AppIniFile::getWindowsIniFile());
+    //io.IniFilename = windowsIniFile.c_str();
 
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ini.SetUnicode();
+    iniGUISettings.SetUnicode();
     if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getSettingsIniFile()))
     {
-        SI_Error rc = ini.LoadFile(sofaimgui::AppIniFile::getSettingsIniFile().c_str());
+        SI_Error rc = iniGUISettings.LoadFile(sofaimgui::AppIniFile::getSettingsIniFile().c_str());
         SOFA_UNUSED(rc);
         assert(rc == SI_OK);
     }
 
-    const char* darkMode = ini.GetValue("Style", "darkMode");
+    const char* darkMode = iniGUISettings.GetValue("Style", "darkMode");
     if (darkMode)
     {
         std::string m = darkMode;
@@ -176,7 +190,7 @@ void ImGuiGUIEngine::init()
     }
     else
     {
-        ini.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
+        iniGUISettings.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
     }
     applyDarkMode(m_darkMode);
 
@@ -228,23 +242,31 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    initDockSpace();
-    showMainMenuBar(baseGUI);
-    FooterStatusBar::getInstance().showFooterStatusBar();
-    FooterStatusBar::getInstance().showTempMessageOnStatusBar();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
 
     static bool firstTime = true;
     if (firstTime)
     {
         firstTime = false;
         m_baseGUI = baseGUI;
-        m_IOWindow.setSimulationState(m_simulationState);
-        m_stateWindow->setSimulationState(m_simulationState);
+
+        loadSimulation(true, m_baseGUI->getFilename());        
     }
+    else
+    {
+        initDockSpace(false);
+    }
+
+
+    showMainMenuBar(baseGUI);
+    FooterStatusBar::getInstance().showFooterStatusBar();
+    FooterStatusBar::getInstance().showTempMessageOnStatusBar();
+
 
     showViewportWindow(baseGUI);
     showOptionWindows(baseGUI);
+
+    ImGui::PopStyleVar();
 
     ImGui::Render();
 
@@ -296,9 +318,43 @@ void ImGuiGUIEngine::afterDraw()
 void ImGuiGUIEngine::terminate()
 {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ini.SetDoubleValue("Window", "width", viewport->Size.x);
-    ini.SetDoubleValue("Window", "height", viewport->Size.y);
+    iniGUISettings.SetDoubleValue("Window", "width", viewport->Size.x);
+    iniGUISettings.SetDoubleValue("Window", "height", viewport->Size.y);
     saveSettings();
+
+    // Save windows settings in project file
+    for (const auto& window : m_windows)
+    {
+        std::string name = "Window." + window.get().getName();
+        iniProject.SetBoolValue(name.c_str(), "open", window.get().isOpen());
+        auto imguiWindow = ImGui::FindWindowByName(window.get().getName().c_str());
+        if (imguiWindow)
+        {
+            auto size = imguiWindow->SizeFull;
+            iniProject.SetDoubleValue(name.c_str(), "width", size[0]);
+            iniProject.SetDoubleValue(name.c_str(), "height", size[1]);
+            iniProject.SetValue(name.c_str(), "dockId", std::to_string(imguiWindow->DockId).c_str());
+        }
+    }
+
+    auto g = ImGui::GetCurrentContext();
+    if (g)
+    {
+        // Save docks settings in project file
+        for (const auto& dockID : m_dockIDs)
+        {
+            auto dock = ImGui::DockContextFindNodeByID(g, dockID);
+            if (dock)
+            {
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posx", dock->Pos[0]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "posy", dock->Pos[1]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "width", dock->Size[0]);
+                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "height", dock->Size[1]);
+            }
+        }
+    }
+
+    saveProject();
 
     NFD_Quit();
 
@@ -318,48 +374,60 @@ bool ImGuiGUIEngine::dispatchMouseEvents()
     return !ImGui::GetIO().WantCaptureMouse || m_viewportWindow.isMouseOnViewport();
 }
 
-void ImGuiGUIEngine::initDockSpace()
+void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 {
-    static auto firstTime = true;
-
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     ImGui::SetNextWindowViewport(viewport->ID);
 
     ImGui::Begin("DockSpace", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
-                                       ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                       ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMove | ImGuiDockNodeFlags_PassthruCentralNode
-                 );
-
+                                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                    ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMove | ImGuiDockNodeFlags_PassthruCentralNode
+                );
+    
     ImGuiID dockspaceID = ImGui::GetID("WorkSpaceDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+
     if (firstTime)
     {
-        firstTime = false;
         ImGui::DockBuilderRemoveNode(dockspaceID); // clear any previous layout
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
 
         auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.25f, nullptr, &dockspaceID);
+        m_dockIDs.push_back(dock_id_right);
+        setDockSizeFromFile(dock_id_right);
+
+        auto dock_id_right_up = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.55f, nullptr, &dock_id_right);
+        m_dockIDs.push_back(dock_id_right);
+        m_dockIDs.push_back(dock_id_right_up);
+        setDockSizeFromFile(dock_id_right);
+        setDockSizeFromFile(dock_id_right_up);
+
+        auto dock_id_down = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Down, 0.32f, nullptr, &dockspaceID);
+        m_dockIDs.push_back(dock_id_down);
+        m_dockIDs.push_back(dockspaceID);
+        setDockSizeFromFile(dock_id_down);
+
         ImGui::DockBuilderDockWindow(m_IOWindow.getName().c_str(), dock_id_right);
         ImGui::DockBuilderDockWindow(m_myRobotWindow.getName().c_str(), dock_id_right);
 
-        auto dock_id_right_up = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.55f, nullptr, &dock_id_right);
         ImGui::DockBuilderDockWindow(m_moveWindow.getName().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getName().c_str(), dock_id_right_up);
 
         ImGui::DockBuilderDockWindow(m_viewportWindow.getName().c_str(), dockspaceID);
 
-        auto dock_id_down = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Down, 0.32f, nullptr, &dockspaceID);
         ImGui::DockBuilderDockWindow(m_programWindow.getName().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_plottingWindow.getName().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_logWindow.getName().c_str(), dock_id_down);
 
         ImGui::DockBuilderGetNode(dockspaceID)->WantHiddenTabBarToggle = true;
 
+
         ImGui::DockBuilderFinish(dockspaceID);
+
     }
 
     ImGui::End();
@@ -464,63 +532,22 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(fileMenu.m_reloadSimulation)
             loadSimulation(true, fileMenu.getFilename());
 
+
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
         if (ImGui::BeginMenu("Windows"))
         {
             ImGui::PopStyleColor();
-            if (!m_IOWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_IOWindow.getName().c_str(), &m_IOWindow.isOpen());
-            if (!m_IOWindow.enabled())
-                ImGui::EndDisabled();
 
-            if (!m_programWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_programWindow.getName().c_str(), &m_programWindow.isOpen());
-            if (!m_programWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_plottingWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_plottingWindow.getName().c_str(), &m_plottingWindow.isOpen());
-            if (!m_plottingWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_myRobotWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_myRobotWindow.getName().c_str(), &m_myRobotWindow.isOpen());
-            if (!m_myRobotWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_moveWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_moveWindow.getName().c_str(), &m_moveWindow.isOpen());
-            if (!m_moveWindow.enabled())
-                ImGui::EndDisabled();
-
-            ImGui::Separator();
-
-            if (!m_viewportWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_viewportWindow.getName().c_str(), &m_viewportWindow.isOpen());
-            if (!m_viewportWindow.enabled())
-                ImGui::EndDisabled();
-
-            ImGui::Separator();
-
-            if (!m_sceneGraphWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_sceneGraphWindow.getName().c_str(), &m_sceneGraphWindow.isOpen());
-            if (!m_sceneGraphWindow.enabled())
-                ImGui::EndDisabled();
-
-            if (!m_logWindow.enabled())
-                ImGui::BeginDisabled();
-            ImGui::LocalCheckBox(m_logWindow.getName().c_str(), &m_logWindow.isOpen());
-            if (!m_logWindow.enabled())
-                ImGui::EndDisabled();
+            for (auto& window : m_windows) 
+            {
+                if (!window.get().enabled())
+                    ImGui::BeginDisabled();
+                    ImGui::LocalCheckBox(window.get().getName().c_str(), &window.get().isOpen());
+                    if (!window.get().enabled())
+                        ImGui::EndDisabled();
+            }
 
             ImGui::EndMenu();
         }
@@ -587,7 +614,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::PopStyleColor(4);
             m_darkMode = !m_darkMode;
             applyDarkMode(m_darkMode, baseGUI);
-            ini.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
+            iniGUISettings.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
         }
         else
         {
@@ -741,6 +768,24 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     Utils::loadSimulation(m_baseGUI, reload, filename);
     m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
+    m_sceneFilename = filename;
+
+    if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+    {
+        SI_Error rc = iniProject.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+        SOFA_UNUSED(rc);
+        assert(rc == SI_OK);
+
+        // Set enable the right windows basesd on file
+        for (const auto& window : m_windows)
+        {
+            std::string name = "Window." + window.get().getName();
+            if (iniProject.KeyExists(name.c_str(), "open"))
+                window.get().setOpen(iniProject.GetBoolValue(name.c_str(), "open"));
+        }
+
+        initDockSpace(true);
+    }
 }
 
 } //namespace sofaimgui
