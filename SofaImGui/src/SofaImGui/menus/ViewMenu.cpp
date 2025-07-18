@@ -183,16 +183,16 @@ void ViewMenu::addViewport()
         {
             static bool show01 = false;
             if (ImGui::LocalCheckBox("Square size: 0.1", &show01))
-                showGrid(show01, 0.1f, 1.f);
+                showGrid(show01, 0.1f, 0.5f);
             static bool show1 = false;
             if (ImGui::LocalCheckBox("Square size: 1", &show1))
-                showGrid(show1, 1.f, 1.f);
+                showGrid(show1, 1.f, 0.5f);
             static bool show10 = false;
             if (ImGui::LocalCheckBox("Square size: 10", &show10))
-                showGrid(show10, 10.f, 2.f);
+                showGrid(show10, 10.f, 1.f);
             static bool show100 = false;
             if (ImGui::LocalCheckBox("Square size: 100", &show100))
-                showGrid(show100, 100.f, 3.f);
+                showGrid(show100, 100.f, 2.f);
 
             ImGui::EndMenu();
         }
@@ -446,13 +446,21 @@ void ViewMenu::addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fb
         std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
         nfdchar_t *outPath;
         std::array<nfdfilteritem_t, 1> filterItem{ {{"Image", "jpg,png"}} };
+
+        // Add the date and time to the filename
+        auto now = std::chrono::system_clock::now();
+        auto localTime = std::chrono::system_clock::to_time_t(now);
+        std::stringstream ss;
+
         auto sceneFilename = m_baseGUI->getFilename();
         if (!sceneFilename.empty())
         {
             std::filesystem::path path(sceneFilename);
-            path = path.replace_extension(".png");
-            sceneFilename = path.filename().string();
+            ss << path.filename().replace_extension("").string() << "_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
+        } else {
+            ss << "screenshot_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
         }
+        sceneFilename = ss.str();
 
         nfdresult_t result = NFD_SaveDialog(&outPath, filterItem.data(), filterItem.size(), screenshotPath.c_str(), sceneFilename.c_str());
         if (result == NFD_OKAY)
