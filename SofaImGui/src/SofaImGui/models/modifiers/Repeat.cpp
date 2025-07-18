@@ -21,6 +21,7 @@
  ******************************************************************************/
 
 #include <SofaImGui/models/modifiers/Repeat.h>
+#include <SofaImGui/models/Track.h>
 
 namespace sofaimgui::models::modifiers {
 
@@ -38,6 +39,28 @@ Repeat::Repeat(const int &iterations,
     checkInterval();
     m_duration = m_endTime - m_startTime;
     m_counts = m_iterations;
+}
+
+void Repeat::pushToTrack(std::shared_ptr<models::Track> track)
+{
+    if (m_endTime <= 0)
+    {
+        const auto& actions = track->getActions();
+        for (const auto& action: actions)
+            m_endTime += action->getDuration();
+    }
+    Modifier::pushToTrack(track);
+}
+
+void Repeat::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
+{
+    if (m_endTime <= 0)
+    {
+        auto& modifiers = track->getModifiers();
+        for (sofa::Index i=0; i<modifierIndex; i++)
+            m_endTime += modifiers[i]->getDuration();
+    }
+    Modifier::insertInTrack(track, modifierIndex);
 }
 
 void Repeat::modify(double &time)

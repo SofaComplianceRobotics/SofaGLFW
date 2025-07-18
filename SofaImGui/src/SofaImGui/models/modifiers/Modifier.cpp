@@ -19,64 +19,37 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-
-#include <SofaImGui/models/actions/Pick.h>
-
-namespace sofaimgui::models::actions {
-
-bool Pick::gripperInstalled = false;
-double Pick::minClosingDistance = 0;
-double Pick::maxOpeningDistance = 0;
-sofa::core::BaseData* Pick::distance = nullptr;
+#pragma once
 
 
-Pick::Pick(const double &duration, const bool& release, const double &closingDistance, const double &openingDistance)
-    : Action(duration)
-    , m_release(release)
-    , m_closingDistance(closingDistance)
-    , m_openingDistance(openingDistance)
-    , view(*this)
+#include <SofaImGui/models/modifiers/Modifier.h>
+#include <SofaImGui/models/Track.h>
+
+
+namespace sofaimgui::models::modifiers {
+
+void Modifier::pushToTrack(std::shared_ptr<models::Track> track)
 {
-    setComment("Pick");
+    auto& modifiers = track->getModifiers();
+    modifiers.push_back(shared_from_this());
 }
 
-std::shared_ptr<Action> Pick::duplicate()
+void Modifier::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
 {
-    auto pick = std::make_shared<models::actions::Pick>(m_duration,
-                                                        m_release,
-                                                        m_closingDistance,
-                                                        m_openingDistance);
-    return pick;
+    auto& modifiers = track->getModifiers();
+    if (modifierIndex < modifiers.size())
+        modifiers.insert(modifiers.begin() + modifierIndex, shared_from_this());
+    else
+        pushToTrack(track);
 }
 
-
-void Pick::setDuration(const double& duration)
+void Modifier::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
 {
-    m_duration = duration;
-    checkDuration();
-}
-
-bool Pick::apply(RigidCoord &position, const double &time)
-{
-    SOFA_UNUSED(position);
-    SOFA_UNUSED(time);
-
-    if(gripperInstalled && distance)
-    {
-        double alpha = time / m_duration;
-        if (m_release)
-        {
-            double dist = alpha * m_openingDistance + (1 - alpha) * m_closingDistance;
-            distance->read(std::to_string(dist));
-        }
-        else
-        {
-            double dist = alpha * m_closingDistance + (1 - alpha) * m_openingDistance;
-            distance->read(std::to_string(dist));
-        }
-    }
-
-    return false;
+    auto& modifiers = track->getModifiers();
+    if (modifierIndex < modifiers.size())
+        modifiers.erase(modifiers.begin() + modifierIndex);
+    else
+        dmsg_error("Track") << "modifierIndex";
 }
 
 } // namespace

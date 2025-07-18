@@ -22,12 +22,17 @@
 #pragma once
 
 #include <imgui.h>
+#include <memory>
 #include <string>
 #include <SofaImGui/config.h>
 
+namespace sofaimgui::models {
+class Track;
+}
+
 namespace sofaimgui::models::modifiers {
 
-class Modifier
+class Modifier : public std::enable_shared_from_this<Modifier>
 {
    public:
 
@@ -50,6 +55,10 @@ class Modifier
     void getComment(char* comment) {strncpy(comment, m_comment, COMMENTSIZE); comment[COMMENTSIZE-1]='\0';}
 
     char* getComment() {return m_comment;}
+
+    virtual void pushToTrack(std::shared_ptr<models::Track> track);
+    virtual void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex);
+    virtual void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex);
 
    protected:
 

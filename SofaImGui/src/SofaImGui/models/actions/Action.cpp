@@ -21,64 +21,35 @@
  ******************************************************************************/
 #pragma once
 
-#include <sofa/type/Vec.h>
-#include <sofa/defaulttype/RigidTypes.h>
-
-#include <sofa/simulation/Node.h>
-#include <SofaImGui/models/Trajectory.h>
 #include <SofaImGui/models/actions/Action.h>
+#include <SofaImGui/models/Track.h>
 
-namespace sofaimgui::models::actions {
-
-class SOFAIMGUI_API Pick : public Action
+namespace sofaimgui::models::actions
 {
-    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-   public:
+void Action::pushToTrack(std::shared_ptr<models::Track> track)
+{
+    auto& actions = track->getActions();
+    actions.push_back(shared_from_this());
+}
 
-    Pick(const double& duration = Action::DEFAULTDURATION,
-         const bool& release = false,
-         const double& closingDistance = minClosingDistance,
-         const double& openingDistance = maxOpeningDistance);
-    ~Pick() = default;
+void Action::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    auto& actions = track->getActions();
+    if (actionIndex < actions.size())
+        actions.insert(actions.begin() + actionIndex, shared_from_this());
+    else
+        pushToTrack(track);
+}
 
-    std::shared_ptr<Action> duplicate() override;
-
-    void setDuration(const double &duration) override;
-    bool getState() {return m_release;}
-    bool apply(RigidCoord &position, const double &time) override;
-
-    static bool gripperInstalled;
-    static double minClosingDistance;
-    static double maxOpeningDistance;
-    static sofa::core::BaseData* distance;
-
-    double getClosingDistance() {return m_closingDistance;}
-    void setClosingDistance(const double &distance) {m_closingDistance=(distance<minClosingDistance)? minClosingDistance : distance;}
-    double getOpeningDistance() {return m_openingDistance;}
-    void setOpeningDistance(const double &distance) {m_openingDistance=(distance>maxOpeningDistance)? maxOpeningDistance : distance;}
-
-   protected:
-    bool m_release{false};
-    double m_closingDistance;
-    double m_openingDistance;
-
-    class PickView : public ActionView
-    {
-       public:
-        PickView(Pick &_pick) : pick(_pick) {}
-        bool showBlock(const std::string &label,
-                       const ImVec2 &size) override;
-
-       protected:
-        Pick &pick;
-    };
-    PickView view;
-
-   public :
-
-    ActionView* getView() override {return &view;}
-};
+void Action::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+{
+    auto& actions = track->getActions();
+    if (actionIndex < actions.size())
+        actions.erase(actions.begin() + actionIndex);
+    else
+        dmsg_error("Track") << "actionIndex";
+}
 
 } // namespace
 

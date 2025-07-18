@@ -28,6 +28,8 @@
 #include <SofaImGui/models/Trajectory.h>
 #include <SofaImGui/models/modifiers/Modifier.h>
 
+
+
 namespace sofaimgui::models::modifiers {
 
 class Repeat : public Modifier
@@ -48,6 +50,9 @@ class Repeat : public Modifier
     void modify(double &time) override;
     void reset() override;
     void computeDuration() override;
+
+    void pushToTrack(std::shared_ptr<models::Track> track) override;
+    void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex) override;
 
     void setIterations(const int &iterations);
     int getIterations() {return m_iterations;}

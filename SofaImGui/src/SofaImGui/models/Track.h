@@ -50,35 +50,18 @@ class Track
 
     std::shared_ptr<actions::StartMove> getStartMove() {return m_startmove;}
 
-    const std::vector<std::shared_ptr<actions::Action>>& getActions() {return m_actions;}
+    std::vector<std::shared_ptr<actions::Action>>& getActions() {return m_actions;}
     std::shared_ptr<actions::Action> getAction(const sofa::Index& actionIndex) {return m_actions[actionIndex];}
 
-    const std::vector<std::shared_ptr<modifiers::Modifier>>& getModifiers() {return m_modifiers;}
+    std::vector<std::shared_ptr<modifiers::Modifier>>& getModifiers() {return m_modifiers;}
     std::shared_ptr<modifiers::Modifier> getModifier(const sofa::Index& modifierIndex) {return m_modifiers[modifierIndex];}
-
-    void pushAction(std::shared_ptr<actions::Action> action);
-    void pushMove(std::shared_ptr<actions::Move> move);
-    void pushMove();
-
-    void popAction();
-
-    void insertAction(const sofa::Index &actionIndex, std::shared_ptr<actions::Action> action);
-    void insertMove(const sofa::Index &actionIndex);
-
-    void deleteAction(const sofa::Index &actionIndex);
-    void deleteMove(const sofa::Index &actionIndex);
 
     void updateNextMoveInitialPoint(const sofa::Index &actionIndex, const RigidCoord &initialPoint);
 
-    void pushModifier(std::shared_ptr<modifiers::Modifier> modifier);
-    void pushRepeat();
+    std::shared_ptr<actions::Move> getPreviousMove(const sofa::Index &actionIndex);
+    std::shared_ptr<actions::Move> getNextMove(const sofa::Index &actionIndex);
 
-    void popModifier();
-
-    void insertModifier(const sofa::Index &modifierIndex, std::shared_ptr<modifiers::Modifier> modifier);
-    void insertRepeat(const sofa::Index &modifierIndex);
-
-    void deleteModifier(const sofa::Index &modifierIndex);
+    void swapActions(const sofa::Index& actionIndex1, const sofa::Index& actionIndex2);
 
    protected:
     
@@ -86,10 +69,6 @@ class Track
     std::shared_ptr<actions::StartMove> m_startmove;
     std::vector<std::shared_ptr<actions::Action>> m_actions;
     std::vector<std::shared_ptr<modifiers::Modifier>> m_modifiers;
-
-    std::shared_ptr<actions::Move> getPreviousMove(const sofa::Index &actionIndex);
-    std::shared_ptr<actions::Move> getNextMove(const sofa::Index &actionIndex);
-
 };
 
 } // namespace

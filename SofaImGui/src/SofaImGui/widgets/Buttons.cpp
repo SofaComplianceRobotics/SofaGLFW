@@ -204,9 +204,10 @@ void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    ImGui::ItemSize(bb.GetSize());
+    ImRect blockbb = bb;
+    blockbb.Min.y -= offset;
     const ImGuiID id = ImGui::GetID(label);
-    if (!ImGui::ItemAdd(bb, id))
+    if (!ImGui::ItemAdd(blockbb, id))
         return;
 
     { // Block background
@@ -260,8 +261,6 @@ void Drag(const char* label, const ImRect &bb, double *value)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 size = bb.GetSize();
-    ImGui::ItemSize(size);
     const ImGuiID id = ImGui::GetID(label);
     if (!ImGui::ItemAdd(bb, id))
         return;
