@@ -150,9 +150,8 @@ void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos)
 
         // If we rotate the view, we should use the perspective mode
         if(m_currentCamera->d_activated.getValue())
-            if (sofa::core::objectmodel::MouseEvent::checkEventType(mEvent))
-                if(mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
-                    m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+            if(mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
+                m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
 
         break;
     }

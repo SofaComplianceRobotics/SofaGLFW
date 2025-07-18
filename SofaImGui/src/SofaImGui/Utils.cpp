@@ -121,11 +121,10 @@ void alignCamera(sofaglfw::SofaGLFWBaseGUI *baseGUI, const CameraAlignement& ali
             break;
         }
 
-        auto box = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
         auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-        auto distance = *std::max_element(box.begin(), box.end());
-        const auto& position = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -distance*2.f, orientation);
-        camera->setView(position + bbCenter, orientation);
+        auto lookAtPosition = sofa::type::Vec3(0., 0., 0.);
+        const auto& cameraPosition = camera->getPositionFromOrientation(lookAtPosition, -camera->getDistance(), orientation);
+        camera->setView(cameraPosition + bbCenter, orientation);
         camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
     }
 }
