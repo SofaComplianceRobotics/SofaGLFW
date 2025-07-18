@@ -122,9 +122,9 @@ void alignCamera(sofaglfw::SofaGLFWBaseGUI *baseGUI, const CameraAlignement& ali
         }
 
         auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-        auto lookAtPosition = sofa::type::Vec3(0., 0., 0.);
-        const auto& cameraPosition = camera->getPositionFromOrientation(lookAtPosition, -camera->getDistance(), orientation);
+        const auto& cameraPosition = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -camera->getDistance(), orientation);
         camera->setView(cameraPosition + bbCenter, orientation);
+        camera->d_lookAt.setValue(bbCenter);
         camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
     }
 }
