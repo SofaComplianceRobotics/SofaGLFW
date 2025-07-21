@@ -35,6 +35,7 @@
 #include <SofaImGui/windows/ViewPort.h>
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaGLFW/SofaGLFWWindow.h>
 
 #include <sofa/gl/component/rendering3d/OglSceneFrame.h>
 #include <sofa/gui/common/BaseGUI.h>
@@ -375,7 +376,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (firstTime)
     {
         firstTime = false;
-        Utils::resetSimulationView(baseGUI);
+        sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
     m_viewportWindow.showWindow(groot.get(), (ImTextureID)m_fbo->getColorTexture(),
@@ -711,25 +712,26 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
 
     if(m_viewportWindow.isFocusOnViewport() && action==GLFW_PRESS)
     {
+        const auto& groot = m_baseGUI->getRootNode();
         switch (key)
         {
         case GLFW_KEY_1:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::TOP);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
             break;
         case GLFW_KEY_2:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::BOTTOM);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
             break;
         case GLFW_KEY_3:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::FRONT);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
             break;
         case GLFW_KEY_4:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::BACK);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
             break;
         case GLFW_KEY_5:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::RIGHT);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
             break;
         case GLFW_KEY_6:
-            sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::LEFT);
+            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
             break;
         }
     }

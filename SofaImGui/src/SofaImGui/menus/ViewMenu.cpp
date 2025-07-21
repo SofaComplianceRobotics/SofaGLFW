@@ -21,14 +21,15 @@
  ******************************************************************************/
 
 #include <sofa/component/visual/VisualStyle.h>
+#include <sofa/component/visual/VisualGrid.h>
 #include <sofa/core/visual/VisualParams.h>
 
-#include <sofa/component/visual/VisualGrid.h>
 #include <sofa/component/visual/LineAxis.h>
 #include <sofa/component/visual/VisualBoundingBox.h>
 
 #include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaGLFW/SofaGLFWWindow.h>
 
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/io/STBImage.h>
@@ -43,7 +44,7 @@
 
 namespace sofaimgui::menus {
 
-static constexpr sofa::component::visual::VisualGrid::PlaneType defaultPlane("y");
+using sofaglfw::SofaGLFWWindow;
 
 ViewMenu::ViewMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI) : m_baseGUI(baseGUI)
 {
@@ -91,10 +92,12 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float &
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto box = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
-        auto size = *std::max_element(box.begin(), box.end());
-        size = floor(size / squareSize) * squareSize;
-        if (size / squareSize < 2)
+        auto bboxSize = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
+        auto gridSize = floor(*std::max_element(bboxSize.begin(), bboxSize.end()) * 10); // we choose the grid to be ten times larger than the bounding box
+        gridSize = floor(gridSize / squareSize);
+        gridSize -= fmod(gridSize, 2); // garanties that the grid is centered wrt the origin
+        gridSize *= squareSize; // garanties that the grid square size is the one selected
+        if (gridSize / squareSize < 2)
         {
             if (show)
                 FooterStatusBar::getInstance().setTempMessage("The selected square size is too large wrt to the bounding box the scene.",
@@ -102,7 +105,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float &
             return;
         }
 
-        std::string name = "ViewportGrid" + std::to_string(squareSize);
+        std::string name = "ViewportGrid" + SofaGLFWWindow::GridSquareSize::getString(squareSize);
         auto grid = groot->get<sofa::component::visual::VisualGrid>(name);
         if (!grid)
         {
@@ -111,19 +114,19 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float &
             newGrid->setName(name);
             newGrid->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
             newGrid->d_enable.setValue(show);
-            newGrid->d_plane.setValue(defaultPlane);
-
-            newGrid->d_size.setValue(size);
+            newGrid->d_size.setValue(gridSize);
             newGrid->d_thickness.setValue(thickness);
-            newGrid->d_nbSubdiv.setValue(size / squareSize);
+            newGrid->d_nbSubdiv.setValue(gridSize / squareSize);
             newGrid->init();
         }
         else
         {
             grid->d_enable.setValue(show);
-            grid->d_nbSubdiv.setValue(size / squareSize);
+            grid->d_nbSubdiv.setValue(gridSize / squareSize);
         }
     }
+
+    sofaglfw::SofaGLFWWindow::setGridsPlane(groot);
 }
 
 void ViewMenu::showOriginFrame(const bool& show)
@@ -182,17 +185,17 @@ void ViewMenu::addViewport()
         if (ImGui::BeginMenu("Grid"))
         {
             static bool show01 = false;
-            if (ImGui::LocalCheckBox("Square size: 0.1", &show01))
-                showGrid(show01, 0.1f, 0.5f);
+            if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::METER)).c_str(), &show01))
+                showGrid(show01, SofaGLFWWindow::GridSquareSize::METER, 0.1f);
             static bool show1 = false;
-            if (ImGui::LocalCheckBox("Square size: 1", &show1))
-                showGrid(show1, 1.f, 0.5f);
+            if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::DECIMETER)).c_str(), &show1))
+                showGrid(show1, SofaGLFWWindow::GridSquareSize::DECIMETER, 0.5f);
             static bool show10 = false;
-            if (ImGui::LocalCheckBox("Square size: 10", &show10))
-                showGrid(show10, 10.f, 1.f);
+            if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::CENTIMETER)).c_str(), &show10))
+                showGrid(show10, SofaGLFWWindow::GridSquareSize::CENTIMETER, 1.f);
             static bool show100 = false;
-            if (ImGui::LocalCheckBox("Square size: 100", &show100))
-                showGrid(show100, 100.f, 2.f);
+            if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::MILLIMETER)).c_str(), &show100))
+                showGrid(show100, SofaGLFWWindow::GridSquareSize::MILLIMETER, 2.f);
 
             ImGui::EndMenu();
         }
@@ -349,26 +352,38 @@ void ViewMenu::addAlignCamera()
         if (camera)
         {
             if (ImGui::MenuItem("Top", "1"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::TOP);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::TOP);
+            }
 
             if (ImGui::MenuItem("Bottom", "2"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::BOTTOM);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::BOTTOM);
+            }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Front", "3"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::FRONT);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::FRONT);
+            }
 
             if (ImGui::MenuItem("Back", "4"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::BACK);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::BACK);
+            }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Left", "5"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::LEFT);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::LEFT);
+            }
 
             if (ImGui::MenuItem("Right", "6"))
-                sofaimgui::Utils::alignCamera(m_baseGUI, sofaimgui::Utils::CameraAlignement::RIGHT);
+            {
+                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::RIGHT);
+            }
         }
         ImGui::EndMenu();
     }
@@ -433,7 +448,7 @@ void ViewMenu::addRestoreCamera()
     ImGui::BeginDisabled(!fileExists);
     if (ImGui::MenuItem("Restore Camera"))
     {
-        Utils::resetSimulationView(m_baseGUI);
+        SofaGLFWWindow::resetSimulationView(m_baseGUI);
     }
     ImGui::EndDisabled();
 }
@@ -472,7 +487,7 @@ void ViewMenu::addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fb
 
             glBindTexture(GL_TEXTURE_2D, texture);
 
-                    // Read the pixel data from the OpenGL texture
+            // Read the pixel data from the OpenGL texture
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPixels());
 
             glBindTexture(GL_TEXTURE_2D, 0);

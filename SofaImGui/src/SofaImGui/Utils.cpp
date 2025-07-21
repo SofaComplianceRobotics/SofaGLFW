@@ -21,12 +21,16 @@
  ******************************************************************************/
 
 #include <sofa/core/visual/VisualParams.h>
+#include <SofaImGui/menus/ViewMenu.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaImGui/Utils.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/gui/common/ArgumentParser.h>
+#include <SofaGLFW/SofaGLFWWindow.h>
 
 namespace sofaimgui::Utils {
+
+using sofaimgui::menus::ViewMenu;
 
 static bool withArguments = true;
 
@@ -55,79 +59,14 @@ void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std:
     }
 }
 
-void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI)
-{
-    if (baseGUI)
-    {
-        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
-        const std::string viewFileName = baseGUI->getFilename() + ".view";
-        bool fileExists = sofa::helper::system::FileSystem::exists(viewFileName);
-        sofa::component::visual::BaseCamera::SPtr camera;
-        if (groot)
-        {
-            groot->get(camera);
-            if (camera && fileExists)
-            {
-                if (camera->importParametersFromFile(viewFileName))
-                {
-                    msg_info("GUI") << "Current camera parameters have been imported from " << viewFileName << ".";
-                }
-                else
-                {
-                    msg_error("GUI") << "Could not import camera parameters from " << viewFileName << ".";
-                }
-            }
-        }
-    }
-}
-
 void loadSimulation(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string& filePathName)
 {
     if(!reload)
         withArguments = false; // Forget python arguments once the user opens a new simulation from the GUI
     loadFile(baseGUI, reload, filePathName);
-    resetSimulationView(baseGUI);
+    sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
 }
 
-void alignCamera(sofaglfw::SofaGLFWBaseGUI *baseGUI, const CameraAlignement& align)
-{
-    sofa::component::visual::BaseCamera::SPtr camera;
-    const auto& groot = baseGUI->getRootNode();
-    groot->get(camera);
-
-    if (camera)
-    {
-        sofa::type::Quat<float> orientation;
-
-        switch(align)
-        {
-        case TOP:
-            orientation = sofa::type::Quat(-0.707, 0., 0., 0.707);
-            break;
-        case BOTTOM:
-            orientation = sofa::type::Quat(0.707, 0., 0., 0.707);
-            break;
-        case FRONT:
-            orientation = sofa::type::Quat(0., 0., 0., 1.);
-            break;
-        case BACK:
-            orientation = sofa::type::Quat(0., 1., 0., 0.);
-            break;
-        case LEFT:
-            orientation = sofa::type::Quat(0., 0.707, 0., 0.707);
-            break;
-        case RIGHT:
-            orientation = sofa::type::Quat(0., -0.707, 0., 0.707);
-            break;
-        }
-
-        auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-        const auto& cameraPosition = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -camera->getDistance(), orientation);
-        camera->setView(cameraPosition + bbCenter, orientation);
-        camera->d_lookAt.setValue(bbCenter);
-        camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-    }
-}
 } // namespace
 
 

@@ -25,12 +25,10 @@
 
 namespace sofaimgui::Utils {
 
-void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool &reload, const std::string& filePathName);
-void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI);
-void loadSimulation(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string& filePathName);
+using namespace sofa::component::visual;
 
-enum CameraAlignement{TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK};
-void alignCamera(sofaglfw::SofaGLFWBaseGUI *baseGUI, const CameraAlignement &align);
+void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool &reload, const std::string& filePathName);
+void loadSimulation(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std::string& filePathName);
 
 } // namespace
 

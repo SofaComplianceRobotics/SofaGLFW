@@ -612,7 +612,7 @@ void SofaGLFWBaseGUI::cursor_position_callback(GLFWwindow* window, double xpos, 
         auto currentSofaWindow = s_mapWindows.find(window);
         if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
         {
-            currentSofaWindow->second->mouseMoveEvent(static_cast<int>(xpos), static_cast<int>(ypos));
+            currentSofaWindow->second->mouseMoveEvent(currentGUI->second->getRootNode(), static_cast<int>(xpos), static_cast<int>(ypos));
         }
     }
 }

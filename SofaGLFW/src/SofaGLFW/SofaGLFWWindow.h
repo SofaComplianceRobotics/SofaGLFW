@@ -20,15 +20,19 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/config.h>
 
 #include <sofa/simulation/fwd.h>
 #include <sofa/component/visual/BaseCamera.h>
+#include <sofa/component/visual/VisualGrid.h>
 
 struct GLFWwindow;
 
 namespace sofaglfw
 {
+
+using sofa::component::visual::VisualGrid;
 
 class SOFAGLFW_API SofaGLFWWindow
 {
@@ -39,13 +43,44 @@ public:
     void draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::VisualParams* vparams);
     void close();
 
-    void mouseMoveEvent(int xpos, int ypos);
+    void mouseMoveEvent(sofa::simulation::NodeSPtr groot, int xpos, int ypos);
     void mouseButtonEvent(int button, int action, int mods);
     void scrollEvent(double xoffset, double yoffset);
     void setBackgroundColor(const sofa::type::RGBAColor& newColor);
 
     void setCamera(sofa::component::visual::BaseCamera::SPtr newCamera);
     void centerCamera(sofa::simulation::NodeSPtr node, sofa::core::visual::VisualParams* vparams) const;
+
+    enum CameraAlignement{TOP, BOTTOM, LEFT, RIGHT, FRONT, BACK};
+
+    struct GridSquareSize{
+        static float METER;
+        static float DECIMETER;
+        static float CENTIMETER;
+        static float MILLIMETER;
+
+        static sofa::type::vector<float> getSquareSizes() {return sofa::type::vector{METER, DECIMETER, CENTIMETER, MILLIMETER};}
+        static std::string getString(const float& squareSize)
+        {
+            if (squareSize == METER)
+                return "0.1";
+
+            if (squareSize == DECIMETER)
+                return "1";
+
+            if (squareSize == CENTIMETER)
+                return "10";
+
+            if (squareSize == MILLIMETER)
+                return "100";
+
+            return "";
+        }
+    };
+
+    static void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI);
+    static void alignCamera(sofa::simulation::NodeSPtr groot, const CameraAlignement &align);
+    static void setGridsPlane(sofa::simulation::NodeSPtr groot, const VisualGrid::PlaneType &plane = VisualGrid::PlaneType("y"));
 
 private:
     GLFWwindow* m_glfwWindow{nullptr};
