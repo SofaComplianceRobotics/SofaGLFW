@@ -35,11 +35,6 @@
 namespace sofaglfw
 {
 
-float SofaGLFWWindow::GridSquareSize::METER = 0.1;
-float SofaGLFWWindow::GridSquareSize::DECIMETER = 1;
-float SofaGLFWWindow::GridSquareSize::CENTIMETER = 10;
-float SofaGLFWWindow::GridSquareSize::MILLIMETER = 100;
-
 SofaGLFWWindow::SofaGLFWWindow(GLFWwindow* glfwWindow, sofa::component::visual::BaseCamera::SPtr camera)
     : m_glfwWindow(glfwWindow)
     , m_currentCamera(camera)
