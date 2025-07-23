@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, macos-14, windows-2022]
         sofa_branch: [master]
-
+        
     steps:
       - name: Setup SOFA and environment
         id: sofa
@@ -28,7 +28,12 @@ jobs:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_scope: 'standard'
-      
+          
+      - name: Switch to gcc-10 on Ubuntu
+        if: matrix.configurations.os == "ubuntu-22.04"
+        run: |
+          sudo apt install gcc-10 g++-10
+
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
