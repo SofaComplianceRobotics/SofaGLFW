@@ -30,9 +30,10 @@ jobs:
           sofa_scope: 'standard'
           
       - name: Switch to gcc-10 on Ubuntu
-        if: matrix.configurations.os == "ubuntu-22.04"
         run: |
-          sudo apt install gcc-10 g++-10
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt install gcc-10 g++-10
+          fi
 
       - name: Checkout source code
         uses: actions/checkout@v2
