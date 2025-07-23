@@ -62,17 +62,9 @@ public:
         static sofa::type::vector<float> getSquareSizes() {return sofa::type::vector{METER, DECIMETER, CENTIMETER, MILLIMETER};}
         static std::string getString(const float& squareSize)
         {
-            if (squareSize == METER)
-                return "0.1";
-
-            if (squareSize == DECIMETER)
-                return "1";
-
-            if (squareSize == CENTIMETER)
-                return "10";
-
-            if (squareSize == MILLIMETER)
-                return "100";
+            auto sizes = getSquareSizes();
+            if(std::find(sizes.begin(), sizes.end(), squareSize) != sizes.end())
+               return std::format("{:<3}", squareSize);
 
             return "";
         }
