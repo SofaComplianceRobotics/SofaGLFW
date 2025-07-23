@@ -33,7 +33,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     ~MyRobotWindow() = default;
 
     void showWindow(const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return (!m_informationGroups.empty() || !m_settingGroups.empty());}
+    bool enabled() override;
 
     struct Connection{
         std::vector<std::string> ports;

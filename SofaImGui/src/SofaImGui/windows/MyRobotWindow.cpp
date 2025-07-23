@@ -122,6 +122,11 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
     }
 }
 
+bool MyRobotWindow::enabled()
+{
+    return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
+}
+
 void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (enabled() && isOpen())
