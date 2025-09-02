@@ -71,7 +71,9 @@ bool Move::MoveView::showBlock(const std::string &label,
 
         std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0., 0., 0., 0.));
-        if (ImGui::InputText(id.c_str(), move.getComment(), models::actions::Action::COMMENTSIZE))
+        std::string text = ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT" ";
+        text += move.getComment();
+        if (ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))
         {
             hasValuesChanged = true;
         }
