@@ -162,6 +162,12 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void init();
     /// Sanitize the input string to match ROS requirements for topic and node name (no spaces, no special characters)
     bool sanitizeName(std::string &name);
+    void updateSimulationStateData(const bool &sanitize=false);
+    void updateDataOutput();
+    void updateDataInput();
+
+    std::map<std::string, bool> m_publishListboxItems;
+    std::map<std::string, bool> m_subcriptionListboxItems;
 
     std::vector<models::SimulationState::StateData> m_simulationStateData;
     std::map<std::string, std::vector<float> > m_simulationState;
