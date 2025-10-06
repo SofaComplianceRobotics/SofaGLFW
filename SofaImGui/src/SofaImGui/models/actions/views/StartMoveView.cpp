@@ -65,7 +65,9 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
 
         std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0., 0., 0., 0.));
-        if (ImGui::InputText(id.c_str(), start.getComment(), models::actions::Action::COMMENTSIZE))
+        std::string text = " " ICON_FA_FLAG"  ";
+        text += start.getComment();
+        if (ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))
         {
             hasValuesChanged = true;
         }
