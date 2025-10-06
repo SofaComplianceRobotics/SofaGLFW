@@ -48,14 +48,14 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
     std::vector<rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr> m_publishers;
     std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
 
-    std::map<std::string, std::vector<float>> m_selectedStateToPublish;
+    std::map<std::string, sofa::core::BaseData*> m_selectedDataToPublish;
     std::map<std::string, bool> m_selectedDigitalOutputToPublish;
-    std::map<std::string, std::vector<float>> m_selectedStateToOverwrite;
+    std::map<std::string, std::vector<float>> m_selectedDataToOverwrite;
     std::map<std::string, bool> m_selectedDigitalInput;
     std::map<std::string, float> m_selectedUserInput;
 
-    bool hasSelectedInput() {return !m_selectedStateToOverwrite.empty() || !m_selectedDigitalInput.empty() || !m_selectedUserInput.empty();}
-    void clearSelectedInput() {m_selectedStateToOverwrite.clear(); m_selectedDigitalInput.clear(); m_selectedUserInput.clear();}
+    bool hasSelectedInput() {return !m_selectedDataToOverwrite.empty() || !m_selectedDigitalInput.empty() || !m_selectedUserInput.empty();}
+    void clearSelectedInput() {m_selectedDataToOverwrite.clear(); m_selectedDigitalInput.clear(); m_selectedUserInput.clear();}
 
     void createSubscription(const std::string& topicName)
     {
@@ -67,10 +67,10 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
 
     void createTopics()
     {
-        if (!m_selectedStateToPublish.empty() || !m_selectedDigitalOutputToPublish.empty())
+        if (!m_selectedDataToPublish.empty() || !m_selectedDigitalOutputToPublish.empty())
         {
-            m_publishers.reserve(m_selectedStateToPublish.size() + m_selectedDigitalOutputToPublish.size());
-            for (const auto& [key, value] : m_selectedStateToPublish)
+            m_publishers.reserve(m_selectedDataToPublish.size() + m_selectedDigitalOutputToPublish.size());
+            for (const auto& [key, value] : m_selectedDataToPublish)
             {
                 const auto& publisher = create_publisher<std_msgs::msg::Float32MultiArray>(key, 10);
                 m_publishers.push_back(publisher);
@@ -88,10 +88,10 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
     {
         if (hasSelectedInput())
         {
-            m_subscriptions.reserve(m_selectedStateToOverwrite.size()
+            m_subscriptions.reserve(m_selectedDataToOverwrite.size()
                                     + m_selectedDigitalInput.size()
                                     + m_selectedUserInput.size());
-            for (const auto& [key, value] : m_selectedStateToOverwrite)
+            for (const auto& [key, value] : m_selectedDataToOverwrite)
             {
                 createSubscription(key);
             }
@@ -113,8 +113,8 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
         for (auto value: msg->data)
             vector.push_back(value);
 
-        std::map<std::string, std::vector<float>>::iterator it = m_selectedStateToOverwrite.find(topicName);
-        if (it != m_selectedStateToOverwrite.end())
+        std::map<std::string, std::vector<float>>::iterator it = m_selectedDataToOverwrite.find(topicName);
+        if (it != m_selectedDataToOverwrite.end())
             it->second = vector;
 
         std::map<std::string, float>::iterator itu = m_selectedUserInput.find(topicName);
@@ -162,17 +162,16 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void init();
     /// Sanitize the input string to match ROS requirements for topic and node name (no spaces, no special characters)
     bool sanitizeName(std::string &name);
-    void updateSimulationStateData(const bool &sanitize=false);
+    void updateIOData(const bool &doSanitizeName=false);
     void updateDataOutput();
     void updateDataInput();
 
     std::map<std::string, bool> m_publishListboxItems;
     std::map<std::string, bool> m_subcriptionListboxItems;
 
-    std::vector<models::SimulationState::StateData> m_simulationStateData;
-    std::map<std::string, std::vector<float> > m_simulationState;
-    std::vector<models::IPController::Actuator> m_actuators;
-    std::map<std::string, sofa::core::BaseData*> m_subscribableData;
+    std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map
+    std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
+    std::map<std::string, sofa::core::BaseData*> m_subscribableData; // user defined input
     float m_itemWidth;
 
 #if SOFAIMGUI_WITH_ROS
