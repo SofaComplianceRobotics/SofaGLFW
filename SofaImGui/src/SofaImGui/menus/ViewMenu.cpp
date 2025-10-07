@@ -66,8 +66,11 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 
         ImGui::Separator();
 
-        addAlignCamera();
         addCenterCamera();
+        addAlignCamera();
+
+        ImGui::Separator();
+
         addSaveCamera();
         addRestoreCamera();
 
@@ -343,7 +346,7 @@ void ViewMenu::addViewport()
 
 void ViewMenu::addAlignCamera()
 {
-    if (ImGui::BeginMenu("Align View"))
+    if (ImGui::BeginMenu("Align"))
     {
         sofa::component::visual::BaseCamera::SPtr camera;
         const auto& groot = m_baseGUI->getRootNode();
@@ -399,22 +402,32 @@ void ViewMenu::addFullScreen()
 
 void ViewMenu::addCenterCamera()
 {
-    if (ImGui::MenuItem("Center View"))
+    sofa::component::visual::BaseCamera::SPtr camera;
+    const auto& groot = m_baseGUI->getRootNode();
+    groot->get(camera);
+
+    if(!groot->f_bbox.getValue().isValid())
     {
-        sofa::component::visual::BaseCamera::SPtr camera;
-        const auto& groot = m_baseGUI->getRootNode();
-        groot->get(camera);
+        msg_error_when(!groot->f_bbox.getValue().isValid(), "GUI") << "Global bounding box is invalid: " << groot->f_bbox.getValue();
+        return;
+    }
+
+    if (ImGui::MenuItem("Fit All", "0"))
+    {
         if (camera)
         {
-            if( groot->f_bbox.getValue().isValid())
-            {
-                auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-                camera->d_lookAt.setValue(bbCenter);
-            }
-            else
-            {
-                msg_error_when(!groot->f_bbox.getValue().isValid(), "GUI") << "Global bounding box is invalid: " << groot->f_bbox.getValue();
-            }
+            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            camera->d_lookAt.setValue(bbCenter);
+        }
+    }
+
+    if (ImGui::MenuItem("Center"))
+    {
+        if (camera)
+        {
+            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            camera->d_lookAt.setValue(bbCenter);
         }
     }
 }

@@ -102,6 +102,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
     {
         if(ImGui::BeginChild("Render"))
         {
+            static bool collapsed = true;
             auto position = ImGui::GetWindowPos();
             ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
@@ -115,10 +116,22 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
             if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen,
                              ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                ImGui::TextDisabled("  " ICON_FA_EYE);
-
-                if (groot)
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                std::string title = (collapsed)? ICON_FA_CHEVRON_DOWN: ICON_FA_CHEVRON_UP;
+                title+="##viewoptions";
+                if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
                 {
+                    collapsed = !collapsed;
+                }
+                ImGui::SetItemTooltip(collapsed? "Expend view options": "Collapse view options");
+                ImGui::PopStyleColor(3);
+
+                if (groot && !collapsed)
+                {
+                    ImGui::TextDisabled("  " ICON_FA_EYE);
+
                     sofa::component::visual::BaseCamera::SPtr camera;
                     groot->get(camera);
 
@@ -149,7 +162,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
 
                     { // Axis related
-                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
                         ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
                         { // Translate X
                             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
@@ -160,6 +173,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Translate along X");
                             ImGui::PopStyleColor();
                         }
@@ -173,6 +188,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Translate along Y");
                             ImGui::PopStyleColor();
                         }
@@ -186,6 +203,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Translate along Z");
                             ImGui::PopStyleColor();
                         }
@@ -200,6 +219,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * ImGui::GetIO().MouseDelta.x, 0., 0., 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Rotate around X");
                             ImGui::PopStyleColor();
                         }
@@ -212,6 +233,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * ImGui::GetIO().MouseDelta.x, 0., 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Rotate around Y");
                             ImGui::PopStyleColor();
                         }
@@ -224,6 +247,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * ImGui::GetIO().MouseDelta.x, 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
                             }
+                            if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                             ImGui::SetItemTooltip("Rotate around Z");
                             ImGui::PopStyleColor();
                         }
@@ -234,6 +259,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         ImGui::PopStyleColor();
                         ImGui::PopStyleVar();
                     }
+
+                    ImGui::Separator();
                 }
             }
             ImGui::End();

@@ -765,6 +765,15 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
         const auto& groot = m_baseGUI->getRootNode();
         switch (key)
         {
+        case GLFW_KEY_0:
+        {
+            sofa::component::visual::BaseCamera::SPtr camera;
+            groot->get(camera);
+            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            camera->d_lookAt.setValue(bbCenter);
+            break;
+        }
         case GLFW_KEY_1:
             sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
             break;
