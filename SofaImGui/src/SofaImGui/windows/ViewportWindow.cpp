@@ -162,55 +162,59 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
 
                     { // Axis related
-                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
-                        ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
-                        { // Translate X
-                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
-                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateX", buttonSize);
+                        { // Translate Left/Right
+                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
                             if (ImGui::IsItemActive())
                             {
-                                sofa::type::Vec3 t = sofa::type::Vec3(ImGui::GetIO().MouseDelta.x, 0., 0.);
+                                sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
+                                t = camera->cameraToWorldTransform(t);
+                                t.normalize();
+                                t *= ImGui::GetIO().MouseDelta.x;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            ImGui::SetItemTooltip("Translate along X");
-                            ImGui::PopStyleColor();
+                            ImGui::SetItemTooltip("Translate left/right");
                         }
 
-                        { // Translate Y
-                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
-                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateY", buttonSize);
+                        { // Translate Up/Down
+                            ImGui::Button(ICON_FA_ARROWS_UP_DOWN"##TranslateUD", buttonSize);
                             if (ImGui::IsItemActive())
                             {
-                                sofa::type::Vec3 t = sofa::type::Vec3(0., ImGui::GetIO().MouseDelta.x, 0.);
+                                sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
+                                t = camera->cameraToWorldTransform(t);
+                                t.normalize();
+                                t *= ImGui::GetIO().MouseDelta.x;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            ImGui::SetItemTooltip("Translate along Y");
-                            ImGui::PopStyleColor();
+                            ImGui::SetItemTooltip("Translate up/down");
                         }
 
-                        { // Translate Z
-                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 1, 1));
-                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateZ", buttonSize);
+                        { // Zoom
+                            ImGui::Button(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom", buttonSize);
                             if (ImGui::IsItemActive())
                             {
-                                sofa::type::Vec3 t = sofa::type::Vec3(0., 0., ImGui::GetIO().MouseDelta.x);
+                                sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
+                                t = camera->cameraToWorldTransform(t);
+                                t.normalize();
+                                t *= ImGui::GetIO().MouseDelta.x;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            ImGui::SetItemTooltip("Translate along Z");
-                            ImGui::PopStyleColor();
+                            ImGui::SetItemTooltip("Zoom");
                         }
 
                         const auto& cameraPosition = camera->d_position.getValue();
                         const auto &lookAt = (camera->d_lookAt.isSet())? camera->getLookAt(): camera->getLookAtFromOrientation(cameraPosition, camera->getDistance(), camera->getOrientation());
+
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
+                        ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
                         { // Rotate X
                             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
                             ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateX", buttonSize);
@@ -252,12 +256,12 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             ImGui::SetItemTooltip("Rotate around Z");
                             ImGui::PopStyleColor();
                         }
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleVar();
+
                         auto orientation = camera->getOrientation();
                         const double distance = (lookAt - cameraPosition).norm();
                         camera->d_position.setValue(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)));
-
-                        ImGui::PopStyleColor();
-                        ImGui::PopStyleVar();
                     }
 
                     ImGui::Separator();
