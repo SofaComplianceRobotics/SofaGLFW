@@ -214,6 +214,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
 
                         const auto& cameraPosition = camera->d_position.getValue();
                         const auto &lookAt = camera->getLookAt();
+                        const auto &distance = camera->getDistance();
                         bool rotate = false;
 
                         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
@@ -268,7 +269,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         if (rotate)
                         {
                             auto orientation = camera->getOrientation();
-                            const double distance = (lookAt - cameraPosition).norm();
+                            orientation.normalize();
                             camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
                         }
                     }
