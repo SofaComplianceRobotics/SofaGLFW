@@ -153,12 +153,14 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         ImGui::SetItemTooltip("Center view");
                     }
 
-                    { // Align view
+                    { // Fit all
                         if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
                         {
-                            camera->d_orientation.setValue(sofa::type::Quat(0., 0., 0., 1.));
+                            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                            camera->d_lookAt.setValue(bbCenter);
                         }
-                        ImGui::SetItemTooltip("Align view");
+                        ImGui::SetItemTooltip("Fit all");
                     }
 
                     { // Axis related
@@ -211,7 +213,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         }
 
                         const auto& cameraPosition = camera->d_position.getValue();
-                        const auto &lookAt = (camera->d_lookAt.isSet())? camera->getLookAt(): camera->getLookAtFromOrientation(cameraPosition, camera->getDistance(), camera->getOrientation());
+                        const auto &lookAt = camera->getLookAt();
+                        bool rotate = false;
 
                         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
                         ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
@@ -222,6 +225,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             {
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * ImGui::GetIO().MouseDelta.x, 0., 0., 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
+                                rotate = true;
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -236,6 +240,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             {
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * ImGui::GetIO().MouseDelta.x, 0., 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
+                                rotate = true;
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -250,6 +255,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             {
                                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * ImGui::GetIO().MouseDelta.x, 1.);
                                 camera->rotateCameraAroundPoint(q, lookAt);
+                                rotate = true;
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -259,9 +265,12 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         ImGui::PopStyleColor();
                         ImGui::PopStyleVar();
 
-                        auto orientation = camera->getOrientation();
-                        const double distance = (lookAt - cameraPosition).norm();
-                        camera->d_position.setValue(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)));
+                        if (rotate)
+                        {
+                            auto orientation = camera->getOrientation();
+                            const double distance = (lookAt - cameraPosition).norm();
+                            camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
+                        }
                     }
 
                     ImGui::Separator();
