@@ -20,6 +20,8 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include <sofa/core/visual/VisualParams.h>
+#include <sofa/component/visual/BaseCamera.h>
 #include <SofaImGui/windows/ViewportWindow.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
@@ -42,7 +44,6 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
     {
         if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
         {
-
             ImGui::BeginChild("Render");
             {
                 ImVec2 wsize = ImGui::GetWindowSize();
@@ -84,6 +85,8 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
             ImGui::EndChild();
         }
         ImGui::End();
+
+        addCameraButtons(groot);
     }
 }
 
@@ -91,6 +94,154 @@ void ViewportWindow::addStateWindow()
 {
     ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
     m_stateWindow->showWindow();
+}
+
+void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
+{
+    if (ImGui::Begin(m_name.c_str(), &m_isOpen))
+    {
+        if(ImGui::BeginChild("Render"))
+        {
+            auto position = ImGui::GetWindowPos();
+            ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+            position.x += ImGui::GetWindowWidth() - buttonSize.x * 2;
+            position.y += buttonSize.y *2. + ImGui::GetStyle().FramePadding.y;
+            ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
+
+            auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+            color.w = 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::GetColorU32(color));
+            if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen,
+                             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::TextDisabled("  " ICON_FA_EYE);
+
+                if (groot)
+                {
+                    sofa::component::visual::BaseCamera::SPtr camera;
+                    groot->get(camera);
+
+                    { // Othographic / perspective view
+                        bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
+                        if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
+                        {
+                            camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                        }
+                        ImGui::SetItemTooltip("Orthographic/Perspective");
+                    }
+
+                    { // Center view
+                        if (ImGui::Button(ICON_FA_BULLSEYE, buttonSize))
+                        {
+                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                            camera->d_lookAt.setValue(bbCenter);
+                        }
+                        ImGui::SetItemTooltip("Center view");
+                    }
+
+                    { // Align view
+                        if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
+                        {
+                            camera->d_orientation.setValue(sofa::type::Quat(0., 0., 0., 1.));
+                        }
+                        ImGui::SetItemTooltip("Align view");
+                    }
+
+                    { // Axis related
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+                        ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
+                        { // Translate X
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
+                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateX", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Vec3 t = sofa::type::Vec3(ImGui::GetIO().MouseDelta.x, 0., 0.);
+                                camera->translate(t);
+                                camera->translateLookAt(t);
+                            }
+                            ImGui::SetItemTooltip("Translate along X");
+                            ImGui::PopStyleColor();
+                        }
+
+                        { // Translate Y
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
+                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateY", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Vec3 t = sofa::type::Vec3(0., ImGui::GetIO().MouseDelta.x, 0.);
+                                camera->translate(t);
+                                camera->translateLookAt(t);
+                            }
+                            ImGui::SetItemTooltip("Translate along Y");
+                            ImGui::PopStyleColor();
+                        }
+
+                        { // Translate Z
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 1, 1));
+                            ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateZ", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Vec3 t = sofa::type::Vec3(0., 0., ImGui::GetIO().MouseDelta.x);
+                                camera->translate(t);
+                                camera->translateLookAt(t);
+                            }
+                            ImGui::SetItemTooltip("Translate along Z");
+                            ImGui::PopStyleColor();
+                        }
+
+                        const auto& cameraPosition = camera->d_position.getValue();
+                        const auto &lookAt = (camera->d_lookAt.isSet())? camera->getLookAt(): camera->getLookAtFromOrientation(cameraPosition, camera->getDistance(), camera->getOrientation());
+                        { // Rotate X
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
+                            ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateX", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * ImGui::GetIO().MouseDelta.x, 0., 0., 1.);
+                                camera->rotateCameraAroundPoint(q, lookAt);
+                            }
+                            ImGui::SetItemTooltip("Rotate around X");
+                            ImGui::PopStyleColor();
+                        }
+
+                        { // Rotate Y
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
+                            ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateY", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * ImGui::GetIO().MouseDelta.x, 0., 1.);
+                                camera->rotateCameraAroundPoint(q, lookAt);
+                            }
+                            ImGui::SetItemTooltip("Rotate around Y");
+                            ImGui::PopStyleColor();
+                        }
+
+                        { // Rotate Z
+                            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 1, 1));
+                            ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateZ", buttonSize);
+                            if (ImGui::IsItemActive())
+                            {
+                                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * ImGui::GetIO().MouseDelta.x, 1.);
+                                camera->rotateCameraAroundPoint(q, lookAt);
+                            }
+                            ImGui::SetItemTooltip("Rotate around Z");
+                            ImGui::PopStyleColor();
+                        }
+                        auto orientation = camera->getOrientation();
+                        const double distance = (lookAt - cameraPosition).norm();
+                        camera->d_position.setValue(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)));
+
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleVar();
+                    }
+                }
+            }
+            ImGui::End();
+            ImGui::PopStyleColor();
+            ImGui::EndChild();
+        }
+    }
+    ImGui::End();
 }
 
 bool ViewportWindow::addStepButton()
@@ -122,7 +273,6 @@ bool ViewportWindow::addStepButton()
                 }
                 ImGui::End();
                 ImGui::PopStyleColor();
-
                 ImGui::EndChild();
             }
         }

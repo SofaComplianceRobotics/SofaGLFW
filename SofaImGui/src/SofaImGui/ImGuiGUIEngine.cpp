@@ -524,6 +524,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
     if (ImGui::BeginMainMenuBar())
     {
+        std::string version = "v" + std::string(SOFA_VERSION_STR);
         menus::FileMenu fileMenu(baseGUI);
         fileMenu.addMenu();
         if (fileMenu.m_loadSimulation) {
@@ -541,7 +542,6 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         {
             ImGui::PopStyleColor();
 
-
             for (auto& window : m_windows) 
             {
                 bool isViewport = window.get().getName() == m_viewportWindow.getName();
@@ -550,7 +550,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
                 if(isViewport)
                     ImGui::Separator();
-                ImGui::LocalCheckBox(window.get().getName().c_str(), &window.get().isOpen());
+                auto name = window.get().getName();
+                name.erase(0, sizeof(OFFSET) - 1);
+                ImGui::LocalCheckBox(name.c_str(), &window.get().isOpen());
                 if (isViewport)
                     ImGui::Separator();
 
@@ -570,7 +572,14 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if (ImGui::BeginMenu("Help"))
         {
             ImGui::PopStyleColor();
-            if (ImGui::MenuItem("About", nullptr, false, true))
+
+            // Manual
+            std::string url = "https://docs-support.compliance-robotics.com/docs/";
+            url += (version.length()>6)? "next": version;
+            url += "/Users/SOFARobotics/GUI-user-manual/";
+            ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
+
+            if (ImGui::MenuItem("\t About", nullptr, false, true))
                 isAboutOpen = true;
             ImGui::EndMenu();
         }
@@ -584,7 +593,6 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking);
 
             auto windowWidth = ImGui::GetWindowSize().x;
-            std::string version = "v" + std::string(SOFA_VERSION_STR);
             std::vector<std::string> texts = {"\n", "SOFA, Simulation Open-Framework Architecture \n (c) 2006 INRIA, USTL, UJF, CNRS, MGH",
                                               "&", "(c) Compliance Robotics", "\n",
                                               version,

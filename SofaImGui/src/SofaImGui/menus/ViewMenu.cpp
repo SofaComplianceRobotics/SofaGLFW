@@ -343,7 +343,7 @@ void ViewMenu::addViewport()
 
 void ViewMenu::addAlignCamera()
 {
-    if (ImGui::BeginMenu("Align Camera"))
+    if (ImGui::BeginMenu("Align View"))
     {
         sofa::component::visual::BaseCamera::SPtr camera;
         const auto& groot = m_baseGUI->getRootNode();
@@ -399,7 +399,7 @@ void ViewMenu::addFullScreen()
 
 void ViewMenu::addCenterCamera()
 {
-    if (ImGui::MenuItem("Center Camera"))
+    if (ImGui::MenuItem("Center View"))
     {
         sofa::component::visual::BaseCamera::SPtr camera;
         const auto& groot = m_baseGUI->getRootNode();
@@ -408,7 +408,8 @@ void ViewMenu::addCenterCamera()
         {
             if( groot->f_bbox.getValue().isValid())
             {
-                camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+                auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                camera->d_lookAt.setValue(bbCenter);
             }
             else
             {
@@ -421,7 +422,7 @@ void ViewMenu::addCenterCamera()
 void ViewMenu::addSaveCamera()
 {
     const std::string viewFileName = m_baseGUI->getFilename() + ".view";
-    if (ImGui::MenuItem("Save Camera"))
+    if (ImGui::MenuItem("Save View"))
     {
         sofa::component::visual::BaseCamera::SPtr camera;
         const auto& groot = m_baseGUI->getRootNode();
@@ -445,7 +446,7 @@ void ViewMenu::addRestoreCamera()
     const std::string viewFileName = m_baseGUI->getFilename() + ".view";
     bool fileExists = sofa::helper::system::FileSystem::exists(viewFileName);
     ImGui::BeginDisabled(!fileExists);
-    if (ImGui::MenuItem("Restore Camera"))
+    if (ImGui::MenuItem("Restore View"))
     {
         SofaGLFWWindow::resetSimulationView(m_baseGUI);
     }

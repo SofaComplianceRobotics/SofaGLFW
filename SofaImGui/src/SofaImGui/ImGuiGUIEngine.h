@@ -49,6 +49,7 @@
 #include <SofaImGui/FooterStatusBar.h>
 #include <SofaImGui/Robot.h>
 
+#define OFFSET "       "
 
 struct GLFWwindow;
 namespace sofa::glfw
@@ -94,14 +95,14 @@ public:
 
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
 
-    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("       Viewport", true, m_stateWindow);
-    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("       Scene Graph", false);
-    windows::LogWindow          m_logWindow          = windows::LogWindow("       Log", false);
-    windows::IOWindow           m_IOWindow           = windows::IOWindow("       Input/Output", false);
-    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("       Program", true);
-    windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("       Plotting", true);
-    windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("       My Robot", true);
-    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("       Move", true);
+    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow(OFFSET"Viewport", true, m_stateWindow);
+    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow(OFFSET"Scene Graph", false);
+    windows::LogWindow          m_logWindow          = windows::LogWindow(OFFSET"Log", false);
+    windows::IOWindow           m_IOWindow           = windows::IOWindow(OFFSET"Input/Output", false);
+    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow(OFFSET"Program", true);
+    windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow(OFFSET"Plotting", true);
+    windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow(OFFSET"My Robot", true);
+    windows::MoveWindow         m_moveWindow         = windows::MoveWindow(OFFSET"Move", true);
 
 
 
