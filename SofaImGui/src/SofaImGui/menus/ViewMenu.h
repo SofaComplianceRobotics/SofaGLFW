@@ -45,9 +45,10 @@ class ViewMenu
     void showBoundingBox(const bool& show);
 
     void addViewport();
-    void addAlignCamera();
+    void addAlignCamera(sofa::component::visual::BaseCamera::SPtr camera);
+    void addOrthographic(sofa::component::visual::BaseCamera::SPtr camera);
+    void addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera);
 
-    void addCenterCamera();
     void addSaveCamera();
     void addRestoreCamera();
     void addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fboSize,

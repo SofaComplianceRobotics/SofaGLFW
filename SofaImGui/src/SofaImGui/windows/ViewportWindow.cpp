@@ -135,13 +135,14 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     sofa::component::visual::BaseCamera::SPtr camera;
                     groot->get(camera);
 
-                    { // Othographic / perspective view
-                        bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-                        if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
+                    { // Fit all
+                        if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
                         {
-                            camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                            camera->d_lookAt.setValue(bbCenter);
                         }
-                        ImGui::SetItemTooltip("Orthographic/Perspective");
+                        ImGui::SetItemTooltip("Fit all");
                     }
 
                     { // Center view
@@ -153,14 +154,13 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         ImGui::SetItemTooltip("Center view");
                     }
 
-                    { // Fit all
-                        if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
+                    { // Othographic / perspective view
+                        bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
+                        if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
                         {
-                            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-                            camera->d_lookAt.setValue(bbCenter);
+                            camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
                         }
-                        ImGui::SetItemTooltip("Fit all");
+                        ImGui::SetItemTooltip("Orthographic/Perspective");
                     }
 
                     { // Axis related

@@ -23,6 +23,7 @@
 #include <sofa/component/visual/VisualStyle.h>
 #include <sofa/component/visual/VisualGrid.h>
 #include <sofa/core/visual/VisualParams.h>
+#include <sofa/component/visual/BaseCamera.h>
 
 #include <sofa/component/visual/LineAxis.h>
 #include <sofa/component/visual/VisualBoundingBox.h>
@@ -60,14 +61,19 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
     if (ImGui::BeginMenu("View"))
     {
+        sofa::component::visual::BaseCamera::SPtr camera;
+        const auto& groot = m_baseGUI->getRootNode();
+        groot->get(camera);
+
         ImGui::PopStyleColor();
 
         addViewport();
 
         ImGui::Separator();
 
-        addCenterCamera();
-        addAlignCamera();
+        addCenterCamera(camera);
+        addAlignCamera(camera);
+        addOrthographic(camera);
 
         ImGui::Separator();
 
@@ -344,16 +350,13 @@ void ViewMenu::addViewport()
     }
 }
 
-void ViewMenu::addAlignCamera()
+void ViewMenu::addAlignCamera(sofa::component::visual::BaseCamera::SPtr camera)
 {
     if (ImGui::BeginMenu("Align"))
     {
-        sofa::component::visual::BaseCamera::SPtr camera;
-        const auto& groot = m_baseGUI->getRootNode();
-        groot->get(camera);
-
         if (camera)
         {
+            const auto& groot = m_baseGUI->getRootNode();
             if (ImGui::MenuItem("Top", "1"))
             {
                 SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::TOP);
@@ -392,6 +395,15 @@ void ViewMenu::addAlignCamera()
     }
 }
 
+void ViewMenu::addOrthographic(sofa::component::visual::BaseCamera::SPtr camera)
+{
+    bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
+    if (ImGui::MenuItem((ortho)?"Perspective":"Orthographic"))
+    {
+        camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+    }
+}
+
 void ViewMenu::addFullScreen()
 {
     if (ImGui::MenuItem("Full Screen", "F11"))
@@ -400,12 +412,9 @@ void ViewMenu::addFullScreen()
     }
 }
 
-void ViewMenu::addCenterCamera()
+void ViewMenu::addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera)
 {
-    sofa::component::visual::BaseCamera::SPtr camera;
     const auto& groot = m_baseGUI->getRootNode();
-    groot->get(camera);
-
     if(!groot->f_bbox.getValue().isValid())
     {
         msg_error_when(!groot->f_bbox.getValue().isValid(), "GUI") << "Global bounding box is invalid: " << groot->f_bbox.getValue();
