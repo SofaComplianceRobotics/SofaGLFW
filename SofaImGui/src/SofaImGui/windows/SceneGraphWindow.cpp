@@ -45,27 +45,20 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
         showGraph(groot, windowFlags, componentToOpen, nodeToOpen);
     }
 
+    ImGuiIO& io = ImGui::GetIO();
+    const auto height = io.DisplaySize.y/2.;
+    const ImVec2 defaultSize = ImVec2(height*0.66, height);
+
     { // Nodes window
         static std::set<sofa::simulation::Node*> openedNodes;
         openedNodes.insert(nodeToOpen.begin(), nodeToOpen.end());
 
         sofa::type::vector<sofa::simulation::Node*> toRemove;
-        static std::map<sofa::simulation::Node*, int> resizeWindow;
 
         for (auto* node : openedNodes)
         {
-            const bool firstOpen = nodeToOpen.contains(node);
             ImGuiWindowFlags nodeWindowFlags = ImGuiWindowFlags_NoDocking;
-            if (firstOpen)
-            {
-                resizeWindow[node] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
-            }
-
-            if (resizeWindow[node] > 0) //auto-resize only when opening the window
-            {
-                nodeWindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
-                resizeWindow[node]--;
-            }
+            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
 
             if (!showNodeWindow(node, nodeWindowFlags))
             {
@@ -89,22 +82,11 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
         openedComponents.insert(componentToOpen.begin(), componentToOpen.end());
 
         sofa::type::vector<sofa::core::objectmodel::BaseObject*> toRemove;
-        static std::map<sofa::core::objectmodel::BaseObject*, int> resizeWindow;
 
         for (auto* component : openedComponents)
         {
-            const bool firstOpen = componentToOpen.contains(component);
             ImGuiWindowFlags componentWindowFlags = ImGuiWindowFlags_NoDocking;
-            if (firstOpen)
-            {
-                resizeWindow[component] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
-            }
-
-            if (resizeWindow[component] > 0) //auto-resize only when opening the window
-            {
-                componentWindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
-                resizeWindow[component]--;
-            }
+            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
 
             if (!showComponentWindow(component, componentWindowFlags))
             {
@@ -354,33 +336,35 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
         {
             addGroupTab(groupMap);
             addLinksTab(component->getLinks());
-            if (ImGui::BeginTabItem("Infos"))
-            {
-                ImGui::Text("Name: %s", component->getClassName().c_str());
-                ImGui::Spacing();
-                ImGui::TextDisabled("Template:");
-                ImGui::TextWrapped("%s", component->getClass()->templateName.c_str());
-                ImGui::Spacing();
-                ImGui::TextDisabled("Namespace:");
-                ImGui::TextWrapped("%s", component->getClass()->namespaceName.c_str());
-
-                sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
-                if (! entry.creatorMap.empty())
+            { // addInfosTab
+                if (ImGui::BeginTabItem("Infos"))
                 {
+                    ImGui::Text("Name: %s", component->getClassName().c_str());
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Description:");
-                    ImGui::TextWrapped("%s", entry.description.c_str());
-                }
-
-                const std::string instantiationSourceFilename = component->getInstanciationSourceFileName();
-                if (!instantiationSourceFilename.empty())
-                {
+                    ImGui::TextDisabled("Template:");
+                    ImGui::TextWrapped("%s", component->getClass()->templateName.c_str());
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Definition:");
-                    ImGui::TextWrapped("%s", component->getInstanciationSourceFileName().c_str());
-                }
+                    ImGui::TextDisabled("Namespace:");
+                    ImGui::TextWrapped("%s", component->getClass()->namespaceName.c_str());
 
-                ImGui::EndTabItem();
+                    sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
+                    if (! entry.creatorMap.empty())
+                    {
+                        ImGui::Spacing();
+                        ImGui::TextDisabled("Description:");
+                        ImGui::TextWrapped("%s", entry.description.c_str());
+                    }
+
+                    const std::string instantiationSourceFilename = component->getInstanciationSourceFileName();
+                    if (!instantiationSourceFilename.empty())
+                    {
+                        ImGui::Spacing();
+                        ImGui::TextDisabled("Definition:");
+                        ImGui::TextWrapped("%s", component->getInstanciationSourceFileName().c_str());
+                    }
+
+                    ImGui::EndTabItem();
+                }
             }
             addMessagesTab(component->getLoggedMessages(), component->getName());
 
