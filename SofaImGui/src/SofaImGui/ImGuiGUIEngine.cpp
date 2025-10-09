@@ -769,8 +769,10 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
         {
             sofa::component::visual::BaseCamera::SPtr camera;
             groot->get(camera);
-            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            const auto& bbox = groot->f_bbox.getValue();
+
+            camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
+            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
             camera->d_lookAt.setValue(bbCenter);
             break;
         }

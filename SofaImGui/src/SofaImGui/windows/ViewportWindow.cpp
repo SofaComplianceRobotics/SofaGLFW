@@ -48,7 +48,7 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
             {
                 ImVec2 wsize = ImGui::GetWindowSize();
                 m_windowSize = {wsize.x, wsize.y};
-                m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGuiStyleVar_FramePadding * 2.0f + ImGui::GetTextLineHeightWithSpacing();
+                m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
 
                 m_isFocusOnViewport = ImGui::IsWindowFocused();
 
@@ -134,12 +134,13 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
 
                     sofa::component::visual::BaseCamera::SPtr camera;
                     groot->get(camera);
+                    const auto& bbox = groot->f_bbox.getValue();
 
                     { // Fit all
                         if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
                         {
-                            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                            camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
+                            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                             camera->d_lookAt.setValue(bbCenter);
                         }
                         ImGui::SetItemTooltip("Fit all");
@@ -148,7 +149,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     { // Center view
                         if (ImGui::Button(ICON_FA_BULLSEYE, buttonSize))
                         {
-                            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                             camera->d_lookAt.setValue(bbCenter);
                         }
                         ImGui::SetItemTooltip("Center view");
@@ -164,6 +165,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
 
                     { // Axis related
+                        const float scale = powf(10.0f, floorf(log10f((bbox.maxBBox() - bbox.minBBox()).norm()* 0.01)));
+
                         { // Translate Left/Right
                             ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
                             if (ImGui::IsItemActive())
@@ -171,7 +174,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
                                 t = camera->cameraToWorldTransform(t);
                                 t.normalize();
-                                t *= ImGui::GetIO().MouseDelta.x;
+                                t *= ImGui::GetIO().MouseDelta.x * scale;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
@@ -187,12 +190,12 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
                                 t = camera->cameraToWorldTransform(t);
                                 t.normalize();
-                                t *= ImGui::GetIO().MouseDelta.x;
+                                t *= ImGui::GetIO().MouseDelta.y * scale;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
-                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
                             ImGui::SetItemTooltip("Translate up/down");
                         }
 
@@ -203,7 +206,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
                                 t = camera->cameraToWorldTransform(t);
                                 t.normalize();
-                                t *= ImGui::GetIO().MouseDelta.x;
+                                t *= ImGui::GetIO().MouseDelta.x * scale;
                                 camera->translate(t);
                                 camera->translateLookAt(t);
                             }
@@ -212,7 +215,6 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             ImGui::SetItemTooltip("Zoom");
                         }
 
-                        const auto& cameraPosition = camera->d_position.getValue();
                         const auto &lookAt = camera->getLookAt();
                         const auto &distance = camera->getDistance();
                         bool rotate = false;

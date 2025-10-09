@@ -52,7 +52,8 @@ void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std:
         auto camera = baseGUI->findCamera(groot);
         if (camera)
         {
-            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+            const auto& bbox = groot->f_bbox.getValue();
+            camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
             baseGUI->changeCamera(camera);
         }
         baseGUI->initVisual();

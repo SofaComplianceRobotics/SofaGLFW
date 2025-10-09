@@ -415,9 +415,11 @@ void ViewMenu::addFullScreen()
 void ViewMenu::addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera)
 {
     const auto& groot = m_baseGUI->getRootNode();
-    if(!groot->f_bbox.getValue().isValid())
+    const auto& bbox = groot->f_bbox.getValue();
+
+    if(!bbox.isValid())
     {
-        msg_error_when(!groot->f_bbox.getValue().isValid(), "GUI") << "Global bounding box is invalid: " << groot->f_bbox.getValue();
+        msg_error_when(!bbox.isValid(), "GUI") << "Global bounding box is invalid: " << bbox;
         return;
     }
 
@@ -425,8 +427,8 @@ void ViewMenu::addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera)
     {
         if (camera)
         {
-            camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
+            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
             camera->d_lookAt.setValue(bbCenter);
         }
     }
@@ -435,7 +437,7 @@ void ViewMenu::addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera)
     {
         if (camera)
         {
-            auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
             camera->d_lookAt.setValue(bbCenter);
         }
     }
