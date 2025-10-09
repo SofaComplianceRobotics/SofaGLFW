@@ -53,7 +53,7 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
     for (auto* component : openedComponents)
     {
         const bool firstOpen = componentToOpen.contains(component);
-        ImGuiWindowFlags componentWindowFlags = 0;
+        ImGuiWindowFlags componentWindowFlags = ImGuiWindowFlags_NoDocking;
         if (firstOpen)
         {
             resizeWindow[component] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
