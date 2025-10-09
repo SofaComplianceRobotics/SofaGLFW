@@ -206,9 +206,13 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                                 sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
                                 t = camera->cameraToWorldTransform(t);
                                 t.normalize();
-                                t *= ImGui::GetIO().MouseDelta.x * scale;
+                                const auto& mousedelta = ImGui::GetIO().MouseDelta.x;
+                                t *= mousedelta * scale;
                                 camera->translate(t);
-                                camera->translateLookAt(t);
+
+                                const sofa::type::Vec3 newLookAt = camera->cameraToWorldCoordinates((mousedelta>0)? -t: t);
+                                if (dot(camera->getLookAt() - camera->getPosition(), newLookAt - camera->getPosition()) < 0)
+                                    camera->translateLookAt(newLookAt - camera->getLookAt());
                             }
                             if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
