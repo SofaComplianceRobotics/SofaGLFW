@@ -177,6 +177,11 @@ void setLightStyle()
     colors[ImGuiCol_TabActive]              = ImVec4(0.14f, 0.25f, 0.42f, 1.00f);
     colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.14f, 0.25f, 0.42f, 1.00f);
     colors[ImGuiCol_TabHovered]             = ImVec4(0.14f, 0.25f, 0.42f, 0.75f);
+    colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.80f, 0.80f, 0.80f, 0.55f);
+    colors[ImGuiCol_TableBorderLight]       = ImVec4(0.28f, 0.28f, 0.28f, 0.25f);
+    colors[ImGuiCol_TableHeaderBg]          = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    colors[ImGuiCol_TableRowBg]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.86f, 0.86f, 0.86f, 0.50f);
 
     setStyleVars();
 }

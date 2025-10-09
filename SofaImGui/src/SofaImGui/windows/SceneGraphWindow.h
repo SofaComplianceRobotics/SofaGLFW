@@ -28,11 +28,15 @@ namespace sofaimgui::windows {
 
 class SOFAIMGUI_API SceneGraphWindow : public BaseWindow
 {
-   public:
+public:
     SceneGraphWindow(const std::string& name, const bool& isWindowOpen);
     ~SceneGraphWindow() = default;
 
     void showWindow(sofa::simulation::Node*groot, const ImGuiWindowFlags &windowFlags);
+
+protected:
+    void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags, std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen);
+    bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
 };
 
 }
