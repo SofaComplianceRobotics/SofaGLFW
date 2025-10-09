@@ -121,8 +121,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
         std::string title = (collapsed)? ICON_FA_CHEVRON_DOWN: ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
         if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
@@ -227,10 +227,10 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 const auto &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
                 bool rotate = false;
 
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 5);
                 ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
                 { // Rotate X
-                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 0.5));
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateX", buttonSize);
                     if (ImGui::IsItemActive())
                     {
@@ -245,7 +245,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 }
 
                 { // Rotate Y
-                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 1, 0, 0.5));
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateY", buttonSize);
                     if (ImGui::IsItemActive())
                     {
@@ -260,7 +260,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 }
 
                 { // Rotate Z
-                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 1, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 1, 0.5));
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateZ", buttonSize);
                     if (ImGui::IsItemActive())
                     {
