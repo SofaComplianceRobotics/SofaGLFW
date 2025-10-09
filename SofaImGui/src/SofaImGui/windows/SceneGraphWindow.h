@@ -35,8 +35,15 @@ public:
     void showWindow(sofa::simulation::Node*groot, const ImGuiWindowFlags &windowFlags);
 
 protected:
-    void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags, std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen);
+    void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags, std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen, std::set<sofa::simulation::Node *> &nodeToOpen);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
+    bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
+
+    void addGroupTab(const std::map<std::string, std::vector<sofa::core::BaseData*> >& groupMap);
+    void addLinksTab(const sofa::core::objectmodel::Base::VecLink& links);
+    void addMessagesTab(const std::deque<sofa::helper::logging::Message> &messages, const std::string& name);
+    void addInfosTab(const std::string& className, const std::string& namespaceName);
+
 };
 
 }

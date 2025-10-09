@@ -38,60 +38,103 @@ SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindow
 void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags)
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
+    std::set<sofa::simulation::Node*> nodeToOpen;
     
     if (enabled() && isOpen())
     {
-        showGraph(groot, windowFlags, componentToOpen);
+        showGraph(groot, windowFlags, componentToOpen, nodeToOpen);
     }
 
-    static std::set<sofa::core::objectmodel::BaseObject*> openedComponents;
-    openedComponents.insert(componentToOpen.begin(), componentToOpen.end());
+    { // Nodes window
+        static std::set<sofa::simulation::Node*> openedNodes;
+        openedNodes.insert(nodeToOpen.begin(), nodeToOpen.end());
 
-    sofa::type::vector<sofa::core::objectmodel::BaseObject*> toRemove;
-    static std::map<sofa::core::objectmodel::BaseObject*, int> resizeWindow;
+        sofa::type::vector<sofa::simulation::Node*> toRemove;
+        static std::map<sofa::simulation::Node*, int> resizeWindow;
 
-    for (auto* component : openedComponents)
-    {
-        const bool firstOpen = componentToOpen.contains(component);
-        ImGuiWindowFlags componentWindowFlags = ImGuiWindowFlags_NoDocking;
-        if (firstOpen)
+        for (auto* node : openedNodes)
         {
-            resizeWindow[component] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
+            const bool firstOpen = nodeToOpen.contains(node);
+            ImGuiWindowFlags nodeWindowFlags = ImGuiWindowFlags_NoDocking;
+            if (firstOpen)
+            {
+                resizeWindow[node] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
+            }
+
+            if (resizeWindow[node] > 0) //auto-resize only when opening the window
+            {
+                nodeWindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+                resizeWindow[node]--;
+            }
+
+            if (!showNodeWindow(node, nodeWindowFlags))
+            {
+                toRemove.push_back(node);
+            }
         }
 
-        if (resizeWindow[component] > 0) //auto-resize only when opening the window
+        while(!toRemove.empty())
         {
-            componentWindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
-            resizeWindow[component]--;
-        }
-
-        if (!showComponentWindow(component, componentWindowFlags))
-        {
-            toRemove.push_back(component);
+            auto it = openedNodes.find(toRemove.back());
+            if (it != openedNodes.end())
+            {
+                openedNodes.erase(it);
+            }
+            toRemove.pop_back();
         }
     }
 
-    while(!toRemove.empty())
-    {
-        auto it = openedComponents.find(toRemove.back());
-        if (it != openedComponents.end())
+    { // Components windows
+        static std::set<sofa::core::objectmodel::BaseObject*> openedComponents;
+        openedComponents.insert(componentToOpen.begin(), componentToOpen.end());
+
+        sofa::type::vector<sofa::core::objectmodel::BaseObject*> toRemove;
+        static std::map<sofa::core::objectmodel::BaseObject*, int> resizeWindow;
+
+        for (auto* component : openedComponents)
         {
-            openedComponents.erase(it);
+            const bool firstOpen = componentToOpen.contains(component);
+            ImGuiWindowFlags componentWindowFlags = ImGuiWindowFlags_NoDocking;
+            if (firstOpen)
+            {
+                resizeWindow[component] = 3; //it takes 3 frames to auto-resize according to the contents (determined empirically)
+            }
+
+            if (resizeWindow[component] > 0) //auto-resize only when opening the window
+            {
+                componentWindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+                resizeWindow[component]--;
+            }
+
+            if (!showComponentWindow(component, componentWindowFlags))
+            {
+                toRemove.push_back(component);
+            }
         }
-        toRemove.pop_back();
+
+        while(!toRemove.empty())
+        {
+            auto it = openedComponents.find(toRemove.back());
+            if (it != openedComponents.end())
+            {
+                openedComponents.erase(it);
+            }
+            toRemove.pop_back();
+        }
     }
 }
 
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
-                                 std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen)
+                                 std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
+                                std::set<sofa::simulation::Node*>& nodeToOpen)
 {
     if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
     {
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-        const bool expand = ImGui::Button(ICON_FA_EXPAND, buttonSize);
+        const bool expandAll = ImGui::Button(ICON_FA_EXPAND, buttonSize);
         ImGui::SameLine();
-        const bool collapse = ImGui::Button(ICON_FA_COMPRESS, buttonSize);
+        const bool collapseAll = ImGui::Button(ICON_FA_COMPRESS, buttonSize);
         ImGui::SameLine();
         static bool showSearch = false;
 
@@ -112,15 +155,15 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*)> showNode;
-        showNode = [&showNode, &treeDepth, expand, collapse, &componentToOpen](sofa::simulation::Node* node)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen](sofa::simulation::Node* node)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
             if (node == nullptr) return;
             if (treeDepth == 0)
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-            if (expand)
+            if (expandAll)
                 ImGui::SetNextItemOpen(true);
-            if (collapse)
+            if (collapseAll)
                 ImGui::SetNextItemOpen(false);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -133,6 +176,13 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             }
 
             const bool open = ImGui::TreeNode(std::string(ICON_FA_CUBES "  " + nodeName).c_str());
+            if (ImGui::IsItemClicked())
+            {
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
+                    nodeToOpen.insert(node);
+                }
+            }
             ImGui::TableNextColumn();
             ImGui::TextDisabled("Node");
             if (isNodeHighlighted)
@@ -157,9 +207,9 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                     }
                     else
                     {
-                        if (expand)
+                        if (expandAll)
                             ImGui::SetNextItemOpen(true);
-                        if (collapse)
+                        if (collapseAll)
                             ImGui::SetNextItemOpen(false);
                     }
 
@@ -302,71 +352,8 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
         }
         if (ImGui::BeginTabBar(("##tabs"+component->getName()).c_str(), ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
         {
-            for (auto& [group, datas] : groupMap)
-            {
-                const auto groupName = group.empty() ? "Property" : group;
-                // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
-                if (ImGui::BeginTabItem(groupName.c_str()))
-                {
-                    for (auto& data : datas)
-                    {
-                        const bool isOpenData = ImGui::CollapsingHeader(data->m_name.c_str());
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::TextDisabled("%s", data->getHelp().c_str());
-                            ImGui::TextDisabled("Type: %s", data->getValueTypeString().c_str());
-                            ImGui::EndTooltip();
-                        }
-                        if (isOpenData)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-                            ImGui::TextWrapped("%s", data->getHelp().c_str());
-
-                            if (data->getParent())
-                            {
-                                const auto linkPath = data->getLinkPath();
-                                if (!linkPath.empty())
-                                {
-                                    ImGui::TextWrapped("%s", linkPath.c_str());
-
-                                    if (ImGui::IsItemHovered())
-                                    {
-                                        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-                                    }
-                                }
-                            }
-
-                            ImGui::PopStyleColor();
-                            showWidget(*data);
-                        }
-                    }
-                    ImGui::EndTabItem();
-                }
-            }
-            // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
-            if (ImGui::BeginTabItem("Links"))
-            {
-                for (const auto* link : component->getLinks())
-                {
-                    const auto linkValue = link->getValueString();
-                    const auto linkTitle = link->getName();
-
-                    const bool isOpenData = ImGui::CollapsingHeader(linkTitle.c_str());
-                    if (ImGui::IsItemHovered())
-                    {
-                        ImGui::BeginTooltip();
-                        ImGui::TextDisabled("%s", link->getHelp().c_str());
-                        ImGui::EndTooltip();
-                    }
-                    if (isOpenData)
-                    {
-                        ImGui::TextDisabled("%s", link->getHelp().c_str());
-                        ImGui::TextWrapped("%s", linkValue.c_str());
-                    }
-                }
-                ImGui::EndTabItem();
-            }
+            addGroupTab(groupMap);
+            addLinksTab(component->getLinks());
             if (ImGui::BeginTabItem("Infos"))
             {
                 ImGui::Text("Name: %s", component->getClassName().c_str());
@@ -395,42 +382,7 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
 
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Messages"))
-            {
-                const auto& messages = component->getLoggedMessages();
-                if (ImGui::BeginTable(std::string("logTableComponent"+component->getName()).c_str(), 2, ImGuiTableFlags_RowBg))
-                {
-                    ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
-                    ImGui::TableSetupColumn("message", ImGuiTableColumnFlags_WidthStretch);
-                    for (const auto& message : messages)
-                    {
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-
-                        constexpr auto writeMessageType = [](const sofa::helper::logging::Message::Type t)
-                        {
-                            switch (t)
-                            {
-                            case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
-                            case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
-                            case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
-                            case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
-                            case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
-                            case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
-                            case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
-                            default: return;
-                            }
-                        };
-                        writeMessageType(message.type());
-
-                        ImGui::TableNextColumn();
-                        ImGui::TextWrapped("%s", message.message().str().c_str());
-                    }
-                    ImGui::EndTable();
-                }
-
-                ImGui::EndTabItem();
-            }
+            addMessagesTab(component->getLoggedMessages(), component->getName());
 
             ImGui::EndTabBar();
         }
@@ -441,6 +393,158 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
     }
     ImGui::End();
     return isOpen;
+}
+
+bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags& windowsFlags)
+{
+    bool isOpen = true;
+    if (ImGui::Begin((ICON_FA_CUBES "  " + node->getName() + " (" + node->getPathName() + ")").c_str(), &isOpen, windowsFlags))
+    {
+        std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
+        for (auto* data : node->getDataFields())
+        {
+            groupMap[data->getGroup()].push_back(data);
+        }
+        if (ImGui::BeginTabBar(("##tabs"+node->getName()).c_str(), ImGuiTabBarFlags_FittingPolicyScroll | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
+        {
+            addGroupTab(groupMap);
+            addLinksTab(node->getLinks());
+            addInfosTab(node->getClassName(), node->getClass()->namespaceName);
+            addMessagesTab(node->getLoggedMessages(), node->getName());
+
+            ImGui::EndTabBar();
+        }
+    }
+    else
+    {
+        ImGui::PopStyleColor();
+    }
+    ImGui::End();
+    return isOpen;
+}
+
+void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa::core::BaseData*> >& groupMap)
+{
+    for (auto& [group, datas] : groupMap)
+    {
+        const auto groupName = group.empty() ? "Property" : group;
+        // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
+        if (ImGui::BeginTabItem(groupName.c_str()))
+        {
+            for (auto& data : datas)
+            {
+                const bool isOpenData = ImGui::CollapsingHeader(data->m_name.c_str());
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::TextDisabled("%s", data->getHelp().c_str());
+                    ImGui::TextDisabled("Type: %s", data->getValueTypeString().c_str());
+                    ImGui::EndTooltip();
+                }
+                if (isOpenData)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+                    ImGui::TextWrapped("%s", data->getHelp().c_str());
+
+                    if (data->getParent())
+                    {
+                        const auto linkPath = data->getLinkPath();
+                        if (!linkPath.empty())
+                        {
+                            ImGui::TextWrapped("%s", linkPath.c_str());
+
+                            if (ImGui::IsItemHovered())
+                            {
+                                ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                            }
+                        }
+                    }
+
+                    ImGui::PopStyleColor();
+                    showWidget(*data);
+                }
+            }
+            ImGui::EndTabItem();
+        }
+    }
+}
+
+void SceneGraphWindow::addLinksTab(const sofa::core::objectmodel::Base::VecLink& links)
+{
+    if (ImGui::BeginTabItem("Links"))
+    {
+        for (const auto* link : links)
+        {
+            const auto linkValue = link->getValueString();
+            const auto linkTitle = link->getName();
+
+            const bool isOpenData = ImGui::CollapsingHeader(linkTitle.c_str());
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextDisabled("%s", link->getHelp().c_str());
+                ImGui::EndTooltip();
+            }
+            if (isOpenData)
+            {
+                ImGui::TextDisabled("%s", link->getHelp().c_str());
+                ImGui::TextWrapped("%s", linkValue.c_str());
+            }
+        }
+        ImGui::EndTabItem();
+    }
+}
+
+void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Message>& messages,
+                                      const std::string& name)
+{
+    if (ImGui::BeginTabItem("Messages"))
+    {
+        if (ImGui::BeginTable(std::string("logTableComponent"+name).c_str(), 2, ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("message", ImGuiTableColumnFlags_WidthStretch);
+            for (const auto& message : messages)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                constexpr auto writeMessageType = [](const sofa::helper::logging::Message::Type t)
+                {
+                    switch (t)
+                    {
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
+                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
+                    case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
+                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
+                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
+                    case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
+                    default: return;
+                    }
+                };
+                writeMessageType(message.type());
+
+                ImGui::TableNextColumn();
+                ImGui::TextWrapped("%s", message.message().str().c_str());
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::EndTabItem();
+    }
+}
+
+void SceneGraphWindow::addInfosTab(const std::string& className, const std::string& namespaceName)
+{
+    if (ImGui::BeginTabItem("Infos"))
+    {
+        ImGui::Text("Name: %s", className.c_str());
+        ImGui::Spacing();
+        ImGui::TextDisabled("Namespace:");
+        ImGui::TextWrapped("%s", namespaceName.c_str());
+        ImGui::EndTabItem();
+    }
 }
 
 }
