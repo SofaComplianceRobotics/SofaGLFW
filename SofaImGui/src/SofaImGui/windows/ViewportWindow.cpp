@@ -219,8 +219,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                             ImGui::SetItemTooltip("Zoom");
                         }
 
-                        const auto &lookAt = camera->getLookAt();
                         const auto &distance = camera->getDistance();
+                        const auto &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation());
                         bool rotate = false;
 
                         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
