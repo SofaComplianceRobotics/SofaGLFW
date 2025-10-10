@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "imgui_internal.h"
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/ObjectColor.h>
@@ -46,7 +47,7 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
     }
 
     ImGuiIO& io = ImGui::GetIO();
-    const auto height = io.DisplaySize.y/2.;
+    const auto height = io.DisplaySize.y*0.66; // Main window size
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
 
     { // Nodes window
@@ -114,16 +115,36 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
     {
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
         const bool expandAll = ImGui::Button(ICON_FA_EXPAND, buttonSize);
+        ImGui::SetItemTooltip("Expand all");
         ImGui::SameLine();
+
         const bool collapseAll = ImGui::Button(ICON_FA_COMPRESS, buttonSize);
+        ImGui::SetItemTooltip("Collapse all");
         ImGui::SameLine();
+
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
+
         static bool showSearch = false;
+        static bool showFiltered = false;
 
         if (ImGui::Button(ICON_FA_MAGNIFYING_GLASS, buttonSize))
         {
             showSearch = !showSearch;
+            showFiltered = false;
         }
+        ImGui::SetItemTooltip("Search by name");
+        ImGui::SameLine();
+
+        if (ImGui::Button(ICON_FA_FILTER, buttonSize))
+        {
+            showFiltered = !showFiltered;
+            showSearch = false;
+        }
+        ImGui::SetItemTooltip("Filter by name");
+
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
         static ImGuiTextFilter filter;
         if (showSearch)
@@ -131,15 +152,21 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::SameLine();
             filter.Draw("Search");
         }
+        if (showFiltered)
+        {
+            ImGui::SameLine();
+            filter.Draw("Filter");
+        }
         ImGui::PopStyleVar();
 
         // Table
         unsigned int treeDepth {};
 
-        std::function<void(sofa::simulation::Node*)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen](sofa::simulation::Node* node)
+        std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+
             if (node == nullptr) return;
             if (treeDepth == 0)
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -151,7 +178,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::TableNextColumn();
 
             const auto& nodeName = node->getName();
-            const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str());
+            const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
             if (isNodeHighlighted)
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
@@ -176,128 +203,151 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                 int i = 0;
                 for (const auto object : node->getNodeObjects())
                 {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::PushID(object);
-
-                    ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth;
-
-                    const auto& slaves = object->getSlaves();
-                    if (slaves.empty())
-                    {
-                        objectFlags |= ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
-                    }
-                    else
-                    {
-                        if (expandAll)
-                            ImGui::SetNextItemOpen(true);
-                        if (collapseAll)
-                            ImGui::SetNextItemOpen(false);
-                    }
-
                     const auto& objectName = object->getName();
                     const auto objectClassName = object->getClassName();
-                    const bool isObjectHighlighted = !filter.Filters.empty() && (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
+                    const bool isObjectSelected = !filter.Filters.empty() && (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
+                    const bool isObjectHighlighted = isObjectSelected && (showSearch || showFiltered);
+                    const bool isObjectHidden = showFiltered && !isObjectSelected;
 
-                    ImVec4 objectColor;
+                    if (!isObjectHidden)
+                    {
+                        ImGui::PushID(object);
 
-                    auto icon = ICON_FA_CUBE;
-                    if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
-                                                     sofa::helper::logging::Message::Fatal})!=0)
-                    {
-                        icon = ICON_FA_BUG;
-                        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
-                    }
-                    else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
-                    {
-                        icon = ICON_FA_TRIANGLE_EXCLAMATION;
-                        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
-                    }
-                    else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
-                                                          sofa::helper::logging::Message::Deprecated,
-                                                          sofa::helper::logging::Message::Advice})!=0)
-                    {
-                        objectColor = getObjectColor(object);
-                        icon = ICON_FA_COMMENT;
-                    }
-                    else
-                    {
-                        objectColor = getObjectColor(object);
-                    }
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
 
-                    ImGui::PushStyleColor(ImGuiCol_Text, objectColor);
-                    ImGui::PushID(i++);
-                    const auto objectOpen = ImGui::TreeNodeEx(icon, objectFlags);
-                    ImGui::PopID();
-                    ImGui::PopStyleColor();
+                        ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth;
 
-                    if (ImGui::IsItemClicked())
-                    {
-                        if (ImGui::IsMouseDoubleClicked(0))
+                        const auto& slaves = object->getSlaves();
+                        if (slaves.empty())
                         {
-                            componentToOpen.insert(object);
+                            objectFlags |= ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
                         }
-                    }
-
-                    ImGui::SameLine();
-
-                    if (isObjectHighlighted)
-                    {
-                        ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                    }
-                    ImGui::Text("%s", object->getName().c_str());
-
-                    ImGui::TableNextColumn();
-                    ImGui::TextDisabled("%s", objectClassName.c_str());
-                    ImGui::PopID();
-
-                    if (isObjectHighlighted)
-                    {
-                        ImGui::PopStyleColor();
-                    }
-
-                    if (objectOpen && !slaves.empty())
-                    {
-                        for (const auto &slave : slaves)
+                        else
                         {
-                            ImGui::TableNextRow();
-                            ImGui::TableNextColumn();
-                            ImGui::PushID(slave.get());
+                            if (expandAll)
+                                ImGui::SetNextItemOpen(true);
+                            if (collapseAll)
+                                ImGui::SetNextItemOpen(false);
+                        }
 
-                            const auto& slaveName = slave->getName();
-                            const auto slaveClassName = slave->getClassName();
-                            const bool isSlaveHighlighted = !filter.Filters.empty() && (filter.PassFilter(slaveName.c_str()) || filter.PassFilter(slaveClassName.c_str()));
-                            if (isSlaveHighlighted)
+                        ImVec4 objectColor;
+
+                        auto icon = ICON_FA_CUBE;
+                        if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
+                                                         sofa::helper::logging::Message::Fatal})!=0)
+                        {
+                            icon = ICON_FA_BUG;
+                            objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+                        }
+                        else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
+                        {
+                            icon = ICON_FA_TRIANGLE_EXCLAMATION;
+                            objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+                        }
+                        else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
+                                                              sofa::helper::logging::Message::Deprecated,
+                                                              sofa::helper::logging::Message::Advice})!=0)
+                        {
+                            objectColor = getObjectColor(object);
+                            icon = ICON_FA_COMMENT;
+                        }
+                        else
+                        {
+                            objectColor = getObjectColor(object);
+                        }
+
+                        ImGui::PushID(i++);
+                        ImGui::PushStyleColor(ImGuiCol_Text, objectColor);
+                        const auto objectOpen = ImGui::TreeNodeEx(icon, objectFlags);
+                        ImGui::PopStyleColor();
+                        const auto& templateName = object->getTemplateName();
+                        if (!templateName.empty())
+                            ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+                        ImGui::PopID();
+
+                        if (ImGui::IsItemClicked())
+                        {
+                            if (ImGui::IsMouseDoubleClicked(0))
                             {
-                                ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
+                                componentToOpen.insert(object);
                             }
+                        }
 
-                            ImGui::TreeNodeEx(std::string(ICON_FA_CUBE "  " + slave->getName()).c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
-                            if (ImGui::IsItemClicked())
+                        ImGui::SameLine();
+
+                        if (isObjectHighlighted)
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
+                        }
+                        ImGui::Text("%s", object->getName().c_str());
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextDisabled("%s", objectClassName.c_str());
+                        sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(objectClassName);
+                        if (! entry.creatorMap.empty())
+                        {
+                            const auto& description = entry.description;
+                            if (!description.empty())
+                                ImGui::SetItemTooltip("%s", (description).c_str());
+                        }
+                        ImGui::PopID();
+
+                        if (isObjectHighlighted)
+                        {
+                            ImGui::PopStyleColor();
+                        }
+
+                        if (objectOpen && !slaves.empty())
+                        {
+                            for (const auto &slave : slaves)
                             {
-                                if (ImGui::IsMouseDoubleClicked(0))
+                                const auto& slaveName = slave->getName();
+                                const auto slaveClassName = slave->getClassName();
+                                const bool isSlaveSelected = !filter.Filters.empty() && (filter.PassFilter(slaveName.c_str()) || filter.PassFilter(slaveClassName.c_str()));
+                                const bool isSlaveHighlighted = isSlaveSelected && (showSearch || showFiltered);
+                                const bool isSlaveHidden = !isSlaveSelected && showFiltered;
+
+                                if (!isSlaveHidden)
                                 {
-                                    componentToOpen.insert(slave.get());
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::PushID(slave.get());
+                                    if (isSlaveHighlighted)
+                                    {
+                                        ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
+                                    }
+                                    ImGui::TreeNodeEx(std::string(ICON_FA_CUBE "  " + slave->getName()).c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
+                                    if (isSlaveHighlighted)
+                                    {
+                                        ImGui::PopStyleColor();
+                                    }
+
+                                    const auto& templateName = object->getTemplateName();
+                                    if (!templateName.empty())
+                                        ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+                                    if (ImGui::IsItemClicked())
+                                    {
+                                        if (ImGui::IsMouseDoubleClicked(0))
+                                        {
+                                            componentToOpen.insert(slave.get());
+                                        }
+                                    }
+                                    ImGui::TableNextColumn();
+                                    ImGui::TextDisabled("%s", slave->getClassName().c_str());
+                                    ImGui::PopID();
                                 }
                             }
-                            ImGui::TableNextColumn();
-                            ImGui::TextDisabled("%s", slave->getClassName().c_str());
-
-                            if (isSlaveHighlighted)
-                            {
-                                ImGui::PopStyleColor();
-                            }
-                            ImGui::PopID();
+                            ImGui::TreePop();
                         }
-                        ImGui::TreePop();
                     }
                 }
+
                 ++treeDepth;
                 for (const auto child : node->getChildren())
                 {
-                    showNode(dynamic_cast<sofa::simulation::Node*>(child));
+                    showNode(dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
                 }
-
                 --treeDepth;
                 ImGui::TreePop();
             }
@@ -313,7 +363,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
-            showNode(groot);
+            showNode(groot, showSearch, showFiltered);
 
             ImGui::EndTable();
         }
@@ -479,8 +529,7 @@ void SceneGraphWindow::addLinksTab(const sofa::core::objectmodel::Base::VecLink&
     }
 }
 
-void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Message>& messages,
-                                      const std::string& name)
+void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Message>& messages, const std::string& name)
 {
     if (ImGui::BeginTabItem("Messages"))
     {
