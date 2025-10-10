@@ -73,6 +73,7 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
                 float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
 
                 ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
+
                 { // Draw
                     auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
                     color.w = 0.6f;
@@ -102,40 +103,42 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
     auto position = ImGui::GetWindowPos();
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
-    position.x += ImGui::GetWindowWidth() - buttonSize.x * 2;
-    position.y += buttonSize.y *2. + ImGui::GetStyle().FramePadding.y;
+    position.x += ImGui::GetStyle().FramePadding.x;
+    position.y += ImGui::GetStyle().FramePadding.y;
     ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
     auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
     color.w = 0.6f;
+    ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x,
+                                ImGui::GetWindowContentRegionMin().y),
+                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
+                                ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.y), true); // Clip down to avoid hidding time
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
-    ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x,
-                               ImGui::GetWindowContentRegionMin().y),
-                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
-                               ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.y), true); // Clip down to avoid hidding time
 
     if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
+        ImGui::TextDisabled("  " ICON_FA_EYE);
+
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-        std::string title = (collapsed)? ICON_FA_CHEVRON_DOWN: ICON_FA_CHEVRON_UP;
+        std::string title = (collapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
+
         if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
         {
             collapsed = !collapsed;
         }
-        ImGui::SetItemTooltip(collapsed? "Expend view options": "Collapse view options");
+        
+        ImGui::SetItemTooltip(collapsed? "Expand view options": "Collapse view options");
         ImGui::PopStyleColor(3);
 
         if (groot && !collapsed)
         {
-            ImGui::TextDisabled("  " ICON_FA_EYE);
-
             sofa::component::visual::BaseCamera::SPtr camera;
             groot->get(camera);
             const auto& bbox = groot->f_bbox.getValue();
@@ -285,12 +288,13 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 }
             }
         }
+        ImGui::PopStyleColor(2);
     }
+    ImGui::PopStyleVar();
+    ImGui::PopClipRect();
     ImGui::EndChild();
 
-    ImGui::PopClipRect();
-    ImGui::PopStyleVar();
-    ImGui::PopStyleColor(2);
+    
 }
 
 bool ViewportWindow::addStepButton()

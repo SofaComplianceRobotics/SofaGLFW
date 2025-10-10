@@ -252,7 +252,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             for (size_t i=0; i<typeinfo->size(); i++)
                             {
                                 setting.buffer = typeinfo->getScalarValue(values, i);
-                                showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2);
+                                showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2); 
                                 setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
                                 uiValue += std::to_string(setting.buffer) + " ";
                             }
