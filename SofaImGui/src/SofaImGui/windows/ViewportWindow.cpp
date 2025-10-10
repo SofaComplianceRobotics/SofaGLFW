@@ -288,8 +288,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 }
             }
         }
-        ImGui::PopStyleColor(2);
     }
+    ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
     ImGui::PopClipRect();
     ImGui::EndChild();
