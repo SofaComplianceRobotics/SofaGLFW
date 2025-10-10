@@ -42,7 +42,7 @@ void setStyleVars()
     style.GrabMinSize                       = 10;
     style.WindowBorderSize                  = 0;
     style.ChildBorderSize                   = 0;
-    style.PopupBorderSize                   = 0;
+    style.PopupBorderSize                   = 2;
     style.FrameBorderSize                   = 0;
     style.TabBorderSize                     = 0;
     style.DockingSeparatorSize              = 2;
@@ -80,8 +80,8 @@ void setDeepDarkStyle()
     colors[ImGuiCol_WindowBg]               = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_ChildBg]                = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_PopupBg]                = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    colors[ImGuiCol_Border]                 = ImVec4(0.09f, 0.17f, 0.33f, 1.00f);
-    colors[ImGuiCol_BorderShadow]           = ImVec4(0.09f, 0.17f, 0.33f, 1.00f);
+    colors[ImGuiCol_Border]                 = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+    colors[ImGuiCol_BorderShadow]           = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
     colors[ImGuiCol_CheckMark]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_FrameBg]                = ImVec4(0.31f, 0.32f, 0.35f, 0.80f);
     colors[ImGuiCol_FrameBgActive]          = ImVec4(0.06f, 0.42f, 0.42f, 1.00f);
