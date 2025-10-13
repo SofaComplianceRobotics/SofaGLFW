@@ -205,9 +205,9 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                 {
                     const auto& objectName = object->getName();
                     const auto objectClassName = object->getClassName();
-                    const bool isObjectSelected = !filter.Filters.empty() && (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
-                    const bool isObjectHighlighted = isObjectSelected && (showSearch || showFiltered);
-                    const bool isObjectHidden = showFiltered && !isObjectSelected;
+                    const bool isObjectSelected = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
+                    const bool isObjectHighlighted = !filter.Filters.empty() && isObjectSelected && (showSearch || showFiltered);
+                    const bool isObjectHidden = !filter.Filters.empty() && !isObjectSelected && showFiltered;
 
                     if (!isObjectHidden)
                     {
