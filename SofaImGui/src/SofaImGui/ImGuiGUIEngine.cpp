@@ -445,7 +445,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
-    m_viewportWindow.showWindow(groot.get(), (ImTextureID)m_fbo->getColorTexture(),
+    m_viewportWindow.showWindow(baseGUI, groot.get(), (ImTextureID)m_fbo->getColorTexture(),
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
                                 );
 

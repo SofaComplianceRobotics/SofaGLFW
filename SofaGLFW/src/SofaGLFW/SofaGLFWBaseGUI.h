@@ -24,6 +24,7 @@
 
 #include <sofa/simulation/Simulation.h>
 #include <sofa/gl/DrawToolGL.h>
+#include <GLFW/glfw3.h>
 #include <sofa/component/visual/BaseCamera.h>
 #include <sofa/simulation/Node.h>
 
@@ -98,6 +99,15 @@ public:
         return m_guiEngine;
     }
     
+    void setMousePos(int xpos, int ypos) {
+        if(m_firstWindow)
+        {
+            glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // Required on Wayland
+            glfwSetCursorPos(m_firstWindow, xpos, ypos);
+            glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+
 private:
     // GLFW callbacks
     static void error_callback(int error, const char* description);

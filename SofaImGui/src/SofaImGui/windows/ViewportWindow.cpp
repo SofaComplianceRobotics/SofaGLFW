@@ -25,6 +25,7 @@
 #include <SofaImGui/windows/ViewportWindow.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
+#include <GLFW/glfw3.h>
 
 namespace sofaimgui::windows {
 
@@ -36,7 +37,8 @@ ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen
     m_isOpen = isWindowOpen;
 }
 
-void ViewportWindow::showWindow(sofa::simulation::Node* groot,
+void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
+                                sofa::simulation::Node* groot,
                                 const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)
 {
@@ -83,7 +85,7 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
                                             ImDrawFlags_None);
                 }
 
-                addCameraButtons(groot);
+                addCameraButtons(baseGUI, groot);
             }
             ImGui::EndChild();
         }
@@ -97,7 +99,7 @@ void ViewportWindow::addStateWindow()
     m_stateWindow->showWindow();
 }
 
-void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
+void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
 {
     static bool collapsed = true;
     auto position = ImGui::GetWindowPos();
@@ -174,6 +176,21 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
             { // Axis related
                 const float scale = powf(10.0f, floorf(log10f((bbox.maxBBox() - bbox.minBBox()).norm()* 0.01)));
 
+                // When clicking these buttons, the mouse only moves into the current window area
+                // We allow the mouse to cross walls and reapear on the other side
+                auto dpos = ImGui::GetIO().MouseDelta;
+                dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
+                dpos.y = std::clamp(int(dpos.y), -20, 20);
+                const auto& cpos = ImGui::GetIO().MousePos;
+                const auto& wpos = ImGui::GetMainViewport()->Pos;
+                const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
+                // When setting the mouse position, the value is relative to the window top left corner
+                // Thus we need to compute the shifts between this position and the top left corner of the current window area
+                const float xshift = (cwpos.x - wpos.x);
+                const float yshift = (cwpos.y - wpos.y);
+
+                bool translate = false;
+
                 { // Translate Left/Right
                     ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
                     if (ImGui::IsItemActive())
@@ -181,9 +198,10 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= ImGui::GetIO().MouseDelta.x * scale;
+                        t *= dpos.x * scale;
                         camera->translate(t);
                         camera->translateLookAt(t);
+                        translate = true;
                     }
                     if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -197,9 +215,10 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= ImGui::GetIO().MouseDelta.y * scale;
+                        t *= dpos.y * scale;
                         camera->translate(t);
                         camera->translateLookAt(t);
+                        translate = true;
                     }
                     if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
@@ -213,9 +232,10 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        const auto& mousedelta = ImGui::GetIO().MouseDelta.x;
+                        const auto& mousedelta = dpos.x;
                         t *= mousedelta * scale;
                         camera->translate(t);
+                        translate = true;
 
                         const sofa::type::Vec3 newLookAt = camera->cameraToWorldCoordinates((mousedelta>0)? -t: t);
                         if (dot(camera->getLookAt() - camera->getPosition(), newLookAt - camera->getPosition()) < 0)
@@ -237,7 +257,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateX", buttonSize);
                     if (ImGui::IsItemActive())
                     {
-                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * ImGui::GetIO().MouseDelta.x, 0., 0., 1.);
+                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
                         camera->rotateCameraAroundPoint(q, lookAt);
                         rotate = true;
                     }
@@ -252,7 +272,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateY", buttonSize);
                     if (ImGui::IsItemActive())
                     {
-                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * ImGui::GetIO().MouseDelta.x, 0., 1.);
+                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
                         camera->rotateCameraAroundPoint(q, lookAt);
                         rotate = true;
                     }
@@ -267,7 +287,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     ImGui::Button(ICON_FA_ROTATE_LEFT"##RotateZ", buttonSize);
                     if (ImGui::IsItemActive())
                     {
-                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * ImGui::GetIO().MouseDelta.x, 1.);
+                        sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
                         camera->rotateCameraAroundPoint(q, lookAt);
                         rotate = true;
                     }
@@ -285,6 +305,19 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     auto orientation = camera->getOrientation();
                     orientation.normalize();
                     camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
+                }
+
+                // Allow the mouse to cross walls, and reapear on the other side of the current window area
+                if (rotate || translate)
+                {
+                    if (cpos.x < cwpos.x)
+                        baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
+                    if (cpos.x > cwpos.x + m_windowSize.first)
+                        baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
+                    if (cpos.y < cwpos.y)
+                        baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
+                    if (cpos.y > cwpos.y + m_windowSize.second)
+                        baseGUI->setMousePos(cpos.x - wpos.x, yshift);
                 }
             }
         }
