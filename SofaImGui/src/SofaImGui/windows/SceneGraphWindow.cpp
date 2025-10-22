@@ -147,6 +147,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
         static ImGuiTextFilter filter;
+        ImGui::PushItemWidth(buttonSize.x * 5);
         if (showSearch)
         {
             ImGui::SameLine();
@@ -157,6 +158,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::SameLine();
             filter.Draw("Filter");
         }
+        ImGui::PopItemWidth();
         ImGui::PopStyleVar();
 
         // Table
@@ -167,6 +169,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
+            // Node
             if (node == nullptr) return;
             if (treeDepth == 0)
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -180,24 +183,20 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             const auto& nodeName = node->getName();
             const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
             if (isNodeHighlighted)
-            {
                 ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
+            const bool open = ImGui::TreeNode(std::string(ICON_FA_CUBES_STACKED "  " + nodeName).c_str()); // Name
+            { // Double click on the node, open the window
+                if (ImGui::IsItemClicked())
+                    if (ImGui::IsMouseDoubleClicked(0))
+                        nodeToOpen.insert(node);
             }
-
-            const bool open = ImGui::TreeNode(std::string(ICON_FA_CUBES "  " + nodeName).c_str());
-            if (ImGui::IsItemClicked())
-            {
-                if (ImGui::IsMouseDoubleClicked(0))
-                {
-                    nodeToOpen.insert(node);
-                }
-            }
-            ImGui::TableNextColumn();
-            ImGui::TextDisabled("Node");
             if (isNodeHighlighted)
-            {
                 ImGui::PopStyleColor();
-            }
+
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("Node"); // Class Name
+
+            // Components in the node
             if (open)
             {
                 int i = 0;
@@ -212,10 +211,8 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                     if (!isObjectHidden)
                     {
                         ImGui::PushID(object);
-
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-
                         ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth;
 
                         const auto& slaves = object->getSlaves();
@@ -231,13 +228,13 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                 ImGui::SetNextItemOpen(false);
                         }
 
-                        ImVec4 objectColor;
-
-                        auto icon = ICON_FA_CUBE;
+                        // Different color for component with a message
+                        ImVec4 objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+                        auto icon = "|";
                         if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
                                                          sofa::helper::logging::Message::Fatal})!=0)
                         {
-                            icon = ICON_FA_BUG;
+                            icon = ICON_FA_CIRCLE_EXCLAMATION;
                             objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
                         }
                         else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
@@ -249,16 +246,11 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                                               sofa::helper::logging::Message::Deprecated,
                                                               sofa::helper::logging::Message::Advice})!=0)
                         {
-                            objectColor = getObjectColor(object);
                             icon = ICON_FA_COMMENT;
-                        }
-                        else
-                        {
-                            objectColor = getObjectColor(object);
                         }
 
                         ImGui::PushID(i++);
-                        ImGui::PushStyleColor(ImGuiCol_Text, objectColor);
+                        ImGui::PushStyleColor(ImGuiCol_Text, isObjectHighlighted? highlightColor: objectColor);
                         const auto objectOpen = ImGui::TreeNodeEx(icon, objectFlags);
                         ImGui::PopStyleColor();
                         const auto& templateName = object->getTemplateName();
@@ -266,24 +258,22 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                             ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
                         ImGui::PopID();
 
-                        if (ImGui::IsItemClicked())
-                        {
-                            if (ImGui::IsMouseDoubleClicked(0))
-                            {
-                                componentToOpen.insert(object);
-                            }
+                        { // Double click on the component, open the window
+                            if (ImGui::IsItemClicked())
+                                if (ImGui::IsMouseDoubleClicked(0))
+                                    componentToOpen.insert(object);
                         }
 
                         ImGui::SameLine();
 
                         if (isObjectHighlighted)
-                        {
                             ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                        }
-                        ImGui::Text("%s", object->getName().c_str());
+                        ImGui::Text("%s", object->getName().c_str()); // Name
+                        if (isObjectHighlighted)
+                            ImGui::PopStyleColor();
 
                         ImGui::TableNextColumn();
-                        ImGui::TextDisabled("%s", objectClassName.c_str());
+                        ImGui::TextDisabled("%s", objectClassName.c_str()); // Class Name
                         sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(objectClassName);
                         if (! entry.creatorMap.empty())
                         {
@@ -293,11 +283,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                         }
                         ImGui::PopID();
 
-                        if (isObjectHighlighted)
-                        {
-                            ImGui::PopStyleColor();
-                        }
-
+                        // Components created by the component
                         if (objectOpen && !slaves.empty())
                         {
                             for (const auto &slave : slaves)
@@ -313,28 +299,24 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                     ImGui::TableNextRow();
                                     ImGui::TableNextColumn();
                                     ImGui::PushID(slave.get());
+
                                     if (isSlaveHighlighted)
-                                    {
                                         ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                                    }
-                                    ImGui::TreeNodeEx(std::string(ICON_FA_CUBE "  " + slave->getName()).c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
+                                    ImGui::TreeNodeEx(std::string("|" "  " + slave->getName()).c_str(), // Name
+                                                      ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
                                     if (isSlaveHighlighted)
-                                    {
                                         ImGui::PopStyleColor();
-                                    }
 
                                     const auto& templateName = object->getTemplateName();
                                     if (!templateName.empty())
                                         ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
-                                    if (ImGui::IsItemClicked())
-                                    {
-                                        if (ImGui::IsMouseDoubleClicked(0))
-                                        {
-                                            componentToOpen.insert(slave.get());
-                                        }
+                                    { // Double click on the component, open the window
+                                        if (ImGui::IsItemClicked())
+                                            if (ImGui::IsMouseDoubleClicked(0))
+                                                componentToOpen.insert(slave.get());
                                     }
                                     ImGui::TableNextColumn();
-                                    ImGui::TextDisabled("%s", slave->getClassName().c_str());
+                                    ImGui::TextDisabled("%s", slave->getClassName().c_str()); // Class Name
                                     ImGui::PopID();
                                 }
                             }
@@ -344,6 +326,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                 }
 
                 ++treeDepth;
+                // Child nodes
                 for (const auto child : node->getChildren())
                 {
                     showNode(dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
@@ -358,10 +341,12 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
 
         if (ImGui::BeginTable("SceneGraphTable", 2, flags))
         {
-            ImGui::TableSetupColumn("        Name", ImGuiTableColumnFlags_NoHide);
-            ImGui::TableSetupColumn("Class Name");
+            ImGui::BeginDisabled();
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+            ImGui::TableSetupColumn("Type");
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
+            ImGui::EndDisabled();
 
             showNode(groot, showSearch, showFiltered);
 
@@ -477,6 +462,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                 }
                 if (isOpenData)
                 {
+                    ImGui::Indent();
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
                     ImGui::TextWrapped("%s", data->getHelp().c_str());
 
@@ -496,6 +482,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
 
                     ImGui::PopStyleColor();
                     showWidget(*data);
+                    ImGui::Unindent();
                 }
             }
             ImGui::EndTabItem();
