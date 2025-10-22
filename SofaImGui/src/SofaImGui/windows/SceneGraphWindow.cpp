@@ -360,8 +360,9 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                                            const ImGuiWindowFlags& windowsFlags)
 {
     bool isOpen = true;
-    if (ImGui::Begin((ICON_FA_CUBE "  " + component->getName() + " (" + component->getPathName() + ")").c_str(), &isOpen, windowsFlags))
+    if (ImGui::Begin((component->getName()).c_str(), &isOpen, windowsFlags))
     {
+        ImGui::SetItemTooltip("Linkpath: %s", component->getPathName().c_str());
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
         for (auto* data : component->getDataFields())
         {
@@ -417,8 +418,9 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
 bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags& windowsFlags)
 {
     bool isOpen = true;
-    if (ImGui::Begin((ICON_FA_CUBES "  " + node->getName() + " (" + node->getPathName() + ")").c_str(), &isOpen, windowsFlags))
+    if (ImGui::Begin((ICON_FA_CUBES_STACKED "  " + node->getName()).c_str(), &isOpen, windowsFlags))
     {
+        ImGui::SetItemTooltip("Linkpath: %s", node->getPathName().c_str());
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
         for (auto* data : node->getDataFields())
         {
@@ -447,7 +449,6 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
     for (auto& [group, datas] : groupMap)
     {
         const auto groupName = group.empty() ? "Property" : group;
-        // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
         if (ImGui::BeginTabItem(groupName.c_str()))
         {
             for (auto& data : datas)
@@ -508,8 +509,10 @@ void SceneGraphWindow::addLinksTab(const sofa::core::objectmodel::Base::VecLink&
             }
             if (isOpenData)
             {
+                ImGui::Indent();
                 ImGui::TextDisabled("%s", link->getHelp().c_str());
                 ImGui::TextWrapped("%s", linkValue.c_str());
+                ImGui::Unindent();
             }
         }
         ImGui::EndTabItem();
