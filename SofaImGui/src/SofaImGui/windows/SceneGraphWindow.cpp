@@ -111,7 +111,6 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
 {
     // Different color for component with a message
     objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    icon = "·";
     if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
                                      sofa::helper::logging::Message::Fatal})!=0)
     {
@@ -129,6 +128,10 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
     {
         icon = ICON_FA_COMMENT;
     }
+    // else
+    // {
+    //     objectColor = getObjectColor(object);
+    // }
 }
 
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
@@ -253,7 +256,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                         }
 
                         ImVec4 objectColor;
-                        std::string icon;
+                        std::string icon = (slaves.empty())? "·" : ICON_FA_CIRCLE_NODES;
                         getComponentIconAlert(object, objectColor, icon);
 
                         ImGui::PushID(i++);
@@ -307,9 +310,13 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                     ImGui::TableNextColumn();
                                     ImGui::PushID(slave.get());
 
+                                    ImVec4 objectColor;
+                                    std::string icon = "·";
+                                    getComponentIconAlert(object, objectColor, icon);
+
                                     if (isSlaveHighlighted)
                                         ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                                    ImGui::TreeNodeEx(std::string("·" "  " + slave->getName()).c_str(), // Name
+                                    ImGui::TreeNodeEx(std::string(icon + "  " + slave->getName()).c_str(), // Name
                                                       ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
                                     if (isSlaveHighlighted)
                                         ImGui::PopStyleColor();
@@ -369,8 +376,6 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
     ImVec4 objectColor;
     std::string icon;
     getComponentIconAlert(component, objectColor, icon);
-    if (icon=="·")
-        icon="";
 
     if (ImGui::Begin((icon + " " + component->getName() + "##" + component->getPathName()).c_str(), &isOpen, windowsFlags))
     {
