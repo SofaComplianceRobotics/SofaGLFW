@@ -104,6 +104,8 @@ void ViewportWindow::addStateWindow()
 void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
 {
     static bool collapsed = true;
+    const auto& wpos = ImGui::GetMainViewport()->Pos;
+    const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
     auto position = ImGui::GetWindowPos();
     double frameGizmoSize = ImGui::GetFrameHeight() * 3;
 
@@ -213,8 +215,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
                 dpos.y = std::clamp(int(dpos.y), -20, 20);
                 const auto& cpos = ImGui::GetIO().MousePos;
-                const auto& wpos = ImGui::GetMainViewport()->Pos;
-                const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
                 // When setting the mouse position, the value is relative to the window top left corner
                 // Thus we need to compute the shifts between this position and the top left corner of the current window area
                 const float xshift = (cwpos.x - wpos.x);
