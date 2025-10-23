@@ -375,10 +375,14 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
             { // addInfosTab
                 if (ImGui::BeginTabItem("Infos"))
                 {
-                    ImGui::Text("Name: %s", component->getClassName().c_str());
+                    ImGui::TextDisabled("Type:");
+                    ImGui::TextWrapped("%s", component->getClassName().c_str());
                     ImGui::Spacing();
-                    ImGui::TextDisabled("Template:");
-                    ImGui::TextWrapped("%s", component->getClass()->templateName.c_str());
+                    if (!component->getClass()->templateName.empty())
+                    {
+                        ImGui::TextDisabled("Template:");
+                        ImGui::TextWrapped("%s", component->getClass()->templateName.c_str());
+                    }
                     ImGui::Spacing();
                     ImGui::TextDisabled("Namespace:");
                     ImGui::TextWrapped("%s", component->getClass()->namespaceName.c_str());
@@ -453,19 +457,13 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
         {
             for (auto& data : datas)
             {
-                const bool isOpenData = ImGui::CollapsingHeader(data->m_name.c_str());
-                if (ImGui::IsItemHovered())
-                {
-                    ImGui::BeginTooltip();
-                    ImGui::TextDisabled("%s", data->getHelp().c_str());
-                    ImGui::TextDisabled("Type: %s", data->getValueTypeString().c_str());
-                    ImGui::EndTooltip();
-                }
-                if (isOpenData)
+                if (ImGui::CollapsingHeader(data->m_name.c_str()))
                 {
                     ImGui::Indent();
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+                    ImGui::BeginDisabled();
                     ImGui::TextWrapped("%s", data->getHelp().c_str());
+                    ImGui::EndDisabled();
 
                     if (data->getParent())
                     {
@@ -499,18 +497,12 @@ void SceneGraphWindow::addLinksTab(const sofa::core::objectmodel::Base::VecLink&
         {
             const auto linkValue = link->getValueString();
             const auto linkTitle = link->getName();
-
-            const bool isOpenData = ImGui::CollapsingHeader(linkTitle.c_str());
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::TextDisabled("%s", link->getHelp().c_str());
-                ImGui::EndTooltip();
-            }
-            if (isOpenData)
+            if (ImGui::CollapsingHeader(linkTitle.c_str()))
             {
                 ImGui::Indent();
-                ImGui::TextDisabled("%s", link->getHelp().c_str());
+                ImGui::BeginDisabled();
+                ImGui::TextWrapped("%s", link->getHelp().c_str());
+                ImGui::EndDisabled();
                 ImGui::TextWrapped("%s", linkValue.c_str());
                 ImGui::Unindent();
             }
@@ -562,7 +554,8 @@ void SceneGraphWindow::addInfosTab(const std::string& className, const std::stri
 {
     if (ImGui::BeginTabItem("Infos"))
     {
-        ImGui::Text("Name: %s", className.c_str());
+        ImGui::TextDisabled("Type:");
+        ImGui::TextWrapped("%s", className.c_str());
         ImGui::Spacing();
         ImGui::TextDisabled("Namespace:");
         ImGui::TextWrapped("%s", namespaceName.c_str());
