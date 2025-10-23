@@ -107,6 +107,30 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
     }
 }
 
+void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon)
+{
+    // Different color for component with a message
+    objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+    icon = "·";
+    if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
+                                     sofa::helper::logging::Message::Fatal})!=0)
+    {
+        icon = ICON_FA_CIRCLE_EXCLAMATION;
+        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+    }
+    else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
+    {
+        icon = ICON_FA_TRIANGLE_EXCLAMATION;
+        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+    }
+    else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
+                                          sofa::helper::logging::Message::Deprecated,
+                                          sofa::helper::logging::Message::Advice})!=0)
+    {
+        icon = ICON_FA_COMMENT;
+    }
+}
+
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
                                  std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                                 std::set<sofa::simulation::Node*>& nodeToOpen)
@@ -165,7 +189,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -228,30 +252,13 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                 ImGui::SetNextItemOpen(false);
                         }
 
-                        // Different color for component with a message
-                        ImVec4 objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-                        auto icon = "·";
-                        if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
-                                                         sofa::helper::logging::Message::Fatal})!=0)
-                        {
-                            icon = ICON_FA_CIRCLE_EXCLAMATION;
-                            objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
-                        }
-                        else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
-                        {
-                            icon = ICON_FA_TRIANGLE_EXCLAMATION;
-                            objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
-                        }
-                        else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
-                                                              sofa::helper::logging::Message::Deprecated,
-                                                              sofa::helper::logging::Message::Advice})!=0)
-                        {
-                            icon = ICON_FA_COMMENT;
-                        }
+                        ImVec4 objectColor;
+                        std::string icon;
+                        getComponentIconAlert(object, objectColor, icon);
 
                         ImGui::PushID(i++);
                         ImGui::PushStyleColor(ImGuiCol_Text, isObjectHighlighted? highlightColor: objectColor);
-                        const auto objectOpen = ImGui::TreeNodeEx(icon, objectFlags);
+                        const auto objectOpen = ImGui::TreeNodeEx(icon.c_str(), objectFlags);
                         ImGui::PopStyleColor();
                         const auto& templateName = object->getTemplateName();
                         if (!templateName.empty())
@@ -358,7 +365,14 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                                            const ImGuiWindowFlags& windowsFlags)
 {
     bool isOpen = true;
-    if (ImGui::Begin((component->getName()).c_str(), &isOpen, windowsFlags))
+
+    ImVec4 objectColor;
+    std::string icon;
+    getComponentIconAlert(component, objectColor, icon);
+    if (icon=="·")
+        icon="";
+
+    if (ImGui::Begin((icon + " " + component->getName()).c_str(), &isOpen, windowsFlags))
     {
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
         for (auto* data : component->getDataFields())
@@ -406,7 +420,7 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                     ImGui::EndTabItem();
                 }
             }
-            addMessagesTab(component->getLoggedMessages(), component->getName());
+            addMessagesTab(component->getLoggedMessages(), icon + " " + component->getName(), icon);
 
             ImGui::EndTabBar();
         }
@@ -434,7 +448,7 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
             addGroupTab(groupMap);
             addLinksTab(node->getLinks());
             addInfosTab(node);
-            addMessagesTab(node->getLoggedMessages(), node->getName());
+            addMessagesTab(node->getLoggedMessages(), node->getName(), "");
 
             ImGui::EndTabBar();
         }
@@ -510,9 +524,9 @@ void SceneGraphWindow::addLinksTab(const sofa::core::objectmodel::Base::VecLink&
     }
 }
 
-void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Message>& messages, const std::string& name)
+void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Message>& messages, const std::string& name, const std::string& icon)
 {
-    if (ImGui::BeginTabItem("Messages"))
+    if (ImGui::BeginTabItem((icon + std::string(" Messages")).c_str()))
     {
         if (ImGui::BeginTable(std::string("logTableComponent"+name).c_str(), 2, ImGuiTableFlags_RowBg))
         {
