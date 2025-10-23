@@ -127,7 +127,7 @@ void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
         {
             ImGui::TableNextColumn();
             ImGui::PushID(i);
-            showScalarWidget("", std::to_string(i++), v);
+            showScalarWidget("", ImGui::TableGetColumnName(i++), v);
             ImGui::PopID();
         }
 
@@ -231,11 +231,14 @@ void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<3, ValueType> > 
 template<Size N, typename ValueType>
 bool showLine(unsigned int lineNumber, const std::string& tableLabel, type::Vec<N, ValueType>& vec)
 {
+    int i=0;
+    ImGui::PushID(lineNumber);
     for (auto& v : vec)
     {
         ImGui::TableNextColumn();
-        showScalarWidget("", tableLabel + std::to_string(lineNumber) + std::to_string(v), v);
+        showScalarWidget("", tableLabel + ImGui::TableGetColumnName(i++) + std::to_string(v), v);
     }
+    ImGui::PopID();
     return false;
 }
 
@@ -264,6 +267,7 @@ void showVectorWidget(Data<T>& data)
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%zu", i);
             auto& vec = accessor[i];
             if (showLine(i, tableLabel, vec))
@@ -394,6 +398,7 @@ void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueT
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%d", counter++);
             int i=0;
             for (auto& v : vec.getCenter())
@@ -470,15 +475,24 @@ void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement
         ImGui::TableHeadersRow();
 
         unsigned int counter {};
-        for (const auto& vec : *sofa::helper::getReadAccessor(data))
+        for (auto& vec : *sofa::helper::getWriteAccessor(data))
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%d", counter++);
-            for (const auto& v : vec)
+            unsigned int i=0;
+            for (auto& v : vec)
             {
+                int vui = v;
                 ImGui::TableNextColumn();
-                ImGui::Text("%d", v);
+                ImGui::PushID(counter);
+                ImGui::PushItemWidth(-1); // Fit container width
+                ImGui::BeginDisabled();
+                ImGui::InputInt((std::string("##") + ImGui::TableGetColumnName(i++) + std::to_string(counter)).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
+                ImGui::EndDisabled();
+                ImGui::PopItemWidth();
+                ImGui::PopID();
             }
         }
 
