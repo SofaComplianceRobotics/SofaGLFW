@@ -118,6 +118,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/FrameGizmo.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h

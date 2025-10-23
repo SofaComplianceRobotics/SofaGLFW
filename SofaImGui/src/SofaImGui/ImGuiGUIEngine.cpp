@@ -36,7 +36,6 @@
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 
-#include <sofa/gl/component/rendering3d/OglSceneFrame.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <sofa/type/vector.h>
 
@@ -93,7 +92,6 @@
 #include <sofa/helper/io/File.h>
 #include <sofa/component/visual/VisualGrid.h>
 #include <sofa/component/visual/LineAxis.h>
-#include <sofa/gl/component/rendering3d/OglSceneFrame.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <sofa/helper/io/STBImage.h>
 #include <sofa/simulation/graph/DAGNode.h>
@@ -388,7 +386,6 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
     ImGuiID dockspaceID = ImGui::GetID("WorkSpaceDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-
     if (firstTime)
     {
         ImGui::DockBuilderRemoveNode(dockspaceID); // clear any previous layout
@@ -424,9 +421,7 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
         ImGui::DockBuilderGetNode(dockspaceID)->WantHiddenTabBarToggle = true;
 
-
         ImGui::DockBuilderFinish(dockspaceID);
-
     }
 
     ImGui::End();
@@ -434,7 +429,6 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    showFrameOnViewport(baseGUI);
     auto groot = baseGUI->getRootNode();
     m_animate = groot->animate_.getValue();
 
@@ -686,24 +680,6 @@ void ImGuiGUIEngine::applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseG
         sofaimgui::setStyle("light");
         if (baseGUI)
             baseGUI->setBackgroundColor(type::RGBAColor(0.76, 0.78, 0.80, 1.0));
-    }
-}
-
-void ImGuiGUIEngine::showFrameOnViewport(sofaglfw::SofaGLFWBaseGUI* baseGUI)
-{
-    auto groot = baseGUI->getRootNode();
-    auto sceneFrame = groot->get<sofa::gl::component::rendering3d::OglSceneFrame>();
-    if (!sceneFrame)
-    {
-        auto newSceneFrame = sofa::core::objectmodel::New<sofa::gl::component::rendering3d::OglSceneFrame>();
-        newSceneFrame->d_style.setValue(sofa::gl::component::rendering3d::OglSceneFrame::Style("CubeCones"));
-        newSceneFrame->d_alignment.setValue(sofa::gl::component::rendering3d::OglSceneFrame::Alignment("TopRight"));
-
-        groot->addObject(newSceneFrame);
-        newSceneFrame->setName("viewportFrame");
-        newSceneFrame->addTag(core::objectmodel::Tag("createdByGUI"));
-        newSceneFrame->d_drawFrame.setValue(true);
-        newSceneFrame->init();
     }
 }
 

@@ -25,6 +25,7 @@
 #include <SofaImGui/windows/ViewportWindow.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/FrameGizmo.h>
 
 namespace sofaimgui::windows {
 
@@ -40,6 +41,7 @@ void ViewportWindow::showWindow(sofa::simulation::Node* groot,
                                 const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)
 {
+
     if (enabled() && isOpen())
     {
         if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
@@ -101,7 +103,36 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
 {
     static bool collapsed = true;
     auto position = ImGui::GetWindowPos();
+    double frameGizmoSize = ImGui::GetFrameHeight() * 3;
+
+    {// Frame guizmo
+        if (groot)
+        {
+            sofa::component::visual::BaseCamera::SPtr camera;
+            groot->get(camera);
+            // Base camera matrices are in double
+            double modelview[16];
+            double projection[16];
+            const auto& type = camera->getCameraType();
+            camera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+            camera->getOpenGLModelViewMatrix(modelview);
+            camera->getOpenGLProjectionMatrix(projection);
+            camera->setCameraType(type);
+            // ImGui matrices are in float, so we convert
+            float mview[16];
+            float proj[16];
+            for (int i=0; i<16; i++)
+            {
+                mview[i] = modelview[i];
+                proj[i] = projection[i];
+            }
+            sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
+            sofaimgui::widget::DrawGizmo(mview, proj);
+        }
+    }
+
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    position = ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + frameGizmoSize);
 
     position.x += ImGui::GetStyle().FramePadding.x;
     position.y += ImGui::GetStyle().FramePadding.y;
@@ -113,7 +144,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
     ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x,
                                 ImGui::GetWindowContentRegionMin().y),
                         ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
-                                ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.y), true); // Clip down to avoid hidding time
+                                ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y), true); // Clip down to avoid hidding time
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
@@ -230,7 +261,7 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                 const auto &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
                 bool rotate = false;
 
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 5);
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 3);
                 ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0, 0, 0, 0));
                 { // Rotate X
                     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 0, 0, 0.5));
@@ -243,8 +274,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
                     if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                    ImGui::SetItemTooltip("Rotate around X");
                     ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("Rotate around X");
                 }
 
                 { // Rotate Y
@@ -258,8 +289,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
                     if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                    ImGui::SetItemTooltip("Rotate around Y");
                     ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("Rotate around Y");
                 }
 
                 { // Rotate Z
@@ -273,8 +304,8 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
                     }
                     if (ImGui::IsItemHovered() || ImGui::IsItemActive())
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                    ImGui::SetItemTooltip("Rotate around Z");
                     ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("Rotate around Z");
                 }
                 ImGui::PopStyleColor();
                 ImGui::PopStyleVar();
@@ -293,8 +324,6 @@ void ViewportWindow::addCameraButtons(sofa::simulation::Node* groot)
     ImGui::PopStyleVar();
     ImGui::PopClipRect();
     ImGui::EndChild();
-
-    
 }
 
 bool ViewportWindow::addStepButton()

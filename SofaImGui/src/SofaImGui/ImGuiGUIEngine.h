@@ -124,7 +124,6 @@ protected:
     CSimpleIniA iniGUISettings;
     CSimpleIniA iniProject;
 
-    void showFrameOnViewport(sofaglfw::SofaGLFWBaseGUI *baseGUI);
     void initDockSpace(const bool& firstTime);
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
