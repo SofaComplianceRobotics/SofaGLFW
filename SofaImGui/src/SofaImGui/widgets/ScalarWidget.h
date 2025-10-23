@@ -22,6 +22,7 @@
 #pragma once
 #include <sofa/core/objectmodel/Data.h>
 #include <imgui.h>
+#include <SofaImGui/widgets/Buttons.h>
 
 namespace sofaimgui
 {
@@ -29,7 +30,7 @@ namespace sofaimgui
 inline bool showScalarWidget(const std::string& label, const std::string& id, float& value)
 {
     ImGui::PushItemWidth(-1); // Fit container width
-    bool result = ImGui::InputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
+    bool result = ImGui::LocalInputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
     ImGui::PopItemWidth();
     return result;
 }
@@ -37,7 +38,7 @@ inline bool showScalarWidget(const std::string& label, const std::string& id, fl
 inline bool showScalarWidget(const std::string& label, const std::string& id, double& value)
 {
     ImGui::PushItemWidth(-1); // Fit container width
-    bool result = ImGui::InputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
+    bool result = ImGui::LocalInputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
     ImGui::PopItemWidth();
     return result;
 }

@@ -489,7 +489,9 @@ void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement
                 ImGui::PushID(counter);
                 ImGui::PushItemWidth(-1); // Fit container width
                 ImGui::BeginDisabled();
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
                 ImGui::InputInt((std::string("##") + ImGui::TableGetColumnName(i++) + std::to_string(counter)).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
+                ImGui::PopStyleVar();
                 ImGui::EndDisabled();
                 ImGui::PopItemWidth();
                 ImGui::PopID();

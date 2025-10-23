@@ -28,19 +28,14 @@ namespace sofaimgui
 
 inline bool showIntWidget(const std::string& label, const std::string& id, int& value)
 {
-    ImGui::PushItemWidth(-1); // Fit container width
-    bool result = ImGui::InputInt((label + "##" + id).c_str(), &value, 0, 0, ImGuiInputTextFlags_None);
-    ImGui::PopItemWidth();
-    return result;
+    return ImGui::InputInt((label + "##" + id).c_str(), &value, 0, 0, ImGuiInputTextFlags_None);
 }
 
 inline bool showIntWidget(const std::string& label, const std::string& id, unsigned int& value)
 {
-    ImGui::PushItemWidth(-1); // Fit container width
     int vui = value;
     bool result = ImGui::InputInt((label + "##" + id).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
     value = abs(vui);
-    ImGui::PopItemWidth();
     return result;
 }
 
@@ -50,10 +45,14 @@ void showIntWidget(sofa::Data<Int>& data)
     Int initialValue = data.getValue();
     const auto& label = data.getName();
     const auto id = data.getName() + data.getOwner()->getPathName();
+    ImGui::PushItemWidth(-1); // Fit container width
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     if (showIntWidget(label, id, initialValue))
     {
         data.setValue(initialValue);
     }
+    ImGui::PopStyleVar();
+    ImGui::PopItemWidth();
 }
 
 }

@@ -1,4 +1,3 @@
-#include "IconsFontAwesome6.h"
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/widgets/Buttons.h>
 #include <string>
@@ -25,6 +24,22 @@ bool LocalInputDouble(const char* label, double* v, double step, double step_fas
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     const char* format = (log10f(abs(*v))>3)? "%0.2e": "%0.2f";
     bool result =  ImGui::InputDouble(label, v, step, step_fast, format, flags);
+    ImGui::PopStyleVar();
+    ImGui::PopItemWidth();
+
+    return result;
+}
+
+bool LocalInputFloat(const char* label, float* v, float step, float step_fast, const char*, ImGuiInputTextFlags flags)
+{
+    float inputWidth = ImGui::CalcTextSize("-100000,00").x;
+    if (step>0) // add step buttons width
+        inputWidth += ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+
+    ImGui::PushItemWidth(inputWidth);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+    const char* format = (log10f(abs(*v))>3)? "%0.2e": "%0.2f";
+    bool result =  ImGui::InputFloat(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
 
