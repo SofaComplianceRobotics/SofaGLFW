@@ -31,6 +31,7 @@
 #include <SofaImGui/widgets/LinearSpringWidget.h>
 #include <SofaImGui/widgets/MaterialWidget.h>
 #include <SofaImGui/widgets/RigidMass.h>
+#include <SofaImGui/widgets/IntWidget.h>
 
 namespace sofaimgui
 {
@@ -39,7 +40,7 @@ using namespace sofa;
 
 void BaseDataWidget::showWidgetAsText(sofa::core::objectmodel::BaseData& data)
 {
-    ImGui::TextWrapped(data.getValueString().c_str());
+    ImGui::TextWrapped("%s", data.getValueString().c_str());
 }
 
 template<>
@@ -61,6 +62,18 @@ template<>
 void DataWidget<double>::showWidget(MyData& data)
 {
     showScalarWidget(data);
+}
+
+template<>
+void DataWidget<int>::showWidget(MyData& data)
+{
+    showIntWidget(data);
+}
+
+template<>
+void DataWidget<unsigned int>::showWidget(MyData& data)
+{
+    showIntWidget(data);
 }
 
 /***********************************************************************************************************************
@@ -641,7 +654,7 @@ Data<linearalgebra::CompressedRowSparseMatrixConstraint<TBlock, TPolicy>>& data)
 {
     std::stringstream ss;
     data.getValue().prettyPrint(ss);
-    ImGui::TextWrapped(ss.str().c_str());
+    ImGui::TextWrapped("%s", ss.str().c_str());
 }
 
 template<>
@@ -750,6 +763,9 @@ const bool dw_bool = DataWidgetFactory::Add<bool>();
 
 const bool dw_float = DataWidgetFactory::Add<float>();
 const bool dw_double = DataWidgetFactory::Add<double>();
+
+const bool dw_int = DataWidgetFactory::Add<int>();
+const bool dw_uint = DataWidgetFactory::Add<unsigned int>();
 
 const bool dw_vec1d = DataWidgetFactory::Add<type::Vec<1, double> >();
 const bool dw_vec1f = DataWidgetFactory::Add<type::Vec<1, float> >();
