@@ -42,7 +42,7 @@ protected:
     void addGroupTab(const std::map<std::string, std::vector<sofa::core::BaseData*> >& groupMap);
     void addLinksTab(const sofa::core::objectmodel::Base::VecLink& links);
     void addMessagesTab(const std::deque<sofa::helper::logging::Message> &messages, const std::string& name);
-    void addInfosTab(const std::string& className, const std::string& namespaceName);
+    void addInfosTab(sofa::simulation::Node* node);
 
 };
 

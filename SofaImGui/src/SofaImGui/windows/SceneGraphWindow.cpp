@@ -362,7 +362,6 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
     bool isOpen = true;
     if (ImGui::Begin((component->getName()).c_str(), &isOpen, windowsFlags))
     {
-        ImGui::SetItemTooltip("Linkpath: %s", component->getPathName().c_str());
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
         for (auto* data : component->getDataFields())
         {
@@ -378,6 +377,9 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                     ImGui::TextDisabled("Type:");
                     ImGui::TextWrapped("%s", component->getClassName().c_str());
                     ImGui::Spacing();
+                    ImGui::TextDisabled("Linkpath:");
+                    ImGui::TextWrapped("@%s", component->getPathName().c_str());
+                    ImGui::Spacing();
                     if (!component->getClass()->templateName.empty())
                     {
                         ImGui::TextDisabled("Template:");
@@ -388,7 +390,7 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                     ImGui::TextWrapped("%s", component->getClass()->namespaceName.c_str());
 
                     sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
-                    if (! entry.creatorMap.empty())
+                    if (!entry.creatorMap.empty())
                     {
                         ImGui::Spacing();
                         ImGui::TextDisabled("Description:");
@@ -424,7 +426,6 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
     bool isOpen = true;
     if (ImGui::Begin((ICON_FA_CUBES_STACKED "  " + node->getName()).c_str(), &isOpen, windowsFlags))
     {
-        ImGui::SetItemTooltip("Linkpath: %s", node->getPathName().c_str());
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
         for (auto* data : node->getDataFields())
         {
@@ -434,7 +435,7 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
         {
             addGroupTab(groupMap);
             addLinksTab(node->getLinks());
-            addInfosTab(node->getClassName(), node->getClass()->namespaceName);
+            addInfosTab(node);
             addMessagesTab(node->getLoggedMessages(), node->getName());
 
             ImGui::EndTabBar();
@@ -550,15 +551,18 @@ void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Me
     }
 }
 
-void SceneGraphWindow::addInfosTab(const std::string& className, const std::string& namespaceName)
+void SceneGraphWindow::addInfosTab(sofa::simulation::Node *node)
 {
     if (ImGui::BeginTabItem("Infos"))
     {
         ImGui::TextDisabled("Type:");
-        ImGui::TextWrapped("%s", className.c_str());
+        ImGui::TextWrapped("%s", node->getClassName().c_str());
+        ImGui::Spacing();
+        ImGui::TextDisabled("Linkpath:");
+        ImGui::TextWrapped("@%s", node->getPathName().c_str());
         ImGui::Spacing();
         ImGui::TextDisabled("Namespace:");
-        ImGui::TextWrapped("%s", namespaceName.c_str());
+        ImGui::TextWrapped("%s", node->getClass()->namespaceName.c_str());
         ImGui::EndTabItem();
     }
 }
