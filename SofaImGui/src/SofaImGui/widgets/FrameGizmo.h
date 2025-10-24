@@ -135,7 +135,9 @@ inline void DrawFrameGizmo(float* const viewMatrix, const float* const projectio
     // correction for non-square aspect ratio
     {
         const float aspectRatio = projectionMatrix[5] / projectionMatrix[0];
-        viewProjection[0] *= aspectRatio; viewProjection[8] *= aspectRatio;
+        viewProjection[0] *= aspectRatio; 
+        viewProjection[4] *= aspectRatio;
+        viewProjection[8] *= aspectRatio;
     }
     // axis
     const float axisLength = size * config.axisLengthScale;
