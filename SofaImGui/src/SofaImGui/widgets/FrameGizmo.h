@@ -207,7 +207,7 @@ inline void BeginFrame(const bool background = false)
     ImGui::End();
 }
 
-inline void DrawGizmo(float* const viewMatrix, const float* const projectionMatrix) {
+inline void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix) {
     const float size = internal::config.mSize;
     const float hSize = size * 0.5f;
     const auto center = ImVec2{ internal::config.mX + hSize, internal::config.mY + hSize };

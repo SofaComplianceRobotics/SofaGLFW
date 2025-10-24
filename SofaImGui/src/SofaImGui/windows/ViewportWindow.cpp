@@ -131,7 +131,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 proj[i] = projection[i];
             }
             sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
-            sofaimgui::widget::DrawGizmo(mview, proj);
+            sofaimgui::widget::DrawFrameGizmo(mview, proj);
         }
     }
 
