@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
 #include <SofaImGui/windows/ViewportWindow.h>
@@ -120,7 +121,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     if (groot)
         groot->get(camera);
 
-    bool axisClicked[3]{false,false,false};
+    bool axisClicked[3]{false};
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
     if (ImGui::Begin("ViewportGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow |
@@ -151,8 +152,21 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
 
                 { // Frame gizmo
+                    bool axisClicked[6]{false};
                     sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
-                    sofaimgui::widget::DrawFrameGizmo(mview, proj);
+                    sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
+                    if (axisClicked[0])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
+                    else if (axisClicked[1])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
+                    else if (axisClicked[2])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
+                    else if (axisClicked[3])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
+                    else if (axisClicked[4])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
+                    else if (axisClicked[5])
+                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
                 }
 
                 { // Orientation gizmo

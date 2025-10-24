@@ -24,8 +24,6 @@ SOFTWARE.
 */
 #pragma once
 
-#include <iostream>
-#include <ostream>
 #pragma once
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -43,6 +41,7 @@ static struct Config {
     float mY = 0.f;
     float mSize = 100.f;
     ImDrawList* mDrawList = nullptr;
+    ImVec4 hoverColor{1.f, 0.5f, 0.f, 1.f};
 } config;
 
 inline ImVec4 multiply(const float* const m, const ImVec4& v)
@@ -77,13 +76,19 @@ inline void multiply(const float* const l, const float* const r, float* out)
     out[15] = l[12] * r[3] + l[13] * r[7] + l[14] * r[11] + l[15] * r[15];
 }
 
+inline bool circleContainsPoint(const ImVec2& center, const float& radius, const ImVec2& p)
+{
+    ImVec2 distanceVec = ImVec2(center.x - p.x, center.y - p.y);
+    const float distanceSqr = ImLengthSqr(distanceVec);
+    return (distanceSqr <= radius * radius);
+}
+
 inline bool drawEllipse(float* viewProjection, const ImVec2& center,
                         const ImVec4& axis2, const ImVec4& axis1, const ImU32& color, const float& thickness,
                         const bool& hoverable, const bool& isClicked)
 {
     bool isHovered = false;
     ImVec2 mousePos = ImGui::GetMousePos();
-    ImVec4 hoverColor{1.f, 0.5f, 0.f, 1.f};
 
     const int segmentCount = 64;
     ImVec2 points[segmentCount];
@@ -113,27 +118,51 @@ inline bool drawEllipse(float* viewProjection, const ImVec2& center,
         }
     }
 
-    config.mDrawList->AddPolyline(points, segmentCount, ((isHovered && hoverable) || isClicked)? ImGui::GetColorU32(hoverColor) : color, true, thickness);
+    config.mDrawList->AddPolyline(points, segmentCount, ((isHovered && hoverable) || isClicked)? ImGui::GetColorU32(config.hoverColor) : color, true, thickness);
     return isHovered;
 }
 
-inline void drawPositiveLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color, const float radius, const float thickness, const char* text) {
+inline bool drawPositiveLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color, const float radius, const float thickness, const char* text)
+{
+    bool isHovered = false;
+    ImVec2 mousePos = ImGui::GetMousePos();
+
     const auto lineEndPositive = ImVec2{ center.x + axis.x, center.y + axis.y };
+
     config.mDrawList->AddLine(center, lineEndPositive, ImGui::GetColorU32(color), thickness);
-    config.mDrawList->AddCircleFilled(lineEndPositive, radius, ImGui::GetColorU32(color));
+
+    isHovered = circleContainsPoint(lineEndPositive, radius, mousePos);
+    config.mDrawList->AddCircleFilled(lineEndPositive, radius, isHovered ? ImGui::GetColorU32(config.hoverColor): ImGui::GetColorU32(color));
+
     const auto labelSize = ImGui::CalcTextSize(text);
     const auto textPos = ImVec2(floor(lineEndPositive.x - 0.5f * labelSize.x), floor(lineEndPositive.y - 0.5f * labelSize.y));
     config.mDrawList->AddText(textPos, ImGui::GetColorU32({ 0.2f, 0.2f, 0.2f, 1.0f }), text);
+
+    return isHovered;
 }
 
-inline void drawNegativeLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color, const float radius, const float thickness) {
+inline bool drawNegativeLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color, const float radius, const float thickness, const char* text)
+{
+    bool isHovered = false;
+    ImVec2 mousePos = ImGui::GetMousePos();
+
     const auto lineEndNegative = ImVec2{ center.x - axis.x, center.y - axis.y };
     ImVec4 colorBg = color;
     colorBg.w = 0.2f;
 
     config.mDrawList->AddCircleFilled(lineEndNegative, radius, ImGui::GetColorU32(colorBg));
-    config.mDrawList->AddCircle(lineEndNegative, radius, ImGui::GetColorU32(color), 0, thickness);
 
+    isHovered = circleContainsPoint(lineEndNegative, radius, mousePos);
+    config.mDrawList->AddCircle(lineEndNegative, radius, isHovered? ImGui::GetColorU32(config.hoverColor): ImGui::GetColorU32(color), 0, thickness);
+
+    if (isHovered)
+    {
+        const auto labelSize = ImGui::CalcTextSize(text);
+        const auto textPos = ImVec2(floor(lineEndNegative.x - 0.5f * labelSize.x), floor(lineEndNegative.y - 0.5f * labelSize.y));
+        config.mDrawList->AddText(textPos, ImGui::GetColorU32({ 1.0f, 1.0f, 1.0f, 1.0f }), text);
+    }
+
+    return isHovered;
 }
 
 inline ImVec4 blendColor(const ImVec4& color1, const ImVec4& color2, const float& w)
@@ -172,7 +201,8 @@ inline void SetDrawList(ImDrawList* drawlist = nullptr)
     internal::config.mDrawList = drawlist ? drawlist : ImGui::GetWindowDrawList();
 }
 
-inline void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix) {
+inline void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix, bool* axisClicked)
+{
     const float size = internal::config.mSize;
     const float hSize = size * 0.5f;
     const auto center = ImVec2{ internal::config.mX + hSize, internal::config.mY + hSize };
@@ -209,26 +239,30 @@ inline void DrawFrameGizmo(float* const viewMatrix, const float* const projectio
     for (const auto& [fst, snd] : pairs) {
         switch (fst) {
         case 0: // +x axis
-            internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
+            axisClicked[0] = internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
             continue;
         case 1: // +y axis
-            internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
+            axisClicked[1] = internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
             continue;
         case 2: // +z axis
-            internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
+            axisClicked[2] = internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
             continue;
         case 3: // -x axis
-            internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness);
+            axisClicked[3] = internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness, "-X");
             continue;
         case 4: // -y axis
-            internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness);
+            axisClicked[4] = internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness, "-Y");
             continue;
         case 5: // -z axis
-            internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness);
+            axisClicked[5] = internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness, "-Z");
             continue;
         default: break;
         }
     }
+
+    for (int i=0; i<6; i++)
+        axisClicked[i] &= ImGui::IsMouseClicked(0);
+
     internal::config.mDrawList = nullptr;
 }
 
