@@ -111,20 +111,18 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     auto position = ImGui::GetWindowPos();
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
-    // Gizmos
-    static bool orientationGizmo = false;
-    double frameGizmoSize = ImGui::GetFrameHeight() * 4;
-    double orientationGizmoSize = frameGizmoSize;
-
     // Camera
     sofa::component::visual::BaseCamera::SPtr camera;
     if (groot)
         groot->get(camera);
 
+    // Gizmos
+    static bool orientationGizmo = false;
+    double frameGizmoSize = ImGui::GetFrameHeight() * 4;
+    double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
-
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-    if (ImGui::Begin("ViewportGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow |
+    if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow |
                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmo * orientationGizmoSize, wpos.y + frameGizmoSize));
@@ -185,7 +183,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::PopStyleColor();
     ImGui::EndChild();
 
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     position = ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + frameGizmoSize);
 
     position.x += ImGui::GetStyle().FramePadding.x;
@@ -193,16 +190,25 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
+    // Left buttons background
+    // Clip down
     auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
     color.w = 0.6f;
-    ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x,
-                                ImGui::GetWindowContentRegionMin().y),
-                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
-                                ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y), true); // Clip down to avoid hidding time
+    ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x, ImGui::GetWindowContentRegionMin().y),
+                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x, ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y), true);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
 
+    // When clicking these buttons, the mouse only moves into the current window area
+    // We allow the mouse to cross walls and reapear on the other side
+    auto dpos = ImGui::GetIO().MouseDelta;
+    dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
+    dpos.y = std::clamp(int(dpos.y), -20, 20);
+
+    // Buttons
+    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    bool translate = false;
     if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
@@ -261,26 +267,15 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 {
                     orientationGizmo = !orientationGizmo;
                 }
-                ImGui::SetItemTooltip((orientationGizmo)? "Disable orientation gizmo": "Enable orientation gizmo");
+                std::string text = (orientationGizmo)? "Disable ": "Enable ";
+                text += "orientation gizmo \n(Rotation Center: Look At)";
+                ImGui::SetItemTooltip("%s", text.c_str());
             }
 
             ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 
             { // Axis related
                 const float scale = powf(10.0f, floorf(log10f((bbox.maxBBox() - bbox.minBBox()).norm()* 0.01)));
-
-                // When clicking these buttons, the mouse only moves into the current window area
-                // We allow the mouse to cross walls and reapear on the other side
-                auto dpos = ImGui::GetIO().MouseDelta;
-                dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
-                dpos.y = std::clamp(int(dpos.y), -20, 20);
-                const auto& cpos = ImGui::GetIO().MousePos;
-                // When setting the mouse position, the value is relative to the window top left corner
-                // Thus we need to compute the shifts between this position and the top left corner of the current window area
-                const float xshift = (cwpos.x - wpos.x);
-                const float yshift = (cwpos.y - wpos.y);
-
-                bool translate = false;
 
                 { // Translate Left/Right
                     ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
@@ -336,66 +331,73 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                     ImGui::SetItemTooltip("Zoom");
                 }
-
-                const double &distance = camera->getDistance();
-                const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
-                bool rotate = false;
-
-                { // Orientation gizmo button
-                    { // Rotate X
-                        if (axisClicked[0])
-                        {
-                            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
-                            camera->rotateCameraAroundPoint(q, lookAt);
-                            rotate = true;
-                        }
-                    }
-
-                    { // Rotate Y
-                        if (axisClicked[1])
-                        {
-                            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
-                            camera->rotateCameraAroundPoint(q, lookAt);
-                            rotate = true;
-                        }
-                    }
-
-                    { // Rotate Z
-                        if (axisClicked[2])
-                        {
-                            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
-                            camera->rotateCameraAroundPoint(q, lookAt);
-                            rotate = true;
-                        }
-                    }
-                }
-
-                if (rotate)
-                {
-                    // TODO: This should be done in rotateCameraAroundPoint()
-                    auto orientation = camera->getOrientation();
-                    orientation.normalize();
-                    camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
-                }
-
-                // Allow the mouse to cross walls, and reapear on the other side of the current window area
-                if (rotate || translate)
-                {
-                    if (cpos.x < cwpos.x)
-                        baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
-                    if (cpos.x > cwpos.x + m_windowSize.first)
-                        baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
-                    if (cpos.y < cwpos.y)
-                        baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
-                    if (cpos.y > cwpos.y + m_windowSize.second)
-                        baseGUI->setMousePos(cpos.x - wpos.x, yshift);
-                }
             }
         }
     }
+
+    const auto& cpos = ImGui::GetIO().MousePos;
+    // When setting the mouse position, the value is relative to the window top left corner
+    // Thus we need to compute the shifts between this position and the top left corner of the current window area
+    const float xshift = (cwpos.x - wpos.x);
+    const float yshift = (cwpos.y - wpos.y);
+
+    const double &distance = camera->getDistance();
+    const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
+    bool rotate = false;
+
+    { // Orientation gizmo clicked
+        { // Rotate X
+            if (axisClicked[0])
+            {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
+                camera->rotateCameraAroundPoint(q, lookAt);
+                rotate = true;
+            }
+        }
+
+        { // Rotate Y
+            if (axisClicked[1])
+            {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
+                camera->rotateCameraAroundPoint(q, lookAt);
+                rotate = true;
+            }
+        }
+
+        { // Rotate Z
+            if (axisClicked[2])
+            {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
+                camera->rotateCameraAroundPoint(q, lookAt);
+                rotate = true;
+            }
+        }
+    }
+
+    if (rotate)
+    {
+        // TODO: This should be done in rotateCameraAroundPoint()
+        auto orientation = camera->getOrientation();
+        orientation.normalize();
+        camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
+    }
+
+    // Allow the mouse to cross walls, and reapear on the other side of the current window area
+    if (rotate || translate)
+    {
+        if (cpos.x < cwpos.x)
+            baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
+        if (cpos.x > cwpos.x + m_windowSize.first)
+            baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
+        if (cpos.y < cwpos.y)
+            baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
+        if (cpos.y > cwpos.y + m_windowSize.second)
+            baseGUI->setMousePos(cpos.x - wpos.x, yshift);
+    }
+
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
     ImGui::PopClipRect();
