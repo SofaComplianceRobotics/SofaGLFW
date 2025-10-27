@@ -103,7 +103,7 @@ inline bool drawEllipse(float* viewProjection, const ImVec2& center,
             axis1.x * cosTheta + axis2.x * sinTheta,
             axis1.y * cosTheta + axis2.y * sinTheta,
             axis1.z * cosTheta + axis2.z * sinTheta,
-            1.0f
+            0.0f
         };
         // Project the 3D point to 2D screen space
         const ImVec4 projectedPoint = multiply(viewProjection, point3D);
