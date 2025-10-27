@@ -122,6 +122,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMass.h
 
     ${SOFAIMGUI_SOURCE_DIR}/menus/FileMenu.h
