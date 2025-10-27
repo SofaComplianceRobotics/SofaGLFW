@@ -230,41 +230,41 @@ bool Repeat::RepeatView::showBlock(const std::string &label,
         ImGui::PopStyleVar();
     }
 
-    text = "type";
-    textSize = ImGui::CalcTextSize(text.c_str());
-    y = spacing.y + bb.Max.y;
+    // text = "type";
+    // textSize = ImGui::CalcTextSize(text.c_str());
+    // y = spacing.y + bb.Max.y;
 
-    { // Way point rotation
-        bb.Min = ImVec2(x, y);
-        bb.Max = ImVec2(x + textSize.x + padding.x * 2,
-                        y + textSize.y + padding.y * 2);
+    // { // Way point rotation
+    //     bb.Min = ImVec2(x, y);
+    //     bb.Max = ImVec2(x + textSize.x + padding.x * 2,
+    //                     y + textSize.y + padding.y * 2);
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().Text);
-        drawList->AddText(ImVec2(x + padding.x,
-                                 y + padding.y),
-                          ImGui::GetColorU32(ImGuiCol_Text), text.c_str());
-        ImGui::PopStyleColor();
+    //     ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().Text);
+    //     drawList->AddText(ImVec2(x + padding.x,
+    //                              y + padding.y),
+    //                       ImGui::GetColorU32(ImGuiCol_Text), text.c_str());
+    //     ImGui::PopStyleColor();
 
-        window->DC.CursorPos.x = x + ProgramSizes().AlignWidth;
-        window->DC.CursorPos.y = y;
+    //     window->DC.CursorPos.x = x + ProgramSizes().AlignWidth;
+    //     window->DC.CursorPos.y = y;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
-        ImGui::PushItemWidth((ProgramSizes().InputWidth + spacing.x) * 4);
-        std::string id = "##speed" + std::to_string(window->DC.CursorPos.x) + std::to_string(window->DC.CursorPos.y);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
-        ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
-        static const char* items[]{"REPEAT"};
-        int type = repeat.getType();
-        if (ImGui::Combo(id.c_str(), &type, items, IM_ARRAYSIZE(items)))
-        {
-            hasValuesChanged = true;
-            repeat.setType(models::modifiers::Repeat::Type(type));
-        }
-        ImGui::PopStyleColor(2);
-        ImGui::SameLine();
-        ImGui::PopItemWidth();
-        ImGui::PopStyleVar();
-    }
+    //     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
+    //     ImGui::PushItemWidth((ProgramSizes().InputWidth + spacing.x) * 4);
+    //     std::string id = "##speed" + std::to_string(window->DC.CursorPos.x) + std::to_string(window->DC.CursorPos.y);
+    //     ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
+    //     ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
+    //     static const char* items[]{"REPEAT"};
+    //     int type = repeat.getType();
+    //     if (ImGui::Combo(id.c_str(), &type, items, IM_ARRAYSIZE(items)))
+    //     {
+    //         hasValuesChanged = true;
+    //         repeat.setType(models::modifiers::Repeat::Type(type));
+    //     }
+    //     ImGui::PopStyleColor(2);
+    //     ImGui::SameLine();
+    //     ImGui::PopItemWidth();
+    //     ImGui::PopStyleVar();
+    // }
 
     window->DC.CursorPosPrevLine.x = topRight.x;
     window->DC.CursorPosPrevLine.y = topRight.y;
