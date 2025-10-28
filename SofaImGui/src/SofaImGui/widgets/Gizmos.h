@@ -114,7 +114,7 @@ inline bool drawEllipse(float* viewProjection, const ImVec2& center,
         {
             ImVec2 mousePosProj = ImLineClosestPoint(points[i-1], points[i], mousePos);
             ImVec2 distance(mousePosProj.x - mousePos.x, mousePosProj.y - mousePos.y);
-            isHovered = (ImLengthSqr(distance ) <= 100); // in pixel
+            isHovered = (ImLengthSqr(distance ) <= 50); // in pixel
         }
     }
 
@@ -303,14 +303,14 @@ inline void DrawOrientationGizmo(float* const viewMatrix, const float* const pro
         isXClicked = true;
     }
 
-    bool isYHoverable = (!isXClicked && !isZClicked);
+    bool isYHoverable = (!isXClicked && !isZClicked && !isXHovered);
     bool isYHovered = internal::drawEllipse(viewProjection, center, xAxis, zAxis, ImGui::GetColorU32(config.yCircleBackColor), lineThickness, isYHoverable, isYClicked);
 
     if (isYHoverable && isYHovered && ImGui::IsMouseClicked(0)) {
         isYClicked = true;
     }
 
-    bool isZHoverable = (!isYClicked && !isXClicked);
+    bool isZHoverable = (!isYClicked && !isXClicked && !isXHovered && !isYHovered);
     bool isZHovered = internal::drawEllipse(viewProjection, center, xAxis, yAxis, ImGui::GetColorU32(config.zCircleBackColor), lineThickness, isZHoverable, isZClicked);
 
     if (isZHoverable && isZHovered && ImGui::IsMouseClicked(0)) {

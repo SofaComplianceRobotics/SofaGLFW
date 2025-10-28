@@ -346,7 +346,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     bool rotate = false;
 
     { // Orientation gizmo clicked
-        { // Rotate X
+        // Rotate X
             if (axisClicked[0])
             {
                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -354,27 +354,22 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 camera->rotateCameraAroundPoint(q, lookAt);
                 rotate = true;
             }
-        }
-
-        { // Rotate Y
-            if (axisClicked[1])
+        // Rotate Y
+            else if (axisClicked[1])
             {
                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
                 camera->rotateCameraAroundPoint(q, lookAt);
                 rotate = true;
             }
-        }
-
-        { // Rotate Z
-            if (axisClicked[2])
+        // Rotate Z
+            else if (axisClicked[2])
             {
                 ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
                 sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
                 camera->rotateCameraAroundPoint(q, lookAt);
                 rotate = true;
             }
-        }
     }
 
     if (rotate)
