@@ -23,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #pragma once
-
-#pragma once
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <cmath>
@@ -114,7 +112,7 @@ inline bool drawEllipse(float* viewProjection, const ImVec2& center,
         {
             ImVec2 mousePosProj = ImLineClosestPoint(points[i-1], points[i], mousePos);
             ImVec2 distance(mousePosProj.x - mousePos.x, mousePosProj.y - mousePos.y);
-            isHovered = (ImLengthSqr(distance ) <= 50); // in pixel
+            isHovered = (ImLengthSqr(distance ) <= thickness * 1.5);
         }
     }
 

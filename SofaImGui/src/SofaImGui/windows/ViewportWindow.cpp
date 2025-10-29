@@ -287,7 +287,9 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 ImGui::SetItemTooltip("%s", text.c_str());
             }
 
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
             ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            ImGui::PopStyleColor();
 
             { // Axis related
                 const float scale = powf(10.0f, floorf(log10f((bbox.maxBBox() - bbox.minBBox()).norm()* 0.01)));
