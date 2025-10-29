@@ -58,6 +58,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     void addStateWindow();
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
+    bool checkCamera(sofa::simulation::Node* groot);
 
 };
 

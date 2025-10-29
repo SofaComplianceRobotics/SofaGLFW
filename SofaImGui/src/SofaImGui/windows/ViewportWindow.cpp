@@ -102,8 +102,29 @@ void ViewportWindow::addStateWindow()
     m_stateWindow->showWindow();
 }
 
+bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
+{
+    if (groot) // Check the groot
+    {
+        sofa::component::visual::BaseCamera::SPtr camera;
+        groot->get(camera);
+        if (camera) // Check if there is a camera in the scene
+        {
+            sofa::type::BoundingBox bb(camera->d_minBBox.getValue(), camera->d_maxBBox.getValue());
+            if (bb.isValid()) // Check that the bounding box is correctly initialized
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
 {
+    // If the camera is not correctly initialized don't draw anything
+    if (!checkCamera(groot))
+        return;
+
     // Positions and sizes
     static bool collapsed = true;
     const auto& wpos = ImGui::GetMainViewport()->Pos;
@@ -113,8 +134,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
     // Camera
     sofa::component::visual::BaseCamera::SPtr camera;
-    if (groot)
-        groot->get(camera);
+    groot->get(camera);
 
     // Gizmos
     static bool orientationGizmo = false;
@@ -130,52 +150,49 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         ImGui::ItemAdd(wosize, ImGui::GetID("ViewportGizmos"));
 
         {// Frame & orientation gizmo
-            if (groot && camera)
+            // Base camera matrices are in double
+            double modelview[16];
+            double projection[16];
+            const auto& type = camera->getCameraType();
+            camera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+            camera->getOpenGLModelViewMatrix(modelview);
+            camera->getOpenGLProjectionMatrix(projection);
+            camera->setCameraType(type);
+            // ImGui matrices are in float, so we convert
+            float mview[16];
+            float proj[16];
+            for (int i=0; i<16; i++)
             {
-                // Base camera matrices are in double
-                double modelview[16];
-                double projection[16];
-                const auto& type = camera->getCameraType();
-                camera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
-                camera->getOpenGLModelViewMatrix(modelview);
-                camera->getOpenGLProjectionMatrix(projection);
-                camera->setCameraType(type);
-                // ImGui matrices are in float, so we convert
-                float mview[16];
-                float proj[16];
-                for (int i=0; i<16; i++)
+                mview[i] = modelview[i];
+                proj[i] = projection[i];
+            }
+
+            { // Frame gizmo
+                bool axisClicked[6]{false};
+                sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
+                sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
+                if (axisClicked[0])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
+                else if (axisClicked[1])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
+                else if (axisClicked[2])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
+                else if (axisClicked[3])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
+                else if (axisClicked[4])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
+                else if (axisClicked[5])
+                    sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
+            }
+
+            { // Orientation gizmo
+                if (orientationGizmo)
                 {
-                    mview[i] = modelview[i];
-                    proj[i] = projection[i];
-                }
-
-                { // Frame gizmo
-                    bool axisClicked[6]{false};
-                    sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
-                    sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
-                    if (axisClicked[0])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
-                    else if (axisClicked[1])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
-                    else if (axisClicked[2])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
-                    else if (axisClicked[3])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
-                    else if (axisClicked[4])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
-                    else if (axisClicked[5])
-                        sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
-                }
-
-                { // Orientation gizmo
-                    if (orientationGizmo)
-                    {
-                        // Center of the viewport (look at position)
-                        sofaimgui::widget::SetRect(position.x + frameGizmoSize,
-                                                   position.y,
-                                                   orientationGizmoSize);
-                        sofaimgui::widget::DrawOrientationGizmo(mview, proj, axisClicked);
-                    }
+                    // Center of the viewport (look at position)
+                    sofaimgui::widget::SetRect(position.x + frameGizmoSize,
+                                               position.y,
+                                               orientationGizmoSize);
+                    sofaimgui::widget::DrawOrientationGizmo(mview, proj, axisClicked);
                 }
             }
         }
@@ -228,10 +245,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         ImGui::SetItemTooltip(collapsed? "Expand view options": "Collapse view options");
         ImGui::PopStyleColor(3);
 
-        if (groot && !collapsed)
+        if (!collapsed)
         {
-            sofa::component::visual::BaseCamera::SPtr camera;
-            groot->get(camera);
             const auto& bbox = groot->f_bbox.getValue();
 
             { // Fit all
