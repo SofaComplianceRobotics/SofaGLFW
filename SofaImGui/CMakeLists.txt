@@ -117,7 +117,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
@@ -170,7 +170,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/menus/FileMenu.cpp

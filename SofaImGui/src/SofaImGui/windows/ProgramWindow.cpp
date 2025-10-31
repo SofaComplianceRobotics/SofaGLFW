@@ -23,7 +23,7 @@
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/Utils.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <SofaImGui/models/actions/Move.h>
 #include <SofaImGui/models/actions/Pick.h>
@@ -78,9 +78,8 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
         ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
         
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen,
-                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize
-                         ))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
+                        windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
             showProgramButtons();
 
@@ -93,7 +92,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
             ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
-            if (ImGui::BeginChild(ImGui::GetID(m_name.c_str()), ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
+            if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
             {
                 ImGui::PopStyleColor();
 

@@ -25,7 +25,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <ProgramStyle.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 
 namespace sofaimgui::models::actions {

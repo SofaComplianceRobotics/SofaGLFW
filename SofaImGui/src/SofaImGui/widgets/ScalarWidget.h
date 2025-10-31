@@ -22,7 +22,7 @@
 #pragma once
 #include <sofa/core/objectmodel/Data.h>
 #include <imgui.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 namespace sofaimgui
 {

@@ -26,7 +26,7 @@
 #include <imgui_internal.h>
 
 #include <string>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
 #include <SofaImGui/Robot.h>
 
@@ -132,7 +132,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::Spacing();
 
