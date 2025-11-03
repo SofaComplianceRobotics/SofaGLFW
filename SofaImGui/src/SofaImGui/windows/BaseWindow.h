@@ -64,19 +64,12 @@ protected:
     inline void _getSetting(const char* windowName, const char* settingName, const double& defaultValue, double& value){value = iniWindowsSettings.GetDoubleValue(windowName, settingName, defaultValue);}
     inline void _getSetting(const char* windowName, const char* settingName, const bool& defaultValue, bool& value){value = iniWindowsSettings.GetBoolValue(windowName, settingName, defaultValue);}
     inline void _getSetting(const char* windowName, const char* settingName, const int& defaultValue, int& value){value = iniWindowsSettings.GetLongValue(windowName, settingName, defaultValue);}
-    inline void _getSetting(const char* windowName, const char* settingName, const char* defaultValue, char* value)
-    {
-        const char* original = iniWindowsSettings.GetValue(windowName, settingName, defaultValue);
-        if (value)
-            free(value);
-        value = new char[strlen(original)+1];
-        strcpy(value, original);
-    }
+    inline void _getSetting(const char* windowName, const char* settingName, const std::string& defaultValue, std::string& value){value = std::string(iniWindowsSettings.GetValue(windowName, settingName, defaultValue.c_str()));}
 
     inline void _setSetting(const char* windowName, const char* settingName, const double& value){iniWindowsSettings.SetDoubleValue(windowName, settingName, value);}
     inline void _setSetting(const char* windowName, const char* settingName, const bool& value){iniWindowsSettings.SetBoolValue(windowName, settingName, value);}
     inline void _setSetting(const char* windowName, const char* settingName, const int& value){iniWindowsSettings.SetLongValue(windowName, settingName, value);}
-    inline void _setSetting(const char* windowName, const char* settingName, const char* value){iniWindowsSettings.SetValue(windowName, settingName, value);}
+    inline void _setSetting(const char* windowName, const char* settingName, const std::string& value){iniWindowsSettings.SetValue(windowName, settingName, value.c_str());}
 
 };
 

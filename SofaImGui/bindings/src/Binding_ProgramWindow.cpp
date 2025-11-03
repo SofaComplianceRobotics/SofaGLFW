@@ -68,7 +68,7 @@ void moduleAddProgramWindow(py::module &m)
         {
             if (engine)
             {
-                engine->m_programWindow.m_program.importProgram(filename);
+                engine->m_programWindow.importProgram(filename);
             }
         }, "Import a program."
         );

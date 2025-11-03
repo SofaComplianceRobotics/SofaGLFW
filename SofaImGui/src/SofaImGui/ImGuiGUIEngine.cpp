@@ -129,7 +129,7 @@ void ImGuiGUIEngine::saveProject()
         windowSettings.setSetting(windowName.c_str(), "open", window.get().isOpen());
         auto imguiWindow = ImGui::FindWindowByName(window.get().getLabel().c_str());
         if (imguiWindow)
-            windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId).c_str());
+            windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId));
     }
 
     auto g = ImGui::GetCurrentContext();

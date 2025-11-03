@@ -57,6 +57,17 @@ ProgramWindow::ProgramWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+void ProgramWindow::loadAndProcessWindowSettings()
+{
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    // Import program file if any
+    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), "programDirPath", m_programDirPath);
+    m_programFilename = windowsSettings.getSetting(m_name.c_str(), "programFilename", m_programFilename);
+    if (!m_programFilename.empty() && !m_programDirPath.empty())
+        importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
+}
+
 void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
                                const ImGuiWindowFlags& windowFlags)
 {
@@ -73,6 +84,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
         if (firstTime)
         {
             firstTime = false;
+            loadAndProcessWindowSettings();
             ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
         }
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
@@ -752,7 +764,7 @@ void ProgramWindow::importProgram()
     {
         if (sofa::helper::system::FileSystem::exists(outPath))
         {
-            successfulImport = m_program.importProgram(outPath);
+            successfulImport = importProgram(outPath);
             path = outPath;
         }
         NFD_FreePath(outPath);
@@ -763,11 +775,22 @@ void ProgramWindow::importProgram()
 
     if (successfulImport)
     {
-        m_programDirPath = path.parent_path().string(); // store chosen dir path
-        m_programFilename = path.filename().string(); // store chosen filename
-
         FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
     }
+}
+
+bool ProgramWindow::importProgram(const std::string &filename)
+{
+    bool successfulImport = false;
+
+    if (sofa::helper::system::FileSystem::exists(filename))
+    {
+        successfulImport = m_program.importProgram(filename);
+        if (successfulImport)
+            saveProgramDirAndFilename(filename);
+    }
+
+    return successfulImport;
 }
 
 void ProgramWindow::exportProgram(const bool &exportAs)
@@ -790,10 +813,7 @@ void ProgramWindow::exportProgram(const bool &exportAs)
         {
             path = outPath;
             path = (!path.has_extension())? outPath + extension: outPath;
-
-            m_programDirPath = path.parent_path().string(); // store chosen dir path
-            m_programFilename = path.filename().string(); // store chosen filename
-
+            saveProgramDirAndFilename(path);
             NFD_FreePath(outPath);
         }
         else
@@ -810,6 +830,15 @@ void ProgramWindow::exportProgram(const bool &exportAs)
         m_program.exportProgram(path.string());
         FooterStatusBar::getInstance().setTempMessage("Exported program [" + path.string() + "]");
     }
+}
+
+void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
+{
+    std::filesystem::path path = filename;
+    m_programDirPath = path.parent_path().string(); // store chosen dir path
+    m_programFilename = path.filename().string(); // store chosen filename
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), "programDirPath", m_programDirPath);
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), "programFilename", m_programFilename);
 }
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
