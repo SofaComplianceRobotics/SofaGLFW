@@ -42,17 +42,10 @@ PluginsWindow::PluginsWindow(const std::string& name,
 
 void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    static sofa::type::vector<std::string> listDefaultPlugins;
     static std::string configPluginPath = "plugin_list.conf.default";
+    static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
+    static sofa::type::vector<std::string> listDefaultPlugins = (configExists)? getPluginsFromIniFile(configPluginPath): sofa::type::vector<std::string>();
     const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
-
-    static bool firstTime = true;
-    if (firstTime)
-    {
-        firstTime = false;
-        if (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr))
-            getPluginsFromIniFile(configPluginPath, listDefaultPlugins);
-    }
 
     if (enabled() && isOpen())
     {
@@ -161,8 +154,9 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     }
 }
 
-void PluginsWindow::getPluginsFromIniFile(const std::string& path, sofa::type::vector<std::string>& plugins)
+sofa::type::vector<std::string> PluginsWindow::getPluginsFromIniFile(const std::string& path)
 {
+    sofa::type::vector<std::string> plugins;
     std::ifstream instream(path.c_str());
     std::string plugin, line;
     while(std::getline(instream, line))
@@ -174,6 +168,7 @@ void PluginsWindow::getPluginsFromIniFile(const std::string& path, sofa::type::v
         plugins.push_back(plugin);
     }
     instream.close();
+    return plugins;
 }
 
 } // namespace

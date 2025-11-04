@@ -38,7 +38,7 @@ public:
     void showWindow(const ImGuiWindowFlags &windowFlags = ImGuiWindowFlags_None);
 
 protected:
-    void getPluginsFromIniFile(const std::string& path, sofa::type::vector<std::string>& plugins);
+    sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
 
 };
 
