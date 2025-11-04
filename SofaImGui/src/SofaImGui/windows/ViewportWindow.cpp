@@ -29,9 +29,7 @@
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/widgets/Gizmos.h>
 #include <GLFW/glfw3.h>
-
-#define m_ws_cameraButtonsCollapsed
-#define m_ws_orientationGizmoEnabled
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 
 namespace sofaimgui::windows {
@@ -134,7 +132,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     auto& windowsSettings = WindowsSettings::getInstance();
 
     // Positions and sizes
-    static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), "cameraButtonsCollapsed", true);
+    static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
     const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
     auto position = ImGui::GetWindowPos();
@@ -145,7 +143,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     groot->get(camera);
 
     // Gizmos
-    static bool orientationGizmoEnabled = windowsSettings.getSetting(m_name.c_str(), "orientationGizmoEnabled", false);
+    static bool orientationGizmoEnabled = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, false);
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
@@ -248,7 +246,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
         {
             cameraButtonsCollapsed = !cameraButtonsCollapsed;
-            windowsSettings.setSetting(m_name.c_str(), "cameraButtonsCollapsed", cameraButtonsCollapsed);
+            windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
         }
         
         ImGui::SetItemTooltip(cameraButtonsCollapsed? "Expand view options": "Collapse view options");
@@ -290,7 +288,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 if (ImGui::Button(ICON_FA_ROTATE, buttonSize))
                 {
                     orientationGizmoEnabled = !orientationGizmoEnabled;
-                    windowsSettings.setSetting(m_name.c_str(), "orientationGizmoEnabled", orientationGizmoEnabled);
+                    windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
                 }
                 std::string text = (orientationGizmoEnabled)? "Disable ": "Enable ";
                 text += "orientation gizmo \n(Rotation Center: Look At)";

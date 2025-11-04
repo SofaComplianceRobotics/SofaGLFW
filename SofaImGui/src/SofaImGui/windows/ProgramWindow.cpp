@@ -42,6 +42,7 @@
 
 #include <ProgramStyle.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 
 namespace sofaimgui::windows {
@@ -62,8 +63,8 @@ void ProgramWindow::loadAndProcessWindowSettings()
     auto& windowsSettings = WindowsSettings::getInstance();
 
     // Import program file if any
-    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), "programDirPath", m_programDirPath);
-    m_programFilename = windowsSettings.getSetting(m_name.c_str(), "programFilename", m_programFilename);
+    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
+    m_programFilename = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
     if (!m_programFilename.empty() && !m_programDirPath.empty())
         importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
@@ -837,8 +838,8 @@ void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
     std::filesystem::path path = filename;
     m_programDirPath = path.parent_path().string(); // store chosen dir path
     m_programFilename = path.filename().string(); // store chosen filename
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), "programDirPath", m_programDirPath);
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), "programFilename", m_programFilename);
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
 }
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
