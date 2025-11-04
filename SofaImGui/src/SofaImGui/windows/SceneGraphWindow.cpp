@@ -40,7 +40,7 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
     std::set<sofa::simulation::Node*> nodeToOpen;
-    
+
     if (enabled() && isOpen())
     {
         showGraph(groot, windowFlags, componentToOpen, nodeToOpen);
@@ -430,10 +430,6 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
             ImGui::EndTabBar();
         }
     }
-    else
-    {
-        ImGui::PopStyleColor();
-    }
     ImGui::End();
     return isOpen;
 }
@@ -457,10 +453,6 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
 
             ImGui::EndTabBar();
         }
-    }
-    else
-    {
-        ImGui::PopStyleColor();
     }
     ImGui::End();
     return isOpen;

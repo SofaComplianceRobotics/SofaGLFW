@@ -22,16 +22,7 @@
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaImGui/windows/Performances.h>
-#include <SofaImGui/windows/Log.h>
-#include <SofaImGui/windows/Profiler.h>
-#include <SofaImGui/windows/SceneGraph.h>
-#include <SofaImGui/windows/DisplayFlags.h>
-#include <SofaImGui/windows/Plugins.h>
-#include <SofaImGui/windows/Components.h>
-#include <SofaImGui/windows/Settings.h>
 #include <SofaImGui/AppIniFile.h>
-#include <SofaImGui/windows/ViewPort.h>
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
@@ -512,6 +503,8 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_myRobotWindow.showWindow(windowFlags);
     m_moveWindow.showWindow(windowFlags);
     m_sceneGraphWindow.showWindow(groot, windowFlags);
+
+    m_pluginsWindow.showWindow();
 }
 
 void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -528,6 +521,8 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(fileMenu.m_reloadSimulation)
             loadSimulation(true, fileMenu.getFilename());
 
+        if(fileMenu.m_openPluginsManager)
+            m_pluginsWindow.setOpen(true);
 
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
 
