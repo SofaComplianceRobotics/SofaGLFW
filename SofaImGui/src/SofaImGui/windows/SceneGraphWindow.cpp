@@ -211,15 +211,23 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::TableNextColumn();
 
             const auto& nodeName = node->getName();
+            const bool& isDeactivated = !node->is_activated.getValue();
             const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
+
+            if (isDeactivated)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
             if (isNodeHighlighted)
                 ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-            const bool open = ImGui::TreeNodeEx(std::string(ICON_FA_SITEMAP "  " + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
+
+            std::string nodeIcons = isDeactivated? ICON_FA_BAN " ": "";
+            nodeIcons += ICON_FA_SITEMAP " ";
+            const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
             { // Double click on the node, open the window
                 if (ImGui::IsItemClicked())
                     if (ImGui::IsMouseDoubleClicked(0))
                         nodeToOpen.insert(node);
             }
+
             if (isNodeHighlighted)
                 ImGui::PopStyleColor();
 
@@ -351,6 +359,9 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                 --treeDepth;
                 ImGui::TreePop();
             }
+
+            if (isDeactivated)
+                ImGui::PopStyleColor();
         };
 
         static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
