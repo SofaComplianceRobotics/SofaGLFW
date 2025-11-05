@@ -19,7 +19,6 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "sofa/helper/logging/Messaging.h"
 #include <Style.h>
 #include <string>
 
