@@ -275,19 +275,16 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
 
             { // Click on node
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Left | ImGuiMouseButton_Right))
+                // Double click on the node, open the window
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
-                    // Double click on the node, open the window
-                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                    {
-                        nodeToOpen.insert(node);
-                    }
+                    nodeToOpen.insert(node);
+                }
 
-                    // Right click, open a context menu
-                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-                    {
-                        nodeToOpenContextMenu.insert(std::pair<sofa::simulation::Node*, bool>(node, true));
-                    }
+                // Right click, open a context menu
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                {
+                    nodeToOpenContextMenu.insert(std::pair<sofa::simulation::Node*, bool>(node, true));
                 }
             }
 
