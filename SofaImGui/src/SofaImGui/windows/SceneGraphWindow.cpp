@@ -40,15 +40,65 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
     std::set<sofa::simulation::Node*> nodeToOpen;
+    std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
     
     if (enabled() && isOpen())
     {
-        showGraph(groot, windowFlags, componentToOpen, nodeToOpen);
+        showGraph(groot, windowFlags, componentToOpen, nodeToOpen, nodeToOpenContextMenu);
     }
 
     ImGuiIO& io = ImGui::GetIO();
     const auto height = io.DisplaySize.y*0.66; // Main window size
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
+
+    { // Node context menu
+
+        static std::set<std::pair<sofa::simulation::Node*, bool>> openedPopup;
+        openedPopup.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
+
+        sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toRemove;
+        sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toUpdate;
+
+        for (const auto& popup: openedPopup)
+        {
+            if (popup.second)
+            {
+                ImGui::OpenPopup("##NodeContextMenu");
+                toUpdate.push_back(popup);
+            }
+
+            if (ImGui::BeginPopup("##NodeContextMenu"))
+            {
+                addNodeContextMenu(popup.first);
+                ImGui::EndPopup();
+            } else {
+                toRemove.push_back(popup);
+            }
+        }
+
+        while(!toRemove.empty())
+        {
+            auto it = openedPopup.find(toRemove.back());
+            if (it != openedPopup.end())
+            {
+                openedPopup.erase(it);
+            }
+            toRemove.pop_back();
+        }
+
+        while(!toUpdate.empty())
+        {
+            auto it = openedPopup.find(toUpdate.back());
+            if (it != openedPopup.end())
+            {
+                std::pair<sofa::simulation::Node*, bool> newKey(it->first, false);
+                openedPopup.erase(it);
+                openedPopup.insert(newKey);
+            }
+            toUpdate.pop_back();
+        }
+
+    }
 
     { // Nodes window
         static std::set<sofa::simulation::Node*> openedNodes;
@@ -139,7 +189,8 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
 
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
                                  std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                                std::set<sofa::simulation::Node*>& nodeToOpen)
+                                 std::set<sofa::simulation::Node*>& nodeToOpen,
+                                 std::set<std::pair<sofa::simulation::Node*, bool>>& nodeToOpenContextMenu)
 {
     if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
     {
@@ -195,7 +246,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -222,10 +273,22 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             std::string nodeIcons = isDeactivated? ICON_FA_BAN " ": "";
             nodeIcons += ICON_FA_SITEMAP " ";
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
-            { // Double click on the node, open the window
-                if (ImGui::IsItemClicked())
-                    if (ImGui::IsMouseDoubleClicked(0))
+
+            { // Click on node
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left | ImGuiMouseButton_Right))
+                {
+                    // Double click on the node, open the window
+                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
                         nodeToOpen.insert(node);
+                    }
+
+                    // Right click, open a context menu
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                    {
+                        nodeToOpenContextMenu.insert(std::pair<sofa::simulation::Node*, bool>(node, true));
+                    }
+                }
             }
 
             if (isNodeHighlighted)
@@ -366,6 +429,10 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
 
         static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                                        ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("Modifying the scene from the GUI may cause unexpected behavior. Use at your own risk.");
+        ImGui::PopStyleColor();
 
         if (ImGui::BeginTable("SceneGraphTable", 2, flags))
         {
@@ -599,6 +666,21 @@ void SceneGraphWindow::addInfosTab(sofa::simulation::Node *node)
         ImGui::TextDisabled("Namespace:");
         ImGui::TextWrapped("%s", node->getClass()->namespaceName.c_str());
         ImGui::EndTabItem();
+    }
+}
+
+void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
+{
+    if (node)
+    {
+        const bool& activated = node->is_activated.getValue();
+        if(ImGui::MenuItem(activated? "Deactivate": "Activate"))
+            node->setActive(!activated);
+
+        ImGui::Separator();
+
+        if(ImGui::MenuItem("Copy Path"))
+            ImGui::SetClipboardText(node->getPathName().c_str());
     }
 }
 
