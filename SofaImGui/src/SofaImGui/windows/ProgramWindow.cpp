@@ -814,7 +814,7 @@ void ProgramWindow::exportProgram(const bool &exportAs)
         {
             path = outPath;
             path = (!path.has_extension())? outPath + extension: outPath;
-            saveProgramDirAndFilename(path);
+            saveProgramDirAndFilename(path.string());
             NFD_FreePath(outPath);
         }
         else
