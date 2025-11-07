@@ -81,7 +81,7 @@ void FooterStatusBar::showTempMessageOnStatusBar()
             if (ImGui::BeginMenuBar())
             {
                 float length = ImGui::CalcTextSize(m_tempMessage.c_str()).x;
-                float center = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x / 2.f - length / 2.f;
+                float center = (ImGui::GetWindowWidth() - length) * 0.5f;
                 ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
 
                 std::string icon;
