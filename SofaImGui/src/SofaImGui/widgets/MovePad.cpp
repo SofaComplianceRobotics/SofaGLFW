@@ -1,10 +1,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/widgets/MovePad.h>
 
 #include <IconsFontAwesome6.h>
-#include <string>
 
 namespace ImGui
 {
