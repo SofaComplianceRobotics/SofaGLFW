@@ -116,12 +116,14 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MovePad.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMass.h
 
@@ -170,9 +172,10 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/Buttons.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/MovePad.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/menus/FileMenu.cpp
     ${SOFAIMGUI_SOURCE_DIR}/menus/ViewMenu.cpp

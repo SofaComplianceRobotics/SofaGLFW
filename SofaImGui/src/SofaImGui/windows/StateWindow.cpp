@@ -21,7 +21,7 @@
  ******************************************************************************/
 
 #include <SofaImGui/windows/StateWindow.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <imgui_internal.h>
 
 
@@ -46,8 +46,8 @@ void StateWindow::showWindow()
     {
         static bool openstate = true;
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.20f, 0.34f, 0.05f));
-        if (ImGui::Begin("ViewportChildState", &openstate,
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+        if (ImGui::Begin(getLabel().c_str(), &openstate,
+                        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
         {
             if(ImGui::CollapsingHeader("Simulation State       "))
             {

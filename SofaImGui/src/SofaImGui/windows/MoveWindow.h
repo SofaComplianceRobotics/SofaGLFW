@@ -23,6 +23,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/IPController.h>
+#include <SofaImGui/widgets/MovePad.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -33,7 +34,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     MoveWindow(const std::string& name, const bool& isWindowOpen);
     ~MoveWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
     void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
@@ -52,6 +53,12 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
         float max{500};
     };
 
+    enum MoveType {
+        PAD,
+        SLIDERS
+    };
+    MoveType m_moveType;
+
     void clearWindow() override;
 
     void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
@@ -67,6 +74,13 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     double m_TCPMaxPosition{500.};
     double m_TCPMinOrientation{-M_PI};
     double m_TCPMaxOrientation{M_PI};
+
+    double m_x;
+    double m_y;
+    double m_z;
+    double m_rx;
+    double m_ry;
+    double m_rz;
     
     std::vector<models::IPController::Actuator> m_actuators;
     std::string m_actuatorsDescription{"Motors Position (rad)"};
@@ -77,10 +91,14 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     std::vector<Accessory> m_accessories;
 
+    ImGui::MovePad m_movePad;
+
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);
     void showOptions();
     void showWeightOption(const int &index);
+    void showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
 };
 
 }

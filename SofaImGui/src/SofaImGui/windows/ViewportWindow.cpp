@@ -24,10 +24,13 @@
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
 #include <SofaImGui/windows/ViewportWindow.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/widgets/Gizmos.h>
 #include <GLFW/glfw3.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
+
 
 namespace sofaimgui::windows {
 
@@ -47,7 +50,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
             {
@@ -111,7 +114,7 @@ bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
         if (camera) // Check if there is a camera in the scene
         {
             sofa::type::BoundingBox bb(camera->d_minBBox.getValue(), camera->d_maxBBox.getValue());
-            if (bb.isValid()) // Check that the bounding box is correctly initialized
+            if (bb.isValid() && !bb.isFlat()) // Check that the bounding box is correctly initialized
                 return true;
         }
     }
@@ -125,8 +128,11 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     if (!checkCamera(groot))
         return;
 
+    // Windows settings
+    auto& windowsSettings = WindowsSettings::getInstance();
+
     // Positions and sizes
-    static bool collapsed = true;
+    static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
     const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
     auto position = ImGui::GetWindowPos();
@@ -137,7 +143,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     groot->get(camera);
 
     // Gizmos
-    static bool orientationGizmo = false;
+    static bool orientationGizmoEnabled = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, false);
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
@@ -145,7 +151,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow |
                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
-        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmo * orientationGizmoSize, wpos.y + frameGizmoSize));
+        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
         ImGui::ItemSize(wosize);
         ImGui::ItemAdd(wosize, ImGui::GetID("ViewportGizmos"));
 
@@ -186,7 +192,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             }
 
             { // Orientation gizmo
-                if (orientationGizmo)
+                if (orientationGizmoEnabled)
                 {
                     // Center of the viewport (look at position)
                     sofaimgui::widget::SetRect(position.x + frameGizmoSize,
@@ -204,7 +210,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
     position.x += ImGui::GetStyle().FramePadding.x;
     position.y += ImGui::GetStyle().FramePadding.y;
-    ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
+    ImGui::SetNextWindowPos(position);  // attach the button window to left of the viewport window, after the gizmos
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
     // Left buttons background
@@ -234,18 +240,19 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-        std::string title = (collapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
+        std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
         if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
         {
-            collapsed = !collapsed;
+            cameraButtonsCollapsed = !cameraButtonsCollapsed;
+            windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
         }
         
-        ImGui::SetItemTooltip(collapsed? "Expand view options": "Collapse view options");
+        ImGui::SetItemTooltip(cameraButtonsCollapsed? "Expand view options": "Collapse view options");
         ImGui::PopStyleColor(3);
 
-        if (!collapsed)
+        if (!cameraButtonsCollapsed)
         {
             const auto& bbox = groot->f_bbox.getValue();
 
@@ -280,9 +287,10 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             { // Orientation gizmo button
                 if (ImGui::Button(ICON_FA_ROTATE, buttonSize))
                 {
-                    orientationGizmo = !orientationGizmo;
+                    orientationGizmoEnabled = !orientationGizmoEnabled;
+                    windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
                 }
-                std::string text = (orientationGizmo)? "Disable ": "Enable ";
+                std::string text = (orientationGizmoEnabled)? "Disable ": "Enable ";
                 text += "orientation gizmo \n(Rotation Center: Look At)";
                 ImGui::SetItemTooltip("%s", text.c_str());
             }
@@ -423,7 +431,7 @@ bool ViewportWindow::addStepButton()
     
     if (m_isOpen)
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
             if(ImGui::BeginChild("Render"))
             {
@@ -461,7 +469,7 @@ bool ViewportWindow::addAnimateButton(bool *animate)
     
     if (m_isOpen)
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
             if(ImGui::BeginChild("Render"))
             {
@@ -503,7 +511,7 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
     
     if (m_isOpen)
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
             if(ImGui::BeginChild("Render"))
             {

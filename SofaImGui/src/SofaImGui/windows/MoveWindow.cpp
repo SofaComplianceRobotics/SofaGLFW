@@ -26,7 +26,7 @@
 #include <IconsFontAwesome6.h>
 
 #include <SofaImGui/windows/MoveWindow.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
 
 namespace sofaimgui::windows {
@@ -38,6 +38,13 @@ MoveWindow::MoveWindow(const std::string& name,
     m_name = name;
     m_isOpen = isWindowOpen;
     m_isDrivingSimulation = true;
+    m_moveType = MoveType::SLIDERS;
+
+    m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
+                                &m_x, &m_z, &m_y,
+                                &m_TCPMinPosition, &m_TCPMaxPosition,
+                                &m_TCPMinPosition, &m_TCPMaxPosition,
+                                &m_TCPMinPosition, &m_TCPMaxPosition);
 }
 
 void MoveWindow::clearWindow()
@@ -95,36 +102,59 @@ void MoveWindow::setActuatorLimits(const sofa::Index &id, const double &min, con
     }
 }
 
-void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             if (m_IPController != nullptr)
             {
                 ImGui::Spacing();
 
-                static double x=0;
-                static double y=0;
-                static double z=0;
-                static double rx=0.;
-                static double ry=0.;
-                static double rz=0.;
-
                 if(m_isDrivingSimulation)
-                    m_IPController->getTCPTargetPosition(x, y, z, rx, ry, rz);
+                    m_IPController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
                 
-                if (ImGui::LocalBeginCollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    const auto &initPosition = m_IPController->getTCPTargetInitPosition();
-                    showSliderDouble("X", "##XSlider", "##XInput", &x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-                    ImGui::Spacing();
-                    showSliderDouble("Y", "##YSlider", "##YInput", &y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-                    ImGui::Spacing();
-                    showSliderDouble("Z", "##ZSlider", "##ZInput", &z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                    { // Vertical tabs (buttons)
+                        ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
 
-                    ImGui::LocalEndCollapsingHeader();
+                        if (showVerticalTab(ICON_FA_SLIDERS, "Sliders", m_moveType == MoveType::SLIDERS))
+                            m_moveType = MoveType::SLIDERS;
+                        if (showVerticalTab(ICON_FA_TABLE_CELLS_LARGE, "Pad", m_moveType == MoveType::PAD))
+                            m_moveType = MoveType::PAD;
+
+                        ImGui::EndChild();
+                    }
+
+                    ImGui::SameLine();
+
+                    { // Method area (sliders or pad)
+                        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+                        ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysUseWindowPadding);
+                        const auto &initPosition = m_IPController->getTCPTargetInitPosition();
+
+                        if (m_moveType == MoveType::PAD)
+                        {
+                            m_movePad.setBounds("X", m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0]);
+                            m_movePad.setBounds("Y", m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1]);
+                            m_movePad.setBounds("Z", m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2]);
+                            showPad(baseGUI);
+                        }
+                        else if (m_moveType == MoveType::SLIDERS)
+                        {
+                            ImGui::Indent();
+                            showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                            ImGui::Spacing();
+                            showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                            ImGui::Spacing();
+                            showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                            ImGui::Unindent();
+                        }
+                        ImGui::EndChild();
+                        ImGui::PopStyleColor();
+                    }
                 }
 
                 m_IPController->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
@@ -136,9 +166,9 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
 
                     bool openOptions = false;
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImGuiCol_Header);
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiCol_Header);
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGuiCol_Header);
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
                     if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
                         openOptions = true;
                     ImGui::PopStyleColor(3);
@@ -156,7 +186,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     if (m_freeRoll)
                         ImGui::BeginDisabled();
-                    showSliderDouble("R", "##RSlider", "##RInput", &rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                    showSliderDouble("R", "##RSlider", "##RInput", &m_rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
                     if (m_freeRoll)
                         ImGui::EndDisabled();
 
@@ -164,7 +194,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     if (m_freePitch)
                         ImGui::BeginDisabled();
-                    showSliderDouble("P", "##PSlider", "##PInput", &ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                    showSliderDouble("P", "##PSlider", "##PInput", &m_ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
                     if (m_freePitch)
                         ImGui::EndDisabled();
 
@@ -172,7 +202,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     if (m_freeYaw)
                         ImGui::BeginDisabled();
-                    showSliderDouble("Y", "##YawSlider", "##YawInput", &rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                    showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
                     if (m_freeYaw)
                         ImGui::EndDisabled();
 
@@ -183,10 +213,10 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 {
                     sofa::type::Quat<SReal> q = m_IPController->getTCPPosition().getOrientation();
                     sofa::type::Vec3 rotation = q.toEulerVector();
-                    m_IPController->setTCPTargetPosition(x, y, z,
-                                                         m_freeRoll? rotation[0]: rx,
-                                                         m_freePitch? rotation[1]: ry,
-                                                         m_freeYaw? rotation[2]: rz);
+                    m_IPController->setTCPTargetPosition(m_x, m_y, m_z,
+                                                         m_freeRoll? rotation[0]: m_rx,
+                                                         m_freePitch? rotation[1]: m_ry,
+                                                         m_freeYaw? rotation[2]: m_rz);
                 }
             }
 
@@ -352,5 +382,42 @@ void MoveWindow::showWeightOption(const int &i)
     weight[i] = w;
 }
 
+void MoveWindow::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+{
+    m_movePad.showPad(baseGUI);
+}
+
+bool MoveWindow::showVerticalTab(const std::string& label, const std::string& tooltip, const bool& active)
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, ImGui::GetStyle().FrameRounding/2.);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Tab));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_TabHovered));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_TabActive));
+
+    const ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    bool clicked = false;
+
+    if (active)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_TabActive));
+    }
+
+    if (ImGui::Button(label.c_str(), buttonSize))
+        clicked = true;
+    ImGui::SetItemTooltip("%s", tooltip.c_str());
+
+    if (active)
+    {
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 2.f);
+        ImGui::PopStyleColor();
+    }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar();
+
+    return clicked;
+}
 }
 

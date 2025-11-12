@@ -23,7 +23,7 @@
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/Utils.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <SofaImGui/models/actions/Move.h>
 #include <SofaImGui/models/actions/Pick.h>
@@ -42,6 +42,7 @@
 
 #include <ProgramStyle.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 
 namespace sofaimgui::windows {
@@ -55,6 +56,17 @@ ProgramWindow::ProgramWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+}
+
+void ProgramWindow::loadAndProcessWindowSettings()
+{
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    // Import program file if any
+    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
+    m_programFilename = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
+    if (!m_programFilename.empty() && !m_programDirPath.empty())
+        importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
 
 void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
@@ -73,14 +85,14 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
         if (firstTime)
         {
             firstTime = false;
+            loadAndProcessWindowSettings();
             ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
         }
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
         ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
         
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen,
-                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize
-                         ))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
+                        windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
             showProgramButtons();
 
@@ -93,7 +105,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
             ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
-            if (ImGui::BeginChild(ImGui::GetID(m_name.c_str()), ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
+            if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
             {
                 ImGui::PopStyleColor();
 
@@ -753,7 +765,7 @@ void ProgramWindow::importProgram()
     {
         if (sofa::helper::system::FileSystem::exists(outPath))
         {
-            successfulImport = m_program.importProgram(outPath);
+            successfulImport = importProgram(outPath);
             path = outPath;
         }
         NFD_FreePath(outPath);
@@ -764,11 +776,22 @@ void ProgramWindow::importProgram()
 
     if (successfulImport)
     {
-        m_programDirPath = path.parent_path().string(); // store chosen dir path
-        m_programFilename = path.filename().string(); // store chosen filename
-
         FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
     }
+}
+
+bool ProgramWindow::importProgram(const std::string &filename)
+{
+    bool successfulImport = false;
+
+    if (sofa::helper::system::FileSystem::exists(filename))
+    {
+        successfulImport = m_program.importProgram(filename);
+        if (successfulImport)
+            saveProgramDirAndFilename(filename);
+    }
+
+    return successfulImport;
 }
 
 void ProgramWindow::exportProgram(const bool &exportAs)
@@ -791,10 +814,7 @@ void ProgramWindow::exportProgram(const bool &exportAs)
         {
             path = outPath;
             path = (!path.has_extension())? outPath + extension: outPath;
-
-            m_programDirPath = path.parent_path().string(); // store chosen dir path
-            m_programFilename = path.filename().string(); // store chosen filename
-
+            saveProgramDirAndFilename(path.string());
             NFD_FreePath(outPath);
         }
         else
@@ -811,6 +831,15 @@ void ProgramWindow::exportProgram(const bool &exportAs)
         m_program.exportProgram(path.string());
         FooterStatusBar::getInstance().setTempMessage("Exported program [" + path.string() + "]");
     }
+}
+
+void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
+{
+    std::filesystem::path path = filename;
+    m_programDirPath = path.parent_path().string(); // store chosen dir path
+    m_programFilename = path.filename().string(); // store chosen filename
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
+    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
 }
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
