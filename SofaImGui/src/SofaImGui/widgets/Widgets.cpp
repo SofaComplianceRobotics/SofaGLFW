@@ -1,5 +1,5 @@
 #include <sofa/helper/logging/Messaging.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <string>
 
 

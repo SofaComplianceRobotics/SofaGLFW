@@ -39,7 +39,7 @@
 #include <nfd.h>
 #include <filesystem>
 #include <SofaImGui/Utils.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/Utils.h>
 #include <tinyxml2.h>
 
@@ -99,9 +99,10 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& thickness, const sofa::type::RGBAColor& color)
 {
     const auto& groot = m_baseGUI->getRootNode();
-    if (groot)
+    const auto& bbox = groot->f_bbox.getValue();
+    if (groot && bbox.isValid())
     {
-        auto bboxSize = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
+        auto bboxSize = bbox.maxBBox() - bbox.minBBox();
         auto gridSize = floor(*std::max_element(bboxSize.begin(), bboxSize.end()) * 10); // we choose the grid to be ten times larger than the bounding box
         gridSize = floor(gridSize / squareSize);
         gridSize -= fmod(gridSize, 2); // garanties that the grid is centered wrt the origin

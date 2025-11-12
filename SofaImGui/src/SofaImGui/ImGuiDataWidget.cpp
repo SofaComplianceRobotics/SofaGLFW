@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 #include <SofaImGui/ImGuiDataWidget.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <sofa/core/objectmodel/Base.h>
 
 #include <implot.h>

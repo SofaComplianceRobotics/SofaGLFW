@@ -21,7 +21,7 @@
  ******************************************************************************/
 
 #include <SofaImGui/windows/IOWindow.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <IconsFontAwesome6.h>
 
@@ -40,7 +40,6 @@ namespace sofaimgui::windows {
 
 IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen)
 {
-
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
@@ -102,7 +101,7 @@ void IOWindow::showWindow(sofa::simulation::Node *groot,
     
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
 

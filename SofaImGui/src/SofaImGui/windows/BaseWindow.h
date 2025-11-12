@@ -25,9 +25,53 @@
 
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
-#include "imgui.h"
+#include <imgui.h>
+#include <SimpleIni.h>
+
 
 namespace sofaimgui::windows {
+
+class WindowsSettings
+{
+public:
+    static WindowsSettings &getInstance();
+
+    template <typename type>
+    type getSetting(const char* _windowName, const char* settingName, const type& defaultValue)
+    {
+        std::string windowName = "Window.";
+        windowName += _windowName;
+
+        type value;
+        _getSetting(windowName.c_str(), settingName, defaultValue, value);
+        return value;
+    }
+
+    template <typename type>
+    void setSetting(const char* _windowName, const char* settingName, const type& value)
+    {
+        std::string windowName = "Window.";
+        windowName += _windowName;
+
+        _setSetting(windowName.c_str(), settingName, value);
+    }
+
+    CSimpleIniA& getIniWindowsSettings() {return iniWindowsSettings;}
+
+protected:
+    CSimpleIniA iniWindowsSettings;
+
+    inline void _getSetting(const char* windowName, const char* settingName, const double& defaultValue, double& value){value = iniWindowsSettings.GetDoubleValue(windowName, settingName, defaultValue);}
+    inline void _getSetting(const char* windowName, const char* settingName, const bool& defaultValue, bool& value){value = iniWindowsSettings.GetBoolValue(windowName, settingName, defaultValue);}
+    inline void _getSetting(const char* windowName, const char* settingName, const int& defaultValue, int& value){value = iniWindowsSettings.GetLongValue(windowName, settingName, defaultValue);}
+    inline void _getSetting(const char* windowName, const char* settingName, const std::string& defaultValue, std::string& value){value = std::string(iniWindowsSettings.GetValue(windowName, settingName, defaultValue.c_str()));}
+
+    inline void _setSetting(const char* windowName, const char* settingName, const double& value){iniWindowsSettings.SetDoubleValue(windowName, settingName, value);}
+    inline void _setSetting(const char* windowName, const char* settingName, const bool& value){iniWindowsSettings.SetBoolValue(windowName, settingName, value);}
+    inline void _setSetting(const char* windowName, const char* settingName, const int& value){iniWindowsSettings.SetLongValue(windowName, settingName, value);}
+    inline void _setSetting(const char* windowName, const char* settingName, const std::string& value){iniWindowsSettings.SetValue(windowName, settingName, value.c_str());}
+
+};
 
 class SOFAIMGUI_API BaseWindow
 {
@@ -56,15 +100,24 @@ class SOFAIMGUI_API BaseWindow
     /// Does the user choose to open the window or not.
     bool& isOpen();
 
-    /// 
+    /// The default open state when there is no project file
     const bool& getDefaultIsOpen() { return m_defaultIsOpen; }
+
+    /// Get the label of the window. We add spaces for aesthetic reason
+    std::string& getLabel()
+    {
+        m_labelname = "       " + m_name;
+        return m_labelname;
+    }
 
    protected:
 
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
+    std::string m_labelname; /// The label of the window
     bool m_isDrivingSimulation{false}; /// Does the window have tools to drive the robot in simulation
-    bool m_defaultIsOpen{false}; // The default open state when there is no project file
+    bool m_defaultIsOpen{false}; /// The default open state when there is no project file
+
 };
 
 }

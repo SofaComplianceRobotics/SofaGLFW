@@ -26,7 +26,7 @@
 #include <IconsFontAwesome6.h>
 
 #include <SofaImGui/windows/MoveWindow.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
 
 namespace sofaimgui::windows {
@@ -99,7 +99,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             if (m_IPController != nullptr)
             {

@@ -20,7 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #include <SofaImGui/widgets/MaterialWidget.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>

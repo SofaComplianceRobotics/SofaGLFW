@@ -29,7 +29,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <nfd.h>
 
 namespace sofaimgui::windows {
@@ -105,7 +105,7 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
     
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
             static PlottingData* dragedData;
             ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());

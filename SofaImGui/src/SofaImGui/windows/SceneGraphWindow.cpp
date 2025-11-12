@@ -22,6 +22,7 @@
 
 #include "imgui_internal.h"
 #include <SofaImGui/windows/SceneGraphWindow.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
@@ -192,7 +193,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                                  std::set<sofa::simulation::Node*>& nodeToOpen,
                                  std::set<std::pair<sofa::simulation::Node*, bool>>& nodeToOpenContextMenu)
 {
-    if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+    if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());

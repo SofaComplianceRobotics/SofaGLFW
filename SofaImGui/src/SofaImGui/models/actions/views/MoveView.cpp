@@ -23,7 +23,7 @@
 #include <SofaImGui/models/actions/Move.h>
 #include <imgui_internal.h>
 #include <ProgramStyle.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <IconsFontAwesome6.h>
 
 namespace sofaimgui::models::actions {
