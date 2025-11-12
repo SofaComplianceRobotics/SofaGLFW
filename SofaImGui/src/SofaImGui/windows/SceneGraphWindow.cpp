@@ -41,15 +41,65 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
     std::set<sofa::simulation::Node*> nodeToOpen;
+    std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
     
     if (enabled() && isOpen())
     {
-        showGraph(groot, windowFlags, componentToOpen, nodeToOpen);
+        showGraph(groot, windowFlags, componentToOpen, nodeToOpen, nodeToOpenContextMenu);
     }
 
     ImGuiIO& io = ImGui::GetIO();
     const auto height = io.DisplaySize.y*0.66; // Main window size
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
+
+    { // Node context menu
+
+        static std::set<std::pair<sofa::simulation::Node*, bool>> openedPopup;
+        openedPopup.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
+
+        sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toRemove;
+        sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toUpdate;
+
+        for (const auto& popup: openedPopup)
+        {
+            if (popup.second)
+            {
+                ImGui::OpenPopup("##NodeContextMenu");
+                toUpdate.push_back(popup);
+            }
+
+            if (ImGui::BeginPopup("##NodeContextMenu"))
+            {
+                addNodeContextMenu(popup.first);
+                ImGui::EndPopup();
+            } else {
+                toRemove.push_back(popup);
+            }
+        }
+
+        while(!toRemove.empty())
+        {
+            auto it = openedPopup.find(toRemove.back());
+            if (it != openedPopup.end())
+            {
+                openedPopup.erase(it);
+            }
+            toRemove.pop_back();
+        }
+
+        while(!toUpdate.empty())
+        {
+            auto it = openedPopup.find(toUpdate.back());
+            if (it != openedPopup.end())
+            {
+                std::pair<sofa::simulation::Node*, bool> newKey(it->first, false);
+                openedPopup.erase(it);
+                openedPopup.insert(newKey);
+            }
+            toUpdate.pop_back();
+        }
+
+    }
 
     { // Nodes window
         static std::set<sofa::simulation::Node*> openedNodes;
@@ -112,32 +162,36 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
 {
     // Different color for component with a message
     objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
-                                     sofa::helper::logging::Message::Fatal})!=0)
+    if (object)
     {
-        icon = ICON_FA_CIRCLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+        if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
+                                         sofa::helper::logging::Message::Fatal})!=0)
+        {
+            icon = ICON_FA_CIRCLE_EXCLAMATION;
+            objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+        }
+        else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
+        {
+            icon = ICON_FA_TRIANGLE_EXCLAMATION;
+            objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+        }
+        else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
+                                              sofa::helper::logging::Message::Deprecated,
+                                              sofa::helper::logging::Message::Advice})!=0)
+        {
+            icon = ICON_FA_COMMENT;
+        }
+        // else
+        // {
+        //     objectColor = getObjectColor(object);
+        // }
     }
-    else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
-    {
-        icon = ICON_FA_TRIANGLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
-    }
-    else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
-                                          sofa::helper::logging::Message::Deprecated,
-                                          sofa::helper::logging::Message::Advice})!=0)
-    {
-        icon = ICON_FA_COMMENT;
-    }
-    // else
-    // {
-    //     objectColor = getObjectColor(object);
-    // }
 }
 
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
                                  std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                                std::set<sofa::simulation::Node*>& nodeToOpen)
+                                 std::set<sofa::simulation::Node*>& nodeToOpen,
+                                 std::set<std::pair<sofa::simulation::Node*, bool>>& nodeToOpenContextMenu)
 {
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
@@ -193,7 +247,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -209,15 +263,32 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             ImGui::TableNextColumn();
 
             const auto& nodeName = node->getName();
+            const bool& isDeactivated = !node->is_activated.getValue();
             const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
+
+            if (isDeactivated)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
             if (isNodeHighlighted)
                 ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-            const bool open = ImGui::TreeNode(std::string(ICON_FA_SITEMAP "  " + nodeName).c_str()); // Name
-            { // Double click on the node, open the window
-                if (ImGui::IsItemClicked())
-                    if (ImGui::IsMouseDoubleClicked(0))
-                        nodeToOpen.insert(node);
+
+            std::string nodeIcons = isDeactivated? ICON_FA_BAN " ": "";
+            nodeIcons += ICON_FA_SITEMAP " ";
+            const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
+
+            { // Click on node
+                // Double click on the node, open the window
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    nodeToOpen.insert(node);
+                }
+
+                // Right click, open a context menu
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                {
+                    nodeToOpenContextMenu.insert(std::pair<sofa::simulation::Node*, bool>(node, true));
+                }
             }
+
             if (isNodeHighlighted)
                 ImGui::PopStyleColor();
 
@@ -241,7 +312,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                         ImGui::PushID(object);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth;
+                        ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnArrow;
 
                         const auto& slaves = object->getSlaves();
                         if (slaves.empty())
@@ -349,14 +420,21 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                 --treeDepth;
                 ImGui::TreePop();
             }
+
+            if (isDeactivated)
+                ImGui::PopStyleColor();
         };
 
         static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                                        ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
 
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+        ImGui::TextWrapped("Modifying the scene from the GUI may cause unexpected behavior. Use at your own risk.");
+        ImGui::PopStyleColor();
+
         if (ImGui::BeginTable("SceneGraphTable", 2, flags))
         {
-            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Type");
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
@@ -378,6 +456,7 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
     std::string icon;
     getComponentIconAlert(component, objectColor, icon);
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2);
     if (ImGui::Begin((icon + " " + component->getName() + "##" + component->getPathName()).c_str(), &isOpen, windowsFlags))
     {
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
@@ -436,12 +515,14 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
         ImGui::PopStyleColor();
     }
     ImGui::End();
+    ImGui::PopStyleVar();
     return isOpen;
 }
 
 bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags& windowsFlags)
 {
     bool isOpen = true;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2);
     if (ImGui::Begin((ICON_FA_SITEMAP "  " + node->getName() + "##" + node->getPathName()).c_str(), &isOpen, windowsFlags))
     {
         std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
@@ -464,6 +545,7 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
         ImGui::PopStyleColor();
     }
     ImGui::End();
+    ImGui::PopStyleVar();
     return isOpen;
 }
 
@@ -582,6 +664,21 @@ void SceneGraphWindow::addInfosTab(sofa::simulation::Node *node)
         ImGui::TextDisabled("Namespace:");
         ImGui::TextWrapped("%s", node->getClass()->namespaceName.c_str());
         ImGui::EndTabItem();
+    }
+}
+
+void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
+{
+    if (node)
+    {
+        const bool& activated = node->is_activated.getValue();
+        if(ImGui::MenuItem(activated? "Deactivate": "Activate"))
+            node->setActive(!activated);
+
+        ImGui::Separator();
+
+        if(ImGui::MenuItem("Copy Path"))
+            ImGui::SetClipboardText(node->getPathName().c_str());
     }
 }
 

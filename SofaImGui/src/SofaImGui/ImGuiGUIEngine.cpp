@@ -581,7 +581,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
         if (isAboutOpen)
         {
-            ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking);
+            ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize);
 
             auto windowWidth = ImGui::GetWindowSize().x;
             std::vector<std::string> texts = {"\n", "SOFA, Simulation Open-Framework Architecture \n (c) 2006 INRIA, USTL, UJF, CNRS, MGH",
