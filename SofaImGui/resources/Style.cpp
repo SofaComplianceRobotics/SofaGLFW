@@ -180,7 +180,7 @@ void setLightStyle()
     colors[ImGuiCol_TableBorderLight]       = ImVec4(0.28f, 0.28f, 0.28f, 0.25f);
     colors[ImGuiCol_TableHeaderBg]          = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_TableRowBg]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.86f, 0.86f, 0.86f, 0.50f);
+    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.96f, 0.96f, 0.96f, 0.50f);
 
     setStyleVars();
 }

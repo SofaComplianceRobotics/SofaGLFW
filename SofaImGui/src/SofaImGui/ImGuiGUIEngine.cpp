@@ -508,7 +508,7 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_logWindow.showWindow(windowFlags);
     m_IOWindow.showWindow(groot, windowFlags);
     m_myRobotWindow.showWindow(windowFlags);
-    m_moveWindow.showWindow(windowFlags);
+    m_moveWindow.showWindow(baseGUI, windowFlags);
     m_sceneGraphWindow.showWindow(groot, windowFlags);
 }
 
