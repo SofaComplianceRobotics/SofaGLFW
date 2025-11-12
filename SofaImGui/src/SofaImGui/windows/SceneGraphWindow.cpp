@@ -37,6 +37,13 @@ SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindow
     m_isOpen = isWindowOpen;
 }
 
+void SceneGraphWindow::clearWindow()
+{
+    m_openedComponents.clear();
+    m_openedNodes.clear();
+    m_openedPopup.clear();
+}
+
 void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags)
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
@@ -53,14 +60,12 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
 
     { // Node context menu
-
-        static std::set<std::pair<sofa::simulation::Node*, bool>> openedPopup;
-        openedPopup.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
+        m_openedPopup.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
 
         sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toRemove;
         sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toUpdate;
 
-        for (const auto& popup: openedPopup)
+        for (const auto& popup : m_openedPopup)
         {
             if (popup.second)
             {
@@ -72,42 +77,41 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
             {
                 addNodeContextMenu(popup.first);
                 ImGui::EndPopup();
-            } else {
+            }
+            else {
                 toRemove.push_back(popup);
             }
         }
 
-        while(!toRemove.empty())
+        while (!toRemove.empty())
         {
-            auto it = openedPopup.find(toRemove.back());
-            if (it != openedPopup.end())
+            auto it = m_openedPopup.find(toRemove.back());
+            if (it != m_openedPopup.end())
             {
-                openedPopup.erase(it);
+                m_openedPopup.erase(it);
             }
             toRemove.pop_back();
         }
 
-        while(!toUpdate.empty())
+        while (!toUpdate.empty())
         {
-            auto it = openedPopup.find(toUpdate.back());
-            if (it != openedPopup.end())
+            auto it = m_openedPopup.find(toUpdate.back());
+            if (it != m_openedPopup.end())
             {
                 std::pair<sofa::simulation::Node*, bool> newKey(it->first, false);
-                openedPopup.erase(it);
-                openedPopup.insert(newKey);
+                m_openedPopup.erase(it);
+                m_openedPopup.insert(newKey);
             }
             toUpdate.pop_back();
         }
-
     }
 
     { // Nodes window
-        static std::set<sofa::simulation::Node*> openedNodes;
-        openedNodes.insert(nodeToOpen.begin(), nodeToOpen.end());
+        m_openedNodes.insert(nodeToOpen.begin(), nodeToOpen.end());
 
         sofa::type::vector<sofa::simulation::Node*> toRemove;
 
-        for (auto* node : openedNodes)
+        for (auto* node : m_openedNodes)
         {
             ImGuiWindowFlags nodeWindowFlags = ImGuiWindowFlags_NoDocking;
             ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
@@ -118,24 +122,23 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
             }
         }
 
-        while(!toRemove.empty())
+        while (!toRemove.empty())
         {
-            auto it = openedNodes.find(toRemove.back());
-            if (it != openedNodes.end())
+            auto it = m_openedNodes.find(toRemove.back());
+            if (it != m_openedNodes.end())
             {
-                openedNodes.erase(it);
+                m_openedNodes.erase(it);
             }
             toRemove.pop_back();
         }
     }
 
     { // Components windows
-        static std::set<sofa::core::objectmodel::BaseObject*> openedComponents;
-        openedComponents.insert(componentToOpen.begin(), componentToOpen.end());
+        m_openedComponents.insert(componentToOpen.begin(), componentToOpen.end());
 
         sofa::type::vector<sofa::core::objectmodel::BaseObject*> toRemove;
 
-        for (auto* component : openedComponents)
+        for (auto* component : m_openedComponents)
         {
             ImGuiWindowFlags componentWindowFlags = ImGuiWindowFlags_NoDocking;
             ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
@@ -146,12 +149,12 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
             }
         }
 
-        while(!toRemove.empty())
+        while (!toRemove.empty())
         {
-            auto it = openedComponents.find(toRemove.back());
-            if (it != openedComponents.end())
+            auto it = m_openedComponents.find(toRemove.back());
+            if (it != m_openedComponents.end())
             {
-                openedComponents.erase(it);
+                m_openedComponents.erase(it);
             }
             toRemove.pop_back();
         }
@@ -162,30 +165,28 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
 {
     // Different color for component with a message
     objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-    if (object)
+
+    if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
+                                        sofa::helper::logging::Message::Fatal})!=0)
     {
-        if (object->countLoggedMessages({sofa::helper::logging::Message::Error,
-                                         sofa::helper::logging::Message::Fatal})!=0)
-        {
-            icon = ICON_FA_CIRCLE_EXCLAMATION;
-            objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
-        }
-        else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
-        {
-            icon = ICON_FA_TRIANGLE_EXCLAMATION;
-            objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
-        }
-        else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
-                                              sofa::helper::logging::Message::Deprecated,
-                                              sofa::helper::logging::Message::Advice})!=0)
-        {
-            icon = ICON_FA_COMMENT;
-        }
-        // else
-        // {
-        //     objectColor = getObjectColor(object);
-        // }
+        icon = ICON_FA_CIRCLE_EXCLAMATION;
+        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
     }
+    else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
+    {
+        icon = ICON_FA_TRIANGLE_EXCLAMATION;
+        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+    }
+    else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
+                                            sofa::helper::logging::Message::Deprecated,
+                                            sofa::helper::logging::Message::Advice})!=0)
+    {
+        icon = ICON_FA_COMMENT;
+    }
+    // else
+    // {
+    //     objectColor = getObjectColor(object);
+    // }
 }
 
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
