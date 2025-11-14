@@ -620,34 +620,38 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
 
-    updateDataInput();
-    rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
-
-    if (m_IPController && m_isDrivingSimulation)
+    if (!m_isListening)
+        updateDataInput();
+    else
     {
-        for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)
+        rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
+
+        if (m_IPController && m_isDrivingSimulation)
         {
-            if (stateName.find("TCPTarget") != std::string::npos)
+            for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)
             {
-                if (stateValue.size() == IOWindow::RigidCoord::total_size)
+                if (stateName.find("TCPTarget") != std::string::npos)
                 {
-                    m_IPController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
-                                                         sofa::type::Quat<SReal>(stateValue[3], stateValue[4], stateValue[5], stateValue[6])));
-                }
-                else
-                {
-                    FooterStatusBar::getInstance().setTempMessage("Wrong size for the data from topic TCPTarget. The expected data structure is [x, y, z, qx, qy, qz, qw].",
-                                                                  FooterStatusBar::MessageType::MWARNING);
+                    if (stateValue.size() == IOWindow::RigidCoord::total_size)
+                    {
+                        m_IPController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
+                                                             sofa::type::Quat<SReal>(stateValue[3], stateValue[4], stateValue[5], stateValue[6])));
+                    }
+                    else
+                    {
+                        FooterStatusBar::getInstance().setTempMessage("Wrong size for the data from topic TCPTarget. The expected data structure is [x, y, z, qx, qy, qz, qw].",
+                                                                      FooterStatusBar::MessageType::MWARNING);
+                    }
                 }
             }
         }
-    }
 
-    for (auto [name, value]: m_rosnode->m_selectedUserInput)
-    {
-        sofa::core::BaseData* data = m_subscribableData[name];
-        if (data)
-            data->read(std::to_string(value));
+        for (auto [name, value]: m_rosnode->m_selectedUserInput)
+        {
+            sofa::core::BaseData* data = m_subscribableData[name];
+            if (data)
+                data->read(std::to_string(value));
+        }
     }
 }
 
