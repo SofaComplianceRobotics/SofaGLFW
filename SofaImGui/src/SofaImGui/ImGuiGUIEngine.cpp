@@ -69,7 +69,7 @@
 #include <SofaImGui/menus/FileMenu.h>
 #include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/Utils.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <sofa/helper/Utils.h>
 #include <sofa/type/vector.h>
@@ -99,6 +99,7 @@ void ImGuiGUIEngine::saveSettings()
     FooterStatusBar::getInstance().setTempMessage("Saving application settings in " + settingsFile);
 
     ImGuiViewport* viewport = ImGui::GetMainViewport();
+
     iniGUISettings.SetDoubleValue("Window", "width", viewport->Size.x);
     iniGUISettings.SetDoubleValue("Window", "height", viewport->Size.y);
 
@@ -110,19 +111,16 @@ void ImGuiGUIEngine::saveProject()
     const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
     FooterStatusBar::getInstance().setTempMessage("Saving project in " + projectFile);
 
+    auto& windowSettings = windows::WindowsSettings::getInstance();
+
     // Save windows settings in project file
     for (const auto& window : m_windows)
     {
-        std::string name = "Window." + window.get().getName();
-        iniProject.SetBoolValue(name.c_str(), "open", window.get().isOpen());
-        auto imguiWindow = ImGui::FindWindowByName(window.get().getName().c_str());
+        const auto& windowName = window.get().getName();
+        windowSettings.setSetting(windowName.c_str(), "open", window.get().isOpen());
+        auto imguiWindow = ImGui::FindWindowByName(window.get().getLabel().c_str());
         if (imguiWindow)
-        {
-            auto size = imguiWindow->SizeFull;
-            iniProject.SetDoubleValue(name.c_str(), "width", size[0]);
-            iniProject.SetDoubleValue(name.c_str(), "height", size[1]);
-            iniProject.SetValue(name.c_str(), "dockId", std::to_string(imguiWindow->DockId).c_str());
-        }
+            windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId));
     }
 
     auto g = ImGui::GetCurrentContext();
@@ -134,13 +132,13 @@ void ImGuiGUIEngine::saveProject()
             auto dock = ImGui::DockContextFindNodeByID(g, dockID);
             if (dock)
             {
-                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "width", dock->Size[0]);
-                iniProject.SetDoubleValue(std::to_string(dockID).c_str(), "height", dock->Size[1]);
+                windowSettings.setSetting(std::to_string(dockID).c_str(), "width", double(dock->Size[0]));
+                windowSettings.setSetting(std::to_string(dockID).c_str(), "height", double(dock->Size[1]));
             }
         }
     }
 
-    iniProject.SaveFile(projectFile.c_str());
+    windowSettings.getIniWindowsSettings().SaveFile(projectFile.c_str());
 }
 
 void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
@@ -175,13 +173,13 @@ void ImGuiGUIEngine::clearGUI()
 
 void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
 {
-    if (iniProject.KeyExists(std::to_string(id).c_str(), "width") && iniProject.KeyExists(std::to_string(id).c_str(), "height")) {
-        auto dock = ImGui::DockBuilderGetNode(id);
-        if (dock)
-        {
-            auto size = ImVec2(iniProject.GetDoubleValue(std::to_string(id).c_str(), "width"), iniProject.GetDoubleValue(std::to_string(id).c_str(), "height"));
-            ImGui::DockBuilderSetNodeSize(id, size);
-        }
+    if (ImGui::DockBuilderGetNode(id))
+    {
+        const auto dockLabel = std::to_string(id);
+        auto& windowsSettings = windows::WindowsSettings::getInstance();
+        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", double(500.)),
+                           windowsSettings.getSetting(dockLabel.c_str(), "height", double(500.)));
+        ImGui::DockBuilderSetNodeSize(id, size);
     }
 }
 
@@ -398,17 +396,17 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         m_dockIDs.push_back(dockspaceID);
         setDockSizeFromFile(dock_id_down);
 
-        ImGui::DockBuilderDockWindow(m_IOWindow.getName().c_str(), dock_id_right);
-        ImGui::DockBuilderDockWindow(m_myRobotWindow.getName().c_str(), dock_id_right);
+        ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right);
+        ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right);
 
-        ImGui::DockBuilderDockWindow(m_moveWindow.getName().c_str(), dock_id_right_up);
-        ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getName().c_str(), dock_id_right_up);
+        ImGui::DockBuilderDockWindow(m_moveWindow.getLabel().c_str(), dock_id_right_up);
+        ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getLabel().c_str(), dock_id_right_up);
 
-        ImGui::DockBuilderDockWindow(m_viewportWindow.getName().c_str(), dockspaceID);
+        ImGui::DockBuilderDockWindow(m_viewportWindow.getLabel().c_str(), dockspaceID);
 
-        ImGui::DockBuilderDockWindow(m_programWindow.getName().c_str(), dock_id_down);
-        ImGui::DockBuilderDockWindow(m_plottingWindow.getName().c_str(), dock_id_down);
-        ImGui::DockBuilderDockWindow(m_logWindow.getName().c_str(), dock_id_down);
+        ImGui::DockBuilderDockWindow(m_programWindow.getLabel().c_str(), dock_id_down);
+        ImGui::DockBuilderDockWindow(m_plottingWindow.getLabel().c_str(), dock_id_down);
+        ImGui::DockBuilderDockWindow(m_logWindow.getLabel().c_str(), dock_id_down);
 
         ImGui::DockBuilderGetNode(dockspaceID)->WantHiddenTabBarToggle = true;
 
@@ -501,7 +499,7 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_logWindow.showWindow(windowFlags);
     m_IOWindow.showWindow(groot, windowFlags);
     m_myRobotWindow.showWindow(windowFlags);
-    m_moveWindow.showWindow(windowFlags);
+    m_moveWindow.showWindow(baseGUI, windowFlags);
     m_sceneGraphWindow.showWindow(groot, windowFlags);
 
     m_pluginsWindow.showWindow();
@@ -533,15 +531,14 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
             for (auto& window : m_windows) 
             {
-                bool isViewport = window.get().getName() == m_viewportWindow.getName();
+                auto windowName = window.get().getName();
                 if (!window.get().enabled())
                     ImGui::BeginDisabled();
 
+                bool isViewport = (windowName == m_viewportWindow.getName());
                 if(isViewport)
                     ImGui::Separator();
-                auto name = window.get().getName();
-                name.erase(0, sizeof(OFFSET) - 1);
-                ImGui::LocalCheckBox(name.c_str(), &window.get().isOpen());
+                ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
                 if (isViewport)
                     ImGui::Separator();
 
@@ -579,7 +576,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
         if (isAboutOpen)
         {
-            ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking);
+            ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize);
 
             auto windowWidth = ImGui::GetWindowSize().x;
             std::vector<std::string> texts = {"\n", "SOFA, Simulation Open-Framework Architecture \n (c) 2006 INRIA, USTL, UJF, CNRS, MGH",
@@ -780,21 +777,19 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
 void ImGuiGUIEngine::enableWindows()
 {
+    auto& windowsSettings = windows::WindowsSettings::getInstance();
+    auto& iniWindowsSettings = windowsSettings.getIniWindowsSettings();
+    if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+    {
+        SI_Error rc = iniWindowsSettings.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+        SOFA_UNUSED(rc);
+        assert(rc == SI_OK);
+    }
+
     // Enable the windows based on file
     for (const auto& window : m_windows)
     {
-        window.get().setOpen(window.get().getDefaultIsOpen());
-
-        if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
-        {
-            SI_Error rc = iniProject.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
-            SOFA_UNUSED(rc);
-            assert(rc == SI_OK);
-
-            std::string name = "Window." + window.get().getName();
-            if (iniProject.KeyExists(name.c_str(), "open"))
-                window.get().setOpen(iniProject.GetBoolValue(name.c_str(), "open"));
-        }
+        window.get().setOpen(windowsSettings.getSetting(window.get().getName().c_str(), "open", window.get().getDefaultIsOpen()));
     }
     initDockSpace(true);
 }

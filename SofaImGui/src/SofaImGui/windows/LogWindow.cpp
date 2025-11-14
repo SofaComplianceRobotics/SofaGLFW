@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 #include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 
 #include <iomanip>
 #include <sofa/helper/logging/LoggingMessageHandler.h>
@@ -54,7 +54,7 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (enabled() && isOpen())
     {
-        if (ImGui::Begin(m_name.c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             unsigned int i {};
             const auto& messages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();

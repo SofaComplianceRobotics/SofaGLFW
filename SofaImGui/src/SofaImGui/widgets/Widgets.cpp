@@ -1,5 +1,5 @@
 #include <sofa/helper/logging/Messaging.h>
-#include <SofaImGui/widgets/Buttons.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <string>
 
 
@@ -22,7 +22,7 @@ bool LocalInputDouble(const char* label, double* v, double step, double step_fas
 
     ImGui::PushItemWidth(inputWidth);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    const char* format = (log10f(abs(*v))>3)? "%0.2e": "%0.2f";
+    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-3))? "%0.2e": "%0.2f";
     bool result =  ImGui::InputDouble(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
@@ -38,7 +38,7 @@ bool LocalInputFloat(const char* label, float* v, float step, float step_fast, c
 
     ImGui::PushItemWidth(inputWidth);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    const char* format = (log10f(abs(*v))>3)? "%0.2e": "%0.2f";
+    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-3))? "%0.2e": "%0.2f";
     bool result =  ImGui::InputFloat(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();

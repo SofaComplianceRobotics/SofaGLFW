@@ -21,6 +21,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <filesystem>
 #include <imgui.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
@@ -58,6 +59,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void setDrivingTCPTarget(const bool &isDrivingSimulation) override;
 
     void importProgram();
+    bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
    protected:
@@ -125,6 +127,9 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
 
     sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
+
+    void saveProgramDirAndFilename(const std::string& filename);
+    void loadAndProcessWindowSettings();
 
 };
 

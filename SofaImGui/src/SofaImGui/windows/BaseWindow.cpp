@@ -23,6 +23,12 @@
 
 namespace sofaimgui::windows {
 
+WindowsSettings &WindowsSettings::getInstance()
+{
+    static WindowsSettings windowsSettings;
+    return windowsSettings;
+}
+
 bool& BaseWindow::isOpen()
 {
     if (!enabled())
