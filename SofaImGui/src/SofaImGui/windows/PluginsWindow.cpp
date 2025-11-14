@@ -26,6 +26,7 @@
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/gui/common/BaseGUI.h>
+#include <SofaImGui/FooterStatusBar.h>
 
 #include <fstream>
 
@@ -43,6 +44,7 @@ PluginsWindow::PluginsWindow(const std::string& name,
 void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     static std::string configPluginPath = "plugin_list.conf.default";
+
     static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
     static sofa::type::vector<std::string> listDefaultPlugins = (configExists)? getPluginsFromIniFile(configPluginPath): sofa::type::vector<std::string>();
     const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
@@ -127,11 +129,12 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     if (ImGui::Button((isSelectedPluginDefault)? "Loaded by Default": "Load by Default"))
                     {
-                        if (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr))
+                        if (configExists)
                         {
                             std::ofstream outfile(configPluginPath.c_str(), std::ios_base::app);
                             if (outfile.is_open())
                             {
+                                FooterStatusBar::getInstance().setTempMessage("Saving default plugins file: " + configPluginPath);
                                 outfile << "\n" << pluginIt->second.getModuleName() << " " << pluginIt->second.getModuleVersion();
                                 outfile.close();
 
@@ -139,6 +142,9 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                 isSelectedPluginDefault = true;
                                 ImGui::BeginDisabled();
                             }
+                        }
+                        else {
+                            FooterStatusBar::getInstance().setTempMessage("Could not find default plugins file: " + configPluginPath, FooterStatusBar::MERROR);
                         }
                     }
 
