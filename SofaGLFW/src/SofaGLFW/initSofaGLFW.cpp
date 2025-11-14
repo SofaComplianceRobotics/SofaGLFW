@@ -69,7 +69,7 @@ const char* getModuleLicense()
 
 const char* getModuleDescription()
 {
-    return "A GLFW Gui for SOFA.";
+    return "A GLFW GUI for SOFA.";
 }
 
 const char* getModuleComponentList()

@@ -80,22 +80,12 @@
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
 
-#include <sofa/helper/Utils.h>
-#include <sofa/type/vector.h>
-#include <sofa/simulation/Node.h>
-#include <sofa/component/visual/VisualStyle.h>
-#include <sofa/core/ComponentLibrary.h>
 #include <sofa/core/ObjectFactory.h>
-#include <sofa/helper/system/PluginManager.h>
-#include <SofaImGui/ObjectColor.h>
-#include <sofa/core/visual/VisualParams.h>
-#include <sofa/helper/io/File.h>
-#include <sofa/component/visual/VisualGrid.h>
-#include <sofa/component/visual/LineAxis.h>
-#include <sofa/gui/common/BaseGUI.h>
-#include <sofa/helper/io/STBImage.h>
 #include <sofa/simulation/graph/DAGNode.h>
 #include <sofa/version.h>
+
+#include <SofaGLFW/init.h>
+
 
 using namespace sofa;
 
@@ -284,6 +274,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
+        createGUINode();
     }
     else
     {
@@ -735,37 +726,43 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
 
     if(m_viewportWindow.isFocusOnViewport() && action==GLFW_PRESS)
     {
-        const auto& groot = m_baseGUI->getRootNode();
         switch (key)
         {
         case GLFW_KEY_0:
         {
             sofa::component::visual::BaseCamera::SPtr camera;
-            groot->get(camera);
-            const auto& bbox = groot->f_bbox.getValue();
+            const auto& groot = m_baseGUI->getRootNode();
+            if (groot)
+            {
+                groot->get(camera);
 
-            camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
-            auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
-            camera->d_lookAt.setValue(bbCenter);
+                if (camera)
+                {
+                    const auto& bbox = groot->f_bbox.getValue();
+                    camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
+                    auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
+                    camera->d_lookAt.setValue(bbCenter);
+                }
+            }
             break;
         }
         case GLFW_KEY_1:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
             break;
         case GLFW_KEY_2:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
             break;
         case GLFW_KEY_3:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
             break;
         case GLFW_KEY_4:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
             break;
         case GLFW_KEY_5:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
             break;
         case GLFW_KEY_6:
-            sofaglfw::SofaGLFWWindow::alignCamera(groot, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
+            sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
             break;
         }
     }
@@ -775,9 +772,27 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 {
     clearGUI();
     Utils::loadSimulation(m_baseGUI, reload, filename);
+    createGUINode();
     m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
     enableWindows();
+}
+
+void ImGuiGUIEngine::createGUINode()
+{
+    const char* nodeName = m_baseGUI->getGUINodeName();
+    sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
+    if (root)
+    {
+        sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
+        if (!guinode)
+        {
+            guinode = root->createChild(nodeName);
+        }
+        guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
+        guinode->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+        guinode->f_bbox.setParent(&root->f_bbox);
+    }
 }
 
 void ImGuiGUIEngine::enableWindows()

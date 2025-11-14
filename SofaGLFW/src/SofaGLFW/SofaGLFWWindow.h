@@ -43,7 +43,7 @@ public:
     void draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::VisualParams* vparams);
     void close();
 
-    void mouseMoveEvent(sofa::simulation::NodeSPtr groot, int xpos, int ypos);
+    void mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos, int ypos);
     void mouseButtonEvent(int button, int action, int mods);
     void scrollEvent(double xoffset, double yoffset);
     void setBackgroundColor(const sofa::type::RGBAColor& newColor);
@@ -79,8 +79,8 @@ public:
     };
 
     static void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI);
-    static void alignCamera(sofa::simulation::NodeSPtr groot, const CameraAlignement &align);
-    static void setGridsPlane(sofa::simulation::NodeSPtr groot, const VisualGrid::PlaneType &plane = VisualGrid::PlaneType("y"));
+    static void alignCamera(sofaglfw::SofaGLFWBaseGUI* baseGUI, const CameraAlignement &align);
+    static void setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const VisualGrid::PlaneType &plane = VisualGrid::PlaneType("y"));
 
 private:
     GLFWwindow* m_glfwWindow{nullptr};

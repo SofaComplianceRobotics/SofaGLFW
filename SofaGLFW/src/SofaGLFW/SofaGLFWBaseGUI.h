@@ -108,6 +108,10 @@ public:
         }
     }
 
+    const char* getGUINodeName() {
+        return "GUI";
+    }
+
 private:
     // GLFW callbacks
     static void error_callback(int error, const char* description);

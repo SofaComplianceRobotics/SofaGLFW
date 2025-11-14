@@ -40,8 +40,7 @@
 #include <filesystem>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
-#include <SofaImGui/Utils.h>
-#include <tinyxml2.h>
+
 
 namespace sofaimgui::menus {
 
@@ -115,28 +114,32 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
             return;
         }
 
-        std::string name = "ViewportGrid" + SofaGLFWWindow::GridSquareSize::getString(squareSize);
-        auto grid = groot->get<sofa::component::visual::VisualGrid>(name);
-        if (!grid)
+        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        if (guiNode)
         {
-            auto newGrid = sofa::core::objectmodel::New<sofa::component::visual::VisualGrid>();
-            groot->addObject(newGrid);
-            newGrid->setName(name);
-            newGrid->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
-            newGrid->d_enable.setValue(show);
-            newGrid->d_size.setValue(gridSize);
-            newGrid->d_thickness.setValue(thickness);
-            newGrid->d_nbSubdiv.setValue(gridSize / squareSize);
-            newGrid->d_color.setValue(color);
-            newGrid->init();
-        }
-        else
-        {
-            grid->d_enable.setValue(show);
+            std::string name = "ViewportGrid" + SofaGLFWWindow::GridSquareSize::getString(squareSize);
+            auto grid = guiNode->get<sofa::component::visual::VisualGrid>(name);
+            if (!grid)
+            {
+                auto newGrid = sofa::core::objectmodel::New<sofa::component::visual::VisualGrid>();
+                guiNode->addObject(newGrid);
+                newGrid->setName(name);
+                newGrid->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+                newGrid->d_enable.setValue(show);
+                newGrid->d_size.setValue(gridSize);
+                newGrid->d_thickness.setValue(thickness);
+                newGrid->d_nbSubdiv.setValue(gridSize / squareSize);
+                newGrid->d_color.setValue(color);
+                newGrid->init();
+            }
+            else
+            {
+                grid->d_enable.setValue(show);
+            }
         }
     }
 
-    sofaglfw::SofaGLFWWindow::setGridsPlane(groot);
+    sofaglfw::SofaGLFWWindow::setGridsPlane(m_baseGUI);
 }
 
 void ViewMenu::showOriginFrame(const bool& show)
@@ -144,21 +147,26 @@ void ViewMenu::showOriginFrame(const bool& show)
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto originFrame = groot->get<sofa::component::visual::LineAxis>();
-        if(!originFrame)
+        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        if (guiNode)
         {
-            auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
-            groot->addObject(newOriginFrame);
-            newOriginFrame->setName("ViewportOriginFrame");
-            newOriginFrame->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
-            newOriginFrame->d_enable.setValue(show);
-            newOriginFrame->d_infinite.setValue(true);
-            newOriginFrame->d_thickness.setValue(2.f);
-            newOriginFrame->d_vanishing.setValue(true);
-            newOriginFrame->init();
-        } else
-        {
-            originFrame->d_enable.setValue(show);
+            auto originFrame = guiNode->get<sofa::component::visual::LineAxis>();
+            if (!originFrame)
+            {
+                auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
+                guiNode->addObject(newOriginFrame);
+                newOriginFrame->setName("ViewportOriginFrame");
+                newOriginFrame->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+                newOriginFrame->d_enable.setValue(show);
+                newOriginFrame->d_infinite.setValue(true);
+                newOriginFrame->d_thickness.setValue(2.f);
+                newOriginFrame->d_vanishing.setValue(true);
+                newOriginFrame->init();
+            }
+            else
+            {
+                originFrame->d_enable.setValue(show);
+            }
         }
     }
 }
@@ -168,20 +176,24 @@ void ViewMenu::showBoundingBox(const bool& show)
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto bbox = groot->get<sofa::component::visual::VisualBoundingBox>();
-        if (!bbox)
+        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        if (guiNode)
         {
-            auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
-            groot->addObject(newBBox);
-            newBBox->setName("VisualBoundingBox");
-            newBBox->d_enable.setValue(show);
-            newBBox->f_bbox.setParent(&groot->f_bbox);
-            newBBox->d_color.setValue(sofa::type::RGBAColor::white());
-            newBBox->d_thickness.setValue(1.0f);
-        }
-        else
-        {
-            bbox->d_enable.setValue(show);
+            auto bbox = guiNode->get<sofa::component::visual::VisualBoundingBox>();
+            if (!bbox)
+            {
+                auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
+                guiNode->addObject(newBBox);
+                newBBox->setName("VisualBoundingBox");
+                newBBox->d_enable.setValue(show);
+                newBBox->f_bbox.setParent(&groot->f_bbox);
+                newBBox->d_color.setValue(sofa::type::RGBAColor::white());
+                newBBox->d_thickness.setValue(1.0f);
+            }
+            else
+            {
+                bbox->d_enable.setValue(show);
+            }
         }
     }
 }
@@ -357,39 +369,38 @@ void ViewMenu::addAlignCamera(sofa::component::visual::BaseCamera::SPtr camera)
     {
         if (camera)
         {
-            const auto& groot = m_baseGUI->getRootNode();
             if (ImGui::MenuItem("Top", "1"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::TOP);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::TOP);
             }
 
             if (ImGui::MenuItem("Bottom", "2"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::BOTTOM);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::BOTTOM);
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Front", "3"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::FRONT);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::FRONT);
             }
 
             if (ImGui::MenuItem("Back", "4"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::BACK);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::BACK);
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Left", "5"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::LEFT);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::LEFT);
             }
 
             if (ImGui::MenuItem("Right", "6"))
             {
-                SofaGLFWWindow::alignCamera(groot, SofaGLFWWindow::CameraAlignement::RIGHT);
+                SofaGLFWWindow::alignCamera(m_baseGUI, SofaGLFWWindow::CameraAlignement::RIGHT);
             }
         }
         ImGui::EndMenu();

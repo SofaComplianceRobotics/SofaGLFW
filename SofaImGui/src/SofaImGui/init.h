@@ -26,4 +26,5 @@
 namespace sofaimgui
 {
     SOFAIMGUI_API void init();
+
 } // namespace sofaimgui
