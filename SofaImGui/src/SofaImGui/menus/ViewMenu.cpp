@@ -40,6 +40,7 @@
 #include <filesystem>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
+#include <tinyxml2.h>
 
 
 namespace sofaimgui::menus {
