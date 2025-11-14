@@ -327,7 +327,7 @@ void IOWindow::showROSOutput()
     }
 
     { // Publishing button
-        bool nothingSelected = m_rosnode->m_selectedDataToPublish.empty() && m_rosnode->m_selectedDigitalOutputToPublish.empty();
+        bool nothingSelected = !m_rosnode->hasSelectedOutput();
         if (nothingSelected)
         {
             m_isPublishing = false;
@@ -354,30 +354,6 @@ void IOWindow::showROSOutput()
         if (nothingSelected)
         {
             ImGui::EndDisabled();
-        }
-    }
-}
-
-void IOWindow::updateDataOutput()
-{
-    // State
-    m_rosnode->m_selectedDataToPublish.clear();
-    for (const auto& [key, value] : m_IOData)
-    {
-        if(m_publishListboxItems[key])
-        {
-            m_rosnode->m_selectedDataToPublish["/" + key] = value;
-        }
-    }
-
-    // Digital output
-    m_rosnode->m_selectedDigitalOutputToPublish.clear();
-    for (int i=0; i<3; i++)
-    {
-        std::string key = "DO" + std::to_string(i + 1);
-        if(m_publishListboxItems[key])
-        {
-            m_rosnode->m_selectedDigitalOutputToPublish["/" + key] = m_digitalOutput[i];
         }
     }
 }
@@ -439,9 +415,6 @@ void IOWindow::showROSInput()
         if (ImGui::BeginListBox("##StateSubscription", ImVec2(m_itemWidth, 0)))
         {
             // TCP target
-            if (!m_isListening)
-                m_rosnode->clearSelectedInput();
-
             for (const auto& [simStateName, stateValue] : m_IOData)
             {
                 std::string stateName = simStateName;
@@ -572,7 +545,34 @@ void IOWindow::showROSInput()
     }
 }
 
-void IOWindow::updateDataInput() {
+void IOWindow::updateDataOutput()
+{
+    m_rosnode->clearSelectedOutput();
+
+    // State
+    for (const auto& [key, value] : m_IOData)
+    {
+        if(m_publishListboxItems[key])
+        {
+            m_rosnode->m_selectedDataToPublish["/" + key] = value;
+        }
+    }
+
+    // Digital output
+    for (int i=0; i<3; i++)
+    {
+        std::string key = "DO" + std::to_string(i + 1);
+        if(m_publishListboxItems[key])
+        {
+            m_rosnode->m_selectedDigitalOutputToPublish["/" + key] = m_digitalOutput[i];
+        }
+    }
+}
+
+void IOWindow::updateDataInput()
+{
+    m_rosnode->clearSelectedInput();
+
     //TCP target
     for (const auto& [simStateName, stateData] : m_IOData)
     {
@@ -580,7 +580,7 @@ void IOWindow::updateDataInput() {
         if (stateName.find("TCP")!=std::string::npos)
         {
             stateName = "/TCPTarget/Frame";
-            if(m_subcriptionListboxItems[stateName] & !m_isListening)
+            if(m_subcriptionListboxItems[stateName])
             {
                 // Copy the data
                 auto* typeinfo = stateData->getValueTypeInfo();
@@ -609,7 +609,7 @@ void IOWindow::updateDataInput() {
     // User defined input
     for (const auto &[name, value] : m_subscribableData)
     {
-        if(m_subcriptionListboxItems[name] & !m_isListening)
+        if(m_subcriptionListboxItems[name])
         {
             m_rosnode->m_selectedUserInput[name] = stof(value->getValueString());  // default temp value, will be overwritten by chosen topic's callback
         }
@@ -619,37 +619,35 @@ void IOWindow::updateDataInput() {
 void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
-    if (m_isListening && m_isDrivingSimulation)
-    {
-        rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
-        updateDataInput();
 
-        if (m_IPController)
+    updateDataInput();
+    rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
+
+    if (m_IPController && m_isDrivingSimulation)
+    {
+        for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)
         {
-            for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)
+            if (stateName.find("TCPTarget") != std::string::npos)
             {
-                if (stateName.find("TCPTarget") != std::string::npos)
+                if (stateValue.size() == IOWindow::RigidCoord::total_size)
                 {
-                    if (stateValue.size() == IOWindow::RigidCoord::total_size)
-                    {
-                        m_IPController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
-                                                             sofa::type::Quat<SReal>(stateValue[3], stateValue[4], stateValue[5], stateValue[6])));
-                    }
-                    else
-                    {
-                        FooterStatusBar::getInstance().setTempMessage("Wrong size for the data from topic TCPTarget. The expected data structure is [x, y, z, qx, qy, qz, qw].",
-                                                                      FooterStatusBar::MessageType::MWARNING);
-                    }
+                    m_IPController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
+                                                         sofa::type::Quat<SReal>(stateValue[3], stateValue[4], stateValue[5], stateValue[6])));
+                }
+                else
+                {
+                    FooterStatusBar::getInstance().setTempMessage("Wrong size for the data from topic TCPTarget. The expected data structure is [x, y, z, qx, qy, qz, qw].",
+                                                                  FooterStatusBar::MessageType::MWARNING);
                 }
             }
         }
+    }
 
-        for (auto [name, value]: m_rosnode->m_selectedUserInput)
-        {
-            sofa::core::BaseData* data = m_subscribableData[name];
-            if (data)
-                data->read(std::to_string(value));
-        }
+    for (auto [name, value]: m_rosnode->m_selectedUserInput)
+    {
+        sofa::core::BaseData* data = m_subscribableData[name];
+        if (data)
+            data->read(std::to_string(value));
     }
 }
 

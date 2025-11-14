@@ -46,13 +46,16 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
     ~ROSNode() = default;
 
     std::vector<rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr> m_publishers;
-    std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
-
     std::map<std::string, sofa::core::BaseData*> m_selectedDataToPublish;
     std::map<std::string, bool> m_selectedDigitalOutputToPublish;
+
+    std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
     std::map<std::string, std::vector<float>> m_selectedDataToOverwrite;
     std::map<std::string, bool> m_selectedDigitalInput;
     std::map<std::string, float> m_selectedUserInput;
+
+    bool hasSelectedOutput() {return !m_selectedDataToPublish.empty() || !m_selectedDigitalOutputToPublish.empty();}
+    void clearSelectedOutput() {m_selectedDataToPublish.clear(); m_selectedDigitalOutputToPublish.clear();}
 
     bool hasSelectedInput() {return !m_selectedDataToOverwrite.empty() || !m_selectedDigitalInput.empty() || !m_selectedUserInput.empty();}
     void clearSelectedInput() {m_selectedDataToOverwrite.clear(); m_selectedDigitalInput.clear(); m_selectedUserInput.clear();}
