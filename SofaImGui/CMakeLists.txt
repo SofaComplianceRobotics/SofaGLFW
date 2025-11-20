@@ -174,6 +174,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MovePad.cpp
@@ -219,7 +220,8 @@ find_package(ROS QUIET)
 
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources ${imgui_SOURCE_DIR} ${implot_SOURCE_DIR} ${iconfontcppheaders_SOURCE_DIR} ${simpleini_SOURCE_DIR})
 
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES}
+)
 target_include_directories(${PROJECT_NAME} PRIVATE ${QPOASES_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D ${CMAKE_DL_LIBS})

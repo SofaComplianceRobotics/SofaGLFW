@@ -69,7 +69,7 @@ const char* getModuleLicense()
 
 const char* getModuleDescription()
 {
-    return "A ImGui Gui for SOFA.";
+    return "A ImGui GUI for SOFA.";
 }
 
 const char* getModuleComponentList()

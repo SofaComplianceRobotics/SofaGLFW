@@ -33,8 +33,14 @@ public:
     ~SceneGraphWindow() = default;
 
     void showWindow(sofa::simulation::Node*groot, const ImGuiWindowFlags &windowFlags);
+    void clearWindow() override;
 
 protected:
+
+    std::set<std::pair<sofa::simulation::Node*, bool>> m_openedPopup;
+    std::set<sofa::simulation::Node*> m_openedNodes;
+    std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
+
     void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags, std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen, std::set<sofa::simulation::Node *> &nodeToOpen, std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
