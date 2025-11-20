@@ -97,15 +97,18 @@ void SofaGLFWWindow::draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::
     sofa::simulation::node::draw(vparams, groot.get());
 }
 
+
 void SofaGLFWWindow::setBackgroundColor(const sofa::type::RGBAColor& newColor)
 {
     m_backgroundColor = newColor;
 }
 
+
 void SofaGLFWWindow::setCamera(sofa::component::visual::BaseCamera::SPtr newCamera)
 {
     m_currentCamera = newCamera;
 }
+
 
 void SofaGLFWWindow::centerCamera(sofa::simulation::NodeSPtr node, sofa::core::visual::VisualParams* vparams) const
 {
@@ -156,129 +159,152 @@ void SofaGLFWWindow::resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI)
 }
 
 
-void SofaGLFWWindow::alignCamera(sofa::simulation::NodeSPtr groot, const CameraAlignement& align)
+void SofaGLFWWindow::alignCamera(sofaglfw::SofaGLFWBaseGUI* baseGUI, const CameraAlignement& align)
 {
-    sofa::component::visual::BaseCamera::SPtr camera;
-    groot->get(camera);
-
-    if (camera)
+    if (baseGUI)
     {
-        sofa::type::Quat<float> orientation;
-
-        switch(align)
+        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
+        if (groot)
         {
-        case TOP:
-            orientation = sofa::type::Quat(-0.707, 0., 0., 0.707);
-            setGridsPlane(groot);
-            break;
-        case BOTTOM:
-            orientation = sofa::type::Quat(0.707, 0., 0., 0.707);
-            setGridsPlane(groot);
-            break;
-        case FRONT:
-            orientation = sofa::type::Quat(0., 0., 0., 1.);
-            setGridsPlane(groot, VisualGrid::PlaneType("z"));
-            break;
-        case BACK:
-            orientation = sofa::type::Quat(0., 1., 0., 0.);
-            setGridsPlane(groot, VisualGrid::PlaneType("z"));
-            break;
-        case LEFT:
-            orientation = sofa::type::Quat(0., 0.707, 0., 0.707);
-            setGridsPlane(groot, VisualGrid::PlaneType("x"));
-            break;
-        case RIGHT:
-            orientation = sofa::type::Quat(0., -0.707, 0., 0.707);
-            setGridsPlane(groot, VisualGrid::PlaneType("x"));
-            break;
-        }
+            sofa::component::visual::BaseCamera::SPtr camera;
+            groot->get(camera);
 
-        auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
-        const auto& cameraPosition = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -camera->getDistance(), orientation);
-        camera->setView(cameraPosition + bbCenter, orientation);
-        camera->d_lookAt.setValue(bbCenter);
-        camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-    }
-}
-
-void SofaGLFWWindow::setGridsPlane(sofa::simulation::NodeSPtr groot, const VisualGrid::PlaneType &plane)
-{
-    if (groot)
-    {
-        auto squareSizes = GridSquareSize::getSquareSizes();
-        for (const auto& squareSize: squareSizes)
-        {
-            auto grid = groot->get<sofa::component::visual::VisualGrid>(std::string("ViewportGrid" + GridSquareSize::getString(squareSize)));
-            if (grid)
-                grid->d_plane.setValue(plane);
-        }
-    }
-}
-
-void SofaGLFWWindow::mouseMoveEvent(sofa::simulation::NodeSPtr groot, int xpos, int ypos)
-{
-    switch (m_currentAction)
-    {
-    case GLFW_PRESS:
-    {
-        sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
-        if (m_currentButton == GLFW_MOUSE_BUTTON_LEFT)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::LeftPressed, xpos, ypos);
-        else if (m_currentButton == GLFW_MOUSE_BUTTON_RIGHT)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightPressed, xpos, ypos);
-        else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddlePressed, xpos, ypos);
-        else {
-            // A fallback event to rule them all...
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonPressed, xpos, ypos);
-        }
-        m_currentCamera->manageEvent(mEvent);
-        m_currentXPos = xpos;
-        m_currentYPos = ypos;
-
-        // If we rotate the view, we should use the perspective mode
-        if(m_currentCamera->d_activated.getValue())
-        {
-            if(mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
+            if (camera)
             {
-                m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
-                setGridsPlane(groot);
+                sofa::type::Quat<float> orientation;
+
+                switch (align)
+                {
+                case TOP:
+                    orientation = sofa::type::Quat(-0.707, 0., 0., 0.707);
+                    setGridsPlane(baseGUI);
+                    break;
+                case BOTTOM:
+                    orientation = sofa::type::Quat(0.707, 0., 0., 0.707);
+                    setGridsPlane(baseGUI);
+                    break;
+                case FRONT:
+                    orientation = sofa::type::Quat(0., 0., 0., 1.);
+                    setGridsPlane(baseGUI, VisualGrid::PlaneType("z"));
+                    break;
+                case BACK:
+                    orientation = sofa::type::Quat(0., 1., 0., 0.);
+                    setGridsPlane(baseGUI, VisualGrid::PlaneType("z"));
+                    break;
+                case LEFT:
+                    orientation = sofa::type::Quat(0., 0.707, 0., 0.707);
+                    setGridsPlane(baseGUI, VisualGrid::PlaneType("x"));
+                    break;
+                case RIGHT:
+                    orientation = sofa::type::Quat(0., -0.707, 0., 0.707);
+                    setGridsPlane(baseGUI, VisualGrid::PlaneType("x"));
+                    break;
+                }
+
+                auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                const auto& cameraPosition = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -camera->getDistance(), orientation);
+                camera->setView(cameraPosition + bbCenter, orientation);
+                camera->d_lookAt.setValue(bbCenter);
+                camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
             }
         }
-
-        break;
     }
-    case GLFW_RELEASE:
-    {
-        sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
-        if (m_currentButton == GLFW_MOUSE_BUTTON_LEFT)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::LeftReleased, xpos, ypos);
-        else if (m_currentButton == GLFW_MOUSE_BUTTON_RIGHT)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightReleased, xpos, ypos);
-        else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddleReleased, xpos, ypos);
-        else {
-            // A fallback event to rules them all...
-            mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonReleased, xpos, ypos);
-        }
-        m_currentCamera->manageEvent(mEvent);
-        m_currentXPos = xpos;
-        m_currentYPos = ypos;
-        break;
-    }
-
-    default:
-    {
-        sofa::core::objectmodel::MouseEvent me(sofa::core::objectmodel::MouseEvent::Move, xpos, ypos);
-        m_currentCamera->manageEvent(&me);
-        break;
-    }
-    }
-
-    m_currentButton = -1;
-    m_currentAction = -1;
-    m_currentMods = -1;
 }
+
+
+void SofaGLFWWindow::setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const VisualGrid::PlaneType &plane)
+{
+    if (baseGUI)
+    {
+        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
+        if (groot)
+        {
+            auto guiNode = groot->getChild(baseGUI->getGUINodeName());
+            if (guiNode)
+            {
+                auto squareSizes = GridSquareSize::getSquareSizes();
+                for (const auto& squareSize : squareSizes)
+                {
+                    auto grid = guiNode->get<sofa::component::visual::VisualGrid>(std::string("ViewportGrid" + GridSquareSize::getString(squareSize)));
+                    if (grid)
+                        grid->d_plane.setValue(plane);
+                }
+            }
+        }
+    }
+}
+
+
+void SofaGLFWWindow::mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos, int ypos)
+{
+    if (baseGUI)
+    {
+        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
+
+        switch (m_currentAction)
+        {
+        case GLFW_PRESS:
+        {
+            sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
+            if (m_currentButton == GLFW_MOUSE_BUTTON_LEFT)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::LeftPressed, xpos, ypos);
+            else if (m_currentButton == GLFW_MOUSE_BUTTON_RIGHT)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightPressed, xpos, ypos);
+            else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddlePressed, xpos, ypos);
+            else {
+                // A fallback event to rule them all...
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonPressed, xpos, ypos);
+            }
+            m_currentCamera->manageEvent(mEvent);
+            m_currentXPos = xpos;
+            m_currentYPos = ypos;
+
+            // If we rotate the view, we should use the perspective mode
+            if (m_currentCamera->d_activated.getValue())
+            {
+                if (mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
+                {
+                    m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                    setGridsPlane(baseGUI);
+                }
+            }
+
+            break;
+        }
+        case GLFW_RELEASE:
+        {
+            sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
+            if (m_currentButton == GLFW_MOUSE_BUTTON_LEFT)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::LeftReleased, xpos, ypos);
+            else if (m_currentButton == GLFW_MOUSE_BUTTON_RIGHT)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightReleased, xpos, ypos);
+            else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddleReleased, xpos, ypos);
+            else {
+                // A fallback event to rules them all...
+                mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonReleased, xpos, ypos);
+            }
+            m_currentCamera->manageEvent(mEvent);
+            m_currentXPos = xpos;
+            m_currentYPos = ypos;
+            break;
+        }
+
+        default:
+        {
+            sofa::core::objectmodel::MouseEvent me(sofa::core::objectmodel::MouseEvent::Move, xpos, ypos);
+            m_currentCamera->manageEvent(&me);
+            break;
+        }
+        }
+
+        m_currentButton = -1;
+        m_currentAction = -1;
+        m_currentMods = -1;
+    }
+}
+
 
 void SofaGLFWWindow::mouseButtonEvent(int button, int action, int mods)
 {
