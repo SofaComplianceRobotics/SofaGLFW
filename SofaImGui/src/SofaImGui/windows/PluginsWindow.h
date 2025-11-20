@@ -21,38 +21,27 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/config.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/windows/BaseWindow.h>
+#include <imgui.h>
+#include <implot.h>
+#include <implot_internal.h>
 
+namespace sofaimgui::windows {
 
-namespace sofaimgui::menus {
-
-class FileMenu
+class SOFAIMGUI_API PluginsWindow : public BaseWindow
 {
-   public:
-    FileMenu(sofaglfw::SofaGLFWBaseGUI* baseGUI);
-    ~FileMenu();
+public:
 
-    void addMenu();
-    const std::string& getFilename() const {return m_filename;}
+    PluginsWindow(const std::string& name, const bool& isWindowOpen);
+    ~PluginsWindow() = default;
 
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
+    void showWindow(const ImGuiWindowFlags &windowFlags = ImGuiWindowFlags_None);
 
-    bool m_loadSimulation{false};
-    bool m_reloadSimulation{false};
-    bool m_openPluginsManager{false};
+protected:
+    sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
 
-   protected:
-
-    bool addOpenSimulation();
-    bool addReloadSimulation();
-    bool addImportExportProgram();
-    void addExit();
-
-    void saveProject();
-
-    std::string m_filename;
 };
 
 }
+
 
