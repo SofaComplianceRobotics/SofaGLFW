@@ -46,12 +46,6 @@ bool LocalInputFloat(const char* label, float* v, float step, float step_fast, c
     return result;
 }
 
-bool LocalSliderFloatWithSteps(const char* label, float* v, float v_min, float v_max, const char* display_format, ImGuiSliderFlags flags)
-{
-    bool value_changed = SliderFloat(label, v, v_min, v_max, display_format, flags);
-    return value_changed;
-}
-
 bool LocalToggleButton(const char* str_id, bool* v)
 {
     ImVec2 p = ImGui::GetCursorScreenPos();
@@ -100,7 +94,6 @@ bool LocalToggleButton(const char* str_id, bool* v)
 
 void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
 {
-
     ImVec4 colorActive = ImGui::GetStyle().Colors[ImGuiCol_Button];
     colorActive.x -= 0.25;
     colorActive.y -= 0.25;
@@ -128,14 +121,10 @@ void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
 
 bool LocalCheckBox(const char* label, bool* v)
 {
-    ImGuiContext& g = *GImGui;
-    float backup_padding_y = g.Style.FramePadding.y;
-    float backup_borderSize = g.Style.FrameBorderSize;
-    g.Style.FramePadding.y = 0.0f;
-    g.Style.FrameBorderSize = 0.1f;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     bool pressed = LocalCheckBoxEx(label, v);
-    g.Style.FrameBorderSize = backup_borderSize;
-    g.Style.FramePadding.y = backup_padding_y;
+    ImGui::PopStyleVar(2);
     return pressed;
 }
 
