@@ -333,7 +333,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
 
                         ImGui::PushID(i++);
                         ImGui::PushStyleColor(ImGuiCol_Text, isObjectHighlighted? highlightColor: objectColor);
-                        const auto objectOpen = ImGui::TreeNodeEx(icon.c_str(), objectFlags);
+                        const auto objectOpen = ImGui::TreeNodeEx(std::string(icon + " " + object->getName()).c_str(), objectFlags);
                         ImGui::PopStyleColor();
                         const auto& templateName = object->getTemplateName();
                         if (!templateName.empty())
@@ -347,12 +347,6 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                         }
 
                         ImGui::SameLine();
-
-                        if (isObjectHighlighted)
-                            ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                        ImGui::Text("%s", object->getName().c_str()); // Name
-                        if (isObjectHighlighted)
-                            ImGui::PopStyleColor();
 
                         ImGui::TableNextColumn();
                         ImGui::TextDisabled("%s", objectClassName.c_str()); // Class Name
@@ -388,7 +382,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
 
                                     if (isSlaveHighlighted)
                                         ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-                                    ImGui::TreeNodeEx(std::string(icon + "  " + slave->getName()).c_str(), // Name
+                                    ImGui::TreeNodeEx(std::string(icon + " " + slave->getName()).c_str(), // Name
                                                       ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
                                     if (isSlaveHighlighted)
                                         ImGui::PopStyleColor();
