@@ -280,6 +280,8 @@ void IOWindow::showROSOutput()
         static bool publishFirstTime = true;
         ImGui::Text("Select what to publish:");
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+
+        bool updateROSData = false;
         if (ImGui::BeginListBox("##StatePublish", ImVec2(m_itemWidth, 0)))
         {
             // Simulation data
@@ -293,7 +295,8 @@ void IOWindow::showROSOutput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]);
+                if (ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]))
+                    updateROSData = true;
                 ImGui::PopStyleColor();
             }
 
@@ -310,7 +313,8 @@ void IOWindow::showROSOutput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]);
+                if (ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]))
+                    updateROSData = true;
                 ImGui::SetItemTooltip("%s", ("Digital output " + std::to_string(i + 1)).c_str());
                 ImGui::PopStyleColor();
             }
@@ -319,6 +323,9 @@ void IOWindow::showROSOutput()
         }
         publishFirstTime = false;
         ImGui::PopStyleVar();
+
+        if (updateROSData)
+            updateROSOutput();
     }
 
     if (m_isPublishing)
@@ -410,6 +417,8 @@ void IOWindow::showROSInput()
         static bool subscribeFirstTime = true;
         ImGui::Text("Select simulation states to overwrite or digital input to listen to:");
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+
+        bool updateROSData = false;
         if (ImGui::BeginListBox("##StateSubscription", ImVec2(m_itemWidth, 0)))
         {
             // TCP target
@@ -435,7 +444,8 @@ void IOWindow::showROSInput()
                     ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                     color.w = 1.0;
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                    ImGui::LocalCheckBox(stateName.c_str(), &m_subcriptionListboxItems[stateName]);
+                    if (ImGui::LocalCheckBox(stateName.c_str(), &m_subcriptionListboxItems[stateName]))
+                        updateROSData = true;
                     ImGui::PopStyleColor();
 
                     if (!hasMatchingTopic)
@@ -464,7 +474,8 @@ void IOWindow::showROSInput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                ImGui::LocalCheckBox(key.c_str(), &m_subcriptionListboxItems[key]);
+                if (ImGui::LocalCheckBox(key.c_str(), &m_subcriptionListboxItems[key]))
+                    updateROSData = true;
                 ImGui::SetItemTooltip("%s", ("Digital input " + std::to_string(i + 1)).c_str());
                 ImGui::PopStyleColor();
 
@@ -492,7 +503,8 @@ void IOWindow::showROSInput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                ImGui::LocalCheckBox(name.c_str(), &m_subcriptionListboxItems[name]);
+                if (ImGui::LocalCheckBox(name.c_str(), &m_subcriptionListboxItems[name]))
+                    updateROSData = true;
                 ImGui::PopStyleColor();
 
                 if (!hasMatchingTopic)
@@ -505,6 +517,9 @@ void IOWindow::showROSInput()
         }
         ImGui::PopStyleVar();
         subscribeFirstTime = false;
+
+        if (updateROSData)
+            updateROSInput();
     }
 
     if (m_isListening)
@@ -616,9 +631,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
 
-    if (!m_isListening)
-        updateROSInput();
-    else
+    if (m_isListening)
     {
         if(m_isDrivingSimulation) // If the window is driving the simulation
         {
@@ -660,9 +673,7 @@ void IOWindow::animateEndEventROS(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
 
-    if (!m_isPublishing)
-        updateROSOutput();
-    else
+    if (m_isPublishing)
     {
         for (const auto& publisher : m_rosnode->m_publishers)
         {
