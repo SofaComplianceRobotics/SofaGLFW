@@ -66,6 +66,10 @@ void FileMenu::addMenu()
 
         ImGui::Separator();
 
+        m_openPluginsManager = ImGui::MenuItem("Plugins Manager");
+
+        ImGui::Separator();
+
         addExit();
 
         ImGui::EndMenu();

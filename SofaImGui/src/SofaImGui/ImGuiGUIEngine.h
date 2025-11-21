@@ -39,6 +39,8 @@
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 
+#include <SofaImGui/windows/PluginsWindow.h>
+
 #include <SofaImGui/menus/ViewMenu.h>
 
 #include <SofaImGui/models/IPController.h>
@@ -102,7 +104,7 @@ public:
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
 
-
+    windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
@@ -116,7 +118,7 @@ protected:
                                                                         m_plottingWindow,
                                                                         m_viewportWindow,
                                                                         m_sceneGraphWindow,
-                                                                        m_logWindow,
+                                                                        m_logWindow
     };
 
     CSimpleIniA iniGUISettings;
