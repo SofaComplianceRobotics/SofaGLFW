@@ -46,13 +46,16 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
     ~ROSNode() = default;
 
     std::vector<rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr> m_publishers;
-    std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
-
     std::map<std::string, sofa::core::BaseData*> m_selectedDataToPublish;
     std::map<std::string, bool> m_selectedDigitalOutputToPublish;
+
+    std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
     std::map<std::string, std::vector<float>> m_selectedDataToOverwrite;
     std::map<std::string, bool> m_selectedDigitalInput;
     std::map<std::string, float> m_selectedUserInput;
+
+    bool hasSelectedOutput() {return !m_selectedDataToPublish.empty() || !m_selectedDigitalOutputToPublish.empty();}
+    void clearSelectedOutput() {m_selectedDataToPublish.clear(); m_selectedDigitalOutputToPublish.clear();}
 
     bool hasSelectedInput() {return !m_selectedDataToOverwrite.empty() || !m_selectedDigitalInput.empty() || !m_selectedUserInput.empty();}
     void clearSelectedInput() {m_selectedDataToOverwrite.clear(); m_selectedDigitalInput.clear(); m_selectedUserInput.clear();}
@@ -141,8 +144,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void animateEndEvent(sofa::simulation::Node *groot);
     
     void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
-    void setSimulationState(const models::SimulationState &simulationState);
 
+    void setSimulationState(const models::SimulationState &simulationState);
     void addSubscribableData(const std::string& name, sofa::core::BaseData* data);
 
     void clearWindow() override {m_IPController=nullptr;}
@@ -152,26 +155,35 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     models::IPController::SPtr m_IPController;
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
-    bool m_isPublishing;
-    bool m_isListening;
+
     bool m_isReadyToPublish;
+    bool m_isPublishing;
+
+    bool m_isListening;
 
     bool m_digitalInput[3];
     bool m_digitalOutput[3];
 
-    void init();
     /// Sanitize the input string to match ROS requirements for topic and node name (no spaces, no special characters)
     bool sanitizeName(std::string &name);
+
+    /// Update the input/output data map m_IOData (simulation data)
+    /// If selected, sanitize the data name
     void updateIOData(const bool &doSanitizeName=false);
-    void updateDataOutput();
-    void updateDataInput();
+
+    /// Update ROS output lists with the topics selected from the GUI
+    void updateROSOutput();
+
+    /// Update ROS input lists with the topics selected from the GUI
+    void updateROSInput();
 
     std::map<std::string, bool> m_publishListboxItems;
     std::map<std::string, bool> m_subcriptionListboxItems;
 
-    std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map
+    std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map (simulation data)
     std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
     std::map<std::string, sofa::core::BaseData*> m_subscribableData; // user defined input
+
     float m_itemWidth;
 
 #if SOFAIMGUI_WITH_ROS
