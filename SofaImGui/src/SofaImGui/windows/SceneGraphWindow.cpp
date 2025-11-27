@@ -23,10 +23,12 @@
 #include "imgui_internal.h"
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
+#include <SofaImGui/FooterStatusBar.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <sofa/core/ObjectFactory.h>
+#include <sofa/helper/system/FileSystem.h>
 
 namespace sofaimgui::windows {
 
@@ -41,18 +43,20 @@ void SceneGraphWindow::clearWindow()
 {
     m_openedComponents.clear();
     m_openedNodes.clear();
-    m_openedPopup.clear();
+    m_openedComponentPopups.clear();
+    m_openedNodePopups.clear();
 }
 
 void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags)
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
     std::set<sofa::simulation::Node*> nodeToOpen;
+    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> componentToOpenContextMenu;
     std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
 
     if (enabled() && isOpen())
     {
-        showGraph(groot, windowFlags, componentToOpen, nodeToOpen, nodeToOpenContextMenu);
+        showGraph(groot, windowFlags, componentToOpen, nodeToOpen, componentToOpenContextMenu, nodeToOpenContextMenu);
     }
 
     ImGuiIO& io = ImGui::GetIO();
@@ -60,12 +64,12 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
 
     { // Node context menu
-        m_openedPopup.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
+        m_openedNodePopups.insert(nodeToOpenContextMenu.begin(), nodeToOpenContextMenu.end());
 
         sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toRemove;
         sofa::type::vector<std::pair<sofa::simulation::Node*, bool>> toUpdate;
 
-        for (const auto& popup : m_openedPopup)
+        for (const auto& popup : m_openedNodePopups)
         {
             if (popup.second)
             {
@@ -85,22 +89,69 @@ void SceneGraphWindow::showWindow(sofa::simulation::Node *groot, const ImGuiWind
 
         while (!toRemove.empty())
         {
-            auto it = m_openedPopup.find(toRemove.back());
-            if (it != m_openedPopup.end())
+            auto it = m_openedNodePopups.find(toRemove.back());
+            if (it != m_openedNodePopups.end())
             {
-                m_openedPopup.erase(it);
+                m_openedNodePopups.erase(it);
             }
             toRemove.pop_back();
         }
 
         while (!toUpdate.empty())
         {
-            auto it = m_openedPopup.find(toUpdate.back());
-            if (it != m_openedPopup.end())
+            auto it = m_openedNodePopups.find(toUpdate.back());
+            if (it != m_openedNodePopups.end())
             {
                 std::pair<sofa::simulation::Node*, bool> newKey(it->first, false);
-                m_openedPopup.erase(it);
-                m_openedPopup.insert(newKey);
+                m_openedNodePopups.erase(it);
+                m_openedNodePopups.insert(newKey);
+            }
+            toUpdate.pop_back();
+        }
+    }
+
+    { // Component context menu
+        m_openedComponentPopups.insert(componentToOpenContextMenu.begin(), componentToOpenContextMenu.end());
+
+        sofa::type::vector<std::pair<sofa::core::objectmodel::BaseObject*, bool>> toRemove;
+        sofa::type::vector<std::pair<sofa::core::objectmodel::BaseObject*, bool>> toUpdate;
+
+        for (const auto& popup : m_openedComponentPopups)
+        {
+            if (popup.second)
+            {
+                ImGui::OpenPopup("##ComponentContextMenu");
+                toUpdate.push_back(popup);
+            }
+
+            if (ImGui::BeginPopup("##ComponentContextMenu"))
+            {
+                addComponentContextMenu(popup.first);
+                ImGui::EndPopup();
+            }
+            else {
+                toRemove.push_back(popup);
+            }
+        }
+
+        while (!toRemove.empty())
+        {
+            auto it = m_openedComponentPopups.find(toRemove.back());
+            if (it != m_openedComponentPopups.end())
+            {
+                m_openedComponentPopups.erase(it);
+            }
+            toRemove.pop_back();
+        }
+
+        while (!toUpdate.empty())
+        {
+            auto it = m_openedComponentPopups.find(toUpdate.back());
+            if (it != m_openedComponentPopups.end())
+            {
+                std::pair<sofa::core::objectmodel::BaseObject*, bool> newKey(it->first, false);
+                m_openedComponentPopups.erase(it);
+                m_openedComponentPopups.insert(newKey);
             }
             toUpdate.pop_back();
         }
@@ -192,6 +243,7 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
 void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags& windowFlags,
                                  std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                                  std::set<sofa::simulation::Node*>& nodeToOpen,
+                                 std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
                                  std::set<std::pair<sofa::simulation::Node*, bool>>& nodeToOpenContextMenu)
 {
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
@@ -248,7 +300,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -272,8 +324,7 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
             if (isNodeHighlighted)
                 ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
 
-            std::string nodeIcons = isDeactivated? ICON_FA_BAN " ": "";
-            nodeIcons += ICON_FA_SITEMAP " ";
+            std::string nodeIcons = ICON_FA_SITEMAP " ";
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow); // Name
 
             { // Click on node
@@ -345,6 +396,12 @@ void SceneGraphWindow::showGraph(sofa::simulation::Node *groot, const ImGuiWindo
                             if (ImGui::IsItemClicked())
                                 if (ImGui::IsMouseDoubleClicked(0))
                                     componentToOpen.insert(object);
+
+                            // Right click, open a context menu
+                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                            {
+                                componentToOpenContextMenu.insert(std::pair<sofa::core::objectmodel::BaseObject*, bool>(object, true));
+                            }
                         }
 
                         ImGui::SameLine();
@@ -659,13 +716,43 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
     if (node)
     {
         const bool& activated = node->is_activated.getValue();
-        if(ImGui::MenuItem(activated? "Deactivate": "Activate"))
+        if(ImGui::MenuItem(activated? "Deactivate Node": "Activate Node"))
             node->setActive(!activated);
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Copy Path"))
-            ImGui::SetClipboardText(node->getPathName().c_str());
+        addBaseContextMenu(node);
+    }
+}
+
+void SceneGraphWindow::addComponentContextMenu(sofa::core::objectmodel::BaseObject *component)
+{
+    if (component)
+    {
+        addBaseContextMenu(component);
+    }
+}
+
+void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
+{
+    if (object)
+    {
+        const std::string filename = object->getInstanciationSourceFileName();
+
+        if(ImGui::MenuItem("Copy Scene Graph Path"))
+            ImGui::SetClipboardText(object->getPathName().c_str());
+
+        ImGui::Separator();
+
+        if(ImGui::MenuItem("Copy Scene File Path"))
+            ImGui::SetClipboardText(filename.c_str());
+
+        // Open the file with the default editor
+        if(ImGui::MenuItem("Open Scene File"))
+        {
+            FooterStatusBar::getInstance().setTempMessage("Opening file : " + filename);
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(filename);
+        }
     }
 }
 

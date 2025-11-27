@@ -300,7 +300,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             ImGui::PopStyleColor();
 
             { // Axis related
-                const float scale = powf(10.0f, floorf(log10f((bbox.maxBBox() - bbox.minBBox()).norm()* 0.01)));
+                // Compute scale based on distance. The further the camera, the faster the translation.
+                const float scale = camera->getDistance() * 0.002f;
 
                 { // Translate Left/Right
                     ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
@@ -372,29 +373,29 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
     { // Orientation gizmo clicked
         // Rotate X
-            if (axisClicked[0])
-            {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
-                camera->rotateCameraAroundPoint(q, lookAt);
-                rotate = true;
-            }
+        if (axisClicked[0])
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
+            camera->rotateCameraAroundPoint(q, lookAt);
+            rotate = true;
+        }
         // Rotate Y
-            else if (axisClicked[1])
-            {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
-                camera->rotateCameraAroundPoint(q, lookAt);
-                rotate = true;
-            }
+        else if (axisClicked[1])
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
+            camera->rotateCameraAroundPoint(q, lookAt);
+            rotate = true;
+        }
         // Rotate Z
-            else if (axisClicked[2])
-            {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
-                camera->rotateCameraAroundPoint(q, lookAt);
-                rotate = true;
-            }
+        else if (axisClicked[2])
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
+            camera->rotateCameraAroundPoint(q, lookAt);
+            rotate = true;
+        }
     }
 
     if (rotate)

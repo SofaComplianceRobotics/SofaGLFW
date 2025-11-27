@@ -37,11 +37,16 @@ public:
 
 protected:
 
-    std::set<std::pair<sofa::simulation::Node*, bool>> m_openedPopup;
+    std::set<std::pair<sofa::simulation::Node*, bool>> m_openedNodePopups;
+    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_openedComponentPopups;
     std::set<sofa::simulation::Node*> m_openedNodes;
     std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
 
-    void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags, std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen, std::set<sofa::simulation::Node *> &nodeToOpen, std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
+    void showGraph(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags,
+                   std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
+                   std::set<sofa::simulation::Node *> &nodeToOpen,
+                   std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
+                   std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
 
@@ -50,6 +55,8 @@ protected:
     void addMessagesTab(const std::deque<sofa::helper::logging::Message> &messages, const std::string& name, const std::string &icon);
     void addInfosTab(sofa::simulation::Node* node);
     void addNodeContextMenu(sofa::simulation::Node *node);
+    void addComponentContextMenu(sofa::core::objectmodel::BaseObject*component);
+    void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
     void getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
 };
