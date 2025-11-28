@@ -737,22 +737,31 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 {
     if (object)
     {
-        const std::string filename = object->getInstanciationSourceFileName();
+        const std::string instanciationFilename = object->getInstanciationSourceFileName();
+        const std::string implementationFilename = object->getDefinitionSourceFileName();
 
         if(ImGui::MenuItem("Copy Scene Graph Path"))
             ImGui::SetClipboardText(object->getPathName().c_str());
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Copy Scene File Path"))
-            ImGui::SetClipboardText(filename.c_str());
-
-        // Open the file with the default editor
-        if(ImGui::MenuItem("Open Scene File"))
+        if(ImGui::MenuItem("Open Instanciation File..."))
         {
-            FooterStatusBar::getInstance().setTempMessage("Opening file : " + filename);
-            sofa::helper::system::FileSystem::openFileWithDefaultApplication(filename);
+            FooterStatusBar::getInstance().setTempMessage("Opening file : " + instanciationFilename);
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(instanciationFilename);
         }
+
+        if (implementationFilename.empty())
+            ImGui::BeginDisabled();
+
+        if(ImGui::MenuItem("Open Implementation File..."))
+        {
+            FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename);
+        }
+
+        if (implementationFilename.empty())
+            ImGui::EndDisabled();
     }
 }
 
