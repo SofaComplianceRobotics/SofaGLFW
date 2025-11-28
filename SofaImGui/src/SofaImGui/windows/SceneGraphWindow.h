@@ -42,6 +42,7 @@ protected:
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_openedComponentPopups;
     std::set<sofa::simulation::Node*> m_openedNodes;
     std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
+    std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
 
     void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
                    std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
@@ -60,7 +61,7 @@ protected:
     void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
     void getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
-    void updateSelection(std::set<sofa::core::objectmodel::Base::SPtr>& currentSelection, sofa::core::objectmodel::Base::SPtr object);
+    void updateSelection(sofa::core::objectmodel::Base::SPtr object);
 };
 
 }

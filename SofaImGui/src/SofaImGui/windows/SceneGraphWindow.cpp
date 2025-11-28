@@ -46,6 +46,7 @@ void SceneGraphWindow::clearWindow()
     m_openedNodes.clear();
     m_openedComponentPopups.clear();
     m_openedNodePopups.clear();
+    m_selection.clear();
 }
 
 void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
@@ -300,8 +301,8 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         // Table
         unsigned int treeDepth {};
 
-        std::function<void(sofa::simulation::Node*, std::set<sofa::core::objectmodel::Base::SPtr>&, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, std::set<sofa::core::objectmodel::Base::SPtr>& currentSelection, const bool& showSearch, const bool& showFiltered)
+        std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const auto o = sofa::type::RGBAColor::orange();
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
@@ -320,7 +321,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             const auto& nodeName = node->getName();
             const bool& isDeactivated = !node->is_activated.getValue();
-            const bool isNodeSelected = currentSelection.contains(node);
+            const bool isNodeSelected = m_selection.contains(node);
             const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
 
             if (isDeactivated)
@@ -341,7 +342,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                         nodeToOpen.insert(node);
 
                     if (!ImGui::IsItemToggledOpen())
-                        updateSelection(currentSelection, node);
+                        updateSelection(node);
                 }
 
                 // Right click, open a context menu
@@ -364,7 +365,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 {
                     const auto& objectName = object->getName();
                     const auto objectClassName = object->getClassName();
-                    const bool isObjectSelected = currentSelection.contains(object);
+                    const bool isObjectSelected = m_selection.contains(object);
                     const bool isObjectFiltered = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
                     const bool isObjectHighlighted = !filter.Filters.empty() && isObjectFiltered && (showSearch || showFiltered);
                     const bool isObjectHidden = !filter.Filters.empty() && !isObjectFiltered && showFiltered;
@@ -394,12 +395,10 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                         getComponentIconAlert(object, objectColor, icon);
 
                         ImGui::PushID(i++);
-                        if (isObjectSelected)
-                            ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
-                        if (isObjectHighlighted)
-                            ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
-                        const auto objectOpen = ImGui::TreeNodeEx(std::string(icon + " " + object->getName()).c_str(), objectFlags);
-                        ImGui::PopStyleColor(isObjectSelected + isObjectHighlighted);
+                        ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
+                        const auto objectOpen = ImGui::TreeNodeEx(std::string(icon + " ").c_str(), objectFlags);
+                        ImGui::PopStyleColor();
+
                         const auto& templateName = object->getTemplateName();
                         if (!templateName.empty())
                             ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
@@ -412,7 +411,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                                     componentToOpen.insert(object);
 
                                 if (!ImGui::IsItemToggledOpen())
-                                    updateSelection(currentSelection, object);
+                                    updateSelection(object);
                             }
 
                             // Right click, open a context menu
@@ -422,7 +421,13 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                             }
                         }
 
-                        ImGui::SameLine();
+                        ImGui::SameLine(0.f, 0.f);
+                        if (isObjectSelected)
+                            ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
+                        if (isObjectHighlighted)
+                            ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
+                        ImGui::Text("%s", object->getName().c_str());
+                        ImGui::PopStyleColor(isObjectSelected + isObjectHighlighted);
 
                         ImGui::TableNextColumn();
                         ImGui::TextDisabled("%s", objectClassName.c_str()); // Class Name
@@ -442,7 +447,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                             {
                                 const auto& slaveName = slave->getName();
                                 const auto slaveClassName = slave->getClassName();
-                                const bool isSlaveSelected = currentSelection.contains(slave.get());
+                                const bool isSlaveSelected = m_selection.contains(slave.get());
                                 const bool isSlaveFiltered = !filter.Filters.empty() && (filter.PassFilter(slaveName.c_str()) || filter.PassFilter(slaveClassName.c_str()));
                                 const bool isSlaveHighlighted = isSlaveFiltered && (showSearch || showFiltered);
                                 const bool isSlaveHidden = !isSlaveFiltered && showFiltered;
@@ -457,13 +462,10 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                                     std::string icon = "·";
                                     getComponentIconAlert(object, objectColor, icon);
 
-                                    if (isSlaveSelected)
-                                        ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
-                                    if (isSlaveHighlighted)
-                                        ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
-                                    ImGui::TreeNodeEx(std::string(icon + " " + slave->getName()).c_str(), // Name
+                                    ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
+                                    ImGui::TreeNodeEx(std::string(icon + " ").c_str(), // Name
                                                       ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
-                                    ImGui::PopStyleColor(isSlaveHighlighted + isSlaveSelected);
+                                    ImGui::PopStyleColor();
 
                                     const auto& templateName = object->getTemplateName();
                                     if (!templateName.empty())
@@ -474,9 +476,18 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                                             if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                                                 componentToOpen.insert(slave.get());
 
-                                            updateSelection(currentSelection, slave.get());
+                                            updateSelection(slave.get());
                                         }
                                     }
+
+                                    ImGui::SameLine(0.f, 0.f);
+                                    if (isSlaveSelected)
+                                        ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
+                                    if (isSlaveHighlighted)
+                                        ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
+                                    ImGui::Text("%s", slave->getName().c_str());
+                                    ImGui::PopStyleColor(isSlaveHighlighted + isSlaveSelected);
+
                                     ImGui::TableNextColumn();
                                     ImGui::TextDisabled("%s", slave->getClassName().c_str()); // Class Name
                                     ImGui::PopID();
@@ -491,7 +502,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 // Child nodes
                 for (const auto child : node->getChildren())
                 {
-                    showNode(dynamic_cast<sofa::simulation::Node*>(child), currentSelection, showSearch, showFiltered);
+                    showNode(dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
                 }
                 --treeDepth;
                 ImGui::TreePop();
@@ -517,9 +528,8 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             sofa::simulation::Node *groot = baseGUI->getRootNode().get();
 
-            static std::set<sofa::core::objectmodel::Base::SPtr> currentSelection;
-            showNode(groot, currentSelection, showSearch, showFiltered);
-            baseGUI->setCurrentSelection(currentSelection);
+            showNode(groot, showSearch, showFiltered);
+            baseGUI->setCurrentSelection(m_selection);
 
             ImGui::EndTable();
         }
@@ -528,16 +538,16 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 }
 
 
-void SceneGraphWindow::updateSelection(std::set<sofa::core::objectmodel::Base::SPtr>& currentSelection, sofa::core::objectmodel::Base::SPtr object)
+void SceneGraphWindow::updateSelection(sofa::core::objectmodel::Base::SPtr object)
 {
-    if (!currentSelection.contains(object))
+    if (!m_selection.contains(object))
     {
-        currentSelection.clear();
-        currentSelection.insert(object);
+        m_selection.clear();
+        m_selection.insert(object);
     }
     else if (object)
     {
-        currentSelection.erase(object);
+        m_selection.erase(object);
     }
 }
 
