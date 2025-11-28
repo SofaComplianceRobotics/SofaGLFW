@@ -19,6 +19,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include "sofa/gui/common/PickHandler.h"
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
 #define GLFW_INCLUDE_NONE
@@ -35,6 +36,7 @@
 
 #include <sofa/component/visual/InteractiveCamera.h>
 #include <sofa/component/visual/VisualStyle.h>
+#include <sofa/core/visual/VisualParams.h>
 
 #include <sofa/helper/io/STBImage.h>
 
@@ -52,6 +54,10 @@ namespace sofaglfw
 SofaGLFWBaseGUI::SofaGLFWBaseGUI()
 {
     m_guiEngine = std::make_shared<NullGUIEngine>();
+    m_showSelectedNodeBoundingBox = true;
+    m_showSelectedObjectBoundingBox = false;
+    m_showSelectedObjectPositions = true;
+    m_showSelectedObjectSurfaces = true;
 }
 
 SofaGLFWBaseGUI::~SofaGLFWBaseGUI()
@@ -126,6 +132,42 @@ bool SofaGLFWBaseGUI::simulationIsRunning() const
     }
 
     return false;
+}
+
+void SofaGLFWBaseGUI::setSizeW(int width)
+{
+    m_windowWidth = width;
+}
+
+void SofaGLFWBaseGUI::setSizeH(int height)
+{
+    m_windowHeight = height;
+}
+
+int SofaGLFWBaseGUI::getWidth()
+{
+    return m_windowWidth;
+}
+
+int SofaGLFWBaseGUI::getHeight()
+{
+    return m_windowHeight;
+}
+
+void SofaGLFWBaseGUI::redraw()
+{
+}
+
+void SofaGLFWBaseGUI::drawScene()
+{
+}
+
+void SofaGLFWBaseGUI::viewAll()
+{
+}
+
+void SofaGLFWBaseGUI::saveView()
+{
 }
 
 sofa::component::visual::BaseCamera::SPtr SofaGLFWBaseGUI::findCamera(sofa::simulation::NodeSPtr groot)
@@ -332,7 +374,7 @@ void SofaGLFWBaseGUI::switchFullScreen(GLFWwindow* glfwWindow, unsigned int /* s
     }
 }
 
-void SofaGLFWBaseGUI::setBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int /* windowID */)
+void SofaGLFWBaseGUI::setWindowBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int /* windowID */)
 {
     // only manage the first window for now
     if (hasWindow())
@@ -341,14 +383,14 @@ void SofaGLFWBaseGUI::setBackgroundColor(const sofa::type::RGBAColor& newColor, 
     }
     else
     {
-        dmsg_error("SofaGLFWBaseGUI") << "No window to set the background in";// can happen with runSofa/BaseGUI
+        msg_error("SofaGLFWBaseGUI") << "No window to set the background in";// can happen with runSofa/BaseGUI
     }
 }
 
 
-void SofaGLFWBaseGUI::setBackgroundImage(const std::string& /* filename */, unsigned int /* windowID */)
+void SofaGLFWBaseGUI::setWindowBackgroundImage(const std::string& filename, unsigned int /* windowID */)
 {
-
+    SOFA_UNUSED(filename);
 }
 
 void SofaGLFWBaseGUI::setWindowTitle(GLFWwindow* window, const char* title)
@@ -406,6 +448,8 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
 
                     m_guiEngine->beforeDraw(glfwWindow);
                     sofaGlfwWindow->draw(m_groot, m_vparams);
+                    drawSelection(m_vparams);
+
                     m_guiEngine->afterDraw();
 
                     m_guiEngine->startFrame(this);
@@ -602,6 +646,69 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
             }
         }
     }
+}
+
+void SofaGLFWBaseGUI::moveRayPickInteractor(int eventX, int eventY)
+{
+    const sofa::core::visual::VisualParams::Viewport& viewport = m_vparams->viewport();
+
+    double lastProjectionMatrix[16];
+    double lastModelviewMatrix[16];
+
+    m_vparams->getProjectionMatrix(lastProjectionMatrix);
+    m_vparams->getModelViewMatrix(lastModelviewMatrix);
+
+    sofa::type::Vec3d p0;
+    sofa::type::Vec3d px;
+    sofa::type::Vec3d py;
+    sofa::type::Vec3d pz;
+    sofa::type::Vec3d px1;
+    sofa::type::Vec3d py1;
+    gluUnProject(eventX,   viewport[3]-1-(eventY),   0,   lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(p0[0]),  &(p0[1]),  &(p0[2]));
+    gluUnProject(eventX+1, viewport[3]-1-(eventY),   0,   lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(px[0]),  &(px[1]),  &(px[2]));
+    gluUnProject(eventX,   viewport[3]-1-(eventY+1), 0,   lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(py[0]),  &(py[1]),  &(py[2]));
+    gluUnProject(eventX,   viewport[3]-1-(eventY),   0.1, lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(pz[0]),  &(pz[1]),  &(pz[2]));
+    gluUnProject(eventX+1, viewport[3]-1-(eventY),   0.1, lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(px1[0]), &(px1[1]), &(px1[2]));
+    gluUnProject(eventX,   viewport[3]-1-(eventY+1), 0,   lastModelviewMatrix, lastProjectionMatrix, viewport.data(), &(py1[0]), &(py1[1]), &(py1[2]));
+
+    px1 -= pz;
+    py1 -= pz;
+    px -= p0;
+    py -= p0;
+    pz -= p0;
+
+    const double r0 = sqrt(px.norm2() + py.norm2());
+    double r1 = sqrt(px1.norm2() + py1.norm2());
+    r1 = r0 + (r1 - r0) / pz.norm();
+    px.normalize();
+    py.normalize();
+    pz.normalize();
+
+    sofa::type::Mat4x4d transform;
+    transform.identity();
+    transform[0][0] = px[0];
+    transform[1][0] = px[1];
+    transform[2][0] = px[2];
+    transform[0][1] = py[0];
+    transform[1][1] = py[1];
+    transform[2][1] = py[2];
+    transform[0][2] = pz[0];
+    transform[1][2] = pz[1];
+    transform[2][2] = pz[2];
+    transform[0][3] = p0[0];
+    transform[1][3] = p0[1];
+    transform[2][3] = p0[2];
+
+    sofa::type::Mat3x3d mat;
+    mat = transform;
+    sofa::type::Quat<SReal> q;
+    q.fromMatrix(mat);
+
+    sofa::type::Vec3d position, direction;
+    position = transform * sofa::type::Vec4d(0, 0, 0, 1);
+    direction = transform * sofa::type::Vec4d(0, 0, 1, 0);
+    direction.normalize();
+    getPickHandler()->updateRay(position, direction);
 }
 
 void SofaGLFWBaseGUI::cursor_position_callback(GLFWwindow* window, double xpos, double ypos)

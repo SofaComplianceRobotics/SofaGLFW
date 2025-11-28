@@ -498,7 +498,7 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_IOWindow.showWindow(groot, windowFlags);
     m_myRobotWindow.showWindow(windowFlags);
     m_moveWindow.showWindow(baseGUI, windowFlags);
-    m_sceneGraphWindow.showWindow(groot, windowFlags);
+    m_sceneGraphWindow.showWindow(baseGUI, windowFlags);
 
     m_pluginsWindow.showWindow();
 }
@@ -663,13 +663,13 @@ void ImGuiGUIEngine::applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseG
     {
         sofaimgui::setStyle("deep_dark");
         if (baseGUI)
-            baseGUI->setBackgroundColor(type::RGBAColor(0.16, 0.18, 0.20, 1.0));
+            baseGUI->setWindowBackgroundColor(type::RGBAColor(0.16, 0.18, 0.20, 1.0));
     }
     else
     {
         sofaimgui::setStyle("light");
         if (baseGUI)
-            baseGUI->setBackgroundColor(type::RGBAColor(0.76, 0.78, 0.80, 1.0));
+            baseGUI->setWindowBackgroundColor(type::RGBAColor(0.76, 0.78, 0.80, 1.0));
     }
 }
 
