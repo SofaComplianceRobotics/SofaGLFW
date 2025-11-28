@@ -310,7 +310,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= dpos.x * scale;
+                        t *= - dpos.x * scale;
                         camera->translate(t);
                         camera->translateLookAt(t);
                         translate = true;
