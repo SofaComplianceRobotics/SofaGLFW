@@ -747,8 +747,10 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         if(ImGui::MenuItem("Open Instanciation File..."))
         {
-            FooterStatusBar::getInstance().setTempMessage("Opening file : " + instanciationFilename);
-            sofa::helper::system::FileSystem::openFileWithDefaultApplication(instanciationFilename);
+            if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instanciationFilename))
+                FooterStatusBar::getInstance().setTempMessage("Opening file : " + instanciationFilename);
+            else
+                FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instanciationFilename, FooterStatusBar::MERROR);
         }
 
         if (implementationFilename.empty())
@@ -756,8 +758,10 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         if(ImGui::MenuItem("Open Implementation File..."))
         {
-            FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
-            sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename);
+            if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
+                FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
+            else
+                FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
         }
 
         if (implementationFilename.empty())
