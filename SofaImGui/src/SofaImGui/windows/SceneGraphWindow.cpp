@@ -806,27 +806,27 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Open Instantiation File..."))
+        if (!instantiationFilename.empty())
         {
-            if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
-                FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
-            else
-                FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
+            if(ImGui::MenuItem("Open Instantiation File..."))
+            {
+                if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
+                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
+                else
+                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
+            }
         }
 
-        if (implementationFilename.empty())
-            ImGui::BeginDisabled();
-
-        if(ImGui::MenuItem("Open Implementation File..."))
+        if (!implementationFilename.empty())
         {
-            if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
-                FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
-            else
-                FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
+            if(ImGui::MenuItem("Open Implementation File..."))
+            {
+                if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
+                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
+                else
+                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
+            }
         }
-
-        if (implementationFilename.empty())
-            ImGui::EndDisabled();
     }
 }
 
