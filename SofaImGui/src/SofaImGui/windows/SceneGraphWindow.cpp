@@ -391,7 +391,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                         }
 
                         ImVec4 objectColor;
-                        std::string icon = (slaves.empty())? "·" : ICON_FA_CIRCLE_NODES;
+                        std::string icon = "·";
                         getComponentIconAlert(object, objectColor, icon);
 
                         ImGui::PushID(i++);
