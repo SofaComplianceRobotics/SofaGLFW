@@ -23,6 +23,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -35,6 +36,7 @@ public:
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
     void clearWindow() override;
+    bool enabled() override {return workbench != Workbench::LIVE_CONTROL;}
 
 protected:
 

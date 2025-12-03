@@ -25,6 +25,7 @@
 #include <imgui.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
+#include <SofaImGui/Workbench.h>
 #include <SofaImGui/models/Program.h>
 
 #include <SofaImGui/models/IPController.h>
@@ -48,7 +49,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return m_IPController!=nullptr;}
+    bool enabled() override {return m_IPController!=nullptr && workbench != Workbench::SCENE_EDITOR;}
     void clearWindow() override {m_IPController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);

@@ -29,12 +29,6 @@ using namespace sofa;
 
 namespace sofaimgui
 {
-    const std::string& AppIniFile::getWindowsIniFile()
-    {
-        static const std::string windowsIniFile = getIniFile("windows.ini");
-        return windowsIniFile;
-    }
-
     const std::string& AppIniFile::getSettingsIniFile()
     {
         static const std::string settingsIniFile = getIniFile("settings.ini");

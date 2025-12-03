@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 #include <implot.h>
 #include <implot_internal.h>
@@ -75,7 +76,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     ~PlottingWindow() = default;
 
     void showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return !m_data.empty();}
+    bool enabled() override {return !m_data.empty() && workbench != Workbench::SCENE_EDITOR;}
     void addData(const PlottingData data) {m_data.push_back(data);}
     void clearWindow() override;
 

@@ -29,6 +29,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
 #include <SofaImGui/Robot.h>
+#include <SofaImGui/Workbench.h>
 
 
 namespace sofaimgui::windows {
@@ -125,7 +126,9 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
 
 bool MyRobotWindow::enabled()
 {
-    return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
+    bool enabled = (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
+    enabled = enabled && (workbench == Workbench::LIVE_CONTROL);
+    return enabled;
 }
 
 void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)

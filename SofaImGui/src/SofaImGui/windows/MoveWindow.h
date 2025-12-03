@@ -24,6 +24,7 @@
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/IPController.h>
 #include <SofaImGui/widgets/MovePad.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -63,7 +64,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
     bool hasActuators() {return !m_actuators.empty();}
-    bool enabled() override {return m_IPController!=nullptr || !m_actuators.empty();}
+    bool enabled() override {return (m_IPController!=nullptr || !m_actuators.empty()) && workbench != Workbench::SCENE_EDITOR;}
 
    protected:
     

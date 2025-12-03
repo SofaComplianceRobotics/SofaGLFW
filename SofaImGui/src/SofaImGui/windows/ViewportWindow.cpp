@@ -30,6 +30,7 @@
 #include <SofaImGui/widgets/Gizmos.h>
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
+#include <SofaImGui/Workbench.h>
 
 
 namespace sofaimgui::windows {
@@ -70,25 +71,28 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 m_isMouseOnViewport = ImGui::IsItemHovered();
 
-                addStateWindow();
-                addSimulationTimeAndFPS(groot);
+                if (workbench != Workbench::SCENE_EDITOR)
+                {
+                    addStateWindow();
+                    addSimulationTimeAndFPS(groot);
 
-                // Panel backgroung
-                ImDrawList* drawList = ImGui::GetWindowDrawList();
-                ImVec2 size(ImGui::GetFrameHeight() * 2 + ImGui::GetStyle().ItemSpacing.x * 4 + m_maxPanelItemWidth, ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2);
+                    // Panel backgroung
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    ImVec2 size(ImGui::GetFrameHeight() * 2 + ImGui::GetStyle().ItemSpacing.x * 4 + m_maxPanelItemWidth, ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2);
 
-                float x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f + ImGui::GetStyle().FramePadding.x;
-                float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
+                    float x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f + ImGui::GetStyle().FramePadding.x;
+                    float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
 
-                ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
+                    ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
 
-                { // Draw
-                    auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-                    color.w = 0.6f;
-                    drawList->AddRectFilled(bb.Min, bb.Max,
-                                            ImGui::GetColorU32(color),
-                                            ImGui::GetStyle().FrameRounding,
-                                            ImDrawFlags_None);
+                    { // Draw
+                        auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+                        color.w = 0.6f;
+                        drawList->AddRectFilled(bb.Min, bb.Max,
+                                                ImGui::GetColorU32(color),
+                                                ImGui::GetStyle().FrameRounding,
+                                                ImDrawFlags_None);
+                    }
                 }
 
                 addCameraButtons(baseGUI, groot);

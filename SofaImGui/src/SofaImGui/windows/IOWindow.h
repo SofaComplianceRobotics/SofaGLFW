@@ -27,6 +27,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
 #if SOFAIMGUI_WITH_ROS
@@ -135,6 +136,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     IOWindow(){}
     IOWindow(const std::string& name, const bool& isWindowOpen);
     ~IOWindow();
+
+    bool enabled() override {return workbench != Workbench::SCENE_EDITOR;}
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 

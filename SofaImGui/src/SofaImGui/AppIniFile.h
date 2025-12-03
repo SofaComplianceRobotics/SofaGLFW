@@ -30,7 +30,6 @@ namespace sofaimgui
     class AppIniFile
     {
     public:
-        static const std::string& getWindowsIniFile();
         static const std::string& getSettingsIniFile();
         static const std:: string getProjectFile(std::string sceneFilename);
 
