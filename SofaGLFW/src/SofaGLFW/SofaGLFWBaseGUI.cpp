@@ -117,9 +117,16 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     load();
 }
 
+
+void SofaGLFWBaseGUI::setSimulationCanRun(bool canRun)
+{
+    m_simulationCanRun = canRun;
+}
+
+
 void SofaGLFWBaseGUI::setSimulationIsRunning(bool running)
 {
-    if (m_groot)
+    if (m_simulationCanRun && m_groot)
     {
         m_groot->setAnimate(running);
     }
@@ -130,7 +137,7 @@ bool SofaGLFWBaseGUI::simulationIsRunning() const
 {
     if (m_groot)
     {
-        return m_groot->getAnimate();
+        return m_simulationCanRun && m_groot->getAnimate();
     }
 
     return false;

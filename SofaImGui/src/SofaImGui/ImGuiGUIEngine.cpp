@@ -285,11 +285,10 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         initDockSpace(false);
     }
 
-
+    m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
-
 
     showViewportWindow(baseGUI);
     showOptionWindows(baseGUI);
@@ -429,9 +428,6 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    auto groot = baseGUI->getRootNode();
-    m_animate = groot->animate_.getValue();
-
     static bool firstTime = true;
     if (firstTime)
     {
@@ -439,6 +435,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
+    auto groot = baseGUI->getRootNode();
     m_viewportWindow.showWindow(baseGUI, groot.get(), (ImTextureID)m_fbo->getColorTexture(),
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
                                 );
@@ -446,6 +443,8 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     // Simulation
     if (workbench != Workbench::SCENE_EDITOR)
     {
+        m_animate = groot->animate_.getValue();
+
         // Animate button
         if (m_viewportWindow.addAnimateButton(&m_animate))
             sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
@@ -676,9 +675,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if (ImGui::BeginMenuBar()) {
             { // Workbench
                 ImGui::BeginDisabled();
-                ImGui::Text("Active Workbench:");
+                ImGui::Text("Active Workbench: ");
                 ImGui::EndDisabled();
-
+                ImGui::SameLine(0, 0); // Ensure a normal spacing between the words
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
                 ImGui::Text("%s", workbenches[workbench]);
                 ImGui::PopStyleColor();

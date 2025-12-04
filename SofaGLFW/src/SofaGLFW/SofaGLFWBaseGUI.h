@@ -53,6 +53,7 @@ public:
     bool init(int nbMSAASamples = 0);
     void setErrorCallback() const;
     void setSimulation(sofa::simulation::NodeSPtr groot, const std::string& filename = std::string());
+    void setSimulationCanRun(bool canRun);
     void setSimulationIsRunning(bool running);
     bool simulationIsRunning() const;
 
@@ -159,6 +160,7 @@ private:
     bool m_bGlewIsInitialized{ false };
 
     sofa::simulation::NodeSPtr m_groot{ nullptr };
+    bool m_simulationCanRun{ true };
     std::string m_filename;
     sofa::gl::DrawToolGL* m_glDrawTool{ nullptr };
     sofa::core::visual::VisualParams* m_vparams{ nullptr };
