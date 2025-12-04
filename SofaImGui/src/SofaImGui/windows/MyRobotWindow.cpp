@@ -39,6 +39,8 @@ std::string MyRobotWindow::DEFAULTGROUP = "empty";
 MyRobotWindow::MyRobotWindow(const std::string& name,
                          const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL;
+
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
@@ -71,6 +73,13 @@ std::string MyRobotWindow::getSelectedPort()
 
     return std::string();
 }
+
+MyRobotWindow::Connection& MyRobotWindow::getConnection()
+{
+    Robot::getInstance().setEnabled(true);
+    return m_connection;
+}
+
 
 void MyRobotWindow::addInformation(const Information &info, const std::string &group)
 {
@@ -124,11 +133,9 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
     }
 }
 
-bool MyRobotWindow::enabled()
+bool MyRobotWindow::localEnabled()
 {
-    bool enabled = (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
-    enabled = enabled && (workbench == Workbench::LIVE_CONTROL);
-    return enabled;
+    return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
 }
 
 void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)

@@ -25,12 +25,24 @@
 
 namespace sofaimgui {
 
-// Workbench for Robotics Simulation GUI
+inline int getWorkbenchCount() { return 3; }
+
+// Workbench for Robotics Simulation GUI (flags)
 enum Workbench {
-    SCENE_EDITOR, // 1. Scene Editor - For building and editing the scene without simulation or robot connection capabilities.
-    SIMULATION_MODE, // 2. Simulation Mode - For running simulations with a locked scene that cannot be edited. Only the parameters can be adjusted.
-    LIVE_CONTROL // 3. Live Control - For connecting to and controlling the real robot with the finalized scene.
+    SCENE_EDITOR    = 1 << 0, // 1. Scene Editor - For building and editing the scene without simulation or robot connection capabilities.
+    SIMULATION_MODE = 1 << 1, // 2. Simulation Mode - For running simulations with a locked scene that cannot be edited. Only the parameters can be adjusted.
+    LIVE_CONTROL    = 1 << 2  // 3. Live Control - For connecting to and controlling the real robot with the finalized scene.
 };
+
+// Function to get the names of the Workbench enum as strings
+inline const char* getWorkbenchName(Workbench workbench) {
+    switch (workbench) {
+        case SCENE_EDITOR: return "Scene Editor";
+        case SIMULATION_MODE: return "Simulation Mode";
+        case LIVE_CONTROL: return "Live Control";
+        default: return "Unknown";
+    }
+}
 
 extern Workbench workbench;
 

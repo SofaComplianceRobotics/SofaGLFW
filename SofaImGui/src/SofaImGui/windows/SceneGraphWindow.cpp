@@ -35,6 +35,8 @@ namespace sofaimgui::windows {
 
 SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;

@@ -28,12 +28,15 @@
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/Workbench.h>
 
 namespace sofaimgui::windows {
 
 MoveWindow::MoveWindow(const std::string& name,
                          const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;

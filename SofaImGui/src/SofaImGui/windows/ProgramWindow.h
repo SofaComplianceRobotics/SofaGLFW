@@ -49,7 +49,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return m_IPController!=nullptr && workbench != Workbench::SCENE_EDITOR;}
     void clearWindow() override {m_IPController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
@@ -83,6 +82,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     std::string m_info;
     bool m_refreshInfo = false;
+
+    bool localEnabled() override {return m_IPController!=nullptr;}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.

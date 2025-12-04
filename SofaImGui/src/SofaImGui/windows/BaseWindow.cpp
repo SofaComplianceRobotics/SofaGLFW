@@ -29,6 +29,11 @@ WindowsSettings &WindowsSettings::getInstance()
     return windowsSettings;
 }
 
+BaseWindow::BaseWindow()
+{
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+}
+
 bool& BaseWindow::isOpen()
 {
     if (!enabled())

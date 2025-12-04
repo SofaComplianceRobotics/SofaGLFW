@@ -33,7 +33,6 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     ~MyRobotWindow() = default;
 
     void showWindow(const ImGuiWindowFlags &windowFlags);
-    bool enabled() override;
 
     struct Connection{
         std::vector<std::string> ports;
@@ -69,15 +68,17 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     void clearWindow() override;
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
+    Connection& getConnection();
     void addInformation(const Information &info, const std::string &group);
     void addSetting(const Setting &setting, const std::string &group);
-    Connection& getConnection() {return m_connection;}
 
    protected:
 
     Connection m_connection;
     std::vector<InformationGroup> m_informationGroups;
     std::vector<SettingGroup> m_settingGroups;
+
+    bool localEnabled() override;
 
     bool isInEmptyGroup(const std::string &group);
     bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max, const int nbIndents);

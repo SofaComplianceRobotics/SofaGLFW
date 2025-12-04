@@ -21,6 +21,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <SofaImGui/Workbench.h>
 #include <string>
 
 #include <sofa/simulation/Node.h>
@@ -76,7 +77,7 @@ protected:
 class SOFAIMGUI_API BaseWindow
 {
    public:
-    BaseWindow() = default;
+    BaseWindow();
     ~BaseWindow() = default;
 
     std::string getName() const {return m_name;}
@@ -86,7 +87,7 @@ class SOFAIMGUI_API BaseWindow
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool enabled() {return true;}
+    bool enabled() {return isEnabledInWorkbench() && localEnabled();}
 
     /// This is called before loading / reloading a simulation.
     virtual void clearWindow() {}
@@ -110,13 +111,19 @@ class SOFAIMGUI_API BaseWindow
         return m_labelname;
     }
 
+    /// Returns true if the window is enabled in the current workbench
+    bool isEnabledInWorkbench() {return (m_workbenches & workbench);}
+
    protected:
+
+    virtual bool localEnabled() {return true;}
 
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
     bool m_isDrivingSimulation{false}; /// Does the window have tools to drive the robot in simulation
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
+    int m_workbenches;
 
 };
 

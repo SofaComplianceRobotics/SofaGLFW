@@ -53,6 +53,8 @@ using sofa::type::Quat;
 ProgramWindow::ProgramWindow(const std::string& name,
                              const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;

@@ -36,7 +36,6 @@ public:
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
     void clearWindow() override;
-    bool enabled() override {return workbench != Workbench::LIVE_CONTROL;}
 
 protected:
 

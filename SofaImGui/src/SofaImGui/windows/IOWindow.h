@@ -137,8 +137,6 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     IOWindow(const std::string& name, const bool& isWindowOpen);
     ~IOWindow();
 
-    bool enabled() override {return workbench != Workbench::SCENE_EDITOR;}
-
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
     void showWindow(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags);

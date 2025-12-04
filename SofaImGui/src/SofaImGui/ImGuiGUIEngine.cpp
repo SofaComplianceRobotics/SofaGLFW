@@ -272,7 +272,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             SI_Error rc = workbenchIni.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
             SOFA_UNUSED(rc);
             assert(rc == SI_OK);
-            workbench = Workbench(workbenchIni.GetLongValue("Workbench", "type", 1));
+            workbench = Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE));
         }
 
         m_IOWindow.setSimulationState(m_simulationState);
@@ -521,8 +521,6 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
 void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    static const char* workbenches[]{"Scene Editor", "Simulation Mode", "Live Control"};
-
     if (ImGui::BeginMainMenuBar())
     {
         std::string version = "v" + std::string(SOFA_VERSION_STR);
@@ -544,12 +542,22 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if (ImGui::BeginMenu("Workbench"))
         {
             ImGui::PopStyleColor();
+            bool disableLiveControl = !Robot::getInstance().isEnabled();
             int value = workbench;
-            for (int i=0; i<3; i++)
+            for (int i=0; i<getWorkbenchCount(); i++)
             {
                 ImGui::PushID(i);
-                if (ImGui::LocalRadioButton(workbenches[i], &value, i))
+
+                int j = pow(2, i);
+                if(Workbench(j) == Workbench::LIVE_CONTROL && disableLiveControl)
+                    ImGui::BeginDisabled();
+
+                if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
                     workbench = Workbench(value);
+
+                if(Workbench(j) == Workbench::LIVE_CONTROL && disableLiveControl)
+                    ImGui::EndDisabled();
+
                 ImGui::PopID();
             }
             ImGui::EndMenu();
@@ -679,7 +687,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 ImGui::EndDisabled();
                 ImGui::SameLine(0, 0); // Ensure a normal spacing between the words
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-                ImGui::Text("%s", workbenches[workbench]);
+                ImGui::Text("%s", getWorkbenchName(workbench));
                 ImGui::PopStyleColor();
             }
 
@@ -696,6 +704,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                             FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
                     }
                     ImGui::Text(connection? "Robot" : "Simulation");
+                    ImGui::SetItemTooltip("Connection to the robot");
                 }
             }
 

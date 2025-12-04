@@ -76,7 +76,6 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     ~PlottingWindow() = default;
 
     void showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return !m_data.empty() && workbench != Workbench::SCENE_EDITOR;}
     void addData(const PlottingData data) {m_data.push_back(data);}
     void clearWindow() override;
 
@@ -87,6 +86,8 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
     size_t m_nbRows{1};
     size_t m_nbCols{1};
+
+    bool localEnabled() override {return !m_data.empty();}
 
     void exportData();
     void showMenu();

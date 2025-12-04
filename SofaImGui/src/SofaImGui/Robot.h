@@ -32,6 +32,9 @@ public:
     void setConnection(const bool& connected);
     bool& getConnection() {return m_status.connected;}
 
+    void setEnabled(const bool& enable) {m_enabled=enable;}
+    bool isEnabled() {return m_enabled;}
+
 protected:
 
     struct Status {
@@ -39,6 +42,7 @@ protected:
     };
 
     Status m_status;
+    bool m_enabled{false};
 };
 
 } // namespace

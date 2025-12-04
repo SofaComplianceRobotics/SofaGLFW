@@ -40,6 +40,8 @@ namespace sofaimgui::windows {
 
 IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
