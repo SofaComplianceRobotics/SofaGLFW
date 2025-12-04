@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "IconsFontAwesome6.h"
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -133,108 +134,110 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
     }
 }
 
-bool MyRobotWindow::localEnabled()
+bool MyRobotWindow::enabled()
 {
     return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
 }
 
 void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    if (enabled() && isOpen())
+    if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            ImGui::Spacing();
-
-            if (m_connection.listAvailablePortsCallback)
-            { // Connection
-                if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
-                {
-                    bool connected = Robot::getInstance().getConnection();
-
-                    ImGui::Text("Available ports:");
-
-                    if(connected)
-                        ImGui::BeginDisabled();
-
-                    ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
-                    const size_t nbPorts = m_connection.ports.size();
-                    std::vector<const char*> ports;
-                    ports.reserve(nbPorts);
-                    for (size_t i=0; i<nbPorts; i++)
-                        ports.push_back(m_connection.ports[i].c_str());
-                    ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
-                    static bool firstTime = true;
-                    if (ImGui::IsItemClicked() || firstTime)
-                    {
-                        firstTime = false;
-                        setAvailablePorts(m_connection.listAvailablePortsCallback());
-                    }
-                    ImGui::PopItemWidth();
-
-                    if(connected)
-                        ImGui::EndDisabled();
-
-                    ImGui::Text("Status:");
-                    ImGui::SameLine();
-
-                    ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImVec4(0.56f, 0.83f, 0.26f, 1.f): ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
-                    ImGui::Text((connected)? "Connected": "Disconnected");
-                    ImGui::PopStyleColor();
-
-                    ImGui::LocalEndCollapsingHeader();
-                }
-            }
-
-            // Information
-            if (!m_informationGroups.empty())
+            if (enabled())
             {
-                if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
-                {
-                    std::string groups;
-                    int k=0;
-                    for (auto &group: m_informationGroups)
+                ImGui::Spacing();
+
+                if (m_connection.listAvailablePortsCallback)
+                { // Connection
+                    if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        ImGui::PushID(k++);
-                        if (!isInEmptyGroup(group.description))
-                        {
-                            ImGui::TextDisabled("%s", group.description.c_str());
-                            ImGui::Indent();
-                        }
+                        bool connected = Robot::getInstance().getConnection();
 
-                        int i=0;
-                        for (auto &information: group.information)
-                        {
-                            ImGui::PushID(i++);
-                            ImGui::AlignTextToFramePadding();
-                            ImGui::Text("%s", information.description.c_str());
-                            ImGui::SameLine();
+                        ImGui::Text("Available ports:");
 
-                            auto* typeinfo = information.data->getValueTypeInfo();
-                            auto* values = information.data->getValueVoidPtr();
-
+                        if(connected)
                             ImGui::BeginDisabled();
-                            for (size_t i=0; i<typeinfo->size(); i++)
-                            {
-                                double buffer = typeinfo->getScalarValue(values, i);
-                                ImGui::LocalInputDouble(("##information" + information.description).c_str(), &buffer, 0, 0);
-                            }
+
+                        ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
+                        const size_t nbPorts = m_connection.ports.size();
+                        std::vector<const char*> ports;
+                        ports.reserve(nbPorts);
+                        for (size_t i=0; i<nbPorts; i++)
+                            ports.push_back(m_connection.ports[i].c_str());
+                        ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
+                        static bool firstTime = true;
+                        if (ImGui::IsItemClicked() || firstTime)
+                        {
+                            firstTime = false;
+                            setAvailablePorts(m_connection.listAvailablePortsCallback());
+                        }
+                        ImGui::PopItemWidth();
+
+                        if(connected)
                             ImGui::EndDisabled();
+
+                        ImGui::Text("Status:");
+                        ImGui::SameLine();
+
+                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImVec4(0.56f, 0.83f, 0.26f, 1.f): ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
+                        ImGui::Text((connected)? "Connected": "Disconnected");
+                        ImGui::PopStyleColor();
+
+                        ImGui::LocalEndCollapsingHeader();
+                    }
+                }
+
+                // Information
+                if (!m_informationGroups.empty())
+                {
+                    if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
+                    {
+                        std::string groups;
+                        int k=0;
+                        for (auto &group: m_informationGroups)
+                        {
+                            ImGui::PushID(k++);
+                            if (!isInEmptyGroup(group.description))
+                            {
+                                ImGui::TextDisabled("%s", group.description.c_str());
+                                ImGui::Indent();
+                            }
+
+                            int i=0;
+                            for (auto &information: group.information)
+                            {
+                                ImGui::PushID(i++);
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s", information.description.c_str());
+                                ImGui::SameLine();
+
+                                auto* typeinfo = information.data->getValueTypeInfo();
+                                auto* values = information.data->getValueVoidPtr();
+
+                                ImGui::BeginDisabled();
+                                for (size_t i=0; i<typeinfo->size(); i++)
+                                {
+                                    double buffer = typeinfo->getScalarValue(values, i);
+                                    ImGui::LocalInputDouble(("##information" + information.description).c_str(), &buffer, 0, 0);
+                                }
+                                ImGui::EndDisabled();
+                                ImGui::PopID();
+                            }
+
+                            if (!isInEmptyGroup(group.description))
+                                ImGui::Unindent();
+
                             ImGui::PopID();
                         }
 
-                        if (!isInEmptyGroup(group.description))
-                            ImGui::Unindent();
-
-                        ImGui::PopID();
+                        ImGui::LocalEndCollapsingHeader();
                     }
-
-                    ImGui::LocalEndCollapsingHeader();
                 }
-            }
 
-            // Settings
-            if (!m_settingGroups.empty())
+                // Settings
+                if (!m_settingGroups.empty())
             {
                 if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
                 {
@@ -276,6 +279,14 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     }
                     ImGui::LocalEndCollapsingHeader();
                 }
+            }
+            }
+            else
+            {
+                displayDisabledInfoMessage("This window is used to display the robot's information and settings. "
+                                           "It also provides connection management features. However, no information or settings"
+                                           " have been registered for display, nor is there any connection management available."
+                                           );
             }
         }
         ImGui::End();

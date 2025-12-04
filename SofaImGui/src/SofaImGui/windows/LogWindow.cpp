@@ -52,7 +52,7 @@ LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
 
 void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    if (enabled() && isOpen())
+    if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {

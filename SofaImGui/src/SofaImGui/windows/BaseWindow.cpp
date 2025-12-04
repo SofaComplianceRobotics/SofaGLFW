@@ -19,6 +19,7 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#include "IconsFontAwesome6.h"
 #include <SofaImGui/windows/BaseWindow.h>
 
 namespace sofaimgui::windows {
@@ -36,9 +37,18 @@ BaseWindow::BaseWindow()
 
 bool& BaseWindow::isOpen()
 {
-    if (!enabled())
+    if (!isEnabledInWorkbench())
         m_isOpen = false;
     return m_isOpen;
+}
+
+void BaseWindow::displayDisabledInfoMessage(const char* message)
+{
+    ImGui::BeginDisabled();
+    ImGui::Text(ICON_FA_CIRCLE_INFO);
+    ImGui::SameLine();
+    ImGui::TextWrapped("%s", message);
+    ImGui::EndDisabled();
 }
 
 }

@@ -92,7 +92,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     ImGui::MovePad m_movePad;
 
-    bool localEnabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
+    bool enabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

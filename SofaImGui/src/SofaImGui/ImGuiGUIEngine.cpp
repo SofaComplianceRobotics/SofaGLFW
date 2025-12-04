@@ -542,21 +542,14 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if (ImGui::BeginMenu("Workbench"))
         {
             ImGui::PopStyleColor();
-            bool disableLiveControl = !Robot::getInstance().isEnabled();
             int value = workbench;
             for (int i=0; i<getWorkbenchCount(); i++)
             {
                 ImGui::PushID(i);
 
                 int j = pow(2, i);
-                if(Workbench(j) == Workbench::LIVE_CONTROL && disableLiveControl)
-                    ImGui::BeginDisabled();
-
                 if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
                     workbench = Workbench(value);
-
-                if(Workbench(j) == Workbench::LIVE_CONTROL && disableLiveControl)
-                    ImGui::EndDisabled();
 
                 ImGui::PopID();
             }
@@ -575,7 +568,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             for (auto& window : m_windows) 
             {
                 auto windowName = window.get().getName();
-                if (!window.get().enabled())
+                if (!window.get().isEnabledInWorkbench())
                     ImGui::BeginDisabled();
 
                 bool isViewport = (windowName == m_viewportWindow.getName());
@@ -585,8 +578,11 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 if (isViewport)
                     ImGui::Separator();
 
-                if (!window.get().enabled())
+                if (!window.get().isEnabledInWorkbench())
+                {
                     ImGui::EndDisabled();
+                    ImGui::SetItemTooltip("Not enabled in active workbench");
+                }
             }
 
             ImGui::EndMenu();

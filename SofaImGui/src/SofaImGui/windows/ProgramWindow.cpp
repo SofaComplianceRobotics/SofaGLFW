@@ -74,7 +74,7 @@ void ProgramWindow::loadAndProcessWindowSettings()
 void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
                                const ImGuiWindowFlags& windowFlags)
 {
-    if (enabled() && isOpen())
+    if (isEnabledInWorkbench() && isOpen())
     {
         if (baseGUI)
             m_baseGUI = baseGUI;
@@ -96,56 +96,65 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
-            showProgramButtons();
-
-            float width = ImGui::GetWindowWidth();
-            float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
-            static const float defaultZoomCoef = 6.5;
-            static float zoomCoef = defaultZoomCoef;
-            static float minSize = ImGui::GetFrameHeight() * 1.5;
-            ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
-            ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-
-            if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
+            if (enabled())
             {
-                ImGui::PopStyleColor();
+                showProgramButtons();
 
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+                float width = ImGui::GetWindowWidth();
+                float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
+                static const float defaultZoomCoef = 6.5;
+                static float zoomCoef = defaultZoomCoef;
+                static float minSize = ImGui::GetFrameHeight() * 1.5;
+                ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
+                ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
-                if (m_timeBasedDisplay)
-                    showTimeline();
-                else // Keep the space the timeline would have taken, empty
+                if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
                 {
-                    ImGui::NewLine();
-                    ImGui::NewLine();
-                }
+                    ImGui::PopStyleColor();
 
-                int nbCollaspedTracks = showTracks();
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+
+                    if (m_timeBasedDisplay)
+                        showTimeline();
+                    else // Keep the space the timeline would have taken, empty
+                    {
+                        ImGui::NewLine();
+                        ImGui::NewLine();
+                    }
+
+                    int nbCollaspedTracks = showTracks();
+
+                    if (m_timeBasedDisplay)
+                        showCursorMarker(nbCollaspedTracks);
+                    else // Keep the space the cursor marker would have taken, empty
+                        ImGui::NewLine();
+
+                    ImGui::PopStyleVar();
+                }
+                else
+                {
+                    ImGui::PopStyleColor();
+                }
+                ImGui::EndChild();
 
                 if (m_timeBasedDisplay)
-                    showCursorMarker(nbCollaspedTracks);
-                else // Keep the space the cursor marker would have taken, empty
-                    ImGui::NewLine();
-
-                ImGui::PopStyleVar();
+                {
+                    if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+                        zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
+                    float coefMax = 20.f;
+                    zoomCoef = (zoomCoef < 1)? 1 : zoomCoef;
+                    zoomCoef = (zoomCoef > coefMax)? coefMax : zoomCoef;
+                }
+                else
+                    zoomCoef = defaultZoomCoef;
             }
             else
             {
-                ImGui::PopStyleColor();
+                displayDisabledInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
+                                           "The scene is missing elements for this window to work properly. "
+                                           );
             }
-            ImGui::EndChild();
-
-            if (m_timeBasedDisplay)
-            {
-                if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-                    zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
-                float coefMax = 20.f;
-                zoomCoef = (zoomCoef < 1)? 1 : zoomCoef;
-                zoomCoef = (zoomCoef > coefMax)? coefMax : zoomCoef;
-            }
-            else
-                zoomCoef = defaultZoomCoef;
         }
         ImGui::End();
     }

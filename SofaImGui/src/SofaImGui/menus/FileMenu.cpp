@@ -163,31 +163,23 @@ bool FileMenu::addImportExportProgram()
         return false;
 
     if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-    {
         engine->saveProject();
-    }
 
-    if (!engine->m_programWindow.enabled())
+    if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
     if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I"))
-    {
         engine->m_programWindow.importProgram();
-    }
 
     if (ImGui::MenuItem("Export Program", "Ctrl+Shift+E"))
-    {
         engine->m_programWindow.exportProgram(false);
-    }
     ImGui::SetItemTooltip("Export the current program.");
 
     if (ImGui::MenuItem("Export Program As..."))
-    {
         engine->m_programWindow.exportProgram();
-    }
     ImGui::SetItemTooltip("Export the current program at a desired location.");
 
-    if (!engine->m_programWindow.enabled())
+    if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::EndDisabled();
 
     return true;

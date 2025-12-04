@@ -87,7 +87,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     size_t m_nbRows{1};
     size_t m_nbCols{1};
 
-    bool localEnabled() override {return !m_data.empty();}
+    bool enabled() override {return !m_data.empty();}
 
     void exportData();
     void showMenu();

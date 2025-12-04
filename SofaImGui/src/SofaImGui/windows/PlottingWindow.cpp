@@ -105,15 +105,19 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
         }
     }
     
-    if (enabled() && isOpen())
+    if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
+            if (!enabled())
+                displayDisabledInfoMessage("This window is used to plot data over time. It currently has no data registered.");
+
             static PlottingData* dragedData;
             ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
             auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
             auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
+            // Clear button
             if (ImGui::Button("Clear"))
             {
                 for(auto& buffer: m_buffers)
@@ -122,9 +126,19 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
 
             ImGui::SameLine();
 
+            // Export csv button
+            if (!enabled())
+                ImGui::BeginDisabled();
+
             if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
             {
                 exportData();
+            }
+
+            if (!enabled())
+            {
+                ImGui::SetItemTooltip("No values to export.");
+                ImGui::EndDisabled();
             }
 
             ImGui::SameLine();
@@ -184,7 +198,7 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
                             auto& data = m_data[k];
                             if (data.idSubplot == i)
                             {
-                                RollingBuffer& buffer = m_buffers[k];                                
+                                RollingBuffer& buffer = m_buffers[k];
 
                                 ImPlot::PlotLine(data.description.c_str(),
                                                  &buffer.data[0].x,

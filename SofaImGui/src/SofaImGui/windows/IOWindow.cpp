@@ -97,10 +97,13 @@ void IOWindow::showWindow(sofa::simulation::Node *groot,
 {
     SOFA_UNUSED(groot);
     
-    if (enabled() && isOpen())
+    if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
+            if (!enabled())
+                displayDisabledInfoMessage("This window is used for input/output operations of data. It currently has no data registered.");
+
             m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
 
             static const char* items[]{
