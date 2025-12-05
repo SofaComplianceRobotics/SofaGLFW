@@ -81,7 +81,7 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 ImGui::EndChild();
 
                 ImGui::AlignTextToFramePadding();
-                ImGui::Text("List of loaded plugins:");
+                ImGui::Text("List of Loaded Plugins:");
 
                 ImGui::SameLine();
                 ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area

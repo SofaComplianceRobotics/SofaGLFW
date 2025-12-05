@@ -32,6 +32,7 @@
 
 #include <SofaImGui/windows/ViewportWindow.h>
 #include <SofaImGui/windows/SceneGraphWindow.h>
+#include <SofaImGui/windows/ComponentsWindow.h>
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
@@ -97,6 +98,7 @@ public:
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
+    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
     windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false);
     windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true);
@@ -118,6 +120,7 @@ protected:
                                                                         m_plottingWindow,
                                                                         m_viewportWindow,
                                                                         m_sceneGraphWindow,
+                                                                        m_componentsWindow,
                                                                         m_logWindow
     };
 

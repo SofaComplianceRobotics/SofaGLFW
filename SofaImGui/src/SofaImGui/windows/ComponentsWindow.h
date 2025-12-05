@@ -21,27 +21,35 @@
 ******************************************************************************/
 #pragma once
 
-#include <sofa/simulation/Node.h>
+#include <sofa/core/CategoryLibrary.h>
+#include <SofaImGui/windows/BaseWindow.h>
 
-
-namespace windows
+namespace sofaimgui::windows
 {
-        /**
-         * @brief Shows the Scene Graph window.
-         *
-         * This function displays the hierarchy of nodes and objects in the scene graph, allowing users to interact with and inspect different components and their properties.
-         *
-         * @param groot The root node of the scene graph.
-         * @param windowNameSceneGraph The name of the Scene Graph window.
-         * @param isSceneGraphWindowOpen A reference to a boolean flag indicating if the Scene Graph window is open.
-         * @param openedComponents A set containing pointers to the components that are currently opened and being inspected.
-         * @param focusedComponents A set containing pointers to the components that are currently focused for inspection.
-         */
-        void showSceneGraph(sofa::core::sptr<sofa::simulation::Node> groot,
-                            const char* const& windowNameSceneGraph,
-                            bool& isSceneGraphWindowOpen,
-                            std::set<sofa::core::objectmodel::BaseObject*>& openedComponents,
-                            std::set<sofa::core::objectmodel::BaseObject*>& focusedComponents);
 
+/**
+* @brief Components Window.
+*
+* Displays a window listing all available components along with their categories.
+* It allows users to select a component to view its details, including name, description, templates, 
+* aliases, namespaces, parents, targets, and data properties.
+*/
+class SOFAIMGUI_API ComponentsWindow : public BaseWindow
+{
 
-} // namespace sofaimgui
+public:
+    ComponentsWindow(){}
+    ComponentsWindow(const std::string& name, const bool& isWindowOpen);
+    ~ComponentsWindow()=default;
+
+    void showWindow(const ImGuiWindowFlags &windowFlags);
+
+protected:
+
+    void showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ObjectFactory::ClassEntry::SPtr &selectedComponent);
+    void showComponentInfo(sofa::core::ClassEntry::SPtr selectedComponent);
+    void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
+    void saveFile();
+};
+
+} // namespace 

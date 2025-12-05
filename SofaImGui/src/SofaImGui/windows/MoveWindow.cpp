@@ -290,7 +290,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
             }
             else
             {
-                displayDisabledInfoMessage("This window is used to move the target of a robot's tool center position, or actuators, using sliders. "
+                displayDisabledInfoMessage("This window is used to move the target of a robot's tool center position (TCP), or actuators, using sliders. "
                                            "The scene is missing elements for this window to work properly. "
                                            );
             }

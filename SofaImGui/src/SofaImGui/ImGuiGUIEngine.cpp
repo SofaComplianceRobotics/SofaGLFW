@@ -170,9 +170,11 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
     {
         const auto dockLabel = std::to_string(id);
         auto& windowsSettings = windows::WindowsSettings::getInstance();
-        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", double(500.)),
-                           windowsSettings.getSetting(dockLabel.c_str(), "height", double(500.)));
-        ImGui::DockBuilderSetNodeSize(id, size);
+        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", 0.),
+                           windowsSettings.getSetting(dockLabel.c_str(), "height", 0.));
+
+        if (size.x > 0 && size.y > 0)
+            ImGui::DockBuilderSetNodeSize(id, size);
     }
 }
 
@@ -408,6 +410,7 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
         ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right);
         ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right);
+        ImGui::DockBuilderDockWindow(m_componentsWindow.getLabel().c_str(), dock_id_right);
 
         ImGui::DockBuilderDockWindow(m_moveWindow.getLabel().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getLabel().c_str(), dock_id_right_up);
@@ -515,6 +518,7 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_myRobotWindow.showWindow(windowFlags);
     m_moveWindow.showWindow(baseGUI, windowFlags);
     m_sceneGraphWindow.showWindow(baseGUI, windowFlags);
+    m_componentsWindow.showWindow(windowFlags);
 
     m_pluginsWindow.showWindow();
 }

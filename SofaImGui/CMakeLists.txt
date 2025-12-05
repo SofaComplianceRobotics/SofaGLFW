@@ -107,6 +107,7 @@ set(SOFAIMGUI_SOURCE_DIR src/SofaImGui)
 
 set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/BaseWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/ComponentsWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/IOWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/LogWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MyRobotWindow.h
@@ -165,6 +166,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/BaseWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/ComponentsWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/IOWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/LogWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/MyRobotWindow.cpp
