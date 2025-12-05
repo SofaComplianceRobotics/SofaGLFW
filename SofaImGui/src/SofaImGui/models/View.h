@@ -2,18 +2,18 @@
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
- * This program is free software; you can redistribute it and/or modify it     *
+ * This Track is free software; you can redistribute it and/or modify it     *
  * under the terms of the GNU General Public License as published by the Free  *
  * Software Foundation; either version 2 of the License, or (at your option)   *
  * any later version.                                                          *
  *                                                                             *
- * This program is distributed in the hope that it will be useful, but WITHOUT *
+ * This Track is distributed in the hope that it will be useful, but WITHOUT *
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or       *
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for    *
  * more details.                                                               *
  *                                                                             *
  * You should have received a copy of the GNU General Public License along     *
- * with this program. If not, see <http://www.gnu.org/licenses/>.              *
+ * with this Track. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************
  * Authors: The SOFA Team and external contributors (see Authors.txt)          *
  *                                                                             *
@@ -21,36 +21,18 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/config.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <imgui.h>
+#include <sofa/simulation/Node.h>
 
 
-namespace sofaimgui::menus {
+namespace sofaimgui::models {
 
-class ViewMenu
-{
-   public:
-    ViewMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI);
-    ~ViewMenu();
+void addViewportViewMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI);
 
-    void addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
-                 const GLuint &texture);
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
+void showGrid(sofaglfw::SofaGLFWBaseGUI* baseGUI, const bool& show, const float& squareSize, const float& thickness, const sofa::type::RGBAColor& color);
+void showBoundingBox(sofaglfw::SofaGLFWBaseGUI* baseGUI, const bool& show);
+void showOriginFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI, const bool& show);
 
-   protected:
+} // namespace
 
-    void addViewport();
-    void addAlignCamera(sofa::component::visual::BaseCamera::SPtr camera);
-    void addOrthographic(sofa::component::visual::BaseCamera::SPtr camera);
-    void addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera);
 
-    void addSaveCamera();
-    void addRestoreCamera();
-    void addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fboSize,
-                           const GLuint& texture);
-
-    void addFullScreen();
-};
-
-}

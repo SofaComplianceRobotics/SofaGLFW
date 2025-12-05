@@ -37,7 +37,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot, const ImTextureID& texture,
                     const ImGuiWindowFlags &windowFlags);
 
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
+    void addViewButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
     bool addStepButton();
     bool addAnimateButton(bool *animate);
     bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);

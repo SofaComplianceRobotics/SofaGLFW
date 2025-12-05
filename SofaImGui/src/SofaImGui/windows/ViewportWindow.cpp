@@ -31,6 +31,7 @@
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/models/View.h>
 
 
 namespace sofaimgui::windows {
@@ -95,7 +96,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     }
                 }
 
-                addCameraButtons(baseGUI, groot);
+                addViewButtons(baseGUI, groot);
             }
             ImGui::EndChild();
         }
@@ -126,7 +127,7 @@ bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
     return false;
 }
 
-void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
+void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
 {
     // If the camera is not correctly initialized don't draw anything
     if (!checkCamera(groot))
@@ -260,6 +261,24 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             const auto& bbox = groot->f_bbox.getValue();
 
+            // Viewport display options
+            {
+                if (ImGui::BeginPopup("##DisplayOptions"))
+                {
+                    models::addViewportViewMenu(baseGUI);
+                    ImGui::EndPopup();
+                }
+
+                if (ImGui::Button(ICON_FA_BARS, buttonSize))
+                {
+                    ImGui::OpenPopup("##DisplayOptions");
+                }
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            ImGui::PopStyleColor();
+
             { // Fit all
                 if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
                 {
@@ -287,6 +306,10 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
                 ImGui::SetItemTooltip("Orthographic/Perspective");
             }
+
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            ImGui::PopStyleColor();
 
             { // Orientation gizmo button
                 if (ImGui::Button(ICON_FA_ROTATE, buttonSize))
