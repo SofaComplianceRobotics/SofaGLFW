@@ -302,9 +302,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
-            const auto o = sofa::type::RGBAColor::orange();
+            const auto o = baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
             const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -804,29 +804,30 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
         if(ImGui::MenuItem("Copy Scene Graph Path"))
             ImGui::SetClipboardText(object->getPathName().c_str());
 
-        ImGui::Separator();
+        // Needs SOFA#5798
+        // ImGui::Separator();
 
-        if (!instantiationFilename.empty())
-        {
-            if(ImGui::MenuItem("Open Instantiation File..."))
-            {
-                if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
-                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
-                else
-                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
-            }
-        }
+        // if (!instantiationFilename.empty())
+        // {
+        //     if(ImGui::MenuItem("Open Instantiation File..."))
+        //     {
+        //         if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
+        //             FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
+        //         else
+        //             FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
+        //     }
+        // }
 
-        if (!implementationFilename.empty())
-        {
-            if(ImGui::MenuItem("Open Implementation File..."))
-            {
-                if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
-                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
-                else
-                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
-            }
-        }
+        // if (!implementationFilename.empty())
+        // {
+        //     if(ImGui::MenuItem("Open Implementation File..."))
+        //     {
+        //         if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
+        //             FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
+        //         else
+        //             FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
+        //     }
+        // }
     }
 }
 
