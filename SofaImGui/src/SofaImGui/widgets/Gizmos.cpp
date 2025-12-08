@@ -39,7 +39,7 @@ static struct Config {
     float mY = 0.f;
     float mSize = 100.f;
     ImDrawList* mDrawList = nullptr;
-    ImVec4 hoverColor{1.f, 0.5f, 0.f, 1.f};
+    ImVec4 hoverColor{1.0f, 0.5f, 0.0f, 1.0f};
 } config;
 
 ImVec4 multiply(const float* const m, const ImVec4& v)

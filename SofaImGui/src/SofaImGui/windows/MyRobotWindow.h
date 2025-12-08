@@ -32,7 +32,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     MyRobotWindow(const std::string& name, const bool& isWindowOpen);
     ~MyRobotWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
 
     struct Connection{
         std::vector<std::string> ports;

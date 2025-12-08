@@ -50,8 +50,10 @@ LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
     m_isDrivingSimulation = false;
 }
 
-void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
+    SOFA_UNUSED(baseGUI);
+
     if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))

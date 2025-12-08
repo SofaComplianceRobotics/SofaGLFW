@@ -51,4 +51,10 @@ void BaseWindow::displayDisabledInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
+void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+{
+    SOFA_UNUSED(baseGUI);
+    SOFA_UNUSED(windowFlags);
+}
+
 }

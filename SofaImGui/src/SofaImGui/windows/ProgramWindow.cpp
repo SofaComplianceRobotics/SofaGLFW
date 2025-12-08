@@ -71,8 +71,7 @@ void ProgramWindow::loadAndProcessWindowSettings()
         importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
 
-void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI,
-                               const ImGuiWindowFlags& windowFlags)
+void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     if (isEnabledInWorkbench() && isOpen())
     {

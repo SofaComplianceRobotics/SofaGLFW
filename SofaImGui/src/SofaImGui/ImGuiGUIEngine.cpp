@@ -289,6 +289,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
+    m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
 
@@ -408,18 +409,20 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         m_dockIDs.push_back(dockspaceID);
         setDockSizeFromFile(dock_id_down);
 
-        ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right);
-        ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right);
-        ImGui::DockBuilderDockWindow(m_componentsWindow.getLabel().c_str(), dock_id_right);
+        ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right); // interactions with MoveWindow
+        ImGui::DockBuilderDockWindow(m_componentsWindow.getLabel().c_str(), dock_id_right); // interactions with SceneGraphWindow
 
+        ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_moveWindow.getLabel().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getLabel().c_str(), dock_id_right_up);
 
         ImGui::DockBuilderDockWindow(m_viewportWindow.getLabel().c_str(), dockspaceID);
 
+        // Windows with landscape content
         ImGui::DockBuilderDockWindow(m_programWindow.getLabel().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_plottingWindow.getLabel().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_logWindow.getLabel().c_str(), dock_id_down);
+        ImGui::DockBuilderDockWindow(m_profilerWindow.getLabel().c_str(), dock_id_down);
 
         ImGui::DockBuilderGetNode(dockspaceID)->WantHiddenTabBarToggle = true;
 
@@ -439,7 +442,8 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     }
 
     auto groot = baseGUI->getRootNode();
-    m_viewportWindow.showWindow(baseGUI, groot.get(), (ImTextureID)m_fbo->getColorTexture(),
+    m_viewportWindow.showWindow(baseGUI,
+                                (ImTextureID)m_fbo->getColorTexture(),
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
                                 );
 
@@ -506,21 +510,13 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
 void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    auto groot = baseGUI->getRootNode().get();
-
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ;
 
-    m_programWindow.showWindow(baseGUI, windowFlags);
-    m_plottingWindow.showWindow(groot, windowFlags);
-
-    m_logWindow.showWindow(windowFlags);
-    m_IOWindow.showWindow(groot, windowFlags);
-    m_myRobotWindow.showWindow(windowFlags);
-    m_moveWindow.showWindow(baseGUI, windowFlags);
-    m_sceneGraphWindow.showWindow(baseGUI, windowFlags);
-    m_componentsWindow.showWindow(windowFlags);
-
-    m_pluginsWindow.showWindow();
+    for (const auto& window : m_windows)
+    {
+        if (window.get().getName() != m_viewportWindow.getName())
+            window.get().showWindow(baseGUI, windowFlags);
+    }
 }
 
 void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)

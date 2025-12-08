@@ -84,9 +84,10 @@ void PlottingWindow::exportData()
     }
 }
 
-void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags)
+void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(windowFlags);
+    auto groot = baseGUI->getRootNode().get();
 
     size_t nbData = m_data.size();
     if (m_buffers.size() != nbData)

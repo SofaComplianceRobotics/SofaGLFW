@@ -117,6 +117,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
@@ -176,6 +177,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp

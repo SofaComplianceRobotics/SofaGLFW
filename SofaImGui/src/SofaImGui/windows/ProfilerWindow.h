@@ -21,35 +21,36 @@
 ******************************************************************************/
 #pragma once
 
-#include <sofa/core/CategoryLibrary.h>
+#include <sofa/helper/AdvancedTimer.h>
+#include <unordered_set>
 #include <SofaImGui/windows/BaseWindow.h>
 
 namespace sofaimgui::windows
 {
 
 /**
-* @brief Components Window.
-*
-* Displays a window listing all available components along with their categories.
-* It allows users to select a component to view its details, including name, description, templates, 
-* aliases, namespaces, parents, targets, and data properties.
-*/
-class SOFAIMGUI_API ComponentsWindow : public BaseWindow
+ * @brief Profiler Window.
+ *
+ * Displays profiling information, including frame durations, timer percentages, and timer durations.
+ */
+class ProfilerWindow : public BaseWindow
 {
+   public:
+    ProfilerWindow(){}
+    ProfilerWindow(const std::string& name, const bool& isWindowOpen);
+    ~ProfilerWindow()=default;
 
-public:
-    ComponentsWindow(){}
-    ComponentsWindow(const std::string& name, const bool& isWindowOpen);
-    ~ComponentsWindow()=default;
-
-    void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
 
 protected:
 
-    void showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ObjectFactory::ClassEntry::SPtr &selectedComponent);
-    void showComponentInfo(sofa::core::ClassEntry::SPtr selectedComponent);
-    void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
-    void saveFile();
+    int m_timeWindowSize{150};
+    int m_selectedFrame{0};
+    float m_selectedFrameDuration{0.};
+
+    SReal convertInMs(sofa::helper::system::thread::ctime_t t);
+    void showChart(const std::deque<sofa::type::vector<sofa::helper::Record> > &allRecords, std::unordered_set<int>& selectedTimers);
+    void showTable(const std::deque<sofa::type::vector<sofa::helper::Record> > &allRecords, std::unordered_set<int> &selectedTimers);
 };
 
-} // namespace 
+} // namespace

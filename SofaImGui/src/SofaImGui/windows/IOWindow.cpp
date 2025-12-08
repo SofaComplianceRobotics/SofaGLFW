@@ -92,10 +92,9 @@ bool IOWindow::sanitizeName(std::string &name)
     return input != name;
 }
 
-void IOWindow::showWindow(sofa::simulation::Node *groot,
-                          const ImGuiWindowFlags &windowFlags)
+void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(groot);
+    SOFA_UNUSED(baseGUI);
     
     if (isEnabledInWorkbench() && isOpen())
     {

@@ -40,8 +40,10 @@ ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindow
     m_isOpen = isWindowOpen;
 }
 
-void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
+    SOFA_UNUSED(baseGUI);
+
     if (isEnabledInWorkbench() && isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))

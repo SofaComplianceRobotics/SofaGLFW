@@ -39,6 +39,7 @@
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
+#include <SofaImGui/windows/ProfilerWindow.h>
 
 #include <SofaImGui/windows/PluginsWindow.h>
 
@@ -103,6 +104,7 @@ public:
     windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false);
     windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true);
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
+    windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
 
@@ -112,7 +114,7 @@ protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
 
-    std::vector<std::reference_wrapper<windows::BaseWindow>> m_windows{
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_windows{ // Menu bar > Windows
                                                                         m_IOWindow,
                                                                         m_programWindow,
                                                                         m_myRobotWindow,
@@ -121,8 +123,9 @@ protected:
                                                                         m_viewportWindow,
                                                                         m_sceneGraphWindow,
                                                                         m_componentsWindow,
-                                                                        m_logWindow
-    };
+                                                                        m_logWindow,
+                                                                        m_profilerWindow
+                                                                       };
 
     CSimpleIniA iniGUISettings;
 

@@ -34,7 +34,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     MoveWindow(const std::string& name, const bool& isWindowOpen);
     ~MoveWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
     void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}

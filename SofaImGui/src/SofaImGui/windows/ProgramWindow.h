@@ -47,8 +47,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     models::Program m_program; // robot program
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                    const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     void clearWindow() override {m_IPController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);

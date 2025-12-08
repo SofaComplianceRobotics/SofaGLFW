@@ -40,8 +40,11 @@ void StateWindow::setSimulationState(const models::SimulationState &simulationSt
     m_simulationStateData = simulationState.getStateData();
 }
 
-void StateWindow::showWindow()
+void StateWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
+    SOFA_UNUSED(baseGUI);
+    SOFA_UNUSED(windowFlags);
+
     if (enabled() && isOpen())
     {
         static bool openstate = true;

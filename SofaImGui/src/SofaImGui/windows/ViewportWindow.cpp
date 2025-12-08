@@ -45,13 +45,13 @@ ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen
 }
 
 void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                sofa::simulation::Node* groot,
                                 const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)
 {
-
     if (isOpen())
     {
+        auto groot = baseGUI->getRootNode().get();
+
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
@@ -74,7 +74,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addStateWindow();
+                    addStateWindow(baseGUI, windowFlags);
                     addSimulationTimeAndFPS(groot);
 
                     // Panel backgroung
@@ -104,10 +104,11 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
     }
 }
 
-void ViewportWindow::addStateWindow()
+void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
+                                    const ImGuiWindowFlags& windowFlags)
 {
     ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow();
+    m_stateWindow->showWindow(baseGUI, windowFlags);
 }
 
 bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)

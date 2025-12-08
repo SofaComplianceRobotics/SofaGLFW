@@ -21,6 +21,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
 #include <string>
 
@@ -109,6 +110,8 @@ class SOFAIMGUI_API BaseWindow
 
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench() {return (m_workbenches & workbench);}
+
+    virtual void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
 
    protected:
 
