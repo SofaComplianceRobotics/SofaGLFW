@@ -94,7 +94,7 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 
 void ViewMenu::addViewport()
 {
-    if (ImGui::BeginMenu("Viewport"))
+    if (ImGui::BeginMenu("Show"))
     {
         models::addViewportViewMenu(m_baseGUI);
 

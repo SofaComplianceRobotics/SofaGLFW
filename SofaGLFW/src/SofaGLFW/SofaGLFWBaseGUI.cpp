@@ -58,6 +58,7 @@ SofaGLFWBaseGUI::SofaGLFWBaseGUI()
     m_showSelectedObjectBoundingBox = false;
     m_showSelectedObjectPositions = true;
     m_showSelectedObjectSurfaces = true;
+    m_selectionColor = type::RGBAColor::orange();
 }
 
 SofaGLFWBaseGUI::~SofaGLFWBaseGUI()
