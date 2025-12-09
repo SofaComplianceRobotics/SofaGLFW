@@ -578,28 +578,47 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
 
 void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
 {
-    const ImGuiIO& io = ImGui::GetIO();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-
-    // Time
-    auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
-    ImGui::SetCursorPosX(position);
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-    ImGui::Text("Time: %.3f", groot->getTime());
-
-    // FPS
-    if (groot->animate_.getValue())
-        m_fps = io.Framerate;
-
-    if (m_fps > 0)
+    if (m_isOpen)
     {
-        position -= ImGui::CalcTextSize("100.0 FPS ").x;
-        ImGui::SetCursorPosX(position);
-        ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-        ImGui::Text("%.1f FPS", m_fps);
-    }
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if(ImGui::BeginChild("Render"))
+            {
+                const ImGuiIO& io = ImGui::GetIO();
 
-    ImGui::PopStyleColor();
+                // Time
+                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
+                ImGui::SetCursorPosX(position);
+                ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::Text("Time: %.3f", groot->getTime());
+                ImGui::PopStyleColor();
+                ImGui::SetItemTooltip("Total time simulated");
+
+                // FPS
+                if (groot->animate_.getValue())
+                    m_fps = io.Framerate;
+
+                if (m_fps > 0)
+                {
+                    char* performances;
+                    auto res = asprintf(&performances, "FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
+                    SOFA_UNUSED(res);
+
+                    position -= ImGui::CalcTextSize("100.0 FPS ").x;
+                    ImGui::SetCursorPosX(position);
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::Text("%.1f FPS", m_fps);
+                    ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("%s", performances);
+                }
+
+                ImGui::EndChild();
+            }
+        }
+        ImGui::End();
+    }
 }
 
 }
