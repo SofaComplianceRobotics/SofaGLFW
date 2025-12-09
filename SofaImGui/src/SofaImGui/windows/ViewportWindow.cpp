@@ -589,11 +589,14 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
 
     // FPS
     if (groot->animate_.getValue())
+        m_fps = io.Framerate;
+
+    if (m_fps > 0)
     {
         position -= ImGui::CalcTextSize("100.0 FPS ").x;
         ImGui::SetCursorPosX(position);
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-        ImGui::Text("%.1f FPS", io.Framerate);
+        ImGui::Text("%.1f FPS", m_fps);
     }
 
     ImGui::PopStyleColor();

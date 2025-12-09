@@ -49,11 +49,12 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
    protected:
 
     std::shared_ptr<StateWindow> m_stateWindow;
+    float m_fps{0.f};
 
     bool m_isMouseOnViewport{false};
     bool m_isFocusOnViewport{false};
 
-    double m_maxPanelItemWidth = 0.0;
+    double m_maxPanelItemWidth{0.0};
 
     void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
