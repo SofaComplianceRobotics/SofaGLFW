@@ -270,7 +270,7 @@ void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::si
                     ImGui::EndPopup();
                 }
 
-                if (ImGui::Button(ICON_FA_BARS, buttonSize))
+                if (ImGui::Button(ICON_FA_EYE, buttonSize))
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }

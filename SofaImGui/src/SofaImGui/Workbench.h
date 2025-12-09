@@ -44,6 +44,16 @@ inline const char* getWorkbenchName(Workbench workbench) {
     }
 }
 
+// Function to get the description of the Workbench enum as strings
+inline const char* getWorkbenchDescription(Workbench workbench) {
+    switch (workbench) {
+    case SCENE_EDITOR: return "For building and editing the scene.";
+    case SIMULATION_MODE: return "For running the simulation.";
+    case LIVE_CONTROL: return "For connecting to and controlling the real robot with the finalized scene.";
+    default: return "Unknown";
+    }
+}
+
 extern Workbench workbench;
 
 }

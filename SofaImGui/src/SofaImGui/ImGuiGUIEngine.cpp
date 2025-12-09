@@ -555,6 +555,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 int j = pow(2, i);
                 if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
                     workbench = Workbench(value);
+                ImGui::SetItemTooltip("%s", getWorkbenchDescription(Workbench(j)));
 
                 ImGui::PopID();
             }
@@ -683,13 +684,40 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     // Secondary menu bar
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.14f, 0.25f, 0.42f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
     if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
         if (ImGui::BeginMenuBar()) {
             { // Workbench
+
+                { // Buttons for quick access
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.36f, 0.36f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+                    bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
+
+                    if (disableWorkbench)
+                        ImGui::BeginDisabled();
+
+                    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+                    if (ImGui::Button(ICON_FA_PEN_RULER, buttonSize))
+                        workbench = Workbench::SCENE_EDITOR;
+                    ImGui::SetItemTooltip("Select workbench Scene Editor");
+                    if (ImGui::Button(ICON_FA_PLAY, buttonSize))
+                        workbench = Workbench::SIMULATION_MODE;
+                    ImGui::SetItemTooltip("Select workbench Simulation Mode");
+                    if (ImGui::Button(ICON_FA_ROBOT, buttonSize))
+                        workbench = Workbench::LIVE_CONTROL;
+                    ImGui::SetItemTooltip("Select workbench Live Control");
+
+                    if (disableWorkbench)
+                        ImGui::EndDisabled();
+                    ImGui::PopStyleColor(3);
+                }
+
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
                 ImGui::BeginDisabled();
                 ImGui::Text("Active Workbench: ");
                 ImGui::EndDisabled();
+                ImGui::PopStyleColor();
                 ImGui::SameLine(0, 0); // Ensure a normal spacing between the words
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
                 ImGui::Text("%s", getWorkbenchName(workbench));
@@ -698,7 +726,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
             if (workbench == Workbench::LIVE_CONTROL)
             {
-                ImGui::SetCursorPosX(ImGui::GetColumnWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
                 { // Simulation / Robot button
                     auto robot = Robot::getInstance();
 
@@ -713,7 +741,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                         else
                             FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
                     }
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
                     ImGui::Text(connection? "Robot" : "Simulation");
+                    ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("Connection to the robot");
 
                     if (!robot.isDetected())
@@ -725,7 +755,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
         ImGui::End();
     }
-    ImGui::PopStyleColor(2);
+    ImGui::PopStyleColor();
 }
 
 void ImGuiGUIEngine::applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseGUI* baseGUI)
