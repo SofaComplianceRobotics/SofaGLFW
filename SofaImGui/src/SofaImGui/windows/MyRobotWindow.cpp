@@ -65,6 +65,8 @@ void MyRobotWindow::setAvailablePorts(const std::vector<std::string> &ports)
     m_connection.ports.reserve(ports.size());
     for(auto port: ports)
         m_connection.ports.push_back(port);
+
+    Robot::getInstance().setDetected((m_connection.ports.size() > 0));
 }
 
 std::string MyRobotWindow::getSelectedPort()
@@ -77,7 +79,6 @@ std::string MyRobotWindow::getSelectedPort()
 
 MyRobotWindow::Connection& MyRobotWindow::getConnection()
 {
-    Robot::getInstance().setEnabled(true);
     return m_connection;
 }
 

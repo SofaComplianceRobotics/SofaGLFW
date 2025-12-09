@@ -32,8 +32,8 @@ public:
     void setConnection(const bool& connected);
     bool& getConnection() {return m_status.connected;}
 
-    void setEnabled(const bool& enable) {m_enabled=enable;}
-    bool isEnabled() {return m_enabled;}
+    void setDetected(const bool& detected) {m_detected=detected;}
+    bool isDetected() {return m_detected;}
 
 protected:
 
@@ -42,7 +42,7 @@ protected:
     };
 
     Status m_status;
-    bool m_enabled{false};
+    bool m_detected{false};
 };
 
 } // namespace

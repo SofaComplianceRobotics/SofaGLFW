@@ -541,6 +541,11 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
         if (ImGui::BeginMenu("Workbench"))
         {
+            bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
+
+            if (disableWorkbench)
+                ImGui::BeginDisabled();
+
             ImGui::PopStyleColor();
             int value = workbench;
             for (int i=0; i<getWorkbenchCount(); i++)
@@ -553,6 +558,10 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
                 ImGui::PopID();
             }
+
+            if (disableWorkbench)
+                ImGui::EndDisabled();
+
             ImGui::EndMenu();
         }
         else
@@ -691,6 +700,11 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             {
                 ImGui::SetCursorPosX(ImGui::GetColumnWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
                 { // Simulation / Robot button
+                    auto robot = Robot::getInstance();
+
+                    if (!robot.isDetected()) // Disable the button if no robot (from the python API) has been detected
+                        ImGui::BeginDisabled();
+
                     bool& connection = Robot::getInstance().getConnection();
                     if (ImGui::LocalToggleButton("Connection", &connection))
                     {
@@ -701,6 +715,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                     }
                     ImGui::Text(connection? "Robot" : "Simulation");
                     ImGui::SetItemTooltip("Connection to the robot");
+
+                    if (!robot.isDetected())
+                        ImGui::EndDisabled();
                 }
             }
 
