@@ -167,9 +167,11 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
     {
         const auto dockLabel = std::to_string(id);
         auto& windowsSettings = windows::WindowsSettings::getInstance();
-        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", double(500.)),
-                           windowsSettings.getSetting(dockLabel.c_str(), "height", double(500.)));
-        ImGui::DockBuilderSetNodeSize(id, size);
+        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", 0.),
+                           windowsSettings.getSetting(dockLabel.c_str(), "height", 0.));
+
+        if (size.x > 0 && size.y > 0)
+            ImGui::DockBuilderSetNodeSize(id, size);
     }
 }
 
