@@ -274,7 +274,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             SI_Error rc = workbenchIni.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
             SOFA_UNUSED(rc);
             assert(rc == SI_OK);
-            workbench = Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE));
+            changeWorkbench(Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE)));
         }
 
         m_IOWindow.setSimulationState(m_simulationState);
@@ -290,6 +290,8 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
     m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
+    m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
+
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
 
@@ -432,6 +434,12 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
     ImGui::End();
 }
 
+void ImGuiGUIEngine::changeWorkbench(Workbench wb)
+{
+    workbench = wb;
+    m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
+}
+
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
     static bool firstTime = true;
@@ -536,6 +544,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(fileMenu.m_openPluginsManager)
             m_pluginsWindow.setOpen(true);
 
+        if(fileMenu.m_openMouseManager)
+            m_mouseManagerWindow.setOpen(true);
+
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
@@ -554,7 +565,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
                 int j = pow(2, i);
                 if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
-                    workbench = Workbench(value);
+                    changeWorkbench(Workbench(value));
                 ImGui::SetItemTooltip("%s", getWorkbenchDescription(Workbench(j)));
 
                 ImGui::PopID();
@@ -614,7 +625,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             url += "/Users/SOFARobotics/GUI-user-manual/";
             ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
 
-            if (ImGui::MenuItem("\t About", nullptr, false, true))
+            if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
             ImGui::EndMenu();
         }
@@ -699,13 +710,13 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
                     ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
                     if (ImGui::Button(ICON_FA_PEN_RULER, buttonSize))
-                        workbench = Workbench::SCENE_EDITOR;
+                        changeWorkbench(Workbench::SCENE_EDITOR);
                     ImGui::SetItemTooltip("Select workbench Scene Editor");
                     if (ImGui::Button(ICON_FA_PLAY, buttonSize))
-                        workbench = Workbench::SIMULATION_MODE;
+                        changeWorkbench(Workbench::SIMULATION_MODE);
                     ImGui::SetItemTooltip("Select workbench Simulation Mode");
                     if (ImGui::Button(ICON_FA_ROBOT, buttonSize))
-                        workbench = Workbench::LIVE_CONTROL;
+                        changeWorkbench(Workbench::LIVE_CONTROL);
                     ImGui::SetItemTooltip("Select workbench Live Control");
 
                     if (disableWorkbench)

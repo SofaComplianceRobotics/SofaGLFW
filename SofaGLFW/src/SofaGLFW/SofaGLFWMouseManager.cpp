@@ -19,43 +19,50 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#pragma once
-#include <SofaGLFW/config.h>
 
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/gui/common/BaseGUI.h>
+#include <SofaGLFW/SofaGLFWWindow.h>
+#include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/Simulation.h>
+#include <sofa/gui/common/PickHandler.h>
+#include <sofa/gui/common/MouseOperations.h>
+#include <sofa/gui/common/OperationFactory.h>
+#include <SofaGLFW/SofaGLFWMouseManager.h>
 
-#include <sofa/component/setting/ViewerSetting.h>
+using namespace sofa;
+using namespace sofa::type;
+using namespace sofa::defaulttype;
 
 namespace sofaglfw
 {
 
-class SofaGLFWWindow;
+    SofaGLFWMouseManager::SofaGLFWMouseManager()
+    {
+        RegisterOperation("Attach").add< AttachOperation >();
+        RegisterOperation("AddFrame").add< AddFrameOperation >();
+        RegisterOperation("SaveCameraViewPoint").add< AddRecordedCameraOperation >();
+        RegisterOperation("StartNavigation").add< StartNavigationOperation >();
+        RegisterOperation("Fix").add< FixOperation  >();
+        RegisterOperation("Incise").add< InciseOperation  >();
+        RegisterOperation("Remove").add< TopologyOperation  >();
+        RegisterOperation("Suture").add< AddSutureOperation >();
+        RegisterOperation("ConstraintAttach").add< ConstraintAttachOperation >();
+    }
 
-class SOFAGLFW_API SofaGLFWGUI : public sofa::gui::common::BaseGUI
-{
-public:
-    SofaGLFWGUI() = default;
-    ~SofaGLFWGUI() override = default;
+    void SofaGLFWMouseManager::setPickHandler(PickHandler *picker)
+    {
+        pickHandler=picker;
 
-    bool init();
-    /// BaseGUI API
-    int mainLoop() override;
-    void redraw() override;
-    int closeGUI() override;
-    void setScene(sofa::simulation::NodeSPtr groot, const char* filename = nullptr, bool temporaryFile = false) override;
-    sofa::simulation::Node* currentSimulation() override;
-    void setViewerResolution(int width, int height) override;
-    void centerWindow() override;
-    void setViewerConfiguration(sofa::component::setting::ViewerSetting* viewerConf) override;
-    void setFullScreen() override;
-    void setBackgroundColor(const sofa::type::RGBAColor& color) override;
-    void setBackgroundImage(const std::string& image) override;
-    static sofa::gui::common::BaseGUI * CreateGUI(const char* name, sofa::simulation::NodeSPtr groot, const char* filename);
-    void setMouseButtonConfiguration(sofa::component::setting::MouseButtonSetting *setting) override;
-protected:
-    SofaGLFWBaseGUI m_baseGUI;
-    bool m_bCreateWithFullScreen{ false };
-};
+        updateOperation(LEFT,   "Attach");
+        updateOperation(MIDDLE, "Incise");
+        updateOperation(RIGHT,  "Remove");
+    }
 
-} // namespace sofaglfw
+    void SofaGLFWMouseManager::updateOperation(MOUSE_BUTTON button, const std::string &id)
+    {
+        if (pickHandler)
+        {
+            pickHandler->changeOperation(button, id);
+        }
+    }
+
+}// namespace sofaglfw

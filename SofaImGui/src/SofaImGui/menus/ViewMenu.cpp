@@ -231,7 +231,7 @@ void ViewMenu::addRestoreCamera()
 void ViewMenu::addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fboSize,
                                  const GLuint& texture)
 {
-    if (ImGui::MenuItem("Save Screenshot"))
+    if (ImGui::MenuItem("Save Screenshot..."))
     {
         std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
         nfdchar_t *outPath;

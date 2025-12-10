@@ -56,6 +56,9 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
             {
+                ImVec2 viewportPos = ImGui::GetWindowPos();
+                baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
+
                 ImVec2 wsize = ImGui::GetWindowSize();
                 m_windowSize = {wsize.x, wsize.y};
                 m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();

@@ -20,42 +20,25 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include <sofa/gui/common/PickHandler.h>
+#include <sofa/gui/common/BaseViewer.h>
+#include <sofa/gui/common/MouseOperations.h>
 #include <SofaGLFW/config.h>
 
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/gui/common/BaseGUI.h>
 
-#include <sofa/component/setting/ViewerSetting.h>
+using namespace sofa::gui::common;
 
 namespace sofaglfw
 {
-
-class SofaGLFWWindow;
-
-class SOFAGLFW_API SofaGLFWGUI : public sofa::gui::common::BaseGUI
+class SOFAGLFW_API SofaGLFWMouseManager
 {
 public:
-    SofaGLFWGUI() = default;
-    ~SofaGLFWGUI() override = default;
+    SofaGLFWMouseManager();
+    void setPickHandler(PickHandler* picker);
 
-    bool init();
-    /// BaseGUI API
-    int mainLoop() override;
-    void redraw() override;
-    int closeGUI() override;
-    void setScene(sofa::simulation::NodeSPtr groot, const char* filename = nullptr, bool temporaryFile = false) override;
-    sofa::simulation::Node* currentSimulation() override;
-    void setViewerResolution(int width, int height) override;
-    void centerWindow() override;
-    void setViewerConfiguration(sofa::component::setting::ViewerSetting* viewerConf) override;
-    void setFullScreen() override;
-    void setBackgroundColor(const sofa::type::RGBAColor& color) override;
-    void setBackgroundImage(const std::string& image) override;
-    static sofa::gui::common::BaseGUI * CreateGUI(const char* name, sofa::simulation::NodeSPtr groot, const char* filename);
-    void setMouseButtonConfiguration(sofa::component::setting::MouseButtonSetting *setting) override;
-protected:
-    SofaGLFWBaseGUI m_baseGUI;
-    bool m_bCreateWithFullScreen{ false };
+private:
+    void updateOperation(MOUSE_BUTTON button, const std::string& id);
+    PickHandler* pickHandler;
 };
 
 } // namespace sofaglfw

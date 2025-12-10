@@ -23,6 +23,9 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <sofa/gui/common/BaseViewer.h>
+#include <sofa/gui/common/BaseGUI.h>
+#include <sofa/gui/common/PickHandler.h>
 
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/core/objectmodel/MouseEvent.h>
@@ -235,14 +238,12 @@ void SofaGLFWWindow::setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const Vis
 }
 
 
-void SofaGLFWWindow::mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos, int ypos)
+void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos, SofaGLFWBaseGUI* baseGui)
 {
-    if (baseGUI)
+    m_currentXPos = xpos;
+    m_currentYPos = ypos;
+    switch (m_currentAction)
     {
-        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
-
-        switch (m_currentAction)
-        {
         case GLFW_PRESS:
         {
             sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
@@ -252,23 +253,16 @@ void SofaGLFWWindow::mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightPressed, xpos, ypos);
             else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddlePressed, xpos, ypos);
-            else {
+            else
+            {
                 // A fallback event to rule them all...
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonPressed, xpos, ypos);
             }
             m_currentCamera->manageEvent(mEvent);
-            m_currentXPos = xpos;
-            m_currentYPos = ypos;
 
-            // If we rotate the view, we should use the perspective mode
-            if (m_currentCamera->d_activated.getValue())
-            {
-                if (mEvent->getState() == sofa::core::objectmodel::MouseEvent::LeftPressed)
-                {
-                    m_currentCamera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
-                    setGridsPlane(baseGUI);
-                }
-            }
+            auto rootNode = baseGui->getRootNode();
+
+            rootNode->propagateEvent(sofa::core::execparams::defaultInstance(), mEvent);
 
             break;
         }
@@ -281,36 +275,106 @@ void SofaGLFWWindow::mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightReleased, xpos, ypos);
             else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::MiddleReleased, xpos, ypos);
-            else {
+            else
+            {
                 // A fallback event to rules them all...
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::AnyExtraButtonReleased, xpos, ypos);
             }
             m_currentCamera->manageEvent(mEvent);
-            m_currentXPos = xpos;
-            m_currentYPos = ypos;
+
+            auto rootNode = baseGui->getRootNode();
+
+            rootNode->propagateEvent(sofa::core::execparams::defaultInstance(), mEvent);
+
             break;
         }
-
         default:
         {
             sofa::core::objectmodel::MouseEvent me(sofa::core::objectmodel::MouseEvent::Move, xpos, ypos);
             m_currentCamera->manageEvent(&me);
             break;
         }
-        }
-
-        m_currentButton = -1;
-        m_currentAction = -1;
-        m_currentMods = -1;
     }
-}
 
+    m_currentButton = -1;
+    m_currentAction = -1;
+    m_currentMods = -1;
+}
 
 void SofaGLFWWindow::mouseButtonEvent(int button, int action, int mods)
 {
     m_currentButton = button;
     m_currentAction = action;
     m_currentMods = mods;
+}
+
+
+bool SofaGLFWWindow::mouseEvent(GLFWwindow* window, int width, int height,int button, int action, int mods, double xpos, double ypos) const
+{
+    SOFA_UNUSED(mods);
+
+    if (!m_currentCamera)
+        return true;
+
+    SofaGLFWBaseGUI *gui = static_cast<SofaGLFWBaseGUI *>(glfwGetWindowUserPointer(window));
+
+    if (gui->isMouseInteractionEnabled())
+    {
+        MousePosition mousepos;
+        mousepos.screenWidth = width;
+        mousepos.screenHeight = height;
+        mousepos.x = static_cast<int>(xpos);
+        mousepos.y = static_cast<int>(ypos);
+        auto rootNode = gui->getRootNode();
+
+        if (GLFW_MOD_SHIFT)
+        {
+            gui->getPickHandler()->activateRay(width, height, rootNode.get());
+            gui->getPickHandler()->updateMouse2D(mousepos);
+
+            if (action == GLFW_PRESS)
+            {
+                if (button == GLFW_MOUSE_BUTTON_LEFT)
+                {
+                    gui->getPickHandler()->handleMouseEvent(PRESSED, MOUSE_BUTTON::LEFT);
+                }
+                else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+                {
+                    gui->getPickHandler()->handleMouseEvent(PRESSED, MOUSE_BUTTON::RIGHT);
+                }
+                else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+                {
+                    gui->getPickHandler()->handleMouseEvent(PRESSED, MOUSE_BUTTON::MIDDLE);
+                }
+            }
+            else if (action == GLFW_RELEASE)
+            {
+                if (action == GLFW_RELEASE)
+                {
+                    if (button == GLFW_MOUSE_BUTTON_LEFT)
+                    {
+                        gui->getPickHandler()->handleMouseEvent(RELEASED, MOUSE_BUTTON::LEFT);
+                        gui->getPickHandler()->deactivateRay();
+                    }
+                    else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+                    {
+                        gui->getPickHandler()->handleMouseEvent(RELEASED, MOUSE_BUTTON::RIGHT);
+                    }
+                    else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+                    {
+                        gui->getPickHandler()->handleMouseEvent(RELEASED, MOUSE_BUTTON::MIDDLE);
+                    }
+                }
+            }
+            gui->moveRayPickInteractor(xpos, ypos);
+        }
+        else
+        {
+            gui->getPickHandler()->activateRay(width, height, rootNode.get());
+        }
+    }
+
+    return true;
 }
 
 

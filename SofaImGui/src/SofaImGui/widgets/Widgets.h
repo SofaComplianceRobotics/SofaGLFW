@@ -25,6 +25,7 @@ bool LocalCheckBox(const char* label, bool* v);
 
 /// Local redefinition of ImGui::RadioButton. Adjusts padding and border size for a more compact appearance.
 bool LocalRadioButton(const char* label, int* v, int v_button);
+bool LocalRadioButton(const char* label, bool active);
 
 /// Local redefinition of ImGui::Checkbox. Core implementation with style adjustments.
 bool LocalCheckBoxEx(const char* label, bool* v);

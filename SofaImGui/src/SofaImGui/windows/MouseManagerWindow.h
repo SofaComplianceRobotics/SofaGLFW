@@ -21,39 +21,26 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/config.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/windows/BaseWindow.h>
+#include <imgui.h>
 
-
-namespace sofaimgui::menus {
-
-class FileMenu
+namespace sofaglfw
 {
-   public:
-    FileMenu(sofaglfw::SofaGLFWBaseGUI* baseGUI);
-    ~FileMenu();
-
-    void addMenu();
-    const std::string& getFilename() const {return m_filename;}
-
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
-
-    bool m_loadSimulation{false};
-    bool m_reloadSimulation{false};
-    bool m_openPluginsManager{false};
-    bool m_openMouseManager{false};
-
-   protected:
-
-    bool addImportSimulation();
-    bool addReloadSimulation();
-    bool addImportExportProgram();
-    void addExit();
-
-    void saveProject();
-
-    std::string m_filename;
-};
-
+    class SofaGLFWBaseGUI;
 }
 
+namespace sofaimgui::windows {
+
+class SOFAIMGUI_API MouseManagerWindow : public BaseWindow
+{
+public:
+    MouseManagerWindow(const std::string& name, const bool& isWindowOpen);
+    ~MouseManagerWindow() = default;
+
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+
+protected:
+    void showMouseSettings(PickHandler *pickHandler, sofa::gui::common::MOUSE_BUTTON button);
+};
+
+} // namespace

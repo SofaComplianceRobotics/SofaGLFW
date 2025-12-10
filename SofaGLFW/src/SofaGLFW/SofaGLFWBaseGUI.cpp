@@ -19,7 +19,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#include "sofa/gui/common/PickHandler.h"
+#include <sofa/gui/common/PickHandler.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
 #define GLFW_INCLUDE_NONE
@@ -116,14 +116,19 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
     setScene(groot, filename.c_str());
     load();
-}
 
+    if (this->groot)
+    {
+        // Initialize the pick handler
+        this->pick->init(this->groot.get());
+        m_sofaGLFWMouseManager.setPickHandler(getPickHandler());
+    }
+}
 
 void SofaGLFWBaseGUI::setSimulationCanRun(bool canRun)
 {
     m_simulationCanRun = canRun;
 }
-
 
 void SofaGLFWBaseGUI::setSimulationIsRunning(bool running)
 {
@@ -132,7 +137,6 @@ void SofaGLFWBaseGUI::setSimulationIsRunning(bool running)
         m_groot->setAnimate(running);
     }
 }
-
 
 bool SofaGLFWBaseGUI::simulationIsRunning() const
 {
@@ -263,6 +267,7 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
         glfwSetMouseButtonCallback(glfwWindow, mouse_button_callback);
         glfwSetScrollCallback(glfwWindow, scroll_callback);
         glfwSetWindowCloseCallback(glfwWindow, close_callback);
+        glfwSetWindowPosCallback(glfwWindow, window_pos_callback);
 
         // this set empty callbacks
         // solve a crash when glfw is quitting and tries to use nullptr callbacks
@@ -271,6 +276,7 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
         glfwSetCursorEnterCallback(glfwWindow, cursor_enter_callback);
         glfwSetMonitorCallback(monitor_callback);
         glfwSetCharCallback(glfwWindow, character_callback);
+        glfwSetWindowUserPointer(glfwWindow, this);
 
         makeCurrentContext(glfwWindow);
 
@@ -285,10 +291,13 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
 
         return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
+}
+
+void SofaGLFWBaseGUI::updateViewportPosition(const float viewportPositionX, const float viewportPositionY)
+{
+    m_viewPortPosition = { viewportPositionX, viewportPositionY };
 }
 
 void SofaGLFWBaseGUI::resizeWindow(int width, int height)
@@ -339,7 +348,6 @@ GLFWmonitor* SofaGLFWBaseGUI::getCurrentMonitor(GLFWwindow *glfwWindow)
 
     return bestMonitor;
 }
-
 
 bool SofaGLFWBaseGUI::isFullScreen(GLFWwindow* glfwWindow) const
 {
@@ -397,7 +405,6 @@ void SofaGLFWBaseGUI::setWindowBackgroundColor(const sofa::type::RGBAColor& newC
     }
 }
 
-
 void SofaGLFWBaseGUI::setWindowBackgroundImage(const std::string& filename, unsigned int /* windowID */)
 {
     SOFA_UNUSED(filename);
@@ -436,6 +443,8 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
     }
 
     m_vparams = sofa::core::visual::VisualParams::defaultInstance();
+    m_viewPortWidth = m_vparams->viewport()[2];
+    m_viewPortHeight = m_vparams->viewport()[3];
 
     bool running = true;
     std::size_t currentNbIterations = 0;
@@ -467,6 +476,8 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
 
                     glfwSwapBuffers(glfwWindow);
 
+                    m_viewPortHeight = m_vparams->viewport()[3];
+                    m_viewPortWidth = m_vparams->viewport()[2];
                 }
                 else
                 {
@@ -633,6 +644,19 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
                 currentGUI->second->switchFullScreen(window);
             }
             break;
+        case GLFW_KEY_LEFT_SHIFT:
+            if (currentGUI->second->isMouseInteractionEnabled() && currentGUI->second->getPickHandler())
+            {
+                if (action == GLFW_PRESS)
+                {
+                    currentGUI->second->getPickHandler()->activateRay(0, 0, rootNode.get());
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    currentGUI->second->getPickHandler()->deactivateRay();
+                }
+            }
+            break;
         default:
             break;
     }
@@ -721,39 +745,106 @@ void SofaGLFWBaseGUI::moveRayPickInteractor(int eventX, int eventY)
     getPickHandler()->updateRay(position, direction);
 }
 
+void SofaGLFWBaseGUI::window_pos_callback(GLFWwindow* window, int xpos, int ypos)
+{
+    SofaGLFWBaseGUI* gui = static_cast<SofaGLFWBaseGUI*>(glfwGetWindowUserPointer(window));
+    gui->m_windowPosition[0] = static_cast<float>(xpos);
+    gui->m_windowPosition[1] = static_cast<float>(ypos);
+}
+
 void SofaGLFWBaseGUI::cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     auto currentGUI = s_mapGUIs.find(window);
+
     if (currentGUI != s_mapGUIs.end() && currentGUI->second)
     {
         if (!currentGUI->second->getGUIEngine()->dispatchMouseEvents())
             return;
     }
+    SofaGLFWBaseGUI* gui = currentGUI->second;
 
-    if (!currentGUI->second->m_isMouseInteractionEnabled)
+    translateToViewportCoordinates(gui,xpos,ypos);
+
+    bool shiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+
+
+    auto currentSofaWindow = s_mapWindows.find(window);
+
+    if (shiftPressed)
     {
-        auto currentSofaWindow = s_mapWindows.find(window);
-        if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
+        for (const auto button : {GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_MOUSE_BUTTON_RIGHT})
         {
-            currentSofaWindow->second->mouseMoveEvent(currentGUI->second, static_cast<int>(xpos), static_cast<int>(ypos));
+            if (glfwGetMouseButton(window, button) == GLFW_PRESS)
+            {
+                currentSofaWindow->second->mouseEvent(window,gui->m_viewPortWidth,gui->m_viewPortHeight, button, 1, 1, gui->m_translatedCursorPos[0], gui->m_translatedCursorPos[1]);
+            }
         }
+    }
+
+    if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
+    {
+        currentSofaWindow->second->mouseMoveEvent(static_cast<int>(xpos), static_cast<int>(ypos), currentGUI->second);
     }
 }
 
 void SofaGLFWBaseGUI::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     auto currentGUI = s_mapGUIs.find(window);
-    if (currentGUI != s_mapGUIs.end() && currentGUI->second)
+    if (currentGUI == s_mapGUIs.end() || !currentGUI->second) {
+        return;
+    }
+
+    SofaGLFWBaseGUI* gui = currentGUI->second;
+
+    auto rootNode = currentGUI->second->getRootNode();
+    if (!rootNode) {
+        return;
+    }
+
+    const bool shiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+
+    if (shiftPressed )
     {
-        if (!currentGUI->second->getGUIEngine()->dispatchMouseEvents())
+        // Check if the animation is running
+        if (!currentGUI->second->simulationIsRunning())
+        {
+            msg_info("SofaGLFWBaseGUI") << "Animation is not running. Ignoring mouse interaction.";
             return;
+        }
+
+        const auto currentSofaWindow = s_mapWindows.find(window);
+        if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
+        {
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+            translateToViewportCoordinates(gui,xpos,ypos);
+
+            currentSofaWindow->second->mouseEvent(
+                window, gui->m_viewPortWidth, gui->m_viewPortHeight, button,
+                action, mods,
+                gui->m_translatedCursorPos[0],
+                gui->m_translatedCursorPos[1]);
+        }
     }
-    
-    auto currentSofaWindow = s_mapWindows.find(window);
-    if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
+    else
     {
-        currentSofaWindow->second->mouseButtonEvent(button, action, mods);
+        if (currentGUI != s_mapGUIs.end() && currentGUI->second)
+        {
+            if (!currentGUI->second->getGUIEngine()->dispatchMouseEvents())
+                return;
+        }
+
+        auto currentSofaWindow = s_mapWindows.find(window);
+        if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
+        {
+            currentSofaWindow->second->mouseButtonEvent(button, action, mods);
+        }
     }
+}
+
+void SofaGLFWBaseGUI::translateToViewportCoordinates (SofaGLFWBaseGUI* gui,double xpos, double ypos)
+{
+    gui->m_translatedCursorPos = sofa::type::Vec2d{xpos, ypos} - (gui->m_viewPortPosition - gui->m_windowPosition);
 }
 
 void SofaGLFWBaseGUI::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -799,6 +890,7 @@ void SofaGLFWBaseGUI::window_focus_callback(GLFWwindow* window, int focused)
     //    // The window lost input focus
     //}
 }
+
 void SofaGLFWBaseGUI::cursor_enter_callback(GLFWwindow* window, int entered)
 {
     SOFA_UNUSED(window);
@@ -813,6 +905,7 @@ void SofaGLFWBaseGUI::cursor_enter_callback(GLFWwindow* window, int entered)
     //    // The cursor left the content area of the window
     //}
 }
+
 void SofaGLFWBaseGUI::monitor_callback(GLFWmonitor* monitor, int event)
 {
     SOFA_UNUSED(monitor);

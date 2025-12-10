@@ -43,8 +43,9 @@ public:
     void draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::VisualParams* vparams);
     void close();
 
-    void mouseMoveEvent(sofaglfw::SofaGLFWBaseGUI* baseGUI, int xpos, int ypos);
+    void mouseMoveEvent(int xpos, int ypos, SofaGLFWBaseGUI* baseGui);
     void mouseButtonEvent(int button, int action, int mods);
+    bool mouseEvent(GLFWwindow* window, int width, int height,int button, int action, int mods, double xpos, double ypos) const;
     void scrollEvent(double xoffset, double yoffset);
     void setBackgroundColor(const sofa::type::RGBAColor& newColor);
 

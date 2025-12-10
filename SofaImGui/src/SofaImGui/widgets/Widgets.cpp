@@ -137,6 +137,15 @@ bool LocalRadioButton(const char* label, int* v, int v_button)
     return pressed;
 }
 
+bool LocalRadioButton(const char* label, bool active)
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+    bool pressed = RadioButton(label, active);
+    ImGui::PopStyleVar(2);
+    return pressed;
+}
+
 bool LocalCheckBoxEx(const char* label, bool* v)
 {
     ImGuiWindow* window = GetCurrentWindow();

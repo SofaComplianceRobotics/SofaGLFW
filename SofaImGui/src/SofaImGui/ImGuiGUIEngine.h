@@ -36,6 +36,7 @@
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
+#include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
@@ -109,6 +110,7 @@ public:
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
+    windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
@@ -130,6 +132,8 @@ protected:
     CSimpleIniA iniGUISettings;
 
     void initDockSpace(const bool& firstTime);
+    void changeWorkbench(Workbench wb);
+
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI);
