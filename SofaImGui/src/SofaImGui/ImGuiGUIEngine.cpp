@@ -289,6 +289,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
+    showSecondaryMenuBar();
     m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
     m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
 
@@ -687,19 +688,25 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImGui::SetCursorPosX(posX);
 
         ImGui::EndMainMenuBar();
-    }
+    }    
+}
 
+void ImGuiGUIEngine::showSecondaryMenuBar()
+{
     ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
     float height = ImGui::GetFrameHeight();
 
-    // Secondary menu bar
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.14f, 0.25f, 0.42f, 1.00f));
-    if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
-        if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags))
+    {
+        if (ImGui::BeginMenuBar())
+        {
             { // Workbench
-
                 { // Buttons for quick access
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, ImGui::GetStyle().FramePadding.x * .75f);
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
+                    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.f));
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.36f, 0.36f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
@@ -711,9 +718,11 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                     ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
                     if (ImGui::Button(ICON_FA_PEN_RULER, buttonSize))
                         changeWorkbench(Workbench::SCENE_EDITOR);
+                    ImGui::SameLine(0, 0); // Ensure a normal spacing
                     ImGui::SetItemTooltip("Select workbench Scene Editor");
                     if (ImGui::Button(ICON_FA_PLAY, buttonSize))
                         changeWorkbench(Workbench::SIMULATION_MODE);
+                    ImGui::SameLine(0, 0); // Ensure a normal spacing
                     ImGui::SetItemTooltip("Select workbench Simulation Mode");
                     if (ImGui::Button(ICON_FA_ROBOT, buttonSize))
                         changeWorkbench(Workbench::LIVE_CONTROL);
@@ -721,7 +730,8 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
                     if (disableWorkbench)
                         ImGui::EndDisabled();
-                    ImGui::PopStyleColor(3);
+                    ImGui::PopStyleColor(5);
+                    ImGui::PopStyleVar();
                 }
 
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
