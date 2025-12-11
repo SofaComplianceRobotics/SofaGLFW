@@ -146,9 +146,6 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
         ImGui::TextDisabled("Documentation URL:");
         ImGui::SameLine();
         ImGui::TextLinkOpenURL("link", selectedComponent->documentationURL.c_str());
-        ImGui::Indent();
-        ImGui::TextWrapped("%s", selectedComponent->documentationURL.c_str());
-        ImGui::Unindent();
 
         showComponentData(selectedComponent);
     }
