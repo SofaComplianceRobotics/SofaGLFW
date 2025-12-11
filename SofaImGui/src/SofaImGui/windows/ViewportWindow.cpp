@@ -277,6 +277,7 @@ void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::si
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }
+                ImGui::SetItemTooltip("Show...");
             }
 
             ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
