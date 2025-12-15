@@ -199,7 +199,7 @@ void ViewMenu::showBoundingBox(const bool& show)
 
 void ViewMenu::addViewport()
 {
-    if (ImGui::BeginMenu("Viewport"))
+    if (ImGui::BeginMenu("Show"))
     {
         const auto& groot = m_baseGUI->getRootNode();
 

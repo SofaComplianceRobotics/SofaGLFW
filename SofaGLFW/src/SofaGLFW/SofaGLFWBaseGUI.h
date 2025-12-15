@@ -30,6 +30,7 @@
 
 #include <SofaGLFW/BaseGUIEngine.h>
 #include <SofaGLFW/NullGUIEngine.h>
+#include <sofa/gui/common/BaseViewer.h>
 
 #include <memory>
 
@@ -41,7 +42,7 @@ namespace sofaglfw
 
 class SofaGLFWWindow;
 
-class SOFAGLFW_API SofaGLFWBaseGUI
+class SOFAGLFW_API SofaGLFWBaseGUI : public sofa::gui::common::BaseViewer
 {
 public:
     
@@ -69,14 +70,29 @@ public:
     bool centerWindow(GLFWwindow* window = nullptr);
 
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
+    void viewAll() override;
+    void saveView() override ;
+    void setSizeW(int width) override;
+    void setSizeH(int height) override;
+    int getWidth() override;
+    int getHeight() override;
+    void drawScene() override ;
+    void redraw() override;
 
     bool isFullScreen(GLFWwindow* glfwWindow = nullptr) const;
-
-    void switchFullScreen(GLFWwindow* glfwWindow = nullptr, unsigned int /* screenID */ = 0);
-    void setBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int /* windowID */ = 0);
-    void setBackgroundImage(const std::string& /* filename */, unsigned int /* windowID */ = 0);
+    void switchFullScreen(GLFWwindow* glfwWindow = nullptr, unsigned int screenID = 0);
+    void setWindowBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int windowID = 0);
+    void setWindowBackgroundImage(const std::string& imageFileName, unsigned int windowID = 0);
     void setWindowTitle(GLFWwindow* window, const char* title);
 
+    virtual void setBackgroundColour(float r, float g, float b) override
+    {
+        setWindowBackgroundColor(sofa::type::RGBAColor{r, g, b, 1.0f}, 0);
+    }
+    virtual void setBackgroundImage(std::string imageFileName) override
+    {
+        setWindowBackgroundImage(imageFileName, 0);
+    }
     sofa::core::sptr<sofa::simulation::Node> getRootNode() const;
     bool hasWindow() const { return m_firstWindow != nullptr; }
 
@@ -98,6 +114,8 @@ public:
     {
         return m_guiEngine;
     }
+
+    void moveRayPickInteractor(int eventX, int eventY) override ;
     
     void setMousePos(int xpos, int ypos) {
         if(m_firstWindow)

@@ -167,9 +167,11 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
     {
         const auto dockLabel = std::to_string(id);
         auto& windowsSettings = windows::WindowsSettings::getInstance();
-        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", double(500.)),
-                           windowsSettings.getSetting(dockLabel.c_str(), "height", double(500.)));
-        ImGui::DockBuilderSetNodeSize(id, size);
+        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", 0.),
+                           windowsSettings.getSetting(dockLabel.c_str(), "height", 0.));
+
+        if (size.x > 0 && size.y > 0)
+            ImGui::DockBuilderSetNodeSize(id, size);
     }
 }
 
@@ -327,6 +329,13 @@ void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
 
 void ImGuiGUIEngine::afterDraw()
 {
+    // Clear the alpha-component of the image so it is not interpreted
+    // by imgui as a content with transparency.
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
     m_fbo->stop();
 }
 
@@ -491,7 +500,7 @@ void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_IOWindow.showWindow(groot, windowFlags);
     m_myRobotWindow.showWindow(windowFlags);
     m_moveWindow.showWindow(baseGUI, windowFlags);
-    m_sceneGraphWindow.showWindow(groot, windowFlags);
+    m_sceneGraphWindow.showWindow(baseGUI, windowFlags);
 
     m_pluginsWindow.showWindow();
 }
@@ -656,13 +665,13 @@ void ImGuiGUIEngine::applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseG
     {
         sofaimgui::setStyle("deep_dark");
         if (baseGUI)
-            baseGUI->setBackgroundColor(type::RGBAColor(0.16, 0.18, 0.20, 1.0));
+            baseGUI->setWindowBackgroundColor(type::RGBAColor(0.16, 0.18, 0.20, 1.0));
     }
     else
     {
         sofaimgui::setStyle("light");
         if (baseGUI)
-            baseGUI->setBackgroundColor(type::RGBAColor(0.76, 0.78, 0.80, 1.0));
+            baseGUI->setWindowBackgroundColor(type::RGBAColor(0.76, 0.78, 0.80, 1.0));
     }
 }
 
