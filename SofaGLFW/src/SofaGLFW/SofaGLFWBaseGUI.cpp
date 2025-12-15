@@ -386,7 +386,7 @@ void SofaGLFWBaseGUI::setWindowBackgroundColor(const sofa::type::RGBAColor& newC
     }
     else
     {
-        msg_error("SofaGLFWBaseGUI") << "No window to set the background in";// can happen with runSofa/BaseGUI
+        dmsg_error("SofaGLFWBaseGUI") << "No window to set the background in";// can happen with runSofa/BaseGUI
     }
 }
 
