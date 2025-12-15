@@ -236,6 +236,7 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->ClearFonts();
         io.Fonts->AddFontFromMemoryCompressedTTF(OpenSans_Regular_compressed_data, OpenSans_Regular_compressed_size, 18 * yscale);
+        io.ConfigDebugHighlightIdConflicts = false;
 
         ImFontConfig config;
         config.MergeMode = true;
