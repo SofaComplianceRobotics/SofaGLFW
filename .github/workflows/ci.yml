@@ -5,9 +5,7 @@ on:
   pull_request:
   push:
     branches: 
-      - robotics
-  schedule:
-    - cron: '0 3 * * *' # nightly job at midnight UTC
+      - robotics-v25.12
 
 jobs:
   build-and-test:
