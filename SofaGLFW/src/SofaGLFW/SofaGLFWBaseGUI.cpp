@@ -19,6 +19,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+
 #include <sofa/gui/common/PickHandler.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
@@ -404,6 +405,7 @@ void SofaGLFWBaseGUI::setWindowBackgroundColor(const sofa::type::RGBAColor& newC
         msg_error("SofaGLFWBaseGUI") << "No window to set the background in";// can happen with runSofa/BaseGUI
     }
 }
+
 
 void SofaGLFWBaseGUI::setWindowBackgroundImage(const std::string& filename, unsigned int /* windowID */)
 {
