@@ -514,7 +514,7 @@ void ViewMenu::addRestoreCameraMenuItem()
 }
 
 void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned int>& fboSize,
-                                 const GLuint& texture)
+                                         const GLuint& texture)
 {
     if (!m_baseGUI)
         return;

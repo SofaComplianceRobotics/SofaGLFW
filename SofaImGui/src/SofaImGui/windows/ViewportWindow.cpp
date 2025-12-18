@@ -104,6 +104,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 }
 
                 addCameraButtons(baseGUI, groot);
+                addContextMenu(texture);
             }
             ImGui::EndChild();
         }
@@ -269,8 +270,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             const auto& bbox = groot->f_bbox.getValue();
 
-            // Viewport display options
-            {
+            { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
                     m_viewmenu.addShowIn3DViewMenuItems();
@@ -455,6 +455,30 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::PopStyleVar();
     ImGui::PopClipRect();
     ImGui::EndChild();
+}
+
+void ViewportWindow::addContextMenu(const ImTextureID& texture)
+{
+    if (ImGui::BeginPopup("##ViewportContextMenu"))
+    {
+        m_viewmenu.addSaveCameraMenuItem();
+        m_viewmenu.addRestoreCameraMenuItem();
+
+        ImGui::Separator();
+
+        m_viewmenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
+        ImGui::EndPopup();
+    }
+
+    // Right click and drag: translates the view
+    // Simple right click (same position) opens the context menu
+    const auto& io = ImGui::GetIO();
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Right)
+        && io.MouseClickedPos[ImGuiMouseButton_Right].x == ImGui::GetMousePos().x
+        && io.MouseClickedPos[ImGuiMouseButton_Right].y == ImGui::GetMousePos().y)
+    {
+        ImGui::OpenPopup("##ViewportContextMenu");
+    }
 }
 
 bool ViewportWindow::addStepButton()
