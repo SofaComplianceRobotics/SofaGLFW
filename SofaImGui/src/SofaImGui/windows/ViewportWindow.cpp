@@ -629,17 +629,13 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
 
                 if (m_fps > 0)
                 {
-                    char* performances;
-                    auto res = asprintf(&performances, "FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
-                    SOFA_UNUSED(res);
-
                     position -= ImGui::CalcTextSize("100.0 FPS ").x;
                     ImGui::SetCursorPosX(position);
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
                     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
                     ImGui::Text("%.1f FPS", m_fps);
                     ImGui::PopStyleColor();
-                    ImGui::SetItemTooltip("%s", performances);
+                    ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
                 }
 
                 ImGui::EndChild();
