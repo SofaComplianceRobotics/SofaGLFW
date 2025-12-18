@@ -38,19 +38,24 @@ class ViewMenu
                  const GLuint &texture);
     sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
 
+    void addShowIn3DViewMenu();
+    void addShowIn3DViewMenuItems();
+    void addAlignCameraMenu(sofa::component::visual::BaseCamera::SPtr camera);
+    void addOrthographicMenuItem(sofa::component::visual::BaseCamera::SPtr camera);
+    void addCenterCameraMenuItems(sofa::component::visual::BaseCamera::SPtr camera);
+
+    void addSaveCameraMenuItem();
+    void addRestoreCameraMenuItem();
+    void addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned int>& fboSize,
+                                   const GLuint& texture);
+
+    void addFullScreenMenuItem();
+
    protected:
 
-    void addViewport();
-    void addAlignCamera(sofa::component::visual::BaseCamera::SPtr camera);
-    void addOrthographic(sofa::component::visual::BaseCamera::SPtr camera);
-    void addCenterCamera(sofa::component::visual::BaseCamera::SPtr camera);
-
-    void addSaveCamera();
-    void addRestoreCamera();
-    void addSaveScreenShot(const std::pair<unsigned int, unsigned int>& fboSize,
-                           const GLuint& texture);
-
-    void addFullScreen();
+    void showGrid(const bool& show, const float &squareSize, const float &thickness, const sofa::type::RGBAColor& color);
+    void showOriginFrame(const bool& show);
+    void showBoundingBox(const bool& show);
 };
 
 }

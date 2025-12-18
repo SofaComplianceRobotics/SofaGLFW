@@ -23,6 +23,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/windows/StateWindow.h>
+#include <SofaImGui/menus/ViewMenu.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -36,7 +37,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
 
-    void addViewButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
+    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
     bool addStepButton();
     bool addAnimateButton(bool *animate);
     bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
@@ -48,6 +49,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
    protected:
 
+    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
     std::shared_ptr<StateWindow> m_stateWindow;
     float m_fps{0.f};
 

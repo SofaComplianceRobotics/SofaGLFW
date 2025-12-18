@@ -31,7 +31,6 @@
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/Workbench.h>
-#include <SofaImGui/models/View.h>
 
 
 namespace sofaimgui::windows {
@@ -50,6 +49,11 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 {
     if (isOpen())
     {
+        if (baseGUI)
+            m_viewmenu.m_baseGUI = baseGUI;
+        else
+            return;
+
         auto groot = baseGUI->getRootNode().get();
 
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
@@ -99,7 +103,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     }
                 }
 
-                addViewButtons(baseGUI, groot);
+                addCameraButtons(baseGUI, groot);
             }
             ImGui::EndChild();
         }
@@ -131,7 +135,7 @@ bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
     return false;
 }
 
-void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
+void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
 {
     // If the camera is not correctly initialized don't draw anything
     if (!checkCamera(groot))
@@ -269,7 +273,7 @@ void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::si
             {
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
-                    models::addViewportViewMenu(baseGUI);
+                    m_viewmenu.addShowIn3DViewMenuItems();
                     ImGui::EndPopup();
                 }
 
@@ -311,10 +315,6 @@ void ViewportWindow::addViewButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::si
                 }
                 ImGui::SetItemTooltip("Orthographic/Perspective");
             }
-
-            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
-            ImGui::PopStyleColor();
 
             { // Orientation gizmo button
                 if (ImGui::Button(ICON_FA_ROTATE, buttonSize))

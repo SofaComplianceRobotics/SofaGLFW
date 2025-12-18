@@ -147,7 +147,6 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/IPController.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/View.h
 
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiDataWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.h
@@ -209,7 +208,6 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/IPController.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/View.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiDataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.cpp
