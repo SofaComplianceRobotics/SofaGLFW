@@ -702,6 +702,8 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
     {
         if (ImGui::BeginMenuBar())
         {
+            ImVec4 highlightColorText = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+            ImVec4 highlightColorIcon = ImVec4(1.0f, 0.5f, 0.0f, 0.8f);
             { // Workbench
                 { // Buttons for quick access
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, ImGui::GetStyle().FramePadding.x * .75f);
@@ -710,23 +712,31 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.36f, 0.36f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+
                     bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
 
                     if (disableWorkbench)
                         ImGui::BeginDisabled();
 
                     ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-                    if (ImGui::Button(ICON_FA_PEN_RULER, buttonSize))
-                        changeWorkbench(Workbench::SCENE_EDITOR);
-                    ImGui::SameLine(0, 0); // Ensure a normal spacing
-                    ImGui::SetItemTooltip("Select workbench Scene Editor");
-                    if (ImGui::Button(ICON_FA_PLAY, buttonSize))
-                        changeWorkbench(Workbench::SIMULATION_MODE);
-                    ImGui::SameLine(0, 0); // Ensure a normal spacing
-                    ImGui::SetItemTooltip("Select workbench Simulation Mode");
-                    if (ImGui::Button(ICON_FA_ROBOT, buttonSize))
-                        changeWorkbench(Workbench::LIVE_CONTROL);
-                    ImGui::SetItemTooltip("Select workbench Live Control");
+
+                    auto addWorkbenchButton = [highlightColorIcon, &buttonSize, this](Workbench w, const std::string& icon, const std::string& tooltip)
+                    {
+                        bool highlight = (workbench == w);
+                        if (highlight)
+                            ImGui::PushStyleColor(ImGuiCol_ButtonText, highlightColorIcon);
+                        if (ImGui::Button(icon.c_str(), buttonSize))
+                            changeWorkbench(w);
+                        if (highlight)
+                            ImGui::PopStyleColor();
+                        ImGui::SetItemTooltip("%s", tooltip.c_str());
+                    };
+
+                    addWorkbenchButton(Workbench::SCENE_EDITOR, ICON_FA_PEN_RULER, "Select workbench: Scene Editor");
+                    ImGui::SameLine(0, 0);
+                    addWorkbenchButton(Workbench::SIMULATION_MODE, ICON_FA_PLAY, "Select workbench: Simulation Mode");
+                    ImGui::SameLine(0, 0);
+                    addWorkbenchButton(Workbench::LIVE_CONTROL, ICON_FA_ROBOT, "Select workbench: Live Control");
 
                     if (disableWorkbench)
                         ImGui::EndDisabled();
@@ -740,7 +750,7 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                 ImGui::EndDisabled();
                 ImGui::PopStyleColor();
                 ImGui::SameLine(0, 0); // Ensure a normal spacing between the words
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
                 ImGui::Text("%s", getWorkbenchName(workbench));
                 ImGui::PopStyleColor();
             }
