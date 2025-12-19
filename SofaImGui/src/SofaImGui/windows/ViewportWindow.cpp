@@ -473,7 +473,7 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
     // Right click and drag: translates the view
     // Simple right click (same position) opens the context menu
     const auto& io = ImGui::GetIO();
-    if (ImGui::IsMouseReleased(ImGuiMouseButton_Right)
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)
         && io.MouseClickedPos[ImGuiMouseButton_Right].x == ImGui::GetMousePos().x
         && io.MouseClickedPos[ImGuiMouseButton_Right].y == ImGui::GetMousePos().y)
     {
