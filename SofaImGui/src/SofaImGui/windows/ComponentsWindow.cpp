@@ -21,6 +21,7 @@
 ******************************************************************************/
 
 #include <SofaImGui/windows/ComponentsWindow.h>
+#include <filesystem>
 #include <sofa/simulation/graph/DAGNode.h>
 
 #include <imgui.h>
@@ -48,6 +49,17 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
+            static bool firstTime = true;
+            if (firstTime)
+            {
+                sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
+                ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
+                // TODO: loop over the plugins
+                sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
+                PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
+                firstTime = false;
+            }
+
             ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
             static sofa::core::ClassEntry::SPtr selectedComponent;
 
@@ -59,8 +71,7 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
             {
                 ImGui::AlignTextToFramePadding();
                 ImGui::Text("List of Loaded Components:");
-                ImGui::SameLine();
-                ImGui::TextDisabled("(%zu)", components.size());
+                ImGui::SetItemTooltip("Loaded %zu components and found %zu examples.",  components.size(), m_examplesPaths.size());
                 ImGui::SameLine();
 
                 showComponentsList(components, selectedComponent);
@@ -113,6 +124,13 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                 if (ImGui::Selectable(name.c_str(), selectedComponent == component))
                 {
                     selectedComponent = component;
+
+                    m_selectedComponentExamples.clear();
+                    for (const std::string& examplePath: m_examplesPaths)
+                    {
+                        if (examplePath.find(selectedComponent->className) != std::string::npos)
+                            m_selectedComponentExamples.push_back(examplePath);
+                    }
                 }
             }
         }
@@ -146,9 +164,33 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
         ImGui::TextDisabled("Documentation URL:");
         ImGui::SameLine();
         ImGui::TextLinkOpenURL("link", selectedComponent->documentationURL.c_str());
-
-        showComponentData(selectedComponent);
     }
+
+    if (!m_selectedComponentExamples.empty())
+    {
+        ImGui::TextDisabled("Examples:");
+        ImGui::Indent();
+        for (const auto& examplePath: m_selectedComponentExamples)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
+            ImGui::TextWrapped("%s", examplePath.filename().c_str());
+            ImGui::PopStyleColor();
+
+            if (ImGui::IsItemClicked())
+                ImGui::SetClipboardText(examplePath.c_str());
+
+            static float copiedMessageDuration = 0;
+            if (ImGui::IsItemClicked() || copiedMessageDuration > 0)
+                copiedMessageDuration += ImGui::GetIO().DeltaTime;
+            if (copiedMessageDuration > 3)
+                copiedMessageDuration = 0;
+
+            ImGui::SetItemTooltip((copiedMessageDuration > 0)? "Copied!": "Click to copy the file path");
+        }
+        ImGui::Unindent();
+    }
+
+    showComponentData(selectedComponent);
 }
 
 void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedComponent)

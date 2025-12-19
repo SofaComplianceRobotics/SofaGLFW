@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <filesystem>
 #include <sofa/core/CategoryLibrary.h>
 #include <SofaImGui/windows/BaseWindow.h>
 
@@ -46,10 +47,15 @@ public:
 
 protected:
 
+    std::vector<std::string> m_examplesPaths;
+    std::vector<std::filesystem::path> m_selectedComponentExamples;
+
     void showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ObjectFactory::ClassEntry::SPtr &selectedComponent);
     void showComponentInfo(sofa::core::ClassEntry::SPtr selectedComponent);
     void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
+
     void saveFile();
+
 };
 
 } // namespace 
