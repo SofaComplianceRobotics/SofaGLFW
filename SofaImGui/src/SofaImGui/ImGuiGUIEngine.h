@@ -46,7 +46,7 @@
 
 #include <SofaImGui/menus/ViewMenu.h>
 
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <SofaImGui/models/SimulationState.h>
 
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
@@ -85,7 +85,7 @@ public:
 
     void saveProject();
 
-    void setIPController(sofa::simulation::Node::SPtr groot,
+    void setKinematicsController(sofa::simulation::Node::SPtr groot,
                          softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
@@ -148,7 +148,7 @@ protected:
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
 
-    models::IPController::SPtr m_IPController;
+    models::KinematicsController::SPtr m_kinematicsController;
     models::SimulationState m_simulationState;
     bool m_animate{false};
     int m_mode{0};

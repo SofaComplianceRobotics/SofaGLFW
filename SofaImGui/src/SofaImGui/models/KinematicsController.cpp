@@ -20,14 +20,14 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/simulation/events/SolveConstraintSystemEndEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
 
 namespace sofaimgui::models {
 
-IPController::IPController(sofa::simulation::Node::SPtr groot,
+KinematicsController::KinematicsController(sofa::simulation::Node::SPtr groot,
                            softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
                            sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
                            sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
@@ -61,7 +61,7 @@ IPController::IPController(sofa::simulation::Node::SPtr groot,
     }
 }
 
-void IPController::setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw)
+void KinematicsController::setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw)
 {
     if(hasRotationEffector())
     {
@@ -72,7 +72,7 @@ void IPController::setFreeInRotation(const bool &freeRoll, const bool &freePitch
     }
 }
 
-sofa::defaulttype::RigidCoord<3, double> IPController::getTCPPosition()
+sofa::defaulttype::RigidCoord<3, double> KinematicsController::getTCPPosition()
 {
     RigidCoord position;
     if (m_TCPState)
@@ -92,12 +92,12 @@ sofa::defaulttype::RigidCoord<3, double> IPController::getTCPPosition()
     return position;
 }
 
-const sofa::defaulttype::RigidCoord<3, double>& IPController::getTCPTargetInitPosition()
+const sofa::defaulttype::RigidCoord<3, double>& KinematicsController::getTCPTargetInitPosition()
 {
     return m_initTCPTargetPosition;
 }
 
-sofa::defaulttype::RigidCoord<3, double> IPController::getTCPTargetPosition()
+sofa::defaulttype::RigidCoord<3, double> KinematicsController::getTCPTargetPosition()
 {
     RigidCoord position;
     if (m_TCPTargetState)
@@ -117,7 +117,7 @@ sofa::defaulttype::RigidCoord<3, double> IPController::getTCPTargetPosition()
     return position;
 }
 
-void IPController::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
+void KinematicsController::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
 {
     if (m_TCPTargetState)
     {
@@ -142,7 +142,7 @@ void IPController::getTCPTargetPosition(double &x, double &y, double &z, double 
     }
 }
 
-void IPController::setTCPTargetPosition(const RigidCoord& position)
+void KinematicsController::setTCPTargetPosition(const RigidCoord& position)
 {
     if (m_TCPTargetState)
     {
@@ -158,7 +158,7 @@ void IPController::setTCPTargetPosition(const RigidCoord& position)
     }
 }
 
-void IPController::setTCPTargetPosition(const double &x, const double &y, const double &z, const double &rx, const double &ry, const double &rz)
+void KinematicsController::setTCPTargetPosition(const double &x, const double &y, const double &z, const double &rx, const double &ry, const double &rz)
 {
     if (m_TCPTargetState)
     {
@@ -177,13 +177,13 @@ void IPController::setTCPTargetPosition(const double &x, const double &y, const 
     }
 }
 
-void IPController::applyActuatorsForce(const std::vector<Actuator> &actuators)
+void KinematicsController::applyActuatorsForce(const std::vector<Actuator> &actuators)
 {
     m_actuators = actuators;
     m_updateSolutionOnSolveEndEvent = true;
 }
 
-void IPController::handleEvent(sofa::core::objectmodel::Event *event)
+void KinematicsController::handleEvent(sofa::core::objectmodel::Event *event)
 {
     if (sofa::simulation::SolveConstraintSystemEndEvent::checkEventType(event) && m_updateSolutionOnSolveEndEvent)
     {

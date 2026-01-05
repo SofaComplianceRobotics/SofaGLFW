@@ -134,27 +134,27 @@ void ImGuiGUIEngine::saveProject()
     projectSettings.SaveFile(projectFile.c_str());
 }
 
-void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
+void ImGuiGUIEngine::setKinematicsController(sofa::simulation::Node::SPtr groot,
                                      softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
                                      sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
                                      core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                                      softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
 {
-    if (m_IPController)
-        groot->removeObject(m_IPController.get());
+    if (m_kinematicsController)
+        groot->removeObject(m_kinematicsController.get());
 
-    m_IPController = sofa::core::objectmodel::New<models::IPController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
-    m_IPController->setName(groot->getNameHelper().resolveName(m_IPController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
+    m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
+    m_kinematicsController->setName(groot->getNameHelper().resolveName(m_kinematicsController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
 
-    groot->addObject(m_IPController.get());
-    m_programWindow.setIPController(m_IPController);
-    m_moveWindow.setIPController(m_IPController);
-    m_IOWindow.setIPController(m_IPController);
+    groot->addObject(m_kinematicsController.get());
+    m_programWindow.setKinematicsController(m_kinematicsController);
+    m_moveWindow.setKinematicsController(m_kinematicsController);
+    m_IOWindow.setKinematicsController(m_kinematicsController);
 }
 
 void ImGuiGUIEngine::clearGUI()
 {
-    m_IPController = nullptr;
+    m_kinematicsController = nullptr;
 
     m_simulationState.clearData();
 
@@ -482,7 +482,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         // Driving Tab combo
         static const char* listTabs[]{"Move", "Program", "Input/Output"};
 
-        if(!m_IPController)
+        if(!m_kinematicsController)
             ImGui::BeginDisabled();
 
         if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
@@ -512,7 +512,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             }
         }
 
-        if(!m_IPController)
+        if(!m_kinematicsController)
             ImGui::EndDisabled();
     }
 }

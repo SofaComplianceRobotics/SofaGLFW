@@ -144,7 +144,7 @@ set(HEADER_FILES
 
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.h
     ${SOFAIMGUI_SOURCE_DIR}/models/SimulationState.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/IPController.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.h
 
@@ -205,7 +205,7 @@ set(SOURCE_FILES
 
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/SimulationState.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/IPController.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.cpp
 

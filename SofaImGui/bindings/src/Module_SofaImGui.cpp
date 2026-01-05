@@ -43,9 +43,9 @@ namespace py { using namespace pybind11; }
 namespace sofaimgui::python3
 {
 
-void setIPController(sofa::simulation::Node &TCPTargetNode,
-                     sofa::simulation::Node &TCPNode,
-                     sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
+void setKinematicsComponents(sofa::simulation::Node &TCPTargetNode,
+                             sofa::simulation::Node &TCPNode,
+                             sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
 
@@ -72,7 +72,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
                 break;
             }
 
-            engine->setIPController(groot, qpsolver, TCPTargetNode.getMechanicalState(), TCPNode.getMechanicalState(), rotationEffector);
+            engine->setKinematicsController(groot, qpsolver, TCPTargetNode.getMechanicalState(), TCPNode.getMechanicalState(), rotationEffector);
         }
     }
 }
@@ -111,7 +111,8 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
 
 PYBIND11_MODULE(ImGui, m)
 {
-    m.def("setIPController", &setIPController);
+    m.def("setIPController", &setKinematicsComponents); // TODO: Deprecate
+    m.def("setKinematicsComponents", &setKinematicsComponents);
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
 

@@ -23,7 +23,7 @@
 
 #include <string>
 #include <map>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/SimulationState.h>
@@ -144,16 +144,16 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
     
-    void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
+    void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
 
     void setSimulationState(const models::SimulationState &simulationState);
     void addSubscribableData(const std::string& name, sofa::core::BaseData* data);
 
-    void clearWindow() override {m_IPController=nullptr;}
+    void clearWindow() override {m_kinematicsController=nullptr;}
 
    protected:
     
-    models::IPController::SPtr m_IPController;
+    models::KinematicsController::SPtr m_kinematicsController;
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
 

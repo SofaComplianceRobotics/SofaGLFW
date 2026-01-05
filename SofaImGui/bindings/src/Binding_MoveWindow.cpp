@@ -105,11 +105,11 @@ void moduleAddMoveWindow(py::module &m)
             if (engine)
             {
                 sofa::Size nbActuators = std::min(actuatorsData.size(), indicesInProblem.size());
-                std::vector<models::IPController::Actuator> actuators;
+                std::vector<models::KinematicsController::Actuator> actuators;
                 sofa::Size size = actuators.size();
                 for (size_t i=0; i< nbActuators; i++)
                 {
-                    models::IPController::Actuator actuator = (i<size)? actuators[i]: models::IPController::Actuator();
+                    models::KinematicsController::Actuator actuator = (i<size)? actuators[i]: models::KinematicsController::Actuator();
 
                     actuator.data = actuatorsData[i];
                     actuator.indexInProblem = indicesInProblem[i];

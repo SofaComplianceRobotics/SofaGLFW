@@ -639,7 +639,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
     {
         rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
 
-        if(m_IPController && m_isDrivingSimulation) // If the window is driving the simulation
+        if(m_kinematicsController && m_isDrivingSimulation) // If the window is driving the simulation
         {
             // Overwrite the TCPTarget with ROS input
             for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)
@@ -648,7 +648,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                 {
                     if (stateValue.size() == IOWindow::RigidCoord::total_size)
                     {
-                        m_IPController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
+                        m_kinematicsController->setTCPTargetPosition(IOWindow::RigidCoord(sofa::type::Vec3(stateValue[0], stateValue[1], stateValue[2]),
                                                                                     sofa::type::Quat<SReal>(stateValue[3], stateValue[4], stateValue[5], stateValue[6])));
                     }
                     else

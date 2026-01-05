@@ -32,13 +32,13 @@
 
 namespace sofaimgui::models {
 
-class SOFAIMGUI_API IPController : public sofa::component::controller::Controller
+class SOFAIMGUI_API KinematicsController : public sofa::component::controller::Controller
 {
    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
    public:
 
-    SOFA_CLASS(IPController, sofa::component::controller::Controller);
+    SOFA_CLASS(KinematicsController, sofa::component::controller::Controller);
 
     struct Actuator{
        sofa::core::BaseData* data;
@@ -49,12 +49,12 @@ class SOFAIMGUI_API IPController : public sofa::component::controller::Controlle
        double max{500};
     };
 
-    IPController(sofa::simulation::Node::SPtr groot,
+    KinematicsController(sofa::simulation::Node::SPtr groot,
                  softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
                  sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
                  sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                  softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
-    ~IPController() = default;
+    ~KinematicsController() = default;
     
     const RigidCoord& getTCPTargetInitPosition();
     RigidCoord getTCPTargetPosition();
