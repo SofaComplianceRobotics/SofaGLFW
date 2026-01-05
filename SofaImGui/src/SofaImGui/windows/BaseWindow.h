@@ -78,6 +78,20 @@ protected:
 class SOFAIMGUI_API BaseWindow
 {
    public:
+    struct GUIData {
+        std::shared_ptr<sofa::core::BaseData> data;
+        std::shared_ptr<sofa::core::BaseData> min;
+        std::shared_ptr<sofa::core::BaseData> max;
+        std::string group;
+        std::string label;
+        std::string tooltip;
+    };
+
+
+    struct GUIDataCompare {
+        bool operator()(const GUIData& a, const GUIData& b) const { return a.data.get() > b.data.get(); }
+    };
+
     BaseWindow();
     ~BaseWindow() = default;
 
@@ -113,6 +127,15 @@ class SOFAIMGUI_API BaseWindow
 
     virtual void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
 
+    virtual void addGUIData(std::shared_ptr<sofa::core::BaseData> data,
+                            std::shared_ptr<sofa::core::BaseData> min = nullptr,
+                            std::shared_ptr<sofa::core::BaseData> max = nullptr,
+                            const std::string& label = "",
+                            const std::string& group = "",
+                            const std::string& tooltip = "");
+    virtual void removeGUIData(GUIData& data);
+    void clearGUIData() { m_GUIData.clear(); }
+
    protected:
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
@@ -127,6 +150,7 @@ class SOFAIMGUI_API BaseWindow
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
 
+    std::set<GUIData, GUIDataCompare> m_GUIData; /// A set of GUIData to use in the window
 };
 
 }

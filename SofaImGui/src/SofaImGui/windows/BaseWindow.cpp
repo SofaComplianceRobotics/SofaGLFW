@@ -57,4 +57,30 @@ void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
     SOFA_UNUSED(windowFlags);
 }
 
+void BaseWindow::addGUIData(std::shared_ptr<sofa::core::BaseData> data,
+                            std::shared_ptr<sofa::core::BaseData> min,
+                            std::shared_ptr<sofa::core::BaseData> max,
+                            const std::string& label,
+                            const std::string& group,
+                            const std::string& tooltip)
+{
+    if(data)
+    {
+        GUIData guiData;
+        guiData.data = data;
+        guiData.min = min;
+        guiData.max = max;
+        guiData.label = label.empty() ? data.get()->getName() : label;
+        guiData.group = group;
+        guiData.tooltip = tooltip;
+
+        m_GUIData.insert(guiData);
+    }
+}
+
+void BaseWindow::removeGUIData(GUIData& data)
+{
+    m_GUIData.erase(data);
+}
+
 }
