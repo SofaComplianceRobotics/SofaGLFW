@@ -42,7 +42,7 @@ bool& BaseWindow::isOpen()
     return m_isOpen;
 }
 
-void BaseWindow::displayDisabledInfoMessage(const char* message)
+void BaseWindow::showInfoMessage(const char* message)
 {
     ImGui::BeginDisabled();
     ImGui::Text(ICON_FA_CIRCLE_INFO);

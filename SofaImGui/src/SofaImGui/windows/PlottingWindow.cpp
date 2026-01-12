@@ -111,7 +111,7 @@ void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
             if (!enabled())
-                displayDisabledInfoMessage("This window is used to plot data over time. It currently has no data registered.");
+                showInfoMessage("This window is used to plot data over time. It currently has no data registered.");
 
             static PlottingData* dragedData;
             ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());

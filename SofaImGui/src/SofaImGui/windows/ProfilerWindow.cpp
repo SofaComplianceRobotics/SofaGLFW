@@ -345,6 +345,6 @@ void ProfilerWindow::showTable(const std::deque< sofa::type::vector<sofa::helper
         return;
     }
 
-    displayDisabledInfoMessage("No records to display for the selected frame.");
+    showInfoMessage("No records to display for the selected frame.");
 }
 } // namespace

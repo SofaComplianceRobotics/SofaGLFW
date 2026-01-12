@@ -101,7 +101,7 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             if (!enabled())
-                displayDisabledInfoMessage("This window is used for input/output operations of data. It currently has no data registered.");
+                showInfoMessage("This window is used for input/output operations of data. It currently has no data registered.");
 
             m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
 

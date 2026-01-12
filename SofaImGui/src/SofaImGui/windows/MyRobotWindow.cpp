@@ -286,7 +286,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
             }
             else
             {
-                displayDisabledInfoMessage("This window is used to display the robot's information and settings. "
+                showInfoMessage("This window is used to display the robot's information and settings. "
                                            "It also provides connection management features. However, no information or settings"
                                            " have been registered for display, nor is there any connection management available."
                                            );

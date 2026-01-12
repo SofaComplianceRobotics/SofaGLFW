@@ -150,7 +150,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
             }
             else
             {
-                displayDisabledInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
+                showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
                                            "The scene is missing elements for this window to work properly. "
                                            );
             }
