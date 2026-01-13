@@ -54,7 +54,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
 {
     SOFA_UNUSED(baseGUI);
 
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {

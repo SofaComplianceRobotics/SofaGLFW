@@ -90,6 +90,8 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     bool enabled() override {return !m_data.empty();}
 
     void exportData();
+    void showButtons();
+    void showPlots();
     void showMenu();
     void showMenu(ImPlotPlot &plot, const size_t &idSubplot);
 };

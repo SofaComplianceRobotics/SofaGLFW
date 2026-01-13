@@ -73,7 +73,7 @@ void ProgramWindow::loadAndProcessWindowSettings()
 
 void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (baseGUI)
             m_baseGUI = baseGUI;
@@ -97,6 +97,12 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
         {
             if (enabled())
             {
+                if (!isEnabledInWorkbench())
+                {
+                    ImGui::BeginDisabled();
+                    showInfoMessage("This window is disabled in the active workbench.");
+                }
+
                 showProgramButtons();
 
                 float width = ImGui::GetWindowWidth();
@@ -147,12 +153,15 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                 }
                 else
                     zoomCoef = defaultZoomCoef;
+
+                if (!isEnabledInWorkbench())
+                    ImGui::EndDisabled();
             }
             else
             {
                 showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
-                                           "The scene is missing elements for this window to work properly. "
-                                           );
+                               "The scene is missing elements for this window to work properly. "
+                               );
             }
         }
         ImGui::End();

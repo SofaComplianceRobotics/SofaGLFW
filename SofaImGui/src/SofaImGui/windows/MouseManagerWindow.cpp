@@ -40,7 +40,7 @@ MouseManagerWindow::MouseManagerWindow(const std::string& name,
 void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(baseGUI);
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         if (auto* pickHandler = baseGUI->getPickHandler())
         {

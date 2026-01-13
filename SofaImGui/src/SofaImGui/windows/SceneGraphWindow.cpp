@@ -58,7 +58,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> componentToOpenContextMenu;
     std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
 
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         showGraph(baseGUI, windowFlags, componentToOpen, nodeToOpen, componentToOpenContextMenu, nodeToOpenContextMenu);
     }
@@ -252,6 +252,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 {
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
+        if (!isEnabledInWorkbench())
+            showInfoMessage("Modifying the scene graph is disabled in the active workbench.");
+
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
@@ -684,7 +687,13 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                     }
 
                     ImGui::PopStyleColor();
+
+                    if (!isEnabledInWorkbench())
+                        ImGui::BeginDisabled();
                     showWidget(*data);
+                    if (!isEnabledInWorkbench())
+                        ImGui::EndDisabled();
+
                     ImGui::Unindent();
                 }
             }
@@ -775,8 +784,13 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
     if (node)
     {
         const bool& activated = node->is_activated.getValue();
+
+        if (!isEnabledInWorkbench())
+            ImGui::BeginDisabled();
         if(ImGui::MenuItem(activated? "Deactivate Node": "Activate Node"))
             node->setActive(!activated);
+        if (!isEnabledInWorkbench())
+            ImGui::EndDisabled();
 
         ImGui::Separator();
 

@@ -45,7 +45,7 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
     SOFA_UNUSED(baseGUI);
 
     sofa::helper::AdvancedTimer::setEnabled("Animate", m_isOpen);
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
@@ -53,8 +53,11 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
             sofa::helper::AdvancedTimer::setOutputType("Animate", "gui");
 
             auto groot = baseGUI->getRootNode().get();
-            if (groot->animate_.getValue())
+            if (groot->animate_.getValue() || !isEnabledInWorkbench())
                 ImGui::BeginDisabled();
+
+            if (!isEnabledInWorkbench())
+                showInfoMessage("This window is disabled in the active workbench.");
 
             static std::unordered_set<int> selectedTimers;
             static std::deque< sofa::type::vector<sofa::helper::Record> > allRecords;
@@ -113,7 +116,7 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
             }
             ImGui::EndChild();
 
-            if (groot->animate_.getValue())
+            if (groot->animate_.getValue() || !isEnabledInWorkbench())
                 ImGui::EndDisabled();
         }
         ImGui::End();

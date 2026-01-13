@@ -37,8 +37,6 @@ BaseWindow::BaseWindow()
 
 bool& BaseWindow::isOpen()
 {
-    if (!isEnabledInWorkbench())
-        m_isOpen = false;
     return m_isOpen;
 }
 
