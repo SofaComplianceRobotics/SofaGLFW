@@ -48,7 +48,7 @@ void showScalarWidget(sofa::Data<Scalar>& data)
 {
     Scalar initialValue = data.getValue();
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     if (showScalarWidget(label, id, initialValue))
     {
         data.setValue(initialValue);

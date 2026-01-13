@@ -49,7 +49,7 @@ void DataWidget<bool>::showWidget(MyData& data)
     const bool initialValue = data.getValue();
     bool changeableValue = initialValue;
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
     ImGui::LocalCheckBox((label + "##" + id).c_str(), &changeableValue);
     if (changeableValue != initialValue)
@@ -115,7 +115,7 @@ template< sofa::Size N, typename ValueType>
 void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), N, flags))
+    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N, flags))
     {
         showVecTableHeader(data);
 
@@ -254,7 +254,7 @@ void showVectorWidget(Data<T>& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
     const auto nbColumns = data.getValueTypeInfo()->size() + 1;
-    const auto tableLabel = data.getName() + data.getOwner()->getPathName();
+    const auto tableLabel = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, flags))
     {
         showVecTableHeader(data);
@@ -387,7 +387,7 @@ template< sofa::Size N, typename ValueType>
 void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags))
+    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags))
     {
         showVecTableHeader(data);
 
@@ -464,7 +464,7 @@ void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement
 {
     constexpr auto N = sofa::topology::Element<GeometryElement>::static_size;
     static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), N + 1, flags))
+    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N + 1, flags))
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
         for (unsigned int i = 0; i < N; ++i)
@@ -552,7 +552,7 @@ template<class TReal>
 void showWidgetT(Data<std::map<std::string, sofa::type::vector<TReal> > >& data)
 {
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     if (ImPlot::BeginPlot((label + "##" + id).c_str()))
     {
         for (const auto& [chartLabel, values] : data.getValue())
@@ -584,7 +584,7 @@ template<>
 void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
 {
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
     const auto& optionsGroup = data.getValue();
     int selectedOption = static_cast<int>(optionsGroup.getSelectedId());
@@ -609,7 +609,7 @@ void DataWidget<helper::BaseSelectableItem>::showWidget(
     sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
 {
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
     int selectedId = selectableItems->getSelectedId();
 
@@ -652,7 +652,7 @@ void DataWidget<type::RGBAColor>::showWidget(MyData& data)
 {
     const auto& colorData = data.getValue();
     const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     ImVec4 color { colorData.r(), colorData.g(), colorData.b(), colorData.a()};
     if (ImGui::ColorEdit4((label + "##" + id).c_str(), (float*)&color, ImGuiColorEditFlags_DisplayRGB))
     {

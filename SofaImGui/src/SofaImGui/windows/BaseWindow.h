@@ -23,13 +23,14 @@
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/models/GUIData.h>
 #include <string>
+#include <unordered_set>
 
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
 #include <imgui.h>
 #include <SimpleIni.h>
-
 
 namespace sofaimgui::windows {
 
@@ -78,20 +79,6 @@ protected:
 class SOFAIMGUI_API BaseWindow
 {
    public:
-    struct GUIData {
-        std::shared_ptr<sofa::core::BaseData> data;
-        std::shared_ptr<sofa::core::BaseData> min;
-        std::shared_ptr<sofa::core::BaseData> max;
-        std::string group;
-        std::string label;
-        std::string tooltip;
-    };
-
-
-    struct GUIDataCompare {
-        bool operator()(const GUIData& a, const GUIData& b) const { return a.data.get() > b.data.get(); }
-    };
-
     BaseWindow();
     ~BaseWindow() = default;
 
@@ -106,7 +93,7 @@ class SOFAIMGUI_API BaseWindow
     virtual void setDrivingTCPTarget(const bool &isDrivingSimulation);
 
     /// This is called before loading / reloading a simulation.
-    virtual void clearWindow() {}
+    virtual void clearWindow();
 
     /// Get the name of the window
     std::string getName() const;
@@ -129,13 +116,14 @@ class SOFAIMGUI_API BaseWindow
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench();
 
-    virtual void addGUIData(std::shared_ptr<sofa::core::BaseData> data,
-                            std::shared_ptr<sofa::core::BaseData> min = nullptr,
-                            std::shared_ptr<sofa::core::BaseData> max = nullptr,
+    virtual sofaimgui::models::GUIData::SPtr addData(const std::pair<sofa::core::BaseData*, bool>& data,
+                            const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                            const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                             const std::string& label = "",
                             const std::string& group = "",
                             const std::string& tooltip = "");
-    virtual void removeGUIData(GUIData& data);
+    virtual sofaimgui::models::GUIData::SPtr addGUIData(const sofaimgui::models::GUIData::SPtr& data);
+    virtual void removeGUIData(sofaimgui::models::GUIData::SPtr data);
     void clearGUIData() { m_GUIData.clear(); }
 
    protected:
@@ -154,8 +142,7 @@ class SOFAIMGUI_API BaseWindow
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
 
-    std::set<GUIData, GUIDataCompare> m_GUIData; /// A set of GUIData to use in the window
+    std::unordered_set<sofaimgui::models::GUIData::SPtr, sofaimgui::models::GUIDataHash, sofaimgui::models::GUIDataEqual> m_GUIData; /// A set of GUIData to use in the window
+	std::map<std::string, std::vector<sofaimgui::models::GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
 };
-
 }
-

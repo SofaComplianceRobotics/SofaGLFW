@@ -41,43 +41,29 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
         std::function<std::vector<std::string>()> listAvailablePortsCallback;
     };
 
-    struct Information{
-        std::string description;
-        sofa::core::BaseData* data;
-    };
-
-    struct Setting{
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        double min;
-        double max;
-    };
-
-    static std::string DEFAULTGROUP;
-
-    struct InformationGroup{
-        std::string description;
-        std::vector<Information> information;
-    };
-
-    struct SettingGroup{
-        std::string description;
-        std::vector<Setting> settings;
-    };
+	enum Section {
+        NONE,           // Not displayed
+		INFORMATION,    // Displayed in Information section
+		SETTINGS,       // Displayed in Settings section
+	};
 
     void clearWindow() override;
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
     Connection& getConnection();
-    void addInformation(const Information &info, const std::string &group);
-    void addSetting(const Setting &setting, const std::string &group);
+	sofaimgui::models::GUIData::SPtr addData(const std::pair<sofa::core::BaseData*, bool>& data,
+                                            const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                            const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                            const std::string& label = "",
+                                            const std::string& group = "",
+                                            const std::string& tooltip = "",
+                                            Section section = Section::NONE);
+	void removeGUIData(sofaimgui::models::GUIData::SPtr guiData) override;
 
    protected:
 
     Connection m_connection;
-    std::vector<InformationGroup> m_informationGroups;
-    std::vector<SettingGroup> m_settingGroups;
+	std::map<Section, std::unordered_set<sofaimgui::models::GUIData::SPtr>> m_sectionedGUIData;
 
     bool enabled() override;
 

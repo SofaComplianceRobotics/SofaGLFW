@@ -147,6 +147,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/GUIData.h
 
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiDataWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.h
