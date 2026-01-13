@@ -595,6 +595,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 if(isViewport)
                     ImGui::Separator();
                 ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
+                ImGui::SetItemTooltip("%s", window.get().getDescription().c_str());
                 if (isViewport)
                     ImGui::Separator();
             }

@@ -41,6 +41,7 @@ class ProfilerWindow : public BaseWindow
     ~ProfilerWindow()=default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
 protected:
 

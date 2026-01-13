@@ -40,6 +40,11 @@ ProfilerWindow::ProfilerWindow(const std::string& name, const bool& isWindowOpen
     m_isOpen = isWindowOpen;
 }
 
+std::string ProfilerWindow::getDescription()
+{
+    return "Profiling information about the simulation steps.";
+}
+
 void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(baseGUI);
@@ -165,7 +170,7 @@ void ProfilerWindow::showChart(const std::deque< sofa::type::vector<sofa::helper
         for (const auto& records : allRecords)
         {
             float value = 0.f;
-            sofa::helper::system::thread::ctime_t t0;
+            sofa::helper::system::thread::ctime_t t0 = 0;
             for (const auto& rec : records)
             {
                 if (timerId == rec.id)

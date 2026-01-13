@@ -50,6 +50,11 @@ MoveWindow::MoveWindow(const std::string& name,
                                 &m_TCPMinPosition, &m_TCPMaxPosition);
 }
 
+std::string MoveWindow::getDescription()
+{
+    return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
+}
+
 void MoveWindow::clearWindow()
 {
     m_IPController = nullptr;

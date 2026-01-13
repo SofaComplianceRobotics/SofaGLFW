@@ -37,6 +37,11 @@ MouseManagerWindow::MouseManagerWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string MouseManagerWindow::getDescription()
+{
+    return "Mouse settings, for interaction with the simulation.";
+}
+
 void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(baseGUI);

@@ -36,6 +36,7 @@ public:
     ~PluginsWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
 protected:
     sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);

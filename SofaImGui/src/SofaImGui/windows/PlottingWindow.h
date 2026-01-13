@@ -76,8 +76,10 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     ~PlottingWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-    void addData(const PlottingData data) {m_data.push_back(data);}
+    std::string getDescription() override;
     void clearWindow() override;
+
+    void addData(const PlottingData data) {m_data.push_back(data);}
 
    protected:
     std::vector<PlottingData> m_data;

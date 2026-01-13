@@ -38,6 +38,7 @@ public:
     ~MouseManagerWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
 protected:
     void showMouseSettings(PickHandler *pickHandler, sofa::gui::common::MOUSE_BUTTON button);

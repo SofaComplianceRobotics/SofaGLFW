@@ -40,6 +40,10 @@ PluginsWindow::PluginsWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string PluginsWindow::getDescription()
+{
+    return "List loaded plugins.";
+}
 
 void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {

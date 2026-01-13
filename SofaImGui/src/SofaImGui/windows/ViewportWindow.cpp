@@ -43,6 +43,11 @@ ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen
     m_isOpen = isWindowOpen;
 }
 
+std::string ViewportWindow::getDescription()
+{
+    return "Main viewport rendering window.";
+}
+
 void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                 const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)

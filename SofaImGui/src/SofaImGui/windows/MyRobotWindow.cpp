@@ -48,6 +48,12 @@ MyRobotWindow::MyRobotWindow(const std::string& name,
     m_isDrivingSimulation = true;
 }
 
+std::string MyRobotWindow::getDescription()
+{
+    return "Robot's information and settings. "
+           "Also provides connection management features.";
+}
+
 void MyRobotWindow::clearWindow()
 {
     m_informationGroups.clear();

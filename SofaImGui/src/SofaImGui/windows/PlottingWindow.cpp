@@ -44,6 +44,11 @@ PlottingWindow::PlottingWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string PlottingWindow::getDescription()
+{
+    return "Plot data over time.";
+}
+
 void PlottingWindow::clearWindow()
 {
     m_data.clear();

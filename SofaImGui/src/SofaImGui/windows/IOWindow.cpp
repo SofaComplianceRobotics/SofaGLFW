@@ -59,6 +59,11 @@ IOWindow::~IOWindow()
 #endif
 }
 
+std::string IOWindow::getDescription()
+{
+    return "Input / output operations of data.";
+}
+
 bool IOWindow::sanitizeName(std::string &name)
 {
     const std::string input = name;

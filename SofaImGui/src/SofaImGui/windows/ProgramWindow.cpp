@@ -60,6 +60,11 @@ ProgramWindow::ProgramWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string ProgramWindow::getDescription()
+{
+    return "Create robot programs.";
+}
+
 void ProgramWindow::loadAndProcessWindowSettings()
 {
     auto& windowsSettings = WindowsSettings::getInstance();

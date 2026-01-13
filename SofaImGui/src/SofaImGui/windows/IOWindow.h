@@ -140,6 +140,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);

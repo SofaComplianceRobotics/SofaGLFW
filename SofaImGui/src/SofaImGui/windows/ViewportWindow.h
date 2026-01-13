@@ -36,6 +36,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     ~ViewportWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
+    std::string getDescription() override;
 
     void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
     bool addStepButton();

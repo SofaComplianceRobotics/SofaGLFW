@@ -34,6 +34,7 @@ class SOFAIMGUI_API StateWindow : public BaseWindow
     ~StateWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void setSimulationState(const models::SimulationState &simulationState);
 
   protected:

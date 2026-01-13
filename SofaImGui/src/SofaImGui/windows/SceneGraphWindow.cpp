@@ -42,6 +42,11 @@ SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindow
     m_isOpen = isWindowOpen;
 }
 
+std::string SceneGraphWindow::getDescription()
+{
+    return "Scene graph of the simulation nodes and components.";
+}
+
 void SceneGraphWindow::clearWindow()
 {
     m_openedComponents.clear();

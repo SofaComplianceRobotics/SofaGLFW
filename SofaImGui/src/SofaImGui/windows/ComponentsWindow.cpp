@@ -41,6 +41,11 @@ ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindow
     m_isOpen = isWindowOpen;
 }
 
+std::string ComponentsWindow::getDescription()
+{
+    return "List and inspect the loaded components.";
+}
+
 void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(baseGUI);

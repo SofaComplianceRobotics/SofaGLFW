@@ -35,6 +35,7 @@ public:
     ~SceneGraphWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void clearWindow() override;
 
 protected:
