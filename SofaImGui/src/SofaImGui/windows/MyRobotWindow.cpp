@@ -48,6 +48,12 @@ MyRobotWindow::MyRobotWindow(const std::string& name,
     m_isDrivingSimulation = true;
 }
 
+std::string MyRobotWindow::getDescription()
+{
+    return "Robot's information and settings. "
+           "Also provides connection management features.";
+}
+
 void MyRobotWindow::clearWindow()
 {
     m_informationGroups.clear();
@@ -144,7 +150,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
 {
     SOFA_UNUSED(baseGUI);
 
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
@@ -156,6 +162,12 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                 { // Connection
                     if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
                     {
+                        if (!isEnabledInWorkbench())
+                        {
+                            showInfoMessage("This section is disabled in the active workbench.");
+                            ImGui::BeginDisabled();
+                        }
+
                         bool connected = Robot::getInstance().getConnection();
 
                         ImGui::Text("Available ports:");
@@ -187,6 +199,9 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                         ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImVec4(0.56f, 0.83f, 0.26f, 1.f): ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
                         ImGui::Text((connected)? "Connected": "Disconnected");
                         ImGui::PopStyleColor();
+
+                        if (!isEnabledInWorkbench())
+                            ImGui::EndDisabled();
 
                         ImGui::LocalEndCollapsingHeader();
                     }
@@ -241,55 +256,55 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
 
                 // Settings
                 if (!m_settingGroups.empty())
-            {
-                if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    std::string groups;
-                    int k=0;
-                    for (auto &group: m_settingGroups)
+                    if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        ImGui::PushID(k++);
-                        if (!isInEmptyGroup(group.description))
+                        std::string groups;
+                        int k=0;
+                        for (auto &group: m_settingGroups)
                         {
-                            ImGui::TextDisabled("%s", group.description.c_str());
-                            ImGui::Indent();
-                        }
-
-                        for (auto &setting: group.settings)
-                        {
-                            ImGui::AlignTextToFramePadding();
-                            ImGui::Text("%s", setting.description.c_str());
-                            ImGui::SameLine();
-
-                            auto* typeinfo = setting.data->getValueTypeInfo();
-                            auto* values = setting.data->getValueVoidPtr();
-
-                            std::string uiValue;
-                            for (size_t i=0; i<typeinfo->size(); i++)
+                            ImGui::PushID(k++);
+                            if (!isInEmptyGroup(group.description))
                             {
-                                setting.buffer = typeinfo->getScalarValue(values, i);
-                                showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2); 
-                                setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
-                                uiValue += std::to_string(setting.buffer) + " ";
+                                ImGui::TextDisabled("%s", group.description.c_str());
+                                ImGui::Indent();
                             }
-                            setting.data->read(uiValue);
+
+                            for (auto &setting: group.settings)
+                            {
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s", setting.description.c_str());
+                                ImGui::SameLine();
+
+                                auto* typeinfo = setting.data->getValueTypeInfo();
+                                auto* values = setting.data->getValueVoidPtr();
+
+                                std::string uiValue;
+                                for (size_t i=0; i<typeinfo->size(); i++)
+                                {
+                                    setting.buffer = typeinfo->getScalarValue(values, i);
+                                    showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2);
+                                    setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
+                                    uiValue += std::to_string(setting.buffer) + " ";
+                                }
+                                setting.data->read(uiValue);
+                            }
+
+                            if (!isInEmptyGroup(group.description))
+                                ImGui::Unindent();
+
+                            ImGui::PopID();
                         }
-
-                        if (!isInEmptyGroup(group.description))
-                            ImGui::Unindent();
-
-                        ImGui::PopID();
+                        ImGui::LocalEndCollapsingHeader();
                     }
-                    ImGui::LocalEndCollapsingHeader();
                 }
-            }
             }
             else
             {
-                displayDisabledInfoMessage("This window is used to display the robot's information and settings. "
-                                           "It also provides connection management features. However, no information or settings"
-                                           " have been registered for display, nor is there any connection management available."
-                                           );
+                showInfoMessage("This window is used to display the robot's information and settings. "
+                               "It also provides connection management features. However, no information or settings"
+                               " have been registered for display, nor is there any connection management available."
+                               );
             }
         }
         ImGui::End();

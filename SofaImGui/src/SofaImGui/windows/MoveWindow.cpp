@@ -50,6 +50,11 @@ MoveWindow::MoveWindow(const std::string& name,
                                 &m_TCPMinPosition, &m_TCPMaxPosition);
 }
 
+std::string MoveWindow::getDescription()
+{
+    return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
+}
+
 void MoveWindow::clearWindow()
 {
     m_kinematicsController = nullptr;
@@ -107,7 +112,7 @@ void MoveWindow::setActuatorLimits(const sofa::Index &id, const double &min, con
 
 void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
 {
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
@@ -229,6 +234,12 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                 {
                     if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
+                        if (!isEnabledInWorkbench())
+                        {
+                            showInfoMessage("This section is disabled in the active workbench.");
+                            ImGui::BeginDisabled();
+                        }
+
                         int nbActuators = m_actuators.size();
                         bool solveInverseProblem = true;
                         for (int i=0; i<nbActuators; i++)
@@ -259,40 +270,43 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                             m_kinematicsController->applyActuatorsForce(m_actuators);
                         }
 
+                        if (!isEnabledInWorkbench())
+                            ImGui::EndDisabled();
+
                         ImGui::LocalEndCollapsingHeader();
                     }
                 }
 
                 if (!m_accessories.empty())
-            {
-                if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    for (auto& accessory: m_accessories)
+                    if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        std::string name = accessory.description;
-
-                        auto* typeinfo = accessory.data->getValueTypeInfo();
-                        auto* value = accessory.data->getValueVoidPtr();
-                        double buffer = typeinfo->getScalarValue(value, 0);
-                        bool hasChanged = showSliderDouble(name.c_str(),
-                                                           ("##Slider" + name).c_str(),
-                                                           ("##Input" + name).c_str(),
-                                                           &buffer, accessory.min, accessory.max,
-                                                           ImVec4(0, 0, 0, 0));
-                        if (hasChanged && m_isDrivingSimulation)
+                        for (auto& accessory: m_accessories)
                         {
-                            accessory.data->read(std::to_string(buffer));
+                            std::string name = accessory.description;
+
+                            auto* typeinfo = accessory.data->getValueTypeInfo();
+                            auto* value = accessory.data->getValueVoidPtr();
+                            double buffer = typeinfo->getScalarValue(value, 0);
+                            bool hasChanged = showSliderDouble(name.c_str(),
+                                                               ("##Slider" + name).c_str(),
+                                                               ("##Input" + name).c_str(),
+                                                               &buffer, accessory.min, accessory.max,
+                                                               ImVec4(0, 0, 0, 0));
+                            if (hasChanged && m_isDrivingSimulation)
+                            {
+                                accessory.data->read(std::to_string(buffer));
+                            }
                         }
+                        ImGui::LocalEndCollapsingHeader();
                     }
-                    ImGui::LocalEndCollapsingHeader();
                 }
-            }
             }
             else
             {
-                displayDisabledInfoMessage("This window is used to move the target of a robot's tool center position (TCP), or actuators, using sliders. "
-                                           "The scene is missing elements for this window to work properly. "
-                                           );
+                showInfoMessage("This window is used to move the target of a robot's tool center position (TCP), or actuators, using sliders. "
+                               "The scene is missing elements for this window to work properly. "
+                               );
             }
         }
         ImGui::End();

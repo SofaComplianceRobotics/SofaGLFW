@@ -40,6 +40,10 @@ PluginsWindow::PluginsWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string PluginsWindow::getDescription()
+{
+    return "List loaded plugins.";
+}
 
 void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
@@ -52,7 +56,7 @@ void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
     const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
     static bool isSelectedPluginDefault;
 
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         ImGuiIO& io = ImGui::GetIO();
         const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.66);

@@ -59,6 +59,11 @@ IOWindow::~IOWindow()
 #endif
 }
 
+std::string IOWindow::getDescription()
+{
+    return "Input / output operations of data.";
+}
+
 bool IOWindow::sanitizeName(std::string &name)
 {
     const std::string input = name;
@@ -96,12 +101,15 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
 {
     SOFA_UNUSED(baseGUI);
     
-    if (isEnabledInWorkbench() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (!enabled())
-                displayDisabledInfoMessage("This window is used for input/output operations of data. It currently has no data registered.");
+            if (!isEnabledInWorkbench())
+            {
+                showInfoMessage("This window is used for input/output operations of data. It is disabled in the active workbench.");
+                ImGui::BeginDisabled();
+            }
 
             m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
 
@@ -125,6 +133,9 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
             if (m_method == 0) // ROS
                 showROSWindow();
 #endif
+
+            if (!isEnabledInWorkbench())
+                ImGui::EndDisabled();
         }
         ImGui::End();
     }

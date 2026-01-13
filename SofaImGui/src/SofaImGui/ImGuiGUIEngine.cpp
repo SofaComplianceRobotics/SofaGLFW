@@ -397,7 +397,7 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
 
-        auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.25f, nullptr, &dockspaceID);
+        auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.32f, nullptr, &dockspaceID);
         m_dockIDs.push_back(dock_id_right);
         setDockSizeFromFile(dock_id_right);
 
@@ -590,21 +590,14 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             for (auto& window : m_windows) 
             {
                 auto windowName = window.get().getName();
-                if (!window.get().isEnabledInWorkbench())
-                    ImGui::BeginDisabled();
 
                 bool isViewport = (windowName == m_viewportWindow.getName());
                 if(isViewport)
                     ImGui::Separator();
                 ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
+                ImGui::SetItemTooltip("%s", window.get().getDescription().c_str());
                 if (isViewport)
                     ImGui::Separator();
-
-                if (!window.get().isEnabledInWorkbench())
-                {
-                    ImGui::EndDisabled();
-                    ImGui::SetItemTooltip("Not enabled in active workbench");
-                }
             }
 
             ImGui::EndMenu();

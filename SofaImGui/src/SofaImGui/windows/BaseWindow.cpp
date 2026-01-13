@@ -35,26 +35,60 @@ BaseWindow::BaseWindow()
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
+void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+{
+    SOFA_UNUSED(baseGUI);
+    SOFA_UNUSED(windowFlags);
+}
+
+void BaseWindow::setDrivingTCPTarget(const bool &isDrivingSimulation)
+{
+    m_isDrivingSimulation = isDrivingSimulation;
+}
+
+std::string BaseWindow::getName() const
+{
+    return m_name;
+}
+
+std::string& BaseWindow::getLabel()
+{
+    m_labelname = "       " + m_name;
+    return m_labelname;
+}
+
+bool BaseWindow::isDrivingSimulation()
+{
+    return m_isDrivingSimulation;
+}
+
 bool& BaseWindow::isOpen()
 {
-    if (!isEnabledInWorkbench())
-        m_isOpen = false;
     return m_isOpen;
 }
 
-void BaseWindow::displayDisabledInfoMessage(const char* message)
+void BaseWindow::setOpen(const bool &isOpen)
+{
+    m_isOpen=isOpen;
+}
+
+const bool& BaseWindow::getDefaultIsOpen()
+{
+    return m_defaultIsOpen;
+}
+
+bool BaseWindow::isEnabledInWorkbench()
+{
+    return (m_workbenches & workbench);
+}
+
+void BaseWindow::showInfoMessage(const char* message)
 {
     ImGui::BeginDisabled();
     ImGui::Text(ICON_FA_CIRCLE_INFO);
     ImGui::SameLine();
     ImGui::TextWrapped("%s", message);
     ImGui::EndDisabled();
-}
-
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
-{
-    SOFA_UNUSED(baseGUI);
-    SOFA_UNUSED(windowFlags);
 }
 
 void BaseWindow::addGUIData(std::shared_ptr<sofa::core::BaseData> data,

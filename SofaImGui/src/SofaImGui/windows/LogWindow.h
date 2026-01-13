@@ -41,5 +41,6 @@ namespace sofaimgui::windows
         ~LogWindow() = default;
 
         void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+        std::string getDescription() override;
     };
 }

@@ -21,7 +21,6 @@
  ******************************************************************************/
 #pragma once
 
-#include <filesystem>
 #include <imgui.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
@@ -48,6 +47,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     models::Program m_program; // robot program
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void clearWindow() override {m_kinematicsController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
