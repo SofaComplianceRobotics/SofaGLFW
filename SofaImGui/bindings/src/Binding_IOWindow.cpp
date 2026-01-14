@@ -31,11 +31,13 @@
 #include <sofa/gui/common/GUIManager.h>
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <Module_SofaImGui.h>
 
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
 /// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
@@ -47,14 +49,19 @@ void moduleAddIOWindow(py::module &m)
 
     auto m_a = m.def_submodule("IOWindow", "");
 
-    m_a.def("addSubscribableData",
-        [engine](std::string name, sofa::core::BaseData* data)
+    m_a.def("addData",
+        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
             if (engine)
             {
-                engine->m_IOWindow.addSubscribableData(name, data);
+				auto dataConverted = getDataFromPyObject(data, type);
+				auto minConverted = getDataFromPyObject(min, type);
+				auto maxConverted = getDataFromPyObject(max, type);
+                engine->m_IOWindow.addData(label, dataConverted, minConverted, maxConverted, group, help);
             }
         }
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "Add a data to subscribe to in the IO window."
         );
 }
 

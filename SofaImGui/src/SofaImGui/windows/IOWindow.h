@@ -148,9 +148,15 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
 
     void setSimulationState(const models::SimulationState &simulationState);
-    void addSubscribableData(const std::string& name, sofa::core::BaseData* data);
 
-    void clearWindow() override {m_kinematicsController=nullptr;}
+    sofaimgui::models::GUIData::SPtr addData(const std::string& label,
+        const std::pair<sofa::core::BaseData*, bool>& data,
+        const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+        const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+        const std::string& group = "",
+        const std::string& tooltip = "") override;
+
+    void clearWindow() override { m_kinematicsController = nullptr; m_subscribableData.clear(); }
 
    protected:
     
@@ -184,7 +190,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map (simulation data)
     std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
-    std::map<std::string, sofa::core::BaseData*> m_subscribableData; // user defined input
+    std::map<std::string, sofaimgui::models::GUIData::SPtr> m_subscribableData; // user defined input
 
     float m_itemWidth;
 

@@ -133,7 +133,6 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
             if (m_method == 0) // ROS
                 showROSWindow();
 #endif
-
             if (!isEnabledInWorkbench())
                 ImGui::EndDisabled();
         }
@@ -146,9 +145,11 @@ void IOWindow::setSimulationState(const models::SimulationState &simulationState
     m_simulationStateData = simulationState.getStateData();
 }
 
-void IOWindow::addSubscribableData(const std::string& name, sofa::core::BaseData* data)
+sofaimgui::models::GUIData::SPtr IOWindow::addData(const std::string& label, const std::pair<sofa::core::BaseData*, bool>& data, const std::pair<sofa::core::BaseData*, bool>& min, const std::pair<sofa::core::BaseData*, bool>& max, const std::string& group, const std::string& tooltip)
 {
-    m_subscribableData[name] = data;
+	auto newdDta = BaseWindow::addData(label, data, min, max, group, tooltip);
+    m_subscribableData[label] = newdDta;
+    return newdDta;
 }
 
 void IOWindow::animateBeginEvent(sofa::simulation::Node *groot)
