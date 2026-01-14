@@ -201,9 +201,7 @@ void PlottingWindow::showButtons()
 
     if (ImGui::BeginPopup("##MyPlotsContext"))
     {
-        ImGui::PopStyleColor();
         showMenu();
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
         ImGui::EndPopup();
     }
 }
@@ -211,7 +209,6 @@ void PlottingWindow::showButtons()
 void PlottingWindow::showPlots()
 {
     static PlottingData* dragedData;
-
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
