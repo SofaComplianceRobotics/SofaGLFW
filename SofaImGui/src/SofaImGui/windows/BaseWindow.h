@@ -116,12 +116,12 @@ class SOFAIMGUI_API BaseWindow
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench();
 
-    virtual sofaimgui::models::GUIData::SPtr addData(const std::pair<sofa::core::BaseData*, bool>& data,
-                            const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                            const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                            const std::string& label = "",
-                            const std::string& group = "",
-                            const std::string& tooltip = "");
+    virtual sofaimgui::models::GUIData::SPtr addData(const std::string& label,
+                                                    const std::pair<sofa::core::BaseData*, bool>& data,
+                                                    const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                    const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                    const std::string& group = "",
+                                                    const std::string& tooltip = "");
     virtual sofaimgui::models::GUIData::SPtr addGUIData(const sofaimgui::models::GUIData::SPtr& data);
     virtual void removeGUIData(sofaimgui::models::GUIData::SPtr data);
     void clearGUIData() { m_GUIData.clear(); }

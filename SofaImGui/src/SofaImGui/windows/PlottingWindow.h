@@ -79,17 +79,22 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     std::string getDescription() override;
     void clearWindow() override;
 
-    void addData(const PlottingData data) {m_data.push_back(data);}
+    sofaimgui::models::GUIData::SPtr addData(const std::string& label, 
+                                            const std::pair<sofa::core::BaseData*, bool>& data,
+                                            const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                            const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                            const std::string& group = "",
+                                            const std::string& tooltip = "") override;
 
    protected:
-    std::vector<PlottingData> m_data;
+	std::map<size_t, std::set<sofaimgui::models::GUIData::SPtr>> m_data;
     std::vector<RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
     size_t m_nbRows{1};
     size_t m_nbCols{1};
 
-    bool enabled() override {return !m_data.empty();}
+    bool enabled() override {return !m_GUIData.empty();}
 
     void exportData();
     void showButtons();

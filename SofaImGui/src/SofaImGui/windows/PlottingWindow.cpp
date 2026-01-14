@@ -42,6 +42,10 @@ PlottingWindow::PlottingWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+
+    for (size_t i = 0; i < MAX_NB_PLOT; i++)
+        m_data[i] = std::set<sofaimgui::models::GUIData::SPtr>();
+    
 }
 
 std::string PlottingWindow::getDescription()
@@ -58,7 +62,7 @@ void PlottingWindow::clearWindow()
 void PlottingWindow::exportData()
 {
     nfdchar_t *outPath;
-    size_t nbData = m_data.size();
+    size_t nbData = m_GUIData.size();
 
     const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "plotting.csv");
     if (result == NFD_OKAY)
@@ -75,13 +79,15 @@ void PlottingWindow::exportData()
                     outputFile << d.x << ",";
                 outputFile << "\n";
 
-                for (size_t i=0; i<nbData; i++)
-                {
-                    outputFile << m_data[i].description << ",";
+				size_t i = 0;
+				for (auto& it : m_GUIData)
+				{
+                    outputFile << it->label<< ",";
                     auto buffer = m_buffers[i];
                     for (const auto& d : buffer.data)
                         outputFile << d.y << ",";
                     outputFile << "\n";
+                    i++;
                 }
                 outputFile.close();
             }
@@ -89,22 +95,35 @@ void PlottingWindow::exportData()
     }
 }
 
+sofaimgui::models::GUIData::SPtr PlottingWindow::addData(const std::string& label, 
+                                                        const std::pair<sofa::core::BaseData*, bool>& data,
+                                                        const std::pair<sofa::core::BaseData*, bool>& min,
+                                                        const std::pair<sofa::core::BaseData*, bool>& max,
+                                                        const std::string& group,
+                                                        const std::string& tooltip) 
+{
+
+	auto newData = BaseWindow::addData(label, data, min, max, group, tooltip);
+	m_data[0].insert(newData);
+    return newData;;
+}
+
 void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(windowFlags);
     auto groot = baseGUI->getRootNode().get();
 
-    size_t nbData = m_data.size();
+    size_t nbData = m_GUIData.size();
     if (m_buffers.size() != nbData)
         m_buffers.resize(nbData);
 
-    if(!m_data.empty() && groot->getAnimate())
+    if(!m_GUIData.empty() && groot->getAnimate())
     {
         for (size_t k=0; k<nbData; k++)
         {
-            auto& data = m_data[k];
-            const sofa::defaulttype::AbstractTypeInfo* typeInfo = data.value->getValueTypeInfo();
-            float value = typeInfo->getScalarValue(data.value->getValueVoidPtr(), 0);
+			auto& data = *std::next(m_GUIData.begin(), k);
+            const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
+            float value = typeInfo->getScalarValue(data->getData()->getValueVoidPtr(), 0);
             float time = groot->getTime();
             RollingBuffer& buffer = m_buffers[k];
             buffer.addPoint(time, value);
@@ -208,7 +227,7 @@ void PlottingWindow::showButtons()
 
 void PlottingWindow::showPlots()
 {
-    static PlottingData* dragedData;
+    static sofaimgui::models::GUIData::SPtr dragedData;
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
@@ -220,38 +239,36 @@ void PlottingWindow::showPlots()
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        size_t nbData = m_data.size();
-        for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+        size_t nbData = m_GUIData.size();
+        for (auto& plots : m_data)
         {
-            if (ImPlot::BeginPlot(("##" +std::to_string(i)).c_str(), ImVec2(-1, 0),
+            if (ImPlot::BeginPlot(("##" +std::to_string(plots.first)).c_str(), ImVec2(-1, 0),
                                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
             {
                 ImPlot::SetupLegend(ImPlotLocation_NorthEast, ImPlotLegendFlags_Sort | ImPlotLegendFlags_Outside);
                 ImPlot::SetupAxes("Time (s)", nullptr,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
-                for (size_t k=0; k<nbData; k++)
+				size_t k = 0;
+                for (auto& data: plots.second)
                 {
-                    auto& data = m_data[k];
-                    if (data.idSubplot == i)
-                    {
-                        RollingBuffer& buffer = m_buffers[k];
+                    RollingBuffer& buffer = m_buffers[k];
 
-                        ImPlot::PlotLine(data.description.c_str(),
-                                         &buffer.data[0].x,
-                                         &buffer.data[0].y,
-                                         buffer.data.size(),
-                                         0, 0, 2 * sizeof(float));
+                    ImPlot::PlotLine(data->label.c_str(),
+                                        &buffer.data[0].x,
+                                        &buffer.data[0].y,
+                                        buffer.data.size(),
+                                        0, 0, 2 * sizeof(float));
 
-                        if (ImPlot::BeginDragDropSourceItem(data.description.c_str())) {
-                            dragedData = &data;
-                            ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
-                            ImPlot::ItemIcon(ImPlot::GetLastItemColor());
-                            ImGui::SameLine();
-                            ImGui::TextUnformatted(data.description.c_str());
-                            ImPlot::EndDragDropSource();
-                        }
+                    if (ImPlot::BeginDragDropSourceItem(data->label.c_str())) {
+                        dragedData = data;
+                        ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
+                        ImPlot::ItemIcon(ImPlot::GetLastItemColor());
+                        ImGui::SameLine();
+                        ImGui::TextUnformatted(data->label.c_str());
+                        ImPlot::EndDragDropSource();
                     }
+                    k++;
                 }
 
                 if (ImPlot::BeginDragDropTargetPlot())
@@ -259,7 +276,17 @@ void PlottingWindow::showPlots()
                     if (ImGui::AcceptDragDropPayload("dragndrop"))
                     {
                         if (dragedData)
-                            dragedData->idSubplot = i;
+                        {
+                            for (auto& subplots : m_data)
+                            {
+								if (subplots.second.contains(dragedData))
+								{
+									subplots.second.erase(dragedData);
+									break;
+								}
+                            }
+							m_data[plots.first].insert(dragedData);
+                        }
                     }
                     ImPlot::EndDragDropTarget();
                 }
@@ -281,7 +308,7 @@ void PlottingWindow::showPlots()
                 if (ImGui::BeginPopup("##MyPlotContext"))
                 {
                     ImGui::PopStyleColor();
-                    showMenu(plot, i);
+                    showMenu(plot, plots.first);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
                     ImGui::EndPopup();
                 }
@@ -322,7 +349,7 @@ void PlottingWindow::showMenu()
             }
 
             for (size_t i=0; i<m_nbRows * m_nbCols; i++)
-                m_ratio[i] = ratio;
+				m_ratio[i] = ratio;
         }
         ImGui::PopItemWidth();
         ImGui::EndTable();
@@ -366,12 +393,12 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const size_t &idSubplot)
         ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
         if (ImGui::InputFloat(("##Ratio" + std::to_string(idSubplot)).c_str(), &ratio, 0, 0, "%0.2e"))
         {
-            size_t nbData = m_data.size();
+            size_t nbData = m_GUIData.size();
             for (size_t i=0; i<nbData; i++)
             {
-                auto& data = m_data[i];
+				auto& data = *std::next(m_GUIData.begin(), i);
                 auto& buffer = m_buffers[i];
-                if (data.idSubplot == idSubplot)
+                if (m_data[idSubplot].contains(data))
                 {
                     for (auto& point: buffer.data)
                     {

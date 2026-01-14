@@ -87,14 +87,14 @@ MyRobotWindow::Connection& MyRobotWindow::getConnection()
     return m_connection;
 }
 
-sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::pair<sofa::core::BaseData*, bool>& data,
+sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
+                                                        const std::pair<sofa::core::BaseData*, bool>& data,
                                                         const std::pair<sofa::core::BaseData*, bool>& min,
                                                         const std::pair<sofa::core::BaseData*, bool>& max,
-                                                        const std::string& label,
                                                         const std::string& group,
                                                         const std::string& tooltip, Section section)
 {
-	auto added = BaseWindow::addData(data, min, max, label, group, tooltip);
+	auto added = BaseWindow::addData(label, data, min, max, group, tooltip);
 	m_sectionedGUIData[section].insert(added);
 	return added;
 }

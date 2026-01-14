@@ -47,10 +47,11 @@ void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &l
 {
     if (engine)
     {
-        engine->m_myRobotWindow.addData(getDataFromPyObject(data, type),
+        engine->m_myRobotWindow.addData(label,
+                                        getDataFromPyObject(data, type),
 			                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                                         std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                        label, group, help, sofaimgui::windows::MyRobotWindow::Section::INFORMATION);
+                                        group, help, sofaimgui::windows::MyRobotWindow::Section::INFORMATION);
     }
 }
 
@@ -58,10 +59,11 @@ void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label
 {
     if (engine)
     {
-        engine->m_myRobotWindow.addData(getDataFromPyObject(data, type),
+        engine->m_myRobotWindow.addData(label,
+                                        getDataFromPyObject(data, type),
                                         getDataFromPyObject(min, type),
                                         getDataFromPyObject(max, type),
-                                        label, group, help, sofaimgui::windows::MyRobotWindow::Section::SETTINGS);
+                                        group, help, sofaimgui::windows::MyRobotWindow::Section::SETTINGS);
     }
 }
 

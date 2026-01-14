@@ -97,10 +97,10 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
-sofaimgui::models::GUIData::SPtr BaseWindow::addData(const std::pair<sofa::core::BaseData*, bool>& data,
+sofaimgui::models::GUIData::SPtr BaseWindow::addData(const std::string& label, 
+                                                    const std::pair<sofa::core::BaseData*, bool>& data,
                                                     const std::pair<sofa::core::BaseData*, bool>& min,
 	                                                const std::pair<sofa::core::BaseData*, bool>& max,
-                                                    const std::string& label,
                                                     const std::string& group,
                                                     const std::string& tooltip)
 {
