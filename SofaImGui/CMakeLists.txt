@@ -115,6 +115,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/MoveWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/SceneGraphWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/StateWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/DataMonitorWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.h
@@ -176,6 +177,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/MoveWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/SceneGraphWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/StateWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/DataMonitorWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp

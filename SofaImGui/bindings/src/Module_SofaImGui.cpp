@@ -124,7 +124,7 @@ PYBIND11_MODULE(ImGui, m)
     moduleAddMyRobotWindow(m);
     moduleAddPlottingWindow(m);
     moduleAddProgramWindow(m);
-    moduleAddSimulationState(m);
+    moduleAddDataMonitor(m);
 }
 
 std::pair<sofa::core::BaseData*, bool> getDataFromPyObject(py::object& obj, std::string type)

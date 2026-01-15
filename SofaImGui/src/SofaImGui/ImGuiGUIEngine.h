@@ -41,6 +41,7 @@
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/windows/ProfilerWindow.h>
+#include <SofaImGui/windows/DataMonitorWindow.h>
 
 #include <SofaImGui/windows/PluginsWindow.h>
 
@@ -96,6 +97,7 @@ public:
 
     models::SimulationState& getSimulationState() {return m_simulationState;}
 
+    std::shared_ptr<windows::DataMonitorWindow> m_dataMonitorWindow = std::make_shared<windows::DataMonitorWindow>("Data Monitor", false);
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
@@ -126,7 +128,8 @@ protected:
                                                                         m_sceneGraphWindow,
                                                                         m_componentsWindow,
                                                                         m_logWindow,
-                                                                        m_profilerWindow
+                                                                        m_profilerWindow,
+                                                                        *m_dataMonitorWindow
                                                                        };
 
     CSimpleIniA iniGUISettings;

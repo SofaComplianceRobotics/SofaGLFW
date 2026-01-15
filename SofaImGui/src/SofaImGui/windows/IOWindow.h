@@ -133,6 +133,13 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
 class SOFAIMGUI_API IOWindow : public BaseWindow
 {
    public:
+    enum Role
+    {
+		PUBLISH,
+		SUBSCRIBE,
+        ALL
+    };
+
     IOWindow(){}
     IOWindow(const std::string& name, const bool& isWindowOpen);
     ~IOWindow();
@@ -147,16 +154,17 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     
     void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
 
-    void setSimulationState(const models::SimulationState &simulationState);
+    void setSimulationState(const models::SimulationState& simulationState); // TODO Remove this when SimulationStateWindow is removed
 
     sofaimgui::models::GUIData::SPtr addData(const std::string& label,
         const std::pair<sofa::core::BaseData*, bool>& data,
         const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
         const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
         const std::string& group = "",
-        const std::string& tooltip = "") override;
+        const std::string& tooltip = "",
+        Role role = Role::ALL);
 
-    void clearWindow() override { m_kinematicsController = nullptr; m_subscribableData.clear(); }
+    void clearWindow() override { m_kinematicsController = nullptr; m_selectableData.clear(); }
 
    protected:
     
@@ -189,8 +197,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     std::map<std::string, bool> m_subcriptionListboxItems;
 
     std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map (simulation data)
-    std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
-    std::map<std::string, sofaimgui::models::GUIData::SPtr> m_subscribableData; // user defined input
+    std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output // TODO Remove this when SimulationStateWindow is removed
+    std::map < Role, std::map<std::string, sofaimgui::models::GUIData::SPtr>> m_selectableData; // user defined input (subscribable data)
 
     float m_itemWidth;
 

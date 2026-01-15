@@ -140,15 +140,29 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
     }
 }
 
-void IOWindow::setSimulationState(const models::SimulationState &simulationState)
+void IOWindow::setSimulationState(const models::SimulationState & simulationState)
 {
     m_simulationStateData = simulationState.getStateData();
 }
 
-sofaimgui::models::GUIData::SPtr IOWindow::addData(const std::string& label, const std::pair<sofa::core::BaseData*, bool>& data, const std::pair<sofa::core::BaseData*, bool>& min, const std::pair<sofa::core::BaseData*, bool>& max, const std::string& group, const std::string& tooltip)
+
+sofaimgui::models::GUIData::SPtr IOWindow::addData(const std::string& label, 
+                                                const std::pair<sofa::core::BaseData*, bool>& data, 
+                                                const std::pair<sofa::core::BaseData*, bool>& min, 
+                                                const std::pair<sofa::core::BaseData*, bool>& max, 
+                                                const std::string& group, 
+                                                const std::string& tooltip,
+                                                Role role)
 {
 	auto newdDta = BaseWindow::addData(label, data, min, max, group, tooltip);
-    m_subscribableData[label] = newdDta;
+	if (role == Role::ALL)
+	{
+		m_selectableData[Role::PUBLISH][label] = newdDta;
+		m_selectableData[Role::SUBSCRIBE][label] = newdDta;
+		return newdDta;
+	}
+    else
+        m_selectableData[role][label] = newdDta;
     return newdDta;
 }
 
@@ -301,7 +315,23 @@ void IOWindow::showROSOutput()
         if (ImGui::BeginListBox("##StatePublish", ImVec2(m_itemWidth, 0)))
         {
             // Simulation data
-            for (const auto& [key, value] : m_IOData)
+            for (const auto& [key, value] : m_IOData) // TODO Remove when StateWindow is removed
+            {
+                if (publishFirstTime)
+                {
+                    m_publishListboxItems[key] = false;
+                }
+
+                ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+                color.w = 1.0;
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
+                if (ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]))
+                    updateROSData = true;
+                ImGui::PopStyleColor();
+            }
+
+            // User-defined data
+            for (const auto& [key, value] : m_selectableData[Role::PUBLISH])
             {
                 if (publishFirstTime)
                 {
@@ -438,7 +468,7 @@ void IOWindow::showROSInput()
         if (ImGui::BeginListBox("##StateSubscription", ImVec2(m_itemWidth, 0)))
         {
             // TCP target
-            for (const auto& [simStateName, stateValue] : m_IOData)
+            for (const auto& [simStateName, stateValue] : m_IOData) // TODO Remove when StateWindow is removed
             {
                 std::string stateName = simStateName;
                 if (stateName.find("TCP")!=std::string::npos)
@@ -502,7 +532,7 @@ void IOWindow::showROSInput()
             }
 
             // User defined input
-            for (const auto &[name, value] : m_subscribableData)
+            for (const auto &[name, value] : m_selectableData[Role::SUBSCRIBE])
             {
                 if (subscribeFirstTime)
                 {
@@ -576,8 +606,16 @@ void IOWindow::updateROSOutput()
 {
     m_rosnode->clearSelectedOutput();
 
+    for (const auto& [key, value] : m_IOData) // TODO Remove this when SimulationState is removed
+    {
+        if (m_publishListboxItems[key])
+        {
+            m_rosnode->m_selectedDataToPublish["/" + key] = value;
+        }
+    }
+
     // Simulation data
-    for (const auto& [key, value] : m_IOData)
+    for (const auto& [key, value] : m_selectableData[Role::PUBLISH])
     {
         if(m_publishListboxItems[key])
         {
@@ -601,7 +639,7 @@ void IOWindow::updateROSInput()
     m_rosnode->clearSelectedInput();
 
     //TCP target
-    for (const auto& [simStateName, stateData] : m_IOData)
+    for (const auto& [simStateName, stateData] : m_IOData) // TODO Remove this when SimulationState is removed
     {
         std::string stateName = simStateName;
         if (stateName.find("TCP")!=std::string::npos)
@@ -634,9 +672,27 @@ void IOWindow::updateROSInput()
     }
 
     // User defined input
-    for (const auto &[name, value] : m_subscribableData)
+    for (const auto &[name, value] : m_selectableData[Role::SUBSCRIBE])
     {
-        if(m_subcriptionListboxItems[name])
+        std::string stateName = name;
+        if (stateName.find("TCP") != std::string::npos) //TCP target
+        {
+            stateName = "/TCPTarget/Frame";
+            if (m_subcriptionListboxItems[stateName])
+            {
+                // Copy the data
+                auto* typeinfo = stateData->getValueTypeInfo();
+                auto* values = stateData->getValueVoidPtr();
+                size_t nbValue = typeinfo->size();
+                std::vector<float> vector(nbValue);
+
+                for (size_t i = 0; i < nbValue; i++) // Values
+                    vector[i] = typeinfo->getScalarValue(values, i);
+
+                m_rosnode->m_selectedDataToOverwrite[stateName] = vector;  // default temp value, will be overwritten by chosen topic's callback
+            }
+        }
+        else if(m_subcriptionListboxItems[name])
         {
             m_rosnode->m_selectedUserInput[name] = stof(value->getValueString());  // default temp value, will be overwritten by chosen topic's callback
         }
@@ -675,7 +731,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
         // Overwrite the user data with ROS input
         for (auto [name, value]: m_rosnode->m_selectedUserInput)
         {
-            sofa::core::BaseData* data = m_subscribableData[name];
+            sofa::core::BaseData* data = m_selectableData[name];
             if (data)
                 data->read(std::to_string(value));
         }

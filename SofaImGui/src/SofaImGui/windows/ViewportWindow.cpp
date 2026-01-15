@@ -36,7 +36,6 @@
 namespace sofaimgui::windows {
 
 ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow)
-    : m_stateWindow(stateWindow)
 {
     m_defaultIsOpen = true;
     m_name = name;
@@ -86,7 +85,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addStateWindow(baseGUI, windowFlags);
+                    //addStateWindow(baseGUI, windowFlags);
                     addSimulationTimeAndFPS(groot);
 
                     // Panel backgroung
@@ -115,13 +114,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
         }
         ImGui::End();
     }
-}
-
-void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                    const ImGuiWindowFlags& windowFlags)
-{
-    ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow(baseGUI, windowFlags);
 }
 
 bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
