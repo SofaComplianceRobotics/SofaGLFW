@@ -239,7 +239,6 @@ void PlottingWindow::showPlots()
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        size_t nbData = m_GUIData.size();
         for (auto& plots : m_data)
         {
             if (ImPlot::BeginPlot(("##" +std::to_string(plots.first)).c_str(), ImVec2(-1, 0),

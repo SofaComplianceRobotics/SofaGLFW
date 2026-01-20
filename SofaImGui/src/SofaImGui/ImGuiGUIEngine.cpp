@@ -277,7 +277,6 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             changeWorkbench(Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE)));
         }
 
-        m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
         createGUINode();
@@ -900,7 +899,6 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     clearGUI();
     Utils::loadSimulation(m_baseGUI, reload, filename);
     createGUINode();
-    m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
     enableWindows();
 }
