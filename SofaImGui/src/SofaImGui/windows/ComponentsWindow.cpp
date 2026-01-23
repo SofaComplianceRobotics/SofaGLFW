@@ -179,7 +179,7 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
     {
         ImGui::TextDisabled("Examples:");
         ImGui::Indent();
-        for (const auto& examplePath: m_selectedComponentExamples)
+        for (auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
             ImGui::TextWrapped("%s", examplePath.filename().c_str());
