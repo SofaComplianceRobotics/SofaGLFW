@@ -179,14 +179,14 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
     {
         ImGui::TextDisabled("Examples:");
         ImGui::Indent();
-        for (auto& examplePath: m_selectedComponentExamples)
+        for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
             ImGui::TextWrapped("%s", examplePath.filename().c_str());
             ImGui::PopStyleColor();
 
             if (ImGui::IsItemClicked())
-                ImGui::SetClipboardText(examplePath.c_str());
+                ImGui::SetClipboardText(examplePath.string().c_str());
 
             static float copiedMessageDuration = 0;
             if (ImGui::IsItemClicked() || copiedMessageDuration > 0)
