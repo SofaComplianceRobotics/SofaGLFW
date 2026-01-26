@@ -27,6 +27,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
 #if SOFAIMGUI_WITH_ROS
@@ -138,7 +139,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-    void showWindow(sofa::simulation::Node *groot, const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);

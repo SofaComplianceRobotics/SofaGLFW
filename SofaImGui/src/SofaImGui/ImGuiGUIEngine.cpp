@@ -22,6 +22,7 @@
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
@@ -128,7 +129,9 @@ void ImGuiGUIEngine::saveProject()
         }
     }
 
-    windowSettings.getIniWindowsSettings().SaveFile(projectFile.c_str());
+    CSimpleIniA& projectSettings = windowSettings.getIniWindowsSettings();
+    projectSettings.SetLongValue("Workbench", "type", workbench);
+    projectSettings.SaveFile(projectFile.c_str());
 }
 
 void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
@@ -264,6 +267,16 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     {
         firstTime = false;
         m_baseGUI = baseGUI;
+
+        if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+        {
+            CSimpleIniA workbenchIni;
+            SI_Error rc = workbenchIni.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+            SOFA_UNUSED(rc);
+            assert(rc == SI_OK);
+            changeWorkbench(Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE)));
+        }
+
         m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
@@ -274,11 +287,14 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         initDockSpace(false);
     }
 
-
+    m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
+    showSecondaryMenuBar();
+    m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
+    m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
+
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
-
 
     showViewportWindow(baseGUI);
     showOptionWindows(baseGUI);
@@ -381,7 +397,7 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
 
-        auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.25f, nullptr, &dockspaceID);
+        auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.32f, nullptr, &dockspaceID);
         m_dockIDs.push_back(dock_id_right);
         setDockSizeFromFile(dock_id_right);
 
@@ -396,17 +412,20 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         m_dockIDs.push_back(dockspaceID);
         setDockSizeFromFile(dock_id_down);
 
-        ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right);
-        ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right);
+        ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right); // interactions with MoveWindow
+        ImGui::DockBuilderDockWindow(m_componentsWindow.getLabel().c_str(), dock_id_right); // interactions with SceneGraphWindow
 
+        ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_moveWindow.getLabel().c_str(), dock_id_right_up);
         ImGui::DockBuilderDockWindow(m_sceneGraphWindow.getLabel().c_str(), dock_id_right_up);
 
         ImGui::DockBuilderDockWindow(m_viewportWindow.getLabel().c_str(), dockspaceID);
 
+        // Windows with landscape content
         ImGui::DockBuilderDockWindow(m_programWindow.getLabel().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_plottingWindow.getLabel().c_str(), dock_id_down);
         ImGui::DockBuilderDockWindow(m_logWindow.getLabel().c_str(), dock_id_down);
+        ImGui::DockBuilderDockWindow(m_profilerWindow.getLabel().c_str(), dock_id_down);
 
         ImGui::DockBuilderGetNode(dockspaceID)->WantHiddenTabBarToggle = true;
 
@@ -416,11 +435,14 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
     ImGui::End();
 }
 
+void ImGuiGUIEngine::changeWorkbench(Workbench wb)
+{
+    workbench = wb;
+    m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
+}
+
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    auto groot = baseGUI->getRootNode();
-    m_animate = groot->animate_.getValue();
-
     static bool firstTime = true;
     if (firstTime)
     {
@@ -428,42 +450,49 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
-    m_viewportWindow.showWindow(baseGUI, groot.get(), (ImTextureID)m_fbo->getColorTexture(),
+    auto groot = baseGUI->getRootNode();
+    m_viewportWindow.showWindow(baseGUI,
+                                (ImTextureID)m_fbo->getColorTexture(),
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
                                 );
 
-    // Animate button
-    if (m_viewportWindow.addAnimateButton(&m_animate))
-        sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
-
-    // Step button
-    if (m_viewportWindow.addStepButton())
+    // Simulation
+    if (workbench != Workbench::SCENE_EDITOR)
     {
-        if (!m_animate)
+        m_animate = groot->animate_.getValue();
+
+        // Animate button
+        if (m_viewportWindow.addAnimateButton(&m_animate))
+            sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
+
+        // Step button
+        if (m_viewportWindow.addStepButton())
         {
-            sofa::helper::AdvancedTimer::begin("Animate");
-            animateBeginEvent(groot.get());
-            sofa::simulation::node::animate(groot.get(), groot->getDt());
-            animateEndEvent(groot.get());
-            sofa::simulation::node::updateVisual(groot.get());
-            sofa::helper::AdvancedTimer::end("Animate");
+            if (!m_animate)
+            {
+                sofa::helper::AdvancedTimer::begin("Animate");
+                animateBeginEvent(groot.get());
+                sofa::simulation::node::animate(groot.get(), groot->getDt());
+                animateEndEvent(groot.get());
+                sofa::simulation::node::updateVisual(groot.get());
+                sofa::helper::AdvancedTimer::end("Animate");
+            }
         }
-    }
 
-    // Driving Tab combo
-    static const char* listTabs[]{"Move", "Program", "Input/Output"};
+        // Driving Tab combo
+        static const char* listTabs[]{"Move", "Program", "Input/Output"};
 
-    if(!m_IPController)
-        ImGui::BeginDisabled();
+        if(!m_IPController)
+            ImGui::BeginDisabled();
 
-    if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
-    {
-        const auto filename = baseGUI->getFilename();
+        if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
+        {
+            const auto filename = baseGUI->getFilename();
 
-        m_moveWindow.setDrivingTCPTarget(false);
-        m_programWindow.setDrivingTCPTarget(false);
-        m_IOWindow.setDrivingTCPTarget(false);
-        switch (m_mode) {
+            m_moveWindow.setDrivingTCPTarget(false);
+            m_programWindow.setDrivingTCPTarget(false);
+            m_IOWindow.setDrivingTCPTarget(false);
+            switch (m_mode) {
             case 1:
             {
                 m_programWindow.setTime(groot->getTime());
@@ -480,29 +509,23 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 m_moveWindow.setDrivingTCPTarget(true);
                 break;
             }
+            }
         }
-    }
 
-    if(!m_IPController)
-        ImGui::EndDisabled();
+        if(!m_IPController)
+            ImGui::EndDisabled();
+    }
 }
 
 void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    auto groot = baseGUI->getRootNode().get();
-
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ;
 
-    m_programWindow.showWindow(baseGUI, windowFlags);
-    m_plottingWindow.showWindow(groot, windowFlags);
-
-    m_logWindow.showWindow(windowFlags);
-    m_IOWindow.showWindow(groot, windowFlags);
-    m_myRobotWindow.showWindow(windowFlags);
-    m_moveWindow.showWindow(baseGUI, windowFlags);
-    m_sceneGraphWindow.showWindow(baseGUI, windowFlags);
-
-    m_pluginsWindow.showWindow();
+    for (const auto& window : m_windows)
+    {
+        if (window.get().getName() != m_viewportWindow.getName())
+            window.get().showWindow(baseGUI, windowFlags);
+    }
 }
 
 void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -522,7 +545,42 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(fileMenu.m_openPluginsManager)
             m_pluginsWindow.setOpen(true);
 
+        if(fileMenu.m_openMouseManager)
+            m_mouseManagerWindow.setOpen(true);
+
         menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
+
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+        if (ImGui::BeginMenu("Workbench"))
+        {
+            bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
+
+            if (disableWorkbench)
+                ImGui::BeginDisabled();
+
+            ImGui::PopStyleColor();
+            int value = workbench;
+            for (int i=0; i<getWorkbenchCount(); i++)
+            {
+                ImGui::PushID(i);
+
+                int j = pow(2, i);
+                if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
+                    changeWorkbench(Workbench(value));
+                ImGui::SetItemTooltip("%s", getWorkbenchDescription(Workbench(j)));
+
+                ImGui::PopID();
+            }
+
+            if (disableWorkbench)
+                ImGui::EndDisabled();
+
+            ImGui::EndMenu();
+        }
+        else
+        {
+            ImGui::PopStyleColor();
+        }
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
         if (ImGui::BeginMenu("Windows"))
@@ -532,18 +590,14 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             for (auto& window : m_windows) 
             {
                 auto windowName = window.get().getName();
-                if (!window.get().enabled())
-                    ImGui::BeginDisabled();
 
                 bool isViewport = (windowName == m_viewportWindow.getName());
                 if(isViewport)
                     ImGui::Separator();
                 ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
+                ImGui::SetItemTooltip("%s", window.get().getDescription().c_str());
                 if (isViewport)
                     ImGui::Separator();
-
-                if (!window.get().enabled())
-                    ImGui::EndDisabled();
             }
 
             ImGui::EndMenu();
@@ -565,7 +619,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             url += "/Users/SOFARobotics/GUI-user-manual/";
             ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
 
-            if (ImGui::MenuItem("\t About", nullptr, false, true))
+            if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
             ImGui::EndMenu();
         }
@@ -627,29 +681,98 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImGui::SetCursorPosX(posX);
 
         ImGui::EndMainMenuBar();
-    }
+    }    
+}
 
+void ImGuiGUIEngine::showSecondaryMenuBar()
+{
     ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
     float height = ImGui::GetFrameHeight();
 
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.14f, 0.25f, 0.42f, 1.00f));
-    if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags)) {
-        if (ImGui::BeginMenuBar()) {
-            ImGui::SetCursorPosX(ImGui::GetColumnWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
+    if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags))
+    {
+        if (ImGui::BeginMenuBar())
+        {
+            ImVec4 highlightColorText = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+            ImVec4 highlightColorIcon = ImVec4(1.0f, 0.5f, 0.0f, 0.8f);
+            { // Workbench
+                { // Buttons for quick access
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, ImGui::GetStyle().FramePadding.x * .75f);
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
+                    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.f));
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.36f, 0.36f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
 
-            { // Simulation / Robot button
-                bool& connection = Robot::getInstance().getConnection();
-                if (ImGui::LocalToggleButton("Connection", &connection))
-                {
-                    if (connection)
-                        FooterStatusBar::getInstance().setTempMessage("Connecting the robot.");
-                    else
-                        FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
+                    bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
+
+                    if (disableWorkbench)
+                        ImGui::BeginDisabled();
+
+                    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+                    auto addWorkbenchButton = [highlightColorIcon, &buttonSize, this](Workbench w, const std::string& icon, const std::string& tooltip)
+                    {
+                        bool highlight = (workbench == w);
+                        if (highlight)
+                            ImGui::PushStyleColor(ImGuiCol_ButtonText, highlightColorIcon);
+                        if (ImGui::Button(icon.c_str(), buttonSize))
+                            changeWorkbench(w);
+                        if (highlight)
+                            ImGui::PopStyleColor();
+                        ImGui::SetItemTooltip("%s", tooltip.c_str());
+                    };
+
+                    addWorkbenchButton(Workbench::SCENE_EDITOR, ICON_FA_PEN_RULER, "Select workbench: Scene Editor");
+                    ImGui::SameLine(0, 0);
+                    addWorkbenchButton(Workbench::SIMULATION_MODE, ICON_FA_PLAY, "Select workbench: Simulation Mode");
+                    ImGui::SameLine(0, 0);
+                    addWorkbenchButton(Workbench::LIVE_CONTROL, ICON_FA_ROBOT, "Select workbench: Live Control");
+
+                    if (disableWorkbench)
+                        ImGui::EndDisabled();
+                    ImGui::PopStyleColor(5);
+                    ImGui::PopStyleVar();
                 }
+
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-                ImGui::Text(connection? "Robot" : "Simulation");
+                ImGui::BeginDisabled();
+                ImGui::Text("Active Workbench: ");
+                ImGui::EndDisabled();
                 ImGui::PopStyleColor();
+                ImGui::SameLine(0, 0); // Ensure a normal spacing between the words
+                ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
+                ImGui::Text("%s", getWorkbenchName(workbench));
+                ImGui::PopStyleColor();
+            }
+
+            if (workbench == Workbench::LIVE_CONTROL)
+            {
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 2.f); //approximatively the center of the menu bar
+                { // Simulation / Robot button
+                    auto robot = Robot::getInstance();
+
+                    if (!robot.isDetected()) // Disable the button if no robot (from the python API) has been detected
+                        ImGui::BeginDisabled();
+
+                    bool& connection = Robot::getInstance().getConnection();
+                    if (ImGui::LocalToggleButton("Connection", &connection))
+                    {
+                        if (connection)
+                            FooterStatusBar::getInstance().setTempMessage("Connecting the robot.");
+                        else
+                            FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
+                    }
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::Text(connection? "Robot" : "Simulation");
+                    ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("Connection to the robot");
+
+                    if (!robot.isDetected())
+                        ImGui::EndDisabled();
+                }
             }
 
             ImGui::EndMenuBar();

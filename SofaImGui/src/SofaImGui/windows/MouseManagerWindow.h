@@ -24,67 +24,24 @@
 #include <SofaImGui/windows/BaseWindow.h>
 #include <imgui.h>
 
+namespace sofaglfw
+{
+    class SofaGLFWBaseGUI;
+}
+
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API MyRobotWindow : public BaseWindow
+class SOFAIMGUI_API MouseManagerWindow : public BaseWindow
 {
-   public:
-    MyRobotWindow(const std::string& name, const bool& isWindowOpen);
-    ~MyRobotWindow() = default;
+public:
+    MouseManagerWindow(const std::string& name, const bool& isWindowOpen);
+    ~MouseManagerWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
-    struct Connection{
-        std::vector<std::string> ports;
-        int portId;
-        std::function<std::vector<std::string>()> listAvailablePortsCallback;
-    };
-
-    struct Information{
-        std::string description;
-        sofa::core::BaseData* data;
-    };
-
-    struct Setting{
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        double min;
-        double max;
-    };
-
-    static std::string DEFAULTGROUP;
-
-    struct InformationGroup{
-        std::string description;
-        std::vector<Information> information;
-    };
-
-    struct SettingGroup{
-        std::string description;
-        std::vector<Setting> settings;
-    };
-
-    void clearWindow() override;
-    void setAvailablePorts(const std::vector<std::string> &ports);
-    std::string getSelectedPort();
-    Connection& getConnection();
-    void addInformation(const Information &info, const std::string &group);
-    void addSetting(const Setting &setting, const std::string &group);
-
-   protected:
-
-    Connection m_connection;
-    std::vector<InformationGroup> m_informationGroups;
-    std::vector<SettingGroup> m_settingGroups;
-
-    bool enabled() override;
-
-    bool isInEmptyGroup(const std::string &group);
-    bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max, const int nbIndents);
+protected:
+    void showMouseSettings(PickHandler *pickHandler, sofa::gui::common::MOUSE_BUTTON button);
 };
 
-}
-
-
+} // namespace

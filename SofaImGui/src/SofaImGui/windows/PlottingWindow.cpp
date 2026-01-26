@@ -37,9 +37,16 @@ namespace sofaimgui::windows {
 PlottingWindow::PlottingWindow(const std::string& name,
                                const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+}
+
+std::string PlottingWindow::getDescription()
+{
+    return "Plot data over time.";
 }
 
 void PlottingWindow::clearWindow()
@@ -82,9 +89,10 @@ void PlottingWindow::exportData()
     }
 }
 
-void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags)
+void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(windowFlags);
+    auto groot = baseGUI->getRootNode().get();
 
     size_t nbData = m_data.size();
     if (m_buffers.size() != nbData)
@@ -103,159 +111,188 @@ void PlottingWindow::showWindow(sofa::simulation::Node::SPtr groot, const ImGuiW
         }
     }
     
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
-            static PlottingData* dragedData;
-            ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-            auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
-            auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
+            if (!isEnabledInWorkbench() || !enabled())
+                showInfoMessage("This window is used to plot data over time. It currently has no data registered or is disabled in the active workbench.");
 
-            if (ImGui::Button("Clear"))
+            if (!isEnabledInWorkbench())
+                ImGui::BeginDisabled();
+
+            showButtons();
+            showPlots();
+
+            if (!isEnabledInWorkbench())
+                ImGui::EndDisabled();
+        }
+        ImGui::End();
+    }
+}
+
+void PlottingWindow::showButtons()
+{
+    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
+    auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
+
+    // Clear button
+    if (ImGui::Button("Clear"))
+    {
+        for(auto& buffer: m_buffers)
+            buffer.clear();
+    }
+
+    ImGui::SameLine();
+
+    // Export csv button
+    if (!enabled())
+        ImGui::BeginDisabled();
+
+    if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+    {
+        exportData();
+    }
+
+    if (!enabled())
+    {
+        ImGui::SetItemTooltip("No values to export.");
+        ImGui::EndDisabled();
+    }
+
+    ImGui::SameLine();
+
+    char text[] = "Time interval 20 s";
+    ImGui::SetCursorPosX(positionMiddle - ImGui::CalcTextSize(text).x / 2.); // Set position to the middle of the header
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", text);
+
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(positionRight); // Set position to right of the header
+
+    if(ImGui::Button("+##plotting", buttonSize))
+    {
+        if (m_nbRows<MAX_NB_PLOT)
+            m_nbRows+=1;
+    }
+    ImGui::SetItemTooltip("Show an additional subplot.");
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("-##plotting", buttonSize))
+    {
+        if (m_nbRows>1)
+            m_nbRows-=1;
+    }
+    ImGui::SetItemTooltip("Hide last subplot.");
+
+    ImGui::SameLine();
+
+    bool openOptions = false;
+    if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+        openOptions = true;
+
+    if (openOptions)
+    {
+        ImGui::OpenPopup("##MyPlotsContext");
+    }
+
+    if (ImGui::BeginPopup("##MyPlotsContext"))
+    {
+        showMenu();
+        ImGui::EndPopup();
+    }
+}
+
+void PlottingWindow::showPlots()
+{
+    static PlottingData* dragedData;
+
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+    bool portraitLayout = (ImGui::GetWindowWidth() * 0.75 < ImGui::GetWindowHeight());
+    if (ImPlot::BeginSubplots("##myplots",
+                              portraitLayout? m_nbRows: m_nbCols,
+                              portraitLayout? m_nbCols: m_nbRows,
+                              ImVec2(-1, -1),
+                              ImPlotSubplotFlags_ShareItems
+                              ))
+    {
+        size_t nbData = m_data.size();
+        for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+        {
+            if (ImPlot::BeginPlot(("##" +std::to_string(i)).c_str(), ImVec2(-1, 0),
+                                  ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
             {
-                for(auto& buffer: m_buffers)
-                    buffer.clear();
-            }
-
-            ImGui::SameLine();
-
-            if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-            {
-                exportData();
-            }
-
-            ImGui::SameLine();
-
-            char text[] = "Time interval 20 s";
-            ImGui::SetCursorPosX(positionMiddle - ImGui::CalcTextSize(text).x / 2.); // Set position to the middle of the header
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%s", text);
-
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(positionRight); // Set position to right of the header
-
-            if(ImGui::Button("+##plotting", buttonSize))
-            {
-                if (m_nbRows<MAX_NB_PLOT)
-                    m_nbRows+=1;
-            }
-            ImGui::SetItemTooltip("Show an additional subplot.");
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("-##plotting", buttonSize))
-            {
-                if (m_nbRows>1)
-                    m_nbRows-=1;
-            }
-            ImGui::SetItemTooltip("Hide last subplot.");
-
-            ImGui::SameLine();
-
-            bool openOptions = false;
-            if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-                openOptions = true;
-
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-
-            bool portraitLayout = (ImGui::GetWindowWidth() * 0.75 < ImGui::GetWindowHeight());
-            if (ImPlot::BeginSubplots("##myplots",
-                                      portraitLayout? m_nbRows: m_nbCols,
-                                      portraitLayout? m_nbCols: m_nbRows,
-                                      ImVec2(-1, -1),
-                                      ImPlotSubplotFlags_ShareItems
-                                      ))
-            {
-                for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+                ImPlot::SetupLegend(ImPlotLocation_NorthEast, ImPlotLegendFlags_Sort | ImPlotLegendFlags_Outside);
+                ImPlot::SetupAxes("Time (s)", nullptr,
+                                  ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
+                                  ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
+                for (size_t k=0; k<nbData; k++)
                 {
-                    if (ImPlot::BeginPlot(("##" +std::to_string(i)).c_str(), ImVec2(-1, 0),
-                                           ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
+                    auto& data = m_data[k];
+                    if (data.idSubplot == i)
                     {
-                        ImPlot::SetupLegend(ImPlotLocation_NorthEast, ImPlotLegendFlags_Sort | ImPlotLegendFlags_Outside);
-                        ImPlot::SetupAxes("Time (s)", nullptr,
-                                          ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
-                                          ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
-                        for (size_t k=0; k<nbData; k++)
-                        {
-                            auto& data = m_data[k];
-                            if (data.idSubplot == i)
-                            {
-                                RollingBuffer& buffer = m_buffers[k];                                
+                        RollingBuffer& buffer = m_buffers[k];
 
-                                ImPlot::PlotLine(data.description.c_str(),
-                                                 &buffer.data[0].x,
-                                                 &buffer.data[0].y,
-                                                 buffer.data.size(),
-                                                 0, 0, 2 * sizeof(float));
+                        ImPlot::PlotLine(data.description.c_str(),
+                                         &buffer.data[0].x,
+                                         &buffer.data[0].y,
+                                         buffer.data.size(),
+                                         0, 0, 2 * sizeof(float));
 
-                                if (ImPlot::BeginDragDropSourceItem(data.description.c_str())) {
-                                    dragedData = &data;
-                                    ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
-                                    ImPlot::ItemIcon(ImPlot::GetLastItemColor());
-                                    ImGui::SameLine();
-                                    ImGui::TextUnformatted(data.description.c_str());
-                                    ImPlot::EndDragDropSource();
-                                }
-                            }
+                        if (ImPlot::BeginDragDropSourceItem(data.description.c_str())) {
+                            dragedData = &data;
+                            ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
+                            ImPlot::ItemIcon(ImPlot::GetLastItemColor());
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted(data.description.c_str());
+                            ImPlot::EndDragDropSource();
                         }
-
-                        if (ImPlot::BeginDragDropTargetPlot())
-                        {
-                            if (ImGui::AcceptDragDropPayload("dragndrop"))
-                            {
-                                if (dragedData)
-                                    dragedData->idSubplot = i;
-                            }
-                            ImPlot::EndDragDropTarget();
-                        }
-
-                        ImPlotContext& gp = *GImPlot;
-                        ImPlotPlot &plot  = *gp.CurrentPlot;
-
-                        ImPlot::EndPlot();
-
-                        ImGui::PushOverrideID(plot.ID);
-
-                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
-                            !plot.Items.Legend.Hovered &&
-                             plot.Hovered)
-                        {
-                            ImGui::OpenPopup("##MyPlotContext");
-                        }
-
-                        if (ImGui::BeginPopup("##MyPlotContext"))
-                        {
-                            ImGui::PopStyleColor();
-                            showMenu(plot, i);
-                            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-                            ImGui::EndPopup();
-                        }
-
-                        ImGui::PopID();
                     }
                 }
 
-                if (openOptions)
+                if (ImPlot::BeginDragDropTargetPlot())
                 {
-                    ImGui::OpenPopup("##MyPlotsContext");
+                    if (ImGui::AcceptDragDropPayload("dragndrop"))
+                    {
+                        if (dragedData)
+                            dragedData->idSubplot = i;
+                    }
+                    ImPlot::EndDragDropTarget();
                 }
 
-                if (ImGui::BeginPopup("##MyPlotsContext"))
+                ImPlotContext& gp = *GImPlot;
+                ImPlotPlot &plot  = *gp.CurrentPlot;
+
+                ImPlot::EndPlot();
+
+                ImGui::PushOverrideID(plot.ID);
+
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+                    !plot.Items.Legend.Hovered &&
+                    plot.Hovered)
+                {
+                    ImGui::OpenPopup("##MyPlotContext");
+                }
+
+                if (ImGui::BeginPopup("##MyPlotContext"))
                 {
                     ImGui::PopStyleColor();
-                    showMenu();
+                    showMenu(plot, i);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
                     ImGui::EndPopup();
                 }
 
-                ImPlot::EndSubplots();
+                ImGui::PopID();
             }
-            ImGui::PopStyleColor();
         }
-        ImGui::End();
+
+        ImPlot::EndSubplots();
     }
+    ImGui::PopStyleColor();
 }
 
 void PlottingWindow::showMenu()

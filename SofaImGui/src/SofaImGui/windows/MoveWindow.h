@@ -34,7 +34,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     MoveWindow(const std::string& name, const bool& isWindowOpen);
     ~MoveWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
     void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
@@ -63,7 +64,6 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
     bool hasActuators() {return !m_actuators.empty();}
-    bool enabled() override {return m_IPController!=nullptr || !m_actuators.empty();}
 
    protected:
     
@@ -92,6 +92,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     std::vector<Accessory> m_accessories;
 
     ImGui::MovePad m_movePad;
+
+    bool enabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

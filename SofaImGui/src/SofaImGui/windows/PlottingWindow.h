@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 #include <implot.h>
 #include <implot_internal.h>
@@ -74,10 +75,11 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     PlottingWindow(const std::string& name, const bool& isWindowOpen);
     ~PlottingWindow() = default;
 
-    void showWindow(sofa::simulation::Node::SPtr groot, const ImGuiWindowFlags &windowFlags);
-    bool enabled() override {return !m_data.empty();}
-    void addData(const PlottingData data) {m_data.push_back(data);}
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void clearWindow() override;
+
+    void addData(const PlottingData data) {m_data.push_back(data);}
 
    protected:
     std::vector<PlottingData> m_data;
@@ -87,7 +89,11 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     size_t m_nbRows{1};
     size_t m_nbCols{1};
 
+    bool enabled() override {return !m_data.empty();}
+
     void exportData();
+    void showButtons();
+    void showPlots();
     void showMenu();
     void showMenu(ImPlotPlot &plot, const size_t &idSubplot);
 };

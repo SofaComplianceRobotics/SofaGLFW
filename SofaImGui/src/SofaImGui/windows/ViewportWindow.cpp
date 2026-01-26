@@ -30,6 +30,7 @@
 #include <SofaImGui/widgets/Gizmos.h>
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
+#include <SofaImGui/Workbench.h>
 
 
 namespace sofaimgui::windows {
@@ -42,18 +43,31 @@ ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen
     m_isOpen = isWindowOpen;
 }
 
+std::string ViewportWindow::getDescription()
+{
+    return "Main viewport rendering window.";
+}
+
 void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                sofa::simulation::Node* groot,
                                 const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)
 {
-
-    if (enabled() && isOpen())
+    if (isOpen())
     {
+        if (baseGUI)
+            m_viewmenu.m_baseGUI = baseGUI;
+        else
+            return;
+
+        auto groot = baseGUI->getRootNode().get();
+
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
             {
+                ImVec2 viewportPos = ImGui::GetWindowPos();
+                baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
+
                 ImVec2 wsize = ImGui::GetWindowSize();
                 m_windowSize = {wsize.x, wsize.y};
                 m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
@@ -70,28 +84,32 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 m_isMouseOnViewport = ImGui::IsItemHovered();
 
-                addStateWindow();
-                addSimulationTimeAndFPS(groot);
+                if (workbench != Workbench::SCENE_EDITOR)
+                {
+                    addStateWindow(baseGUI, windowFlags);
+                    addSimulationTimeAndFPS(groot);
 
-                // Panel backgroung
-                ImDrawList* drawList = ImGui::GetWindowDrawList();
-                ImVec2 size(ImGui::GetFrameHeight() * 2 + ImGui::GetStyle().ItemSpacing.x * 4 + m_maxPanelItemWidth, ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2);
+                    // Panel backgroung
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    ImVec2 size(ImGui::GetFrameHeight() * 2 + ImGui::GetStyle().ItemSpacing.x * 4 + m_maxPanelItemWidth, ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2);
 
-                float x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f + ImGui::GetStyle().FramePadding.x;
-                float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
+                    float x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f + ImGui::GetStyle().FramePadding.x;
+                    float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
 
-                ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
+                    ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
 
-                { // Draw
-                    auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-                    color.w = 0.6f;
-                    drawList->AddRectFilled(bb.Min, bb.Max,
-                                            ImGui::GetColorU32(color),
-                                            ImGui::GetStyle().FrameRounding,
-                                            ImDrawFlags_None);
+                    { // Draw
+                        auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+                        color.w = 0.6f;
+                        drawList->AddRectFilled(bb.Min, bb.Max,
+                                                ImGui::GetColorU32(color),
+                                                ImGui::GetStyle().FrameRounding,
+                                                ImDrawFlags_None);
+                    }
                 }
 
                 addCameraButtons(baseGUI, groot);
+                addContextMenu(texture);
             }
             ImGui::EndChild();
         }
@@ -99,10 +117,11 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
     }
 }
 
-void ViewportWindow::addStateWindow()
+void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
+                                    const ImGuiWindowFlags& windowFlags)
 {
     ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow();
+    m_stateWindow->showWindow(baseGUI, windowFlags);
 }
 
 bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
@@ -255,6 +274,24 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         if (!cameraButtonsCollapsed)
         {
             const auto& bbox = groot->f_bbox.getValue();
+
+            { // 3D view display options
+                if (ImGui::BeginPopup("##DisplayOptions"))
+                {
+                    m_viewmenu.addShowIn3DViewMenuItems();
+                    ImGui::EndPopup();
+                }
+
+                if (ImGui::Button(ICON_FA_EYE, buttonSize))
+                {
+                    ImGui::OpenPopup("##DisplayOptions");
+                }
+                ImGui::SetItemTooltip("Show...");
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            ImGui::PopStyleColor();
 
             { // Fit all
                 if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
@@ -425,6 +462,30 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::EndChild();
 }
 
+void ViewportWindow::addContextMenu(const ImTextureID& texture)
+{
+    if (ImGui::BeginPopup("##ViewportContextMenu"))
+    {
+        m_viewmenu.addSaveCameraMenuItem();
+        m_viewmenu.addRestoreCameraMenuItem();
+
+        ImGui::Separator();
+
+        m_viewmenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
+        ImGui::EndPopup();
+    }
+
+    // Right click and drag: translates the view
+    // Simple right click (same position) opens the context menu
+    const auto& io = ImGui::GetIO();
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)
+        && io.MouseClickedPos[ImGuiMouseButton_Right].x == ImGui::GetMousePos().x
+        && io.MouseClickedPos[ImGuiMouseButton_Right].y == ImGui::GetMousePos().y)
+    {
+        ImGui::OpenPopup("##ViewportContextMenu");
+    }
+}
+
 bool ViewportWindow::addStepButton()
 {
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
@@ -550,25 +611,43 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
 
 void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
 {
-    const ImGuiIO& io = ImGui::GetIO();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-
-    // Time
-    auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
-    ImGui::SetCursorPosX(position);
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-    ImGui::Text("Time: %.3f", groot->getTime());
-
-    // FPS
-    if (groot->animate_.getValue())
+    if (m_isOpen)
     {
-        position -= ImGui::CalcTextSize("100.0 FPS ").x;
-        ImGui::SetCursorPosX(position);
-        ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-        ImGui::Text("%.1f FPS", io.Framerate);
-    }
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if(ImGui::BeginChild("Render"))
+            {
+                const ImGuiIO& io = ImGui::GetIO();
 
-    ImGui::PopStyleColor();
+                // Time
+                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
+                ImGui::SetCursorPosX(position);
+                ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::Text("Time: %.3f", groot->getTime());
+                ImGui::PopStyleColor();
+                ImGui::SetItemTooltip("Total time simulated");
+
+                // FPS
+                if (groot->animate_.getValue())
+                    m_fps = io.Framerate;
+
+                if (m_fps > 0)
+                {
+                    position -= ImGui::CalcTextSize("100.0 FPS ").x;
+                    ImGui::SetCursorPosX(position);
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::Text("%.1f FPS", m_fps);
+                    ImGui::PopStyleColor();
+                    ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
+                }
+
+                ImGui::EndChild();
+            }
+        }
+        ImGui::End();
+    }
 }
 
 }

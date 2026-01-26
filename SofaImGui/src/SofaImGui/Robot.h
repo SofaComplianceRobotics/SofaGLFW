@@ -32,6 +32,9 @@ public:
     void setConnection(const bool& connected);
     bool& getConnection() {return m_status.connected;}
 
+    void setDetected(const bool& detected) {m_detected=detected;}
+    bool isDetected() {return m_detected;}
+
 protected:
 
     struct Status {
@@ -39,6 +42,7 @@ protected:
     };
 
     Status m_status;
+    bool m_detected{false};
 };
 
 } // namespace

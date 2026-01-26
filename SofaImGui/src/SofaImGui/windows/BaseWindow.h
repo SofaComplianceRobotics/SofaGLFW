@@ -21,6 +21,8 @@
  ******************************************************************************/
 #pragma once
 
+#include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/Workbench.h>
 #include <string>
 
 #include <sofa/simulation/Node.h>
@@ -76,47 +78,58 @@ protected:
 class SOFAIMGUI_API BaseWindow
 {
    public:
-    BaseWindow() = default;
+    BaseWindow();
     ~BaseWindow() = default;
 
-    std::string getName() const {return m_name;}
+    /// Implements the drawing of the window
+    virtual void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
+
+    /// Every window must implement this method, give a description of the window
+    /// Will be displayed as a tooltip
+    virtual std::string getDescription() = 0;
 
     /// Set the window as able to drive the robot in simulation.
-    virtual void setDrivingTCPTarget(const bool &isDrivingSimulation) {m_isDrivingSimulation=isDrivingSimulation;}
-
-    /// The window may have nothing to display. It should override this method with the corresponding checks.
-    /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool enabled() {return true;}
+    virtual void setDrivingTCPTarget(const bool &isDrivingSimulation);
 
     /// This is called before loading / reloading a simulation.
     virtual void clearWindow() {}
 
+    /// Get the name of the window
+    std::string getName() const;
+
+    /// Get the label of the window (name to display in the tab). We add spaces for aesthetic reason
+    std::string& getLabel();
+
     /// Does the window have tools to drive the robot in simulation.
-    bool isDrivingSimulation() {return m_isDrivingSimulation;}
+    bool isDrivingSimulation();
 
     /// Set the user choice to open the window or not.
-    void setOpen(const bool &isOpen) {m_isOpen=isOpen;}
+    void setOpen(const bool &isOpen);
 
     /// Does the user choose to open the window or not.
     bool& isOpen();
 
     /// The default open state when there is no project file
-    const bool& getDefaultIsOpen() { return m_defaultIsOpen; }
+    const bool& getDefaultIsOpen();
 
-    /// Get the label of the window. We add spaces for aesthetic reason
-    std::string& getLabel()
-    {
-        m_labelname = "       " + m_name;
-        return m_labelname;
-    }
+    /// Returns true if the window is enabled in the current workbench
+    bool isEnabledInWorkbench();
 
    protected:
+
+    /// The window may have nothing to display. It should override this method with the corresponding checks.
+    /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
+    virtual bool enabled() {return true;}
+
+    /// Structured message display (info icon + message)
+    void showInfoMessage(const char* message);
 
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
     bool m_isDrivingSimulation{false}; /// Does the window have tools to drive the robot in simulation
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
+    int m_workbenches;
 
 };
 

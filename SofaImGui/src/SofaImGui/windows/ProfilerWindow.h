@@ -21,26 +21,37 @@
 ******************************************************************************/
 #pragma once
 
+#include <sofa/helper/AdvancedTimer.h>
+#include <unordered_set>
 #include <SofaImGui/windows/BaseWindow.h>
-#include <sofa/simulation/Node.h>
-#include <SofaImGui/config.h>
-
-#include <SofaGLFW/BaseGUIEngine.h>
-
-#include <imgui.h>
-#include <sofa/simulation/Node.h>
-#include <SimpleIni.h>
-
 
 namespace sofaimgui::windows
 {
-    class SOFAIMGUI_API LogWindow : public BaseWindow
-    {
-    public:
-        LogWindow(const std::string& name, const bool& isWindowOpen);
-        ~LogWindow() = default;
 
-        void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-        std::string getDescription() override;
-    };
-}
+/**
+ * @brief Profiler Window.
+ *
+ * Displays profiling information, including frame durations, timer percentages, and timer durations.
+ */
+class ProfilerWindow : public BaseWindow
+{
+   public:
+    ProfilerWindow(){}
+    ProfilerWindow(const std::string& name, const bool& isWindowOpen);
+    ~ProfilerWindow()=default;
+
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
+
+protected:
+
+    int m_timeWindowSize{150};
+    int m_selectedFrame{0};
+    float m_selectedFrameDuration{0.};
+
+    SReal convertInMs(sofa::helper::system::thread::ctime_t t);
+    void showChart(const std::deque<sofa::type::vector<sofa::helper::Record> > &allRecords, std::unordered_set<int>& selectedTimers);
+    void showTable(const std::deque<sofa::type::vector<sofa::helper::Record> > &allRecords, std::unordered_set<int> &selectedTimers);
+};
+
+} // namespace

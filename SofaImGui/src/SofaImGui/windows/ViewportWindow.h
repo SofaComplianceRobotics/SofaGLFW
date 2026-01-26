@@ -23,6 +23,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/windows/StateWindow.h>
+#include <SofaImGui/menus/ViewMenu.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -34,8 +35,8 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow);
     ~ViewportWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot, const ImTextureID& texture,
-                    const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
+    std::string getDescription() override;
 
     void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
     bool addStepButton();
@@ -49,16 +50,19 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
    protected:
 
+    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
     std::shared_ptr<StateWindow> m_stateWindow;
+    float m_fps{0.f};
 
     bool m_isMouseOnViewport{false};
     bool m_isFocusOnViewport{false};
 
-    double m_maxPanelItemWidth = 0.0;
+    double m_maxPanelItemWidth{0.0};
 
-    void addStateWindow();
+    void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
     bool checkCamera(sofa::simulation::Node* groot);
+    void addContextMenu(const ImTextureID& texture);
 };
 
 }

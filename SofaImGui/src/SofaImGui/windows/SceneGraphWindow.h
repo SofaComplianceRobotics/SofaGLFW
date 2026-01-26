@@ -23,6 +23,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -33,7 +34,8 @@ public:
     SceneGraphWindow(const std::string& name, const bool& isWindowOpen);
     ~SceneGraphWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void clearWindow() override;
 
 protected:

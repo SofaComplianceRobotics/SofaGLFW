@@ -19,28 +19,50 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
-#pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <sofa/simulation/Node.h>
-#include <SofaImGui/config.h>
+#include <SofaGLFW/SofaGLFWWindow.h>
+#include <sofa/helper/AdvancedTimer.h>
+#include <sofa/simulation/Simulation.h>
+#include <sofa/gui/common/PickHandler.h>
+#include <sofa/gui/common/MouseOperations.h>
+#include <sofa/gui/common/OperationFactory.h>
+#include <SofaGLFW/SofaGLFWMouseManager.h>
 
-#include <SofaGLFW/BaseGUIEngine.h>
+using namespace sofa;
+using namespace sofa::type;
+using namespace sofa::defaulttype;
 
-#include <imgui.h>
-#include <sofa/simulation/Node.h>
-#include <SimpleIni.h>
-
-
-namespace sofaimgui::windows
+namespace sofaglfw
 {
-    class SOFAIMGUI_API LogWindow : public BaseWindow
-    {
-    public:
-        LogWindow(const std::string& name, const bool& isWindowOpen);
-        ~LogWindow() = default;
 
-        void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-        std::string getDescription() override;
-    };
-}
+    SofaGLFWMouseManager::SofaGLFWMouseManager()
+    {
+        RegisterOperation("Attach").add< AttachOperation >();
+        RegisterOperation("AddFrame").add< AddFrameOperation >();
+        RegisterOperation("SaveCameraViewPoint").add< AddRecordedCameraOperation >();
+        RegisterOperation("StartNavigation").add< StartNavigationOperation >();
+        RegisterOperation("Fix").add< FixOperation  >();
+        RegisterOperation("Incise").add< InciseOperation  >();
+        RegisterOperation("Remove").add< TopologyOperation  >();
+        RegisterOperation("Suture").add< AddSutureOperation >();
+        RegisterOperation("ConstraintAttach").add< ConstraintAttachOperation >();
+    }
+
+    void SofaGLFWMouseManager::setPickHandler(PickHandler *picker)
+    {
+        pickHandler=picker;
+
+        updateOperation(LEFT,   "Attach");
+        updateOperation(MIDDLE, "Incise");
+        updateOperation(RIGHT,  "Remove");
+    }
+
+    void SofaGLFWMouseManager::updateOperation(MOUSE_BUTTON button, const std::string &id)
+    {
+        if (pickHandler)
+        {
+            pickHandler->changeOperation(button, id);
+        }
+    }
+
+}// namespace sofaglfw

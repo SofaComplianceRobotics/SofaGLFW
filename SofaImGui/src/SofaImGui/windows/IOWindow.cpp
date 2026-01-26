@@ -40,6 +40,8 @@ namespace sofaimgui::windows {
 
 IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
@@ -55,6 +57,11 @@ IOWindow::~IOWindow()
 #if SOFAIMGUI_WITH_ROS
     rclcpp::shutdown();
 #endif
+}
+
+std::string IOWindow::getDescription()
+{
+    return "Input / output operations of data.";
 }
 
 bool IOWindow::sanitizeName(std::string &name)
@@ -90,15 +97,20 @@ bool IOWindow::sanitizeName(std::string &name)
     return input != name;
 }
 
-void IOWindow::showWindow(sofa::simulation::Node *groot,
-                          const ImGuiWindowFlags &windowFlags)
+void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(groot);
+    SOFA_UNUSED(baseGUI);
     
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
+            if (!isEnabledInWorkbench())
+            {
+                showInfoMessage("This window is used for input/output operations of data. It is disabled in the active workbench.");
+                ImGui::BeginDisabled();
+            }
+
             m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
 
             static const char* items[]{
@@ -121,6 +133,9 @@ void IOWindow::showWindow(sofa::simulation::Node *groot,
             if (m_method == 0) // ROS
                 showROSWindow();
 #endif
+
+            if (!isEnabledInWorkbench())
+                ImGui::EndDisabled();
         }
         ImGui::End();
     }

@@ -35,9 +35,16 @@ namespace sofaimgui::windows {
 
 SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindowOpen)
 {
+    m_workbenches = Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
+}
+
+std::string SceneGraphWindow::getDescription()
+{
+    return "Scene graph of the simulation nodes and components.";
 }
 
 void SceneGraphWindow::clearWindow()
@@ -56,7 +63,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> componentToOpenContextMenu;
     std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
 
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         showGraph(baseGUI, windowFlags, componentToOpen, nodeToOpen, componentToOpenContextMenu, nodeToOpenContextMenu);
     }
@@ -250,6 +257,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 {
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
+        if (!isEnabledInWorkbench())
+            showInfoMessage("Modifying the scene graph is disabled in the active workbench.");
+
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
@@ -515,10 +525,6 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                                        ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Modifying the scene from the GUI may cause unexpected behavior. Use at your own risk.");
-        ImGui::PopStyleColor();
-
         if (ImGui::BeginTable("SceneGraphTable", 2, flags))
         {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
@@ -686,7 +692,13 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                     }
 
                     ImGui::PopStyleColor();
+
+                    if (!isEnabledInWorkbench())
+                        ImGui::BeginDisabled();
                     showWidget(*data);
+                    if (!isEnabledInWorkbench())
+                        ImGui::EndDisabled();
+
                     ImGui::Unindent();
                 }
             }
@@ -777,8 +789,13 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
     if (node)
     {
         const bool& activated = node->is_activated.getValue();
+
+        if (!isEnabledInWorkbench())
+            ImGui::BeginDisabled();
         if(ImGui::MenuItem(activated? "Deactivate Node": "Activate Node"))
             node->setActive(!activated);
+        if (!isEnabledInWorkbench())
+            ImGui::EndDisabled();
 
         ImGui::Separator();
 
@@ -804,30 +821,29 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
         if(ImGui::MenuItem("Copy Scene Graph Path"))
             ImGui::SetClipboardText(object->getPathName().c_str());
 
-        // Needs SOFA#5798
-        // ImGui::Separator();
+        ImGui::Separator();
 
-        // if (!instantiationFilename.empty())
-        // {
-        //     if(ImGui::MenuItem("Open Instantiation File..."))
-        //     {
-        //         if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
-        //             FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
-        //         else
-        //             FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
-        //     }
-        // }
+        if (!instantiationFilename.empty())
+        {
+            if(ImGui::MenuItem("Open Instantiation File..."))
+            {
+                if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
+                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
+                else
+                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + instantiationFilename, FooterStatusBar::MERROR);
+            }
+        }
 
-        // if (!implementationFilename.empty())
-        // {
-        //     if(ImGui::MenuItem("Open Implementation File..."))
-        //     {
-        //         if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
-        //             FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
-        //         else
-        //             FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
-        //     }
-        // }
+        if (!implementationFilename.empty())
+        {
+            if(ImGui::MenuItem("Open Implementation File..."))
+            {
+                if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
+                    FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);
+                else
+                    FooterStatusBar::getInstance().setTempMessage("Could not open file : " + implementationFilename, FooterStatusBar::MERROR);
+            }
+        }
     }
 }
 

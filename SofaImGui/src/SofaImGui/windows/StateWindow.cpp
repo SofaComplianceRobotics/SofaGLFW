@@ -35,13 +35,21 @@ StateWindow::StateWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
+std::string StateWindow::getDescription()
+{
+    return "Simulation data viewer.";
+}
+
 void StateWindow::setSimulationState(const models::SimulationState &simulationState)
 {
     m_simulationStateData = simulationState.getStateData();
 }
 
-void StateWindow::showWindow()
+void StateWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
 {
+    SOFA_UNUSED(baseGUI);
+    SOFA_UNUSED(windowFlags);
+
     if (enabled() && isOpen())
     {
         static bool openstate = true;

@@ -40,9 +40,15 @@ PluginsWindow::PluginsWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 }
 
-
-void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+std::string PluginsWindow::getDescription()
 {
+    return "List loaded plugins.";
+}
+
+void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+{
+    SOFA_UNUSED(baseGUI);
+
     static std::string configPluginPath = "plugin_list.conf.default";
 
     static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
@@ -50,7 +56,7 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
     static bool isSelectedPluginDefault;
 
-    if (enabled() && isOpen())
+    if (isOpen())
     {
         ImGuiIO& io = ImGui::GetIO();
         const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.66);
@@ -60,7 +66,7 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
         if (ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags | ImGuiWindowFlags_NoDocking))
         {
-            if (ImGui::BeginChild("#LoadedPlugins", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), false))
+            if (ImGui::BeginChild("#LoadedPlugins", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
             {
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
 
@@ -81,7 +87,7 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 ImGui::EndChild();
 
                 ImGui::AlignTextToFramePadding();
-                ImGui::Text("List of loaded plugins:");
+                ImGui::Text("List of Loaded Plugins:");
 
                 ImGui::SameLine();
                 ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area
@@ -132,7 +138,7 @@ void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             ImGui::EndChild();
             ImGui::SameLine();
 
-            if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
+            if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
             {
                 ImGui::Text("Plugin Info:");
 

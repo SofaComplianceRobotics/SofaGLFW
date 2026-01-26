@@ -32,12 +32,15 @@
 
 #include <SofaImGui/windows/ViewportWindow.h>
 #include <SofaImGui/windows/SceneGraphWindow.h>
+#include <SofaImGui/windows/ComponentsWindow.h>
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
+#include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
+#include <SofaImGui/windows/ProfilerWindow.h>
 
 #include <SofaImGui/windows/PluginsWindow.h>
 
@@ -97,20 +100,23 @@ public:
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
+    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
     windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false);
     windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true);
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
+    windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
+    windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
 
-    std::vector<std::reference_wrapper<windows::BaseWindow>> m_windows{
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_windows{ // Menu bar > Windows
                                                                         m_IOWindow,
                                                                         m_programWindow,
                                                                         m_myRobotWindow,
@@ -118,15 +124,20 @@ protected:
                                                                         m_plottingWindow,
                                                                         m_viewportWindow,
                                                                         m_sceneGraphWindow,
-                                                                        m_logWindow
-    };
+                                                                        m_componentsWindow,
+                                                                        m_logWindow,
+                                                                        m_profilerWindow
+                                                                       };
 
     CSimpleIniA iniGUISettings;
 
     void initDockSpace(const bool& firstTime);
+    void changeWorkbench(Workbench wb);
+
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    void showSecondaryMenuBar();
     void showStatusBar();
     void applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseGUI* baseGUI=nullptr);
 

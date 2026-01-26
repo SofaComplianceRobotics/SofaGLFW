@@ -41,10 +41,11 @@ class FileMenu
     bool m_loadSimulation{false};
     bool m_reloadSimulation{false};
     bool m_openPluginsManager{false};
+    bool m_openMouseManager{false};
 
    protected:
 
-    bool addOpenSimulation();
+    bool addImportSimulation();
     bool addReloadSimulation();
     bool addImportExportProgram();
     void addExit();

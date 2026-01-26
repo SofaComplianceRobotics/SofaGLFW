@@ -21,28 +21,39 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <imgui.h>
-#include <implot.h>
-#include <implot_internal.h>
+#include <SofaImGui/config.h>
 
-namespace sofaimgui::windows {
+namespace sofaimgui {
 
-class SOFAIMGUI_API PluginsWindow : public BaseWindow
-{
-public:
+inline int getWorkbenchCount() { return 3; }
 
-    PluginsWindow(const std::string& name, const bool& isWindowOpen);
-    ~PluginsWindow() = default;
-
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-    std::string getDescription() override;
-
-protected:
-    sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
-
+// Workbench for Robotics Simulation GUI (flags)
+enum Workbench {
+    SCENE_EDITOR    = 1 << 0, // 1. Scene Editor - For building and editing the scene without simulation or robot connection capabilities.
+    SIMULATION_MODE = 1 << 1, // 2. Simulation Mode - For running simulations with a locked scene that cannot be edited. Only the parameters can be adjusted.
+    LIVE_CONTROL    = 1 << 2  // 3. Live Control - For connecting to and controlling the real robot with the finalized scene.
 };
 
+// Function to get the names of the Workbench enum as strings
+inline const char* getWorkbenchName(Workbench workbench) {
+    switch (workbench) {
+        case SCENE_EDITOR: return "Scene Editor";
+        case SIMULATION_MODE: return "Simulation Mode";
+        case LIVE_CONTROL: return "Live Control";
+        default: return "Unknown";
+    }
 }
 
+// Function to get the description of the Workbench enum as strings
+inline const char* getWorkbenchDescription(Workbench workbench) {
+    switch (workbench) {
+    case SCENE_EDITOR: return "For building and editing the scene.";
+    case SIMULATION_MODE: return "For running the simulation.";
+    case LIVE_CONTROL: return "For connecting to and controlling the real robot with the finalized scene.";
+    default: return "Unknown";
+    }
+}
 
+extern Workbench workbench;
+
+}

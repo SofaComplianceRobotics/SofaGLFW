@@ -50,9 +50,16 @@ LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
     m_isDrivingSimulation = false;
 }
 
-void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+std::string LogWindow::getDescription()
 {
-    if (enabled() && isOpen())
+    return "Inspect the logs.";
+}
+
+void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+{
+    SOFA_UNUSED(baseGUI);
+
+    if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {

@@ -55,7 +55,20 @@ void FileMenu::addMenu()
     if (ImGui::BeginMenu("File"))
     {
         ImGui::PopStyleColor();
-        if(addOpenSimulation())
+
+        { // Project
+            ImGuiGUI* gui = ImGuiGUI::getGUI();
+            std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+            if (engine)
+            {
+                if (ImGui::MenuItem("Save", "Ctrl+S"))
+                    engine->saveProject();
+            }
+        }
+
+        ImGui::Separator();
+
+        if(addImportSimulation())
             m_loadSimulation = true;
         if(addReloadSimulation())
             m_reloadSimulation = true;
@@ -66,7 +79,11 @@ void FileMenu::addMenu()
 
         ImGui::Separator();
 
-        m_openPluginsManager = ImGui::MenuItem("Plugins Manager");
+        m_openPluginsManager = ImGui::MenuItem("Plugins Manager...");
+
+        ImGui::BeginDisabled(!m_baseGUI->isMouseInteractionEnabled());
+        m_openMouseManager = ImGui::MenuItem("Mouse Manager...");
+        ImGui::EndDisabled();
 
         ImGui::Separator();
 
@@ -82,10 +99,10 @@ void FileMenu::addMenu()
     return;
 }
 
-bool FileMenu::addOpenSimulation()
+bool FileMenu::addImportSimulation()
 {
     bool clicked = false;
-    if (ImGui::MenuItem("Open Simulation"))
+    if (ImGui::MenuItem("Import Simulation..."))
     {
         clicked = true;
         sofa::simulation::SceneLoaderFactory::SceneLoaderList* loaders = sofa::simulation::SceneLoaderFactory::getInstance()->getEntries();
@@ -103,7 +120,6 @@ bool FileMenu::addOpenSimulation()
             for (auto itExt=extensions.begin(); itExt!=extensions.end(); ++itExt)
             {
                 extensionsString += *itExt;
-                std::cout << *itExt << std::endl;
                 if (itExt != extensions.end() - 1)
                 {
                     extensionsString += ",";
@@ -162,32 +178,21 @@ bool FileMenu::addImportExportProgram()
     if (!engine)
         return false;
 
-    if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-    {
-        engine->saveProject();
-    }
-
-    if (!engine->m_programWindow.enabled())
+    if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
     if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I"))
-    {
         engine->m_programWindow.importProgram();
-    }
 
     if (ImGui::MenuItem("Export Program", "Ctrl+Shift+E"))
-    {
         engine->m_programWindow.exportProgram(false);
-    }
     ImGui::SetItemTooltip("Export the current program.");
 
     if (ImGui::MenuItem("Export Program As..."))
-    {
         engine->m_programWindow.exportProgram();
-    }
     ImGui::SetItemTooltip("Export the current program at a desired location.");
 
-    if (!engine->m_programWindow.enabled())
+    if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::EndDisabled();
 
     return true;

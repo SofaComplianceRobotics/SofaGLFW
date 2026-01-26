@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include <SofaGLFW/SofaGLFWMouseManager.h>
 #include <SofaGLFW/config.h>
 
 #include <sofa/simulation/Simulation.h>
@@ -53,6 +54,7 @@ public:
     bool init(int nbMSAASamples = 0);
     void setErrorCallback() const;
     void setSimulation(sofa::simulation::NodeSPtr groot, const std::string& filename = std::string());
+    void setSimulationCanRun(bool canRun);
     void setSimulationIsRunning(bool running);
     bool simulationIsRunning() const;
 
@@ -68,6 +70,8 @@ public:
     void setWindowHeight(int height) { m_windowHeight = height; }
     void resizeWindow(int width, int height);
     bool centerWindow(GLFWwindow* window = nullptr);
+    void updateViewportPosition(float viewportPositionX, float viewportPositionY) ;
+
 
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
     void viewAll() override;
@@ -84,6 +88,9 @@ public:
     void setWindowBackgroundColor(const sofa::type::RGBAColor& newColor, unsigned int windowID = 0);
     void setWindowBackgroundImage(const std::string& imageFileName, unsigned int windowID = 0);
     void setWindowTitle(GLFWwindow* window, const char* title);
+
+    void setMouseInteractionEnabled(const bool& enabled) {m_isMouseInteractionEnabled=enabled;}
+    bool isMouseInteractionEnabled() {return m_isMouseInteractionEnabled;}
 
     virtual void setBackgroundColour(float r, float g, float b) override
     {
@@ -143,9 +150,10 @@ private:
     static void cursor_enter_callback(GLFWwindow* window, int entered);
     static void monitor_callback(GLFWmonitor* monitor, int event);
     static void character_callback(GLFWwindow* window, unsigned int codepoint);
-
+    static void window_pos_callback(GLFWwindow* window, int xpos, int ypos);
 
     static int handleArrowKeys(int key);
+    static void translateToViewportCoordinates (SofaGLFWBaseGUI* gui,double xpos, double ypos);
 
     void makeCurrentContext(GLFWwindow* sofaWindow);
     void runStep();
@@ -159,6 +167,7 @@ private:
     bool m_bGlewIsInitialized{ false };
 
     sofa::simulation::NodeSPtr m_groot{ nullptr };
+    bool m_simulationCanRun{ true };
     std::string m_filename;
     sofa::gl::DrawToolGL* m_glDrawTool{ nullptr };
     sofa::core::visual::VisualParams* m_vparams{ nullptr };
@@ -170,7 +179,13 @@ private:
     int m_lastWindowWidth{ 0 };
     int m_lastWindowHeight{ 0 };
 
+    SofaGLFWMouseManager m_sofaGLFWMouseManager;
     bool m_isMouseInteractionEnabled { false };
+    int m_viewPortHeight{0};
+    int m_viewPortWidth {0};
+    sofa::type::Vec2d m_translatedCursorPos;
+    sofa::type::Vec2f m_viewPortPosition;
+    sofa::type::Vec2f m_windowPosition;
     
     std::shared_ptr<sofaglfw::BaseGUIEngine> m_guiEngine;
 

@@ -19,30 +19,11 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <imgui.h>
-#include <implot.h>
-#include <implot_internal.h>
+#include <SofaImGui/Workbench.h>
 
-namespace sofaimgui::windows {
+namespace sofaimgui {
 
-class SOFAIMGUI_API PluginsWindow : public BaseWindow
-{
-public:
-
-    PluginsWindow(const std::string& name, const bool& isWindowOpen);
-    ~PluginsWindow() = default;
-
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-    std::string getDescription() override;
-
-protected:
-    sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
-
-};
+Workbench workbench = Workbench::SIMULATION_MODE;
 
 }
-
-

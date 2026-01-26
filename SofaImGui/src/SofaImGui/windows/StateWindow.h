@@ -33,11 +33,13 @@ class SOFAIMGUI_API StateWindow : public BaseWindow
     StateWindow(const std::string& name, const bool& isWindowOpen);
     ~StateWindow() = default;
 
-    void showWindow();
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
     void setSimulationState(const models::SimulationState &simulationState);
-    bool enabled() override {return !m_simulationStateData.empty();}
 
   protected:
+    bool enabled() override {return !m_simulationStateData.empty();}
+
     std::vector<models::SimulationState::StateData> m_simulationStateData;
 };
 
