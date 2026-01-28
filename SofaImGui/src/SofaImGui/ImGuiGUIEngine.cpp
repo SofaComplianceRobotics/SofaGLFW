@@ -19,6 +19,7 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include <sofa/helper/system/Locale.h>
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
@@ -251,6 +252,11 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
 
 void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
     // Start the Dear ImGui frame
 #if SOFAIMGUI_FORCE_OPENGL2 == 1
     ImGui_ImplOpenGL2_NewFrame();
