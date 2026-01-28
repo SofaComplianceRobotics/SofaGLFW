@@ -87,6 +87,11 @@ namespace sofaimgui
 
 void ImGuiGUIEngine::saveSettings()
 {
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
     const std::string settingsFile = sofaimgui::AppIniFile::getSettingsIniFile();
     FooterStatusBar::getInstance().setTempMessage("Saving application settings in " + settingsFile);
 
@@ -100,6 +105,11 @@ void ImGuiGUIEngine::saveSettings()
 
 void ImGuiGUIEngine::saveProject()
 {
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
     const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
     FooterStatusBar::getInstance().setTempMessage("Saving project in " + projectFile);
 
