@@ -68,7 +68,7 @@ void MoveWindow::setTCPDescriptions(const std::string &positionDescription, cons
     m_TCPRotationDescription = rotationDescription;
 }
 
-void MoveWindow::setTCPLimits(int minPosition, int maxPosition, double minOrientation, double maxOrientation)
+void MoveWindow::setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation)
 {
     m_TCPMinPosition = minPosition;
     m_TCPMaxPosition = maxPosition;

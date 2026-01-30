@@ -39,7 +39,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
     void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
-    void setTCPLimits(int minPosition, int maxPosition, double minOrientation, double maxOrientation);
+    void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
 
     void setActuatorsDescriptions(const std::string &description);
     void setActuatorsLimits(const double &min, const double &max);
