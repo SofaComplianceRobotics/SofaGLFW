@@ -58,16 +58,16 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
 
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            // static bool firstTime = true;
-            // if (firstTime)
-            // {
-            //     sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
-            //     ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
-            //     // TODO: loop over the plugins
-            //     sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
-            //     PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
-            //     firstTime = false;
-            // }
+            static bool firstTime = true;
+            if (firstTime)
+            {
+                sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
+                ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
+                // TODO: loop over the plugins
+                sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
+                PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
+                firstTime = false;
+            }
 
             ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
             static sofa::core::ClassEntry::SPtr selectedComponent;
