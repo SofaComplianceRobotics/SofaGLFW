@@ -293,6 +293,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             changeWorkbench(Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE)));
         }
 
+        m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
         m_IOWindow.setSimulationState(m_simulationState);
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
