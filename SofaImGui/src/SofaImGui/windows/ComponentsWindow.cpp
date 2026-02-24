@@ -182,7 +182,7 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
         for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
-            ImGui::TextWrapped("%s", examplePath.filename().c_str());
+            ImGui::TextWrapped(examplePath.filename().string().c_str());
             ImGui::PopStyleColor();
 
             if (ImGui::IsItemClicked())
