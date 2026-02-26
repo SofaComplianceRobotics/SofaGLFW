@@ -123,6 +123,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ImGuiDataWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/BoundingBoxWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
