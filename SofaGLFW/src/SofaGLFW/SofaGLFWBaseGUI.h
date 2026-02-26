@@ -21,10 +21,9 @@
 ******************************************************************************/
 #pragma once
 
-#include <sofa/simulation/Simulation.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/gl/DrawToolGL.h>
 #include <sofa/component/visual/BaseCamera.h>
-#include <sofa/simulation/Node.h>
 
 #include <SofaGLFW/BaseGUIEngine.h>
 #include <SofaGLFW/NullGUIEngine.h>
@@ -32,6 +31,7 @@
 #include <memory>
 
 #include <SofaGLFW/SofaGLFWMouseManager.h>
+#include <sofa/gl/VideoRecorderFFMPEG.h>
 
 struct GLFWwindow;
 struct GLFWmonitor;
@@ -113,6 +113,16 @@ public:
         return m_guiEngine;
     }
     void moveRayPickInteractor(int eventX, int eventY) override ;
+    
+    void toggleVideoRecording();
+    bool initRecorder(int width, int height, unsigned int framerate, unsigned int bitrate, const std::string& codecExtension, const std::string& codecName);
+
+    bool isVideoRecording() const
+    {
+        return m_bVideoRecording;
+    }
+
+    static void triggerSceneAxis(sofa::simulation::NodeSPtr groot);
 
 private:
     // GLFW callbacks
@@ -129,6 +139,7 @@ private:
     static void window_pos_callback(GLFWwindow* window, int xpos, int ypos);
     static int handleArrowKeys(int key);
     static void translateToViewportCoordinates (SofaGLFWBaseGUI* gui,double xpos, double ypos);
+    static void content_scale_callback(GLFWwindow* window, float xscale, float yscale);
 
     void makeCurrentContext(GLFWwindow* sofaWindow);
     void runStep();
@@ -158,6 +169,9 @@ private:
     std::size_t m_backgroundID{0};
 
     std::shared_ptr<BaseGUIEngine> m_guiEngine;
+    
+    bool m_bVideoRecording {false};
+    sofa::gl::VideoRecorderFFMPEG m_videoRecorderFFMPEG;
 };
 
 } // namespace sofaglfw

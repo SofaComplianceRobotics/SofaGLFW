@@ -23,6 +23,7 @@
 
 #include <sofa/simulation/Node.h>
 #include "WindowState.h"
+#include <SimpleIni.h>
 
 namespace windows
 {
@@ -68,7 +69,7 @@ namespace windows
          * @param threshold The precision threshold to determine significant movement.
          * @return True if the viewport has moved beyond the threshold, false otherwise.
          */
-        static bool hasViewportMoved(float currentX,
+        [[maybe_unused]] static bool hasViewportMoved(float currentX,
                               float currentY,
                               float lastX,
                               float lastY,
@@ -76,4 +77,4 @@ namespace windows
 
         constexpr float precisionThreshold = 1.0f;
 
-} // namespace sofaimgui
+} // namespace windows

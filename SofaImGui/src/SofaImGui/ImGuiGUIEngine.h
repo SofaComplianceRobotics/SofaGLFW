@@ -28,9 +28,6 @@
 
 #include "guis/AdditionalGUIRegistry.h"
 #include "windows/WindowState.h"
-#include <SimpleIni.h>
-#include <imgui.h>
-#include <sofa/simulation/Node.h>
 
 using windows::WindowState;
 
@@ -50,7 +47,7 @@ class ImGuiGUIEngine : public sofaglfw::BaseGUIEngine
 public:
 
     ImGuiGUIEngine() ;
-    ~ImGuiGUIEngine() = default;
+    ~ImGuiGUIEngine();
 
     void init() override;
     void initBackend(GLFWwindow*) override;
@@ -61,25 +58,43 @@ public:
     void terminate() override;
     bool isTerminated() const override { return m_isTerminated; };
     bool dispatchMouseEvents() override;
-    
+    void contentScaleChanged(float xscale, float yscale) override;
+
     // apply global scale on the given monitor (if null, it will fetch the main monitor)
-    void setScale(double globalScale, GLFWmonitor* monitor);
+    void setScale(float globalScale);
 
     // reset counters
     void resetCounter() override;
+    
+    sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) override;
+
+    // open file
+    void openFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sptr<sofa::simulation::Node>& groot) override;
+
+    // load file
+    void loadFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sptr<sofa::simulation::Node>& groot, std::string filePathName, bool reload = false) override;
+    
+    // save screenshot
+    void saveScreenshot(sofaglfw::SofaGLFWBaseGUI* baseGUI);
 
 protected:
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
     std::pair<float, float> m_viewportWindowSize;
     bool isMouseOnViewport { false };
-    CSimpleIniA ini;
-    void loadFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sptr<sofa::simulation::Node>& groot, std::string filePathName, bool reload = false);
-    void resetView(ImGuiID dockspace_id, const char *windowNameSceneGraph, const char *windowNameLog, const char *windowNameViewport) ;
+
+    struct Settings;
+    std::unique_ptr<Settings> settings;
+
+    using _ImGuiID = unsigned int;
+    void resetView(_ImGuiID dockspace_id, const char *windowNameSceneGraph, const char *winNameSelectionDescription, const char *windowNameLog, const char *windowNameViewport) ;
+    GLFWmonitor* findMyMonitor(GLFWwindow* glfwWindow);
+    void loadFont(float yscale);
 
     // WindowState members
     windows::WindowState winManagerProfiler;
     windows::WindowState winManagerSceneGraph;
+    windows::WindowState winManagerSelectionDescription;
     windows::WindowState winManagerPerformances;
     windows::WindowState winManagerDisplayFlags;
     windows::WindowState winManagerPlugins;
@@ -97,6 +112,10 @@ protected:
     std::string m_localeBackup;
     unsigned long m_screenshotCounter{0};
     bool m_isTerminated{ false };
+    std::size_t m_frameCount{0};
+    static inline constexpr int s_NB_PBOS = 2;
+    GLuint m_pbos[s_NB_PBOS];
+    sofa::type::Vec2i m_pboSize;
 };
 
 } // namespace sofaimgui

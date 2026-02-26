@@ -41,13 +41,18 @@
 #include <sofa/simulation/Node.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/simulation/SimulationLoop.h>
-#include <sofa/component/visual/InteractiveCamera.h>
 #include <sofa/component/visual/VisualStyle.h>
+#include <sofa/component/visual/LineAxis.h>
 #include <sofa/gui/common/BaseViewer.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <sofa/gui/common/PickHandler.h>
 
+#include <sofa/helper/system/SetDirectory.h>
+#include <sofa/helper/Utils.h>
+
 #include <algorithm>
+#include <filesystem>
+#include <map>
 
 using namespace sofa;
 using namespace sofa::gui::common;
@@ -294,6 +299,7 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
         glfwSetCursorEnterCallback(glfwWindow, cursor_enter_callback);
         glfwSetMonitorCallback(monitor_callback);
         glfwSetCharCallback(glfwWindow, character_callback);
+        glfwSetWindowContentScaleCallback(glfwWindow, content_scale_callback);
 
         glfwSetWindowUserPointer(glfwWindow, this);
 
@@ -474,6 +480,8 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
     bool running = true;
     std::size_t currentNbIterations = 0;
     std::stringstream tmpStr;
+    std::vector<uint8_t> pixels;
+
     while (s_numberOfActiveWindows > 0 && running)
     {
         SIMULATION_LOOP_SCOPE
@@ -500,12 +508,19 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
 
                     m_guiEngine->startFrame(this);
                     m_guiEngine->endFrame();
+                    
+                    m_viewPortHeight = m_vparams->viewport()[3];
+                    m_viewPortWidth = m_vparams->viewport()[2];
+                    
+                    // Read framebuffer
+                    if(this->groot->getAnimate() && this->m_bVideoRecording)
+                    {
+                        const auto [width, height] = this->m_guiEngine->getFrameBufferPixels(pixels);
+                        m_videoRecorderFFMPEG.addFrame(pixels.data(), width, height);
+                    }
 
                     glfwSwapBuffers(glfwWindow);
 
-
-                    m_viewPortHeight = m_vparams->viewport()[3];
-                    m_viewPortWidth = m_vparams->viewport()[2];
                 }
                 else
                 {
@@ -622,6 +637,11 @@ void SofaGLFWBaseGUI::terminate()
     if (m_guiEngine)
         m_guiEngine->terminate();
 
+    if(m_bVideoRecording)
+    {
+        m_videoRecorderFFMPEG.finishVideo();
+    }
+    
     glfwTerminate();
 }
 
@@ -648,9 +668,11 @@ int SofaGLFWBaseGUI::handleArrowKeys(int key)
 void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     SOFA_UNUSED(scancode);
+    SOFA_UNUSED(mods);
 
     const char keyName = handleArrowKeys(key);
     const bool isCtrlKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+    const bool isShiftKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT ) == GLFW_PRESS;
 
     const bool foundGUI = s_mapGUIs.contains(window);
     if (!foundGUI)
@@ -669,7 +691,8 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
         return;
     }
 
-    if (isCtrlKeyPressed)
+    // Key events are forwarded to SOFA using: CTRL + SHIFT
+    if (isCtrlKeyPressed && isShiftKeyPressed)
     {
         if (action == GLFW_PRESS)
         {
@@ -714,18 +737,27 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
                 currentGUI->switchFullScreen(window);
             }
             break;
+        case GLFW_KEY_V:
+            if (action == GLFW_PRESS)
+            {
+                currentGUI->toggleVideoRecording();
+            }
+            break;
+        // F11 goes fullscreen
         case GLFW_KEY_F11:
             if (action == GLFW_PRESS)
             {
                 currentGUI->switchFullScreen(window);
             }
             break;
+        // ESCAPE exits
         case GLFW_KEY_ESCAPE:
             if (action == GLFW_PRESS)
             {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
             break;
+        // SPACE runs/stops the simulation
         case GLFW_KEY_SPACE:
             if (action == GLFW_PRESS)
             {
@@ -733,6 +765,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
                 currentGUI->setSimulationIsRunning(!isRunning);
             }
             break;
+        // SHIFT allows for mouse interaction
         case GLFW_KEY_LEFT_SHIFT:
             if (currentGUI->getPickHandler())
             {
@@ -746,45 +779,87 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
                 }
             }
             break;
-        case GLFW_KEY_R:
-            if (action == GLFW_PRESS && isCtrlKeyPressed)
+        default:
+            break;
+    }
+    // List of regular GUI keyboard interactions
+    // (to be used with the CTRL key pressed)
+    if(isCtrlKeyPressed && !isShiftKeyPressed && action == GLFW_PRESS)
+    {
+        switch (key)
+        {
+            // A: Show scene axis
+            case GLFW_KEY_A:
             {
-                // Reload using CTRL + R
-                sofa::simulation::NodeSPtr groot = currentGUI->groot;
+                triggerSceneAxis(currentGUI->groot);
+                break;
+            }
+            // B: Switch background
+            case GLFW_KEY_B:
+            {
+                currentGUI->m_backgroundID = (currentGUI->m_backgroundID + 1) % 4;
+                switch (currentGUI->m_backgroundID)
+                {
+                    case 0:
+                        currentGUI->setWindowBackgroundImage("textures/SOFA_logo.bmp", 0);
+                        break;
+                    case 1:
+                        currentGUI->setWindowBackgroundImage("textures/SOFA_logo_white.bmp", 0);
+                        break;
+                    case 2:
+                        currentGUI->setWindowBackgroundColor(sofa::type::RGBAColor::black());
+                        break;
+                    case 3:
+                        currentGUI->setWindowBackgroundColor(sofa::type::RGBAColor::white());
+                        break;
+                }
+                break;
+            }
+            // R: Reload the file
+            case GLFW_KEY_O:
+            {
+                currentGUI->m_guiEngine->openFile(currentGUI, currentGUI->groot);
+                break;
+            }
+            // R: Reload the file
+            case GLFW_KEY_R:
+            {
                 std::string filename = currentGUI->getSceneFileName();
 
                 if (!filename.empty() && helper::system::FileSystem::exists(filename))
                 {
                     msg_info("GUI") << "Reloading file " << filename;
-                    sofa::simulation::node::unload(groot);
-
-                    groot = sofa::simulation::node::load(filename.c_str());
-                    if( !groot )
-                        groot = sofa::simulation::getSimulation()->createNewGraph("");
-
-                    currentGUI->setSimulation(groot, filename);
-                    currentGUI->load();
-                    currentGUI->setWindowTitle(nullptr, std::string("SOFA - " + filename).c_str());
-
-                    sofa::simulation::node::initRoot(groot.get());
-                    if (currentGUI->currentCamera)
-                    {
-                        currentGUI->currentCamera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-                        currentGUI->changeCamera(currentGUI->currentCamera);
-                    }
-
-                    node::initTextures(groot.get());
-
-                    currentGUI->m_guiEngine->resetCounter();
-
-                    // update camera if a sidecar file is present
-                    currentGUI->restoreCamera(currentGUI->currentCamera);
+                    currentGUI->m_guiEngine->loadFile(currentGUI, currentGUI->groot, filename, true);
                 }
+                break;
             }
+            default:
+                break;
+        }
+    }
+}
 
+void SofaGLFWBaseGUI::triggerSceneAxis(sofa::simulation::NodeSPtr groot)
+{
+    static const auto createdByGuiTag = sofa::core::objectmodel::Tag("createdByGUI");
 
-        default:
-            break;
+    auto axis = groot->get<sofa::component::visual::LineAxis>(createdByGuiTag);
+    if (!axis)
+    {
+        auto newAxis = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
+        groot->addObject(newAxis);
+        newAxis->setName("viewportAxis");
+        newAxis->addTag(createdByGuiTag);
+        newAxis->d_enable.setValue(true);
+        auto box = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
+        newAxis->d_size.setValue(*std::max_element(box.begin(), box.end()));
+        newAxis->d_infinite.setValue(true);
+        newAxis->d_vanishing.setValue(true);
+        newAxis->init();
+    }
+    else
+    {
+        axis->d_enable.setValue(!axis->d_enable.getValue());
     }
 }
 
@@ -916,6 +991,15 @@ void SofaGLFWBaseGUI::mouse_button_callback(GLFWwindow* window, int button, int 
 void SofaGLFWBaseGUI::translateToViewportCoordinates (SofaGLFWBaseGUI* gui,double xpos, double ypos)
 {
     gui->m_translatedCursorPos = Vec2d{xpos, ypos} - (gui->m_viewPortPosition - gui->m_windowPosition);
+}
+
+void SofaGLFWBaseGUI::content_scale_callback(GLFWwindow *window, float xscale, float yscale)
+{
+    auto currentGUI = s_mapGUIs[window];
+    if (currentGUI && currentGUI->m_guiEngine)
+    {
+        currentGUI->m_guiEngine->contentScaleChanged(xscale, yscale);
+    }
 }
 
 void SofaGLFWBaseGUI::cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -1106,5 +1190,70 @@ bool SofaGLFWBaseGUI::centerWindow(GLFWwindow* window)
 
     return true;
 }
+
+
+void SofaGLFWBaseGUI::toggleVideoRecording()
+{
+    if(m_bVideoRecording)
+    {
+        m_bVideoRecording = false;
+        m_videoRecorderFFMPEG.finishVideo();
+        msg_info("SofaGLFWBaseGUI") << "End recording";
+    }
+    else
+    {
+        // Initialize recorder with default parameters
+        const int width = std::max(1, m_viewPortWidth);
+        const int height = std::max(1, m_viewPortHeight);
+        const unsigned int framerate = 60;
+        const unsigned int bitrate = 2000000;
+        const std::string codecExtension = "mp4";
+        const std::string codecName = "yuv420p";
+        
+        if(initRecorder(width, height, framerate, bitrate, codecExtension, codecName))
+        {
+            m_bVideoRecording = true;
+            msg_info("SofaGLFWBaseGUI") << "Start recording";
+        }
+        else
+        {
+            msg_error("SofaGLFWBaseGUI") << "Failed to initialize recorder";
+        }
+    }
+}
+
+bool SofaGLFWBaseGUI::initRecorder(int width, int height, unsigned int framerate, unsigned int bitrate, const std::string& codecExtension, const std::string& codecName)
+{
+    // Validate parameters
+    if (width <= 0 || height <= 0)
+    {
+        msg_error("SofaGLFWBaseGUI") << "Invalid video dimensions: " << width << "x" << height;
+        return false;
+    }
+
+    bool res = true;
+    std::string ffmpeg_exec_path = "";
+    const std::string ffmpegIniFilePath = sofa::helper::Utils::getSofaPathTo("etc/SofaGLFW.ini");
+    std::map<std::string, std::string> iniFileValues = sofa::helper::Utils::readBasicIniFile(ffmpegIniFilePath);
+    if (iniFileValues.find("FFMPEG_EXEC_PATH") != iniFileValues.end())
+    {
+        // get absolute path of FFMPEG executable
+        ffmpeg_exec_path = sofa::helper::system::SetDirectory::GetRelativeFromProcess(iniFileValues["FFMPEG_EXEC_PATH"].c_str());
+        msg_info("SofaGLFWBaseGUI") << " The file " << ffmpegIniFilePath << " points to " << ffmpeg_exec_path << " for the ffmpeg executable.";
+    }
+    else
+    {
+        msg_warning("SofaGLFWBaseGUI") << " The file " << helper::Utils::getSofaPathPrefix() <<"/etc/SofaGLFW.ini either doesn't exist or doesn't contain the string FFMPEG_EXEC_PATH."
+        " The initialization of the FFMPEG video recorder will likely fail. To fix this, provide a valid path to the ffmpeg executable inside this file using the syntax \"FFMPEG_EXEC_PATH=/usr/bin/ffmpeg\".";
+    }
+
+    const std::string videoFilename = m_videoRecorderFFMPEG.findFilename(framerate, bitrate / 1024, codecExtension);
+
+    res = m_videoRecorderFFMPEG.init(ffmpeg_exec_path, videoFilename, width, height, framerate, bitrate, codecName);
+
+    return res;
+}
+
+
 
 } // namespace sofaglfw

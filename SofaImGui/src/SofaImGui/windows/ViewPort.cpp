@@ -32,6 +32,9 @@
 #include <sofa/gui/common/BaseGUI.h>
 #include "ViewPort.h"
 #include "SofaGLFW/SofaGLFWBaseGUI.h"
+#include <SofaImGui/widgets/DisplayFlagsWidget.h>
+#include <sofa/component/visual/VisualStyle.h>
+
 #include <iomanip>
 namespace windows
 {
@@ -88,10 +91,35 @@ namespace windows
                 pos.x += 10;
                 pos.y += 40;
                 ImGui::SetNextWindowPos(pos);
+
                 static const auto createdByGuiTag = sofa::core::objectmodel::Tag("createdByGUI");
 
                 if (ImGui::Begin("viewportSettingsMenuWindow", winManagerViewPort.getStatePtr(), window_flags))
                 {
+
+                    if (ImGui::Button(ICON_FA_CAMERA))
+                    {
+                        auto guiEnginePtr = std::static_pointer_cast<sofaimgui::ImGuiGUIEngine>(baseGUI->getGUIEngine());
+                        if (guiEnginePtr)
+                            guiEnginePtr->saveScreenshot(baseGUI);
+                    }
+
+                    if(baseGUI->isVideoRecording())
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(ImColor(255, 0, 0)));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(ImColor(255, 0, 0)));
+                    }
+                    else
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+                    }
+                    if (ImGui::Button(ICON_FA_VIDEO))
+                    {
+                        baseGUI->toggleVideoRecording();
+                    }
+                    ImGui::PopStyleColor(2);
+                    
                     if (ImGui::Button(ICON_FA_GEAR))
                     {
                         ImGui::OpenPopup("viewportSettingsMenu");
@@ -120,24 +148,7 @@ namespace windows
                         }
                         if (ImGui::Selectable(ICON_FA_UP_DOWN_LEFT_RIGHT "  Show Axis"))
                         {
-                            auto axis = groot->get<sofa::component::visual::LineAxis>(createdByGuiTag);
-                            if (!axis)
-                            {
-                                auto newAxis = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
-                                groot->addObject(newAxis);
-                                newAxis->setName("viewportAxis");
-                                newAxis->addTag(createdByGuiTag);
-                                newAxis->d_enable.setValue(true);
-                                auto box = groot->f_bbox.getValue().maxBBox() - groot->f_bbox.getValue().minBBox();
-                                newAxis->d_size.setValue(*std::max_element(box.begin(), box.end()));
-                                newAxis->d_infinite.setValue(true);
-                                newAxis->d_vanishing.setValue(true);
-                                newAxis->init();
-                            }
-                            else
-                            {
-                                axis->d_enable.setValue(!axis->d_enable.getValue());
-                            }
+                            sofaglfw::SofaGLFWBaseGUI::triggerSceneAxis(groot);
                         }
                         if (ImGui::Selectable(ICON_FA_SQUARE_FULL "  Show Frame"))
                         {
@@ -185,6 +196,13 @@ namespace windows
                             ImGui::Checkbox("Show Object volume", &baseGUI->m_showSelectedObjectVolumes);
                             ImGui::Checkbox("Show Object indices", &baseGUI->m_showSelectedObjectIndices);
                             ImGui::InputFloat("Visual scaling", &baseGUI->m_visualScaling);
+                            ImGui::EndMenu();
+                        }
+                        sofa::component::visual::VisualStyle::SPtr visualStyle = nullptr;
+                        groot->get(visualStyle);
+                        if (visualStyle && ImGui::BeginMenu(ICON_FA_EYE " Display flags"))
+                        {
+                            sofaimgui::showDisplayFlagsWidget(visualStyle->d_displayFlags);
                             ImGui::EndMenu();
                         }
 

@@ -27,7 +27,6 @@
 #include <sofa/core/loader/SceneLoader.h>
 #include <sofa/simulation/SceneLoaderFactory.h>
 #include <sofa/simulation/Simulation.h>
-#include <sofa/helper/AdvancedTimer.h>
 #include <imgui.h>
 #include <nfd.h>
 #include <IconsFontAwesome6.h>
@@ -130,7 +129,7 @@ namespace windows
 
                         std::stringstream ss;
                         ss << std::setfill('0') << std::setw(digits) << i++;
-                        ImGui::Text(ss.str().c_str());
+                        ImGui::Text("%s", ss.str().c_str());
 
                         ImGui::TableNextColumn();
 
@@ -158,7 +157,7 @@ namespace windows
                         }
 
                         ImGui::TableNextColumn();
-                        ImGui::Text(sender.c_str());
+                        ImGui::Text("%s", sender.c_str());
 
                         if (nfo && ImGui::IsItemHovered() && nfo->m_component)
                         {

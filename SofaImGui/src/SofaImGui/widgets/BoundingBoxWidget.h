@@ -20,33 +20,44 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
-
-#include <sofa/simulation/Node.h>
-#include <SofaImGui/config.h>
-
-#include <memory>
-#include <SofaGLFW/BaseGUIEngine.h>
-#include <sofa/gl/FrameBufferObject.h>
-
 #include <imgui.h>
-#include <sofa/simulation/Node.h>
-#include "WindowState.h"
+#include <sofa/core/objectmodel/Data.h>
+#include <sofa/type/BoundingBox.h>
 
-
-
-namespace windows
+namespace sofaimgui
 {
-        /**
-         * @brief Shows the Performance window.
-         *
-         * This function displays performance metrics including the average frame time, frames per second (FPS), number of vertices, indices, triangles, visible windows, and active allocations. It also plots the frame times over a certain period.
-         *
-         * @param windowNamePerformances The name of the Performance window.
-         * @param io The ImGuiIO structure containing ImGui's I/O configuration settings.
-         * @param isPerformancesWindowOpen A reference to a boolean flag indicating if the Performance window is open.
-         */
-         void showPerformances(const char* const& windowNamePerformances,
-                               const ImGuiIO& io,
-                               WindowState& winManagerPerformances);
 
-} // namespace sofaimgui
+inline void showBoundingBoxWidget(sofa::Data<sofa::type::BoundingBox>& data)
+{
+    const auto box = data.getValue();
+
+    static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
+
+    if (ImGui::BeginTable("bbox_table", 4, flags))
+    {
+        ImGui::TableSetupColumn("");
+        ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableHeadersRow();
+
+        // Second row: ["min", min.x, min.y, min.z]
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0); ImGui::Text("min");
+        ImGui::TableSetColumnIndex(1); ImGui::Text("%.2f", box.minBBox().x());
+        ImGui::TableSetColumnIndex(2); ImGui::Text("%.2f", box.minBBox().y());
+        ImGui::TableSetColumnIndex(3); ImGui::Text("%.2f", box.minBBox().z());
+
+        // Third row: ["max", max.x, max.y, max.z]
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0); ImGui::Text("max");
+        ImGui::TableSetColumnIndex(1); ImGui::Text("%.2f", box.maxBBox().x());
+        ImGui::TableSetColumnIndex(2); ImGui::Text("%.2f", box.maxBBox().y());
+        ImGui::TableSetColumnIndex(3); ImGui::Text("%.2f", box.maxBBox().z());
+
+        ImGui::EndTable();
+    }
+}
+
+}

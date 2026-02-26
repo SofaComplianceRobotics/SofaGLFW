@@ -27,7 +27,6 @@
 #include <sofa/simulation/SceneLoaderFactory.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/simulation/Simulation.h>
-#include <sofa/helper/AdvancedTimer.h>
 #include <imgui.h>
 #include <nfd.h>
 #include <SofaImGui/ImGuiDataWidget.h>
@@ -46,6 +45,7 @@ namespace windows
     {
         if (*winManagerPlugins.getStatePtr())
         {
+            ImGui::SetNextWindowSize(ImVec2(700, 400), ImGuiCond_FirstUseEver);
             if (ImGui::Begin(windowNamePlugins, winManagerPlugins.getStatePtr()))
             {
                 if (ImGui::Button("Load"))

@@ -21,6 +21,10 @@
 ******************************************************************************/
 #pragma once
 #include <SofaGLFW/config.h>
+#include <sofa/simulation/Node.h>
+
+#include <sofa/type/fwd.h>
+#include <vector>
 
 struct GLFWwindow;
 
@@ -43,6 +47,11 @@ public:
     virtual bool isTerminated() const = 0;
     virtual bool dispatchMouseEvents() = 0;
     virtual void resetCounter() = 0;
+    virtual sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) = 0;
+    virtual void openFile(SofaGLFWBaseGUI* baseGUI, sofa::core::sptr<sofa::simulation::Node>& groot) { SOFA_UNUSED(baseGUI); SOFA_UNUSED(groot); };
+    virtual void loadFile(SofaGLFWBaseGUI* baseGUI, sofa::core::sptr<sofa::simulation::Node>& groot, std::string filePathName, bool reload = false)
+    { SOFA_UNUSED(baseGUI); SOFA_UNUSED(groot); SOFA_UNUSED(filePathName); SOFA_UNUSED(reload); };
+    virtual void contentScaleChanged(float xscale, float yscale) { SOFA_UNUSED(xscale); SOFA_UNUSED(yscale); };
 };
 
 } // namespace sofaglfw

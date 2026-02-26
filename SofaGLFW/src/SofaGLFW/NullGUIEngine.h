@@ -43,6 +43,12 @@ public:
     bool isTerminated() const override { return false; };
     bool dispatchMouseEvents() override;
     void resetCounter() override;
+    sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) override;
+private:
+    GLFWwindow* m_window{ nullptr };
+    double m_lastTime{ 0.0 };
+    double m_lastDisplayTime{ 0.0 };
+    double m_avgFrameTime{ 0.0 };
 };
 
 } // namespace sofaglfw
