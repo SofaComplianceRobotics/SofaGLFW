@@ -36,6 +36,9 @@ bool LocalBeginCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags);
 /// Ends a local collapsing header, removing the indentation added when expanded.
 void LocalEndCollapsingHeader();
 
+/// Format: ICON_FA_GLOBE Open label...
+void LocalTextLinkOpenURL(const char* label, const char* url);
+
 // ProgramWindow widgets
 
 /// Draws a colored block with a title area.

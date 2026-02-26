@@ -634,7 +634,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             std::string url = "https://docs-support.compliance-robotics.com/docs/";
             url += (version.length()>6)? "next": version;
             url += "/Users/SOFARobotics/GUI-user-manual/";
-            ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
+            ImGui::LocalTextLinkOpenURL("Manual", url.c_str());
 
             if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
