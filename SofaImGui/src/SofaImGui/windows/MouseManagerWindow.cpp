@@ -128,7 +128,11 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
                 continue;
 
             if (ImGui::Selectable(creator->getDescription().c_str(), isSelected))
+            {
                 pickHandler->changeOperation(button, label);
+                operation = pickHandler->getOperation(button); // Re-fetch the operation after call to changeOperation()
+                if (!operation) continue;
+            }
 
             if (isSelected)
                 ImGui::SetItemDefaultFocus();
