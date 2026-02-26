@@ -225,7 +225,7 @@ void LocalEndCollapsingHeader()
 
 void LocalTextLinkOpenURL(const char* label, const char* url)
 {
-    std::string _label = ICON_FA_GLOBE" Open ";
+    std::string _label = ICON_FA_GLOBE" ";
     _label += label;
     TextLinkOpenURL(_label.c_str(), url);
 }

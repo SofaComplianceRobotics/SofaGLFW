@@ -631,10 +631,16 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::PopStyleColor();
 
             // Manual
-            std::string url = "https://docs-support.compliance-robotics.com/docs/";
-            url += (version.length()>6)? "next": version;
-            url += "/Users/SOFARobotics/GUI-user-manual/";
-            ImGui::LocalTextLinkOpenURL("Manual", url.c_str());
+            std::string manualURL = "https://docs-support.compliance-robotics.com/docs/";
+            manualURL += (version.length()>6)? "next": version;
+            manualURL += "/Users/SOFARobotics/GUI-user-manual/";
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics Manual", manualURL.c_str());
+
+            // Sofa Robotics GitHub
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics GitHub", "https://github.com/SofaComplianceRobotics/SofaGLFW/tree/robotics");
+
+            // Compliance Robotics Website
+            ImGui::LocalTextLinkOpenURL("Compliance Robotics", "https://compliance-robotics.com/");
 
             if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
@@ -663,6 +669,10 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
                 ImGui::Text("%s", text.c_str());
             }
+
+            // Support SOFA
+            ImGui::LocalTextLinkOpenURL("Support SOFA", "https://www.sofa-framework.org/consortium/support-us/");
+
             ImGui::End();
         }
 
