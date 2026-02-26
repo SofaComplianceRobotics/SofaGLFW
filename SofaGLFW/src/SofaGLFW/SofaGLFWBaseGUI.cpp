@@ -666,11 +666,14 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
     const char* keyName = glfwGetKeyName(key, scancode);
     if (keyName)
     {
-        if (strcmp(keyName, "q") == 0)
+        if (isCtrlKeyPressed && !isShiftKeyPressed)
         {
-            if (action == GLFW_PRESS && isCtrlKeyPressed)
+            if (strcmp(keyName, "q") == 0)
             {
-                glfwSetWindowShouldClose(window, GLFW_TRUE);
+                if (action == GLFW_PRESS )
+                {
+                    glfwSetWindowShouldClose(window, GLFW_TRUE);
+                }
             }
         }
     }
