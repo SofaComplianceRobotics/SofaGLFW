@@ -844,7 +844,7 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         if (!instantiationFilename.empty())
         {
-            if(ImGui::MenuItem("Open Instantiation File..."))
+            if(ImGui::MenuItem("Open Instantiation File"))
             {
                 if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
                     FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
@@ -855,7 +855,7 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         if (!implementationFilename.empty())
         {
-            if(ImGui::MenuItem("Open Implementation File..."))
+            if(ImGui::MenuItem("Open Implementation File"))
             {
                 if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
                     FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);

@@ -181,7 +181,7 @@ bool FileMenu::addImportExportProgram()
     if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
-    if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I"))
+    if (ImGui::MenuItem("Import Program...", "Ctrl+Shift+I"))
         engine->m_programWindow.importProgram();
 
     if (ImGui::MenuItem("Export Program", "Ctrl+Shift+E"))
@@ -207,7 +207,7 @@ void FileMenu::saveProject()
 
     }
 
-    if (ImGui::MenuItem("Save As", "Ctrl+Shift+S"))
+    if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
     {
 
     }
