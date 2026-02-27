@@ -61,4 +61,14 @@ bool NullGUIEngine::dispatchMouseEvents()
     return true;
 }
 
+sofa::type::Vec2i NullGUIEngine::getFrameBufferPixels(std::vector<uint8_t>& pixels)
+{
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    pixels.resize(viewport[2] * viewport[3] * 3);
+    glReadPixels(viewport[0], viewport[1], viewport[2], viewport[3], GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+    return {viewport[2], viewport[3]};
+}
+
 } // namespace sofaglfw

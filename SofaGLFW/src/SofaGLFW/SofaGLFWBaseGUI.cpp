@@ -20,33 +20,37 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include <sofa/gui/common/PickHandler.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 
-#include <sofa/helper/logging/Messaging.h>
-#include <sofa/helper/AdvancedTimer.h>
+#include <sofa/gui/common/PickHandler.h>
+
+#include <sofa/simulation/SimulationLoop.h>
 #include <sofa/simulation/Node.h>
 #include <sofa/simulation/Simulation.h>
-#include <sofa/core/visual/VisualParams.h>
-#include <sofa/core/objectmodel/BaseClassNameHelper.h>
 
 #include <sofa/component/visual/InteractiveCamera.h>
 #include <sofa/component/visual/VisualStyle.h>
+
 #include <sofa/core/visual/VisualParams.h>
-
-#include <sofa/helper/io/STBImage.h>
-
-#include <algorithm>
-#include <sofa/helper/system/FileRepository.h>
-#include <sofa/simulation/SimulationLoop.h>
-
+#include <sofa/core/objectmodel/BaseClassNameHelper.h>
 #include <sofa/core/objectmodel/KeypressedEvent.h>
 #include <sofa/core/objectmodel/KeyreleasedEvent.h>
+
+#include <sofa/helper/io/STBImage.h>
+#include <sofa/helper/logging/Messaging.h>
+#include <sofa/helper/AdvancedTimer.h>
+#include <sofa/helper/system/FileRepository.h>
+#include <sofa/helper/system/SetDirectory.h>
+#include <sofa/helper/Utils.h>
+
+#include <algorithm>
+#include <map>
+
+
 using namespace sofa;
 
 namespace sofaglfw
@@ -92,7 +96,7 @@ bool SofaGLFWBaseGUI::init(int nbMSAASamples)
         // max = 32 (MSAA with 32 samples)
         glfwWindowHint(GLFW_SAMPLES, std::clamp(nbMSAASamples, 0, 32) );
         
-        m_glDrawTool = new sofa::gl::DrawToolGL();
+        m_glDrawTool = std::make_unique<sofa::gl::DrawToolGL>();
         m_bGlfwIsInitialized = true;
         return true;
     }
@@ -113,7 +117,7 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     m_groot = groot;
     m_filename = filename;
 
-    sofa::core::visual::VisualParams::defaultInstance()->drawTool() = m_glDrawTool;
+    sofa::core::visual::VisualParams::defaultInstance()->drawTool() = m_glDrawTool.get();
     sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
     setScene(groot, filename.c_str());
     load();
@@ -451,6 +455,8 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
     bool running = true;
     std::size_t currentNbIterations = 0;
     std::stringstream tmpStr;
+    std::vector<uint8_t> pixels;
+
     while (!s_mapWindows.empty() && running)
     {
         SIMULATION_LOOP_SCOPE
@@ -476,10 +482,17 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
                     m_guiEngine->startFrame(this);
                     m_guiEngine->endFrame();
 
-                    glfwSwapBuffers(glfwWindow);
-
                     m_viewPortHeight = m_vparams->viewport()[3];
                     m_viewPortWidth = m_vparams->viewport()[2];
+
+                    // Read framebuffer
+                    if(this->groot->getAnimate() && this->m_isVideoRecording)
+                    {
+                        const auto [width, height] = this->m_guiEngine->getFrameBufferPixels(pixels);
+                        m_videoRecorderFFMPEG.addFrame(pixels.data(), width, height);
+                    }
+
+                    glfwSwapBuffers(glfwWindow);
                 }
                 else
                 {
@@ -553,7 +566,7 @@ void SofaGLFWBaseGUI::initVisual()
 
 void SofaGLFWBaseGUI::runStep()
 {
-    if(simulationIsRunning())
+    if(simulationIsRunning() && m_guiEngine && m_groot)
     {
         sofa::helper::AdvancedTimer::begin("Animate");
 
@@ -571,7 +584,11 @@ void SofaGLFWBaseGUI::terminate()
     if (!m_bGlfwIsInitialized)
         return;
 
-    m_guiEngine->terminate();
+    if (m_guiEngine)
+        m_guiEngine->terminate();
+
+    if(m_isVideoRecording)
+        m_videoRecorderFFMPEG.finishVideo();
 
     glfwTerminate();
 }
@@ -745,6 +762,15 @@ void SofaGLFWBaseGUI::moveRayPickInteractor(int eventX, int eventY)
     direction = transform * sofa::type::Vec4d(0, 0, 1, 0);
     direction.normalize();
     getPickHandler()->updateRay(position, direction);
+}
+
+void SofaGLFWBaseGUI::setMousePos(int xpos, int ypos) {
+    if(m_firstWindow)
+    {
+        glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // Required on Wayland
+        glfwSetCursorPos(m_firstWindow, xpos, ypos);
+        glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 }
 
 void SofaGLFWBaseGUI::window_pos_callback(GLFWwindow* window, int xpos, int ypos)
@@ -1011,6 +1037,71 @@ bool SofaGLFWBaseGUI::centerWindow(GLFWwindow* window)
     }
 
     return true;
+}
+
+void SofaGLFWBaseGUI::toggleVideoRecording()
+{
+    if(m_isVideoRecording)
+    {
+        m_isVideoRecording = false;
+        m_videoRecorderFFMPEG.finishVideo();
+        msg_info("SofaGLFWBaseGUI") << "End recording";
+    }
+    else
+    {
+        // Initialize recorder with default parameters
+        const int width = std::max(1, m_viewPortWidth);
+        const int height = std::max(1, m_viewPortHeight);
+
+        if(initRecorder(width, height))
+        {
+            m_isVideoRecording = true;
+            msg_info("SofaGLFWBaseGUI") << "Start recording.";
+        }
+        else
+        {
+            msg_error("SofaGLFWBaseGUI") << "Failed to initialize recorder.";
+        }
+    }
+}
+
+bool SofaGLFWBaseGUI::initRecorder(int width,
+                                   int height,
+                                   unsigned int framerate,
+                                   unsigned int bitrate,
+                                   const std::string& codecExtension,
+                                   const std::string& codecName)
+{
+    // Validate parameters
+    if (width <= 0 || height <= 0)
+    {
+        msg_error("SofaGLFWBaseGUI") << "Invalid video dimensions: " << width << "x" << height;
+        return false;
+    }
+
+    std::string ffmpeg_exec_path = "";
+    const std::string ffmpegIniFilePath = sofa::helper::Utils::getSofaPathTo("etc/SofaGLFW.ini");
+    std::map<std::string, std::string> iniFileValues = sofa::helper::Utils::readBasicIniFile(ffmpegIniFilePath);
+    if (iniFileValues.find("FFMPEG_EXEC_PATH") != iniFileValues.end())
+    {
+        // get absolute path of FFMPEG executable
+        ffmpeg_exec_path = sofa::helper::system::SetDirectory::GetRelativeFromProcess(iniFileValues["FFMPEG_EXEC_PATH"].c_str());
+        msg_info("SofaGLFWBaseGUI") << " The file " << ffmpegIniFilePath << " points to " << ffmpeg_exec_path << " for the ffmpeg executable.";
+    }
+    else
+    {
+        msg_warning("SofaGLFWBaseGUI") << " The file " << helper::Utils::getSofaPathPrefix() <<"/etc/SofaGLFW.ini either doesn't exist or doesn't contain the string FFMPEG_EXEC_PATH."
+                                                                                               " The initialization of the FFMPEG video recorder will likely fail."
+                                                                                               " To fix this, provide a valid path to the ffmpeg executable inside this file using the syntax \"FFMPEG_EXEC_PATH=/usr/bin/ffmpeg\".";
+    }
+
+    const std::string videoFilename = m_videoRecorderFFMPEG.findFilename(framerate, bitrate / 1024, codecExtension);
+    return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, videoFilename, width, height, framerate, bitrate, codecName);
+}
+
+bool SofaGLFWBaseGUI::isVideoRecording() const
+{
+    return m_isVideoRecording;
 }
 
 } // namespace sofaglfw

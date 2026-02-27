@@ -77,6 +77,7 @@ public:
     void afterDraw() override;
     void terminate() override;
     bool dispatchMouseEvents() override;
+    sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) override;
 
     void animateBeginEvent(sofa::simulation::Node* groot) override;
     void animateEndEvent(sofa::simulation::Node* groot) override;
@@ -155,6 +156,11 @@ protected:
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
     std::vector<ImGuiID> m_dockIDs;
+
+    std::size_t m_frameCount{0};
+    static inline constexpr int s_NB_PBOS = 2;
+    GLuint m_pbos[s_NB_PBOS];
+    sofa::type::Vec2i m_pboSize;
 };
 
 } // namespace sofaimgui

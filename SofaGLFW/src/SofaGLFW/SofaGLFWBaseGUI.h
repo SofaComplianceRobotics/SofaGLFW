@@ -21,16 +21,16 @@
 ******************************************************************************/
 #pragma once
 #include <SofaGLFW/SofaGLFWMouseManager.h>
-#include <SofaGLFW/config.h>
-
-#include <sofa/simulation/Simulation.h>
-#include <sofa/gl/DrawToolGL.h>
-#include <GLFW/glfw3.h>
-#include <sofa/component/visual/BaseCamera.h>
-#include <sofa/simulation/Node.h>
-
 #include <SofaGLFW/BaseGUIEngine.h>
 #include <SofaGLFW/NullGUIEngine.h>
+#include <SofaGLFW/config.h>
+
+#include <sofa/gl/DrawToolGL.h>
+#include <sofa/gl/VideoRecorderFFMPEG.h>
+#include <GLFW/glfw3.h>
+
+#include <sofa/component/visual/BaseCamera.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/gui/common/BaseViewer.h>
 
 #include <memory>
@@ -72,7 +72,6 @@ public:
     bool centerWindow(GLFWwindow* window = nullptr);
     void updateViewportPosition(float viewportPositionX, float viewportPositionY) ;
 
-
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
     void viewAll() override;
     void saveView() override ;
@@ -92,50 +91,31 @@ public:
     void setMouseInteractionEnabled(const bool& enabled) {m_isMouseInteractionEnabled=enabled;}
     bool isMouseInteractionEnabled() {return m_isMouseInteractionEnabled;}
 
-    virtual void setBackgroundColour(float r, float g, float b) override
-    {
-        setWindowBackgroundColor(sofa::type::RGBAColor{r, g, b, 1.0f}, 0);
-    }
-    virtual void setBackgroundImage(std::string imageFileName) override
-    {
-        setWindowBackgroundImage(imageFileName, 0);
-    }
+    virtual void setBackgroundColour(float r, float g, float b) override {setWindowBackgroundColor(sofa::type::RGBAColor{r, g, b, 1.0f}, 0);}
+    virtual void setBackgroundImage(std::string imageFileName) override {setWindowBackgroundImage(imageFileName, 0);}
     sofa::core::sptr<sofa::simulation::Node> getRootNode() const;
     bool hasWindow() const { return m_firstWindow != nullptr; }
 
-    [[nodiscard]] std::string getFilename() const
-    {
-        return m_filename;
-    }
+    [[nodiscard]] std::string getFilename() const {return m_filename;}
 
     sofa::component::visual::BaseCamera::SPtr findCamera(sofa::simulation::NodeSPtr groot);
     void changeCamera(sofa::component::visual::BaseCamera::SPtr newCamera);
     void setWindowIcon(GLFWwindow* glfwWindow);
 
-    void setGUIEngine(std::shared_ptr<BaseGUIEngine> guiEngine)
-    {
-        m_guiEngine = guiEngine;
-    }
-    
-    std::shared_ptr<BaseGUIEngine> getGUIEngine()
-    {
-        return m_guiEngine;
-    }
+    void setGUIEngine(std::shared_ptr<BaseGUIEngine> guiEngine) {m_guiEngine = guiEngine;}
+    std::shared_ptr<BaseGUIEngine> getGUIEngine() {return m_guiEngine;}
 
     void moveRayPickInteractor(int eventX, int eventY) override ;
-    
-    void setMousePos(int xpos, int ypos) {
-        if(m_firstWindow)
-        {
-            glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // Required on Wayland
-            glfwSetCursorPos(m_firstWindow, xpos, ypos);
-            glfwSetInputMode(m_firstWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
+    void setMousePos(int xpos, int ypos);
 
-    const char* getGUINodeName() {
-        return "GUI";
-    }
+    bool initRecorder(int width, int height,
+                      unsigned int framerate=60, unsigned int bitrate=2000000,
+                      const std::string& codecExtension="mp4", const std::string& codecName="yuv420p");
+
+    void toggleVideoRecording();
+    bool isVideoRecording() const;
+
+    const char* getGUINodeName() {return "GUI";}
 
 private:
     // GLFW callbacks
@@ -169,7 +149,7 @@ private:
     sofa::simulation::NodeSPtr m_groot{ nullptr };
     bool m_simulationCanRun{ true };
     std::string m_filename;
-    sofa::gl::DrawToolGL* m_glDrawTool{ nullptr };
+    std::unique_ptr<sofa::gl::DrawToolGL> m_glDrawTool;
     sofa::core::visual::VisualParams* m_vparams{ nullptr };
     GLFWwindow* m_firstWindow{ nullptr };
     int m_windowWidth{ 0 };
@@ -187,6 +167,9 @@ private:
     sofa::type::Vec2f m_viewPortPosition;
     sofa::type::Vec2f m_windowPosition;
     
+    bool m_isVideoRecording {false};
+    sofa::gl::VideoRecorderFFMPEG m_videoRecorderFFMPEG;
+
     std::shared_ptr<sofaglfw::BaseGUIEngine> m_guiEngine;
 
 };

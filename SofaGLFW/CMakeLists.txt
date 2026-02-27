@@ -82,7 +82,40 @@ if(SofaPython3_FOUND)
     add_subdirectory(bindings)
 endif()
 
+if(TARGET PkgConfig::FFMPEG)
+    target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::FFMPEG)
+    set(SOFAGLFW_HAVE_FFMPEG 1)
+endif()
+
 add_definitions("-DSOFAGLFW_RESOURCES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/resources\"")
+
+# FFMPEG_exec
+sofa_find_package(FFMPEG_exec BOTH_SCOPES)
+# FFMPEG
+if(FFMPEG_EXEC_FOUND)
+    install(PROGRAMS "${FFMPEG_EXEC_FILE}" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications)
+endif()
+
+# Create build and install versions of .ini file for resources finding
+## For build tree
+set(FFMPEG_EXEC_PATH "${FFMPEG_EXEC_FILE}") # absolute path for build dir, see .ini file
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/etc/${PROJECT_NAME}.ini.in "${CMAKE_BINARY_DIR}/etc/${PROJECT_NAME}.ini")
+
+## For install tree
+get_filename_component(FFMPEG_EXEC_FILENAME "${FFMPEG_EXEC_FILE}" NAME)
+if(FFMPEG_EXEC_FILENAME)
+    set(FFMPEG_EXEC_PATH "../bin/${FFMPEG_EXEC_FILENAME}")
+else()
+    #If ffmpeg hasn't been found, it'll not be shipped but we still want to offer the possibility for the user to use it
+    #easily by putting the executable alongside runSofa
+    set(FFMPEG_EXEC_PATH "../bin/ffmpeg")
+    if(WIN32)
+        set(FFMPEG_EXEC_PATH "${FFMPEG_EXEC_PATH}.exe")
+    endif()
+endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/etc/${PROJECT_NAME}.ini.in "${CMAKE_BINARY_DIR}/etc/installed${PROJECT_NAME}.ini")
+#Hack relative tree to ../../etc because of Windows:NSIS that doesn't allow absolute install path.
+install(FILES "${CMAKE_BINARY_DIR}/etc/installed${PROJECT_NAME}.ini" DESTINATION ../../etc  RENAME ${PROJECT_NAME}.ini COMPONENT applications)
 
 sofa_create_package_with_targets(
     PACKAGE_NAME ${PROJECT_NAME}

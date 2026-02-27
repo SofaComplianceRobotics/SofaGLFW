@@ -523,7 +523,7 @@ void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned 
     {
         std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
         nfdchar_t *outPath;
-        std::array<nfdfilteritem_t, 1> filterItem{ {{"Image", "jpg,png"}} };
+        std::array<nfdfilteritem_t, 1> filterItem{{{"Image", "jpg,png"}}};
 
         // Add the date and time to the filename
         auto now = std::chrono::system_clock::now();

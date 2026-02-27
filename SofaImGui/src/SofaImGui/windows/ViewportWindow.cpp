@@ -275,6 +275,30 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             const auto& bbox = groot->f_bbox.getValue();
 
+            { // Recorder
+                const bool& recording = baseGUI->isVideoRecording();
+                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
+                ImGui::PushStyleColor(ImGuiCol_Button, red);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, red);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, red);
+                if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_CIRCLE_DOT, buttonSize))
+                {
+                    baseGUI->toggleVideoRecording();
+                }
+                ImGui::PopStyleColor(3);
+
+                std::string tooltip = recording? "Stop": "Start";
+                tooltip += " Recording";
+                ImGui::SetItemTooltip("%s", tooltip.c_str());
+
+                if (recording)
+                    addRecording(red);
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            ImGui::PopStyleColor();
+
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
@@ -642,6 +666,35 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
                 }
+
+                ImGui::EndChild();
+            }
+        }
+        ImGui::End();
+    }
+}
+
+void ViewportWindow::addRecording(const ImVec4& red)
+{
+    if (m_isOpen)
+    {
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if(ImGui::BeginChild("Render"))
+            {
+                // Recording
+                std::string icon = ICON_FA_CIRCLE_DOT;
+                std::string text = "Recording";
+                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize((icon+text).c_str()).x - ImGui::GetFrameHeight();
+                ImGui::SetCursorPosX(position);
+                ImGui::SetCursorPosY(ImGui::GetStyle().ItemSpacing.y);
+                ImGui::PushStyleColor(ImGuiCol_Text, red);
+                ImGui::Text("%s", icon.c_str());
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::Text("%s", text.c_str());
+                ImGui::PopStyleColor();
 
                 ImGui::EndChild();
             }
