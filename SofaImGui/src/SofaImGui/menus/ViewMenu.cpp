@@ -83,6 +83,7 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 
         ImGui::Separator();
 
+        addStartRecordingMenuItem();
         addSaveScreenShotMenuItem(fboSize, texture);
 
         ImGui::Separator();
@@ -544,6 +545,20 @@ void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned 
 
             image.save(outPath, 90);
         }
+    }
+}
+
+void ViewMenu::addStartRecordingMenuItem()
+{
+    if (!m_baseGUI)
+        return;
+
+    bool recording = m_baseGUI->isVideoRecording();
+    std::string label = recording? "Stop": "Start";
+    label += " Recording";
+    if (ImGui::MenuItem(label.c_str()))
+    {
+        m_baseGUI->toggleVideoRecording();
     }
 }
 

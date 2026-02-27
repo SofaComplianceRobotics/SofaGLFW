@@ -48,6 +48,7 @@ class ViewMenu
     void addRestoreCameraMenuItem();
     void addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned int>& fboSize,
                                    const GLuint& texture);
+    void addStartRecordingMenuItem();
 
     void addFullScreenMenuItem();
 

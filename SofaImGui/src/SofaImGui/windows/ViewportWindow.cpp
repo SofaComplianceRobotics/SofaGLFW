@@ -515,6 +515,7 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
 
         ImGui::Separator();
 
+        m_viewmenu.addStartRecordingMenuItem();
         m_viewmenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
         ImGui::EndPopup();
     }
