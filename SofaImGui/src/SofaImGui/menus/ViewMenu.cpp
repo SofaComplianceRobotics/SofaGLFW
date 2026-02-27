@@ -558,7 +558,13 @@ void ViewMenu::addStartRecordingMenuItem()
     label += " Recording";
     if (ImGui::MenuItem(label.c_str()))
     {
-        m_baseGUI->toggleVideoRecording();
+        if(m_baseGUI->toggleVideoRecording())
+        {
+            recording = m_baseGUI->isVideoRecording();
+            std::string message = recording? "Start": "Finished";
+            message += " recording to: " + m_baseGUI->getVideoFilename();
+            FooterStatusBar::getInstance().setTempMessage(message);
+        }
     }
 }
 
