@@ -276,45 +276,48 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             const auto& bbox = groot->f_bbox.getValue();
 
-            { // Recorder
-                bool recording = baseGUI->isVideoRecording();
-                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
-                int pushCount = 1;
+            if (workbench != Workbench::SCENE_EDITOR)
+            {
+                { // Recorder
+                    bool recording = baseGUI->isVideoRecording();
+                    ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
+                    int pushCount = 1;
 
-                if (recording)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Button, red);
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3));
-                    pushCount = 3;
-                }
-                else
-                {
-                    ImGui::PushStyleColor(ImGuiCol_ButtonText, red);
-                }
-                if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_RECORD_VINYL, buttonSize))
-                {
-                    if(baseGUI->toggleVideoRecording())
+                    if (recording)
                     {
-                        recording = baseGUI->isVideoRecording();
-                        std::string message = recording? "Start": "Finished";
-                        message += " recording to: " + baseGUI->getVideoFilename();
-                        FooterStatusBar::getInstance().setTempMessage(message);
+                        ImGui::PushStyleColor(ImGuiCol_Button, red);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3));
+                        pushCount = 3;
                     }
+                    else
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_ButtonText, red);
+                    }
+                    if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_RECORD_VINYL, buttonSize))
+                    {
+                        if(baseGUI->toggleVideoRecording())
+                        {
+                            recording = baseGUI->isVideoRecording();
+                            std::string message = recording? "Start": "Finished";
+                            message += " recording to: " + baseGUI->getVideoFilename();
+                            FooterStatusBar::getInstance().setTempMessage(message);
+                        }
+                    }
+                    ImGui::PopStyleColor(pushCount);
+
+                    std::string tooltip = recording? "Stop": "Start";
+                    tooltip += " Recording";
+                    ImGui::SetItemTooltip("%s", tooltip.c_str());
+
+                    if (recording)
+                        addRecordingStatus(red);
                 }
-                ImGui::PopStyleColor(pushCount);
 
-                std::string tooltip = recording? "Stop": "Start";
-                tooltip += " Recording";
-                ImGui::SetItemTooltip("%s", tooltip.c_str());
-
-                if (recording)
-                    addRecordingStatus(red);
+                ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+                ImGui::PopStyleColor();
             }
-
-            ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-            ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
-            ImGui::PopStyleColor();
 
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
