@@ -116,6 +116,8 @@ public:
     bool isVideoRecording() const;
     const std::string& getVideoFilename() {return m_videoFilename;}
 
+    std::string generateFilename(const std::string &prefix, const std::string &extension);
+
     const char* getGUINodeName() {return "GUI";}
 
 private:

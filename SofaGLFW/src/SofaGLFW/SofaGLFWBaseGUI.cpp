@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include <filesystem>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -1098,7 +1099,7 @@ bool SofaGLFWBaseGUI::initRecorder(int width,
     }
 
     std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
-    m_videoFilename = m_videoRecorderFFMPEG.findFilename(framerate, bitrate / 1024, codecExtension);
+    m_videoFilename = generateFilename("video", codecExtension);
     m_videoFilename = sofa::helper::system::FileSystem::append(screenshotPath, m_videoFilename);
     return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, m_videoFilename, width, height, framerate, bitrate, codecName);
 }
@@ -1106,6 +1107,28 @@ bool SofaGLFWBaseGUI::initRecorder(int width,
 bool SofaGLFWBaseGUI::isVideoRecording() const
 {
     return m_isVideoRecording;
+}
+
+std::string SofaGLFWBaseGUI::generateFilename(const std::string& prefix, const std::string &extension)
+{
+    std::string filename = getSceneFileName();
+    // Add the date and time to the filename
+    auto now = std::chrono::system_clock::now();
+    auto localTime = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+
+    if (!prefix.empty())
+        ss << prefix << "_";
+
+    if (!filename.empty())
+    {
+        std::filesystem::path path(filename);
+        ss << path.filename().replace_extension("").string() << "_";
+    }
+
+    ss << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << "." << extension;
+    filename = ss.str();
+    return filename;
 }
 
 } // namespace sofaglfw
