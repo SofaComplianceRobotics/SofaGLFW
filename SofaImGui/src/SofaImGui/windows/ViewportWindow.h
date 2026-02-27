@@ -61,7 +61,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
-    void addRecording(const ImVec4 &red);
+    void addRecordingStatus(const ImVec4 &red);
     bool checkCamera(sofa::simulation::Node* groot);
     void addContextMenu(const ImTextureID& texture);
 };

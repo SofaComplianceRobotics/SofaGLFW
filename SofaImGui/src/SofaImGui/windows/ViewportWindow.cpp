@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include <Style.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
@@ -32,7 +33,6 @@
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/FooterStatusBar.h>
-
 
 namespace sofaimgui::windows {
 
@@ -279,10 +279,20 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             { // Recorder
                 bool recording = baseGUI->isVideoRecording();
                 ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
-                ImGui::PushStyleColor(ImGuiCol_Button, red);
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, red);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, red);
-                if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_CIRCLE_DOT, buttonSize))
+                int pushCount = 1;
+
+                if (recording)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Button, red);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3));
+                    pushCount = 3;
+                }
+                else
+                {
+                    ImGui::PushStyleColor(ImGuiCol_ButtonText, red);
+                }
+                if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_RECORD_VINYL, buttonSize))
                 {
                     if(baseGUI->toggleVideoRecording())
                     {
@@ -292,14 +302,14 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         FooterStatusBar::getInstance().setTempMessage(message);
                     }
                 }
-                ImGui::PopStyleColor(3);
+                ImGui::PopStyleColor(pushCount);
 
                 std::string tooltip = recording? "Stop": "Start";
                 tooltip += " Recording";
                 ImGui::SetItemTooltip("%s", tooltip.c_str());
 
                 if (recording)
-                    addRecording(red);
+                    addRecordingStatus(red);
             }
 
             ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
@@ -681,7 +691,7 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
     }
 }
 
-void ViewportWindow::addRecording(const ImVec4& red)
+void ViewportWindow::addRecordingStatus(const ImVec4& red)
 {
     if (m_isOpen)
     {
@@ -691,14 +701,14 @@ void ViewportWindow::addRecording(const ImVec4& red)
             {
                 // Recording
                 std::string icon = ICON_FA_CIRCLE_DOT;
-                std::string text = "Recording";
+                std::string text = " Recording";
                 auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize((icon+text).c_str()).x - ImGui::GetFrameHeight();
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetStyle().ItemSpacing.y);
                 ImGui::PushStyleColor(ImGuiCol_Text, red);
                 ImGui::Text("%s", icon.c_str());
                 ImGui::PopStyleColor();
-                ImGui::SameLine();
+                ImGui::SameLine(0.f, 0.f);
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
                 ImGui::Text("%s", text.c_str());
                 ImGui::PopStyleColor();
