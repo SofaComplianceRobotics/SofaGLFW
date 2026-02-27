@@ -23,6 +23,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <sofa/gui/common/BaseGUI.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 
@@ -45,6 +46,7 @@
 #include <sofa/helper/AdvancedTimer.h>
 #include <sofa/helper/system/FileRepository.h>
 #include <sofa/helper/system/SetDirectory.h>
+#include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/Utils.h>
 
 #include <algorithm>
@@ -1039,13 +1041,12 @@ bool SofaGLFWBaseGUI::centerWindow(GLFWwindow* window)
     return true;
 }
 
-void SofaGLFWBaseGUI::toggleVideoRecording()
+bool SofaGLFWBaseGUI::toggleVideoRecording()
 {
     if(m_isVideoRecording)
     {
         m_isVideoRecording = false;
         m_videoRecorderFFMPEG.finishVideo();
-        msg_info("SofaGLFWBaseGUI") << "End recording";
     }
     else
     {
@@ -1056,13 +1057,14 @@ void SofaGLFWBaseGUI::toggleVideoRecording()
         if(initRecorder(width, height))
         {
             m_isVideoRecording = true;
-            msg_info("SofaGLFWBaseGUI") << "Start recording.";
         }
         else
         {
             msg_error("SofaGLFWBaseGUI") << "Failed to initialize recorder.";
+            return false;
         }
     }
+    return true;
 }
 
 bool SofaGLFWBaseGUI::initRecorder(int width,
@@ -1095,8 +1097,10 @@ bool SofaGLFWBaseGUI::initRecorder(int width,
                                                                                                " To fix this, provide a valid path to the ffmpeg executable inside this file using the syntax \"FFMPEG_EXEC_PATH=/usr/bin/ffmpeg\".";
     }
 
-    const std::string videoFilename = m_videoRecorderFFMPEG.findFilename(framerate, bitrate / 1024, codecExtension);
-    return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, videoFilename, width, height, framerate, bitrate, codecName);
+    std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
+    m_videoFilename = m_videoRecorderFFMPEG.findFilename(framerate, bitrate / 1024, codecExtension);
+    m_videoFilename = sofa::helper::system::FileSystem::append(screenshotPath, m_videoFilename);
+    return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, m_videoFilename, width, height, framerate, bitrate, codecName);
 }
 
 bool SofaGLFWBaseGUI::isVideoRecording() const

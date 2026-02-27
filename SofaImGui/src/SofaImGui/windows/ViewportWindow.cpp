@@ -31,6 +31,7 @@
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/FooterStatusBar.h>
 
 
 namespace sofaimgui::windows {
@@ -276,14 +277,20 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             const auto& bbox = groot->f_bbox.getValue();
 
             { // Recorder
-                const bool& recording = baseGUI->isVideoRecording();
+                bool recording = baseGUI->isVideoRecording();
                 ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
                 ImGui::PushStyleColor(ImGuiCol_Button, red);
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, red);
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, red);
                 if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_CIRCLE_DOT, buttonSize))
                 {
-                    baseGUI->toggleVideoRecording();
+                    if(baseGUI->toggleVideoRecording())
+                    {
+                        recording = baseGUI->isVideoRecording();
+                        std::string message = recording? "Start": "Finished";
+                        message += " recording to: " + baseGUI->getVideoFilename();
+                        FooterStatusBar::getInstance().setTempMessage(message);
+                    }
                 }
                 ImGui::PopStyleColor(3);
 

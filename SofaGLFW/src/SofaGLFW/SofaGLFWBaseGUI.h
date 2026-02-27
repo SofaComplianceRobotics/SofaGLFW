@@ -112,8 +112,9 @@ public:
                       unsigned int framerate=60, unsigned int bitrate=2000000,
                       const std::string& codecExtension="mp4", const std::string& codecName="yuv420p");
 
-    void toggleVideoRecording();
+    bool toggleVideoRecording();
     bool isVideoRecording() const;
+    const std::string& getVideoFilename() {return m_videoFilename;}
 
     const char* getGUINodeName() {return "GUI";}
 
@@ -167,6 +168,7 @@ private:
     sofa::type::Vec2f m_viewPortPosition;
     sofa::type::Vec2f m_windowPosition;
     
+    std::string m_videoFilename;
     bool m_isVideoRecording {false};
     sofa::gl::VideoRecorderFFMPEG m_videoRecorderFFMPEG;
 
