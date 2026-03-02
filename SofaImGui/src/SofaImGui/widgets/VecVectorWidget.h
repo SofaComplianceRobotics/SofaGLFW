@@ -99,14 +99,15 @@ void showVectorWidget(Data<T>& data)
     const auto nbColumns = data.getValueTypeInfo()->size() + 1;
     const auto tableLabel = data.getName() + data.getOwner()->getPathName();
 
-    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 10);
+    auto accessor = helper::getWriteAccessor(data);
+    int dataSize = accessor->size();
+    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
     if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, flags, innerWidth))
     {
         showVecTableHeader(data);
 
         ImGui::TableHeadersRow();
 
-        auto accessor = helper::getWriteAccessor(data);
         bool anyChange = false;
         for (std::size_t i = 0; i < accessor.size(); ++i)
         {
@@ -169,8 +170,9 @@ template< sofa::Size N, typename ValueType>
 void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-
-    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 10);
+    auto accessor = helper::getWriteAccessor(data);
+    int dataSize = accessor->size();
+    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
     if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags, innerWidth))
     {
         showVecTableHeader(data);
@@ -178,7 +180,7 @@ void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueT
         ImGui::TableHeadersRow();
 
         unsigned int counter {};
-        for (auto& vec : *sofa::helper::getWriteAccessor(data))
+        for (auto& vec : *accessor)
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
