@@ -21,50 +21,40 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/windows/StateWindow.h>
-#include <SofaImGui/menus/ViewMenu.h>
-#include <imgui.h>
+#include <SofaImGui/config.h>
 
-namespace sofaimgui::windows {
+namespace sofaimgui {
 
-class SOFAIMGUI_API ViewportWindow : public BaseWindow
-{
-   public:
+constexpr int getDrivingWindowCount() { return 4; }
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow);
-    ~ViewportWindow() = default;
-
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
-    std::string getDescription() override;
-
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
-    bool addAnimateButton(bool *animate, const float& shift_x);
-    bool addStepButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
-
-    std::pair<float, float> m_windowSize{0., 0.};
-
-    bool isMouseOnViewport() {return m_isMouseOnViewport;}
-    bool isFocusOnViewport() {return m_isFocusOnViewport;}
-
-   protected:
-
-    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
-    std::shared_ptr<StateWindow> m_stateWindow;
-    float m_fps{0.f};
-
-    bool m_isMouseOnViewport{false};
-    bool m_isFocusOnViewport{false};
-
-    double m_maxPanelItemWidth{0.0};
-
-    void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
-    void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
-    bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(const ImTextureID& texture);
+// Driving window for Robotics Simulation GUI
+enum DrivingWindow {
+    NONE    = 0,
+    MOVE    = 1, // 1. Move Window - For moving the robot using sliders.
+    PROGRAM = 2, // 2. Program Window - For programming the robot using a block based timeline.
+    IO      = 3  // 3. IO Window - For piloting the robot from input / output data.
 };
 
+// Function to get the names of the DrivingWindow enum as strings
+inline const char* getDrivingWindowName(DrivingWindow drivingWindow) {
+    switch (drivingWindow) {
+    case MOVE: return "Move";
+    case PROGRAM: return "Program";
+    case IO: return "Input/Output";
+    default: return "None";
+    }
 }
 
+// Function to get the description of the Workbench enum as strings
+inline const char* getDrivingWindowDescription(DrivingWindow drivingWindow) {
+    switch (drivingWindow) {
+    case MOVE: return "For moving the robot using sliders.";
+    case PROGRAM: return "For programming the robot using a block based timeline.";
+    case IO: return "For piloting the robot from input / output data.";
+    default: return "None";
+    }
+}
 
+extern DrivingWindow drivingWindow;
+
+}

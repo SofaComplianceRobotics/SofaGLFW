@@ -41,11 +41,6 @@ void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
     SOFA_UNUSED(windowFlags);
 }
 
-void BaseWindow::setDrivingTCPTarget(const bool &isDrivingSimulation)
-{
-    m_isDrivingSimulation = isDrivingSimulation;
-}
-
 std::string BaseWindow::getName() const
 {
     return m_name;
@@ -55,11 +50,6 @@ std::string& BaseWindow::getLabel()
 {
     m_labelname = "       " + m_name;
     return m_labelname;
-}
-
-bool BaseWindow::isDrivingSimulation()
-{
-    return m_isDrivingSimulation;
 }
 
 bool& BaseWindow::isOpen()

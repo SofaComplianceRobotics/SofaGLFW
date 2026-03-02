@@ -154,6 +154,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.h
 
     ${SOFAIMGUI_SOURCE_DIR}/Utils.h
+    ${SOFAIMGUI_SOURCE_DIR}/DrivingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.h
     ${SOFAIMGUI_SOURCE_DIR}/Robot.h
     ${SOFAIMGUI_SOURCE_DIR}/Workbench.h
@@ -213,6 +214,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/DrivingWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Utils.cpp
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Robot.cpp

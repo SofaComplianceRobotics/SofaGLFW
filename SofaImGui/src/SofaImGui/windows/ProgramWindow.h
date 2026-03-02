@@ -21,11 +21,11 @@
  ******************************************************************************/
 #pragma once
 
-#include <filesystem>
 #include <imgui.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/models/Program.h>
 
 #include <SofaImGui/models/IPController.h>
@@ -56,7 +56,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void setTime(const double &time) {m_time=time;}
     void setIPController(models::IPController::SPtr IPController);
-    void setDrivingTCPTarget(const bool &isDrivingSimulation) override;
 
     void importProgram();
     bool importProgram(const std::string& filename);
@@ -132,6 +131,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void saveProgramDirAndFilename(const std::string& filename);
     void loadAndProcessWindowSettings();
+
+    bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
 
 };
 
