@@ -502,41 +502,12 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if(m_IPController)
         {
             int dWindow = drivingWindow;
-            static const char* listTabs[getDrivingWindowCount()];
+            const char* listTabs[getDrivingWindowCount()];
             for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
                 listTabs[i] = getDrivingWindowName(DrivingWindow(i));
 
             if (m_viewportWindow.addDrivingTabCombo(&dWindow, listTabs, IM_ARRAYSIZE(listTabs)))
-            {
                 drivingWindow = DrivingWindow(dWindow);
-                const auto filename = baseGUI->getFilename();
-
-                m_moveWindow.setDrivingTCPTarget(false);
-                m_programWindow.setDrivingTCPTarget(false);
-                m_IOWindow.setDrivingTCPTarget(false);
-                switch (drivingWindow) {
-                    case DrivingWindow::MOVE:
-                    {
-                        m_moveWindow.setDrivingTCPTarget(true);
-                        break;
-                    }
-                    case DrivingWindow::PROGRAM:
-                    {
-                        m_programWindow.setTime(groot->getTime());
-                        m_programWindow.setDrivingTCPTarget(true);
-                        break;
-                    }
-                    case DrivingWindow::IO:
-                    {
-                        m_IOWindow.setDrivingTCPTarget(true);
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                }
-            }
         }
     }
 }
