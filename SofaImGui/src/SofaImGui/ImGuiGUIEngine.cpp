@@ -103,14 +103,32 @@ void ImGuiGUIEngine::saveSettings()
     iniGUISettings.SaveFile(settingsFile.c_str());
 }
 
-void ImGuiGUIEngine::saveProject()
+void ImGuiGUIEngine::saveProject(const bool& saveAs)
 {
     // Temporarily set the numeric formatting locale to ensure that
     // floating-point values are interpreted correctly. (I.e. the
     // decimal separator is a dot '.').
     sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
 
-    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
+    std::filesystem::path path(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()));
+
+    // Save Dialog
+    if (saveAs)
+    {
+        nfdchar_t* outPath;
+        std::vector<nfdfilteritem_t> nfd_filters;
+        nfd_filters.push_back({ "project file", "crproj" });
+
+        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), path.parent_path().string().c_str(), path.stem().string().c_str());
+        if (result == NFD_OKAY)
+        {
+            path = outPath;
+            path = (!path.has_extension()) ? outPath + path.extension().string() : outPath;
+            NFD_FreePath(outPath);
+        }
+    }
+
+    const std::string projectFile = path.string();
     FooterStatusBar::getInstance().setTempMessage("Saving project in " + projectFile);
 
     auto& windowSettings = windows::WindowsSettings::getInstance();

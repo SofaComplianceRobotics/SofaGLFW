@@ -83,7 +83,7 @@ public:
 
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
-    void saveProject();
+    void saveProject(const bool& saveAs=false);
 
     void setIPController(sofa::simulation::Node::SPtr groot,
                          softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
