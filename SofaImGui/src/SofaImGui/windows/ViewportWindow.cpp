@@ -110,6 +110,9 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 }
 
                 addCameraButtons(baseGUI, groot);
+                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // TODO create a stylesheet
+                if(baseGUI->isVideoRecording())
+                    addRecordingStatus(red);
                 addContextMenu(texture);
             }
             ImGui::EndChild();
@@ -309,9 +312,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                     std::string tooltip = recording? "Stop": "Start";
                     tooltip += " Recording";
                     ImGui::SetItemTooltip("%s", tooltip.c_str());
-
-                    if (recording)
-                        addRecordingStatus(red);
                 }
 
                 ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
