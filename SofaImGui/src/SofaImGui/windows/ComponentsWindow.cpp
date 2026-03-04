@@ -58,16 +58,16 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
 
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            // static bool firstTime = true;
-            // if (firstTime)
-            // {
-            //     sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
-            //     ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
-            //     // TODO: loop over the plugins
-            //     sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
-            //     PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
-            //     firstTime = false;
-            // }
+            static bool firstTime = true;
+            if (firstTime)
+            {
+                sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
+                ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
+                // TODO: loop over the plugins
+                sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
+                PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
+                firstTime = false;
+            }
 
             ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
             static sofa::core::ClassEntry::SPtr selectedComponent;
@@ -182,7 +182,7 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
         for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
-            ImGui::TextWrapped("%s", examplePath.filename().c_str());
+            ImGui::TextWrapped(examplePath.filename().string().c_str());
             ImGui::PopStyleColor();
 
             if (ImGui::IsItemClicked())
