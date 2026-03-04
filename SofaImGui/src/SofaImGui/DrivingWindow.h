@@ -19,65 +19,42 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#include "IconsFontAwesome6.h"
-#include <SofaImGui/windows/BaseWindow.h>
+#pragma once
 
-namespace sofaimgui::windows {
+#include <SofaImGui/config.h>
 
-WindowsSettings &WindowsSettings::getInstance()
-{
-    static WindowsSettings windowsSettings;
-    return windowsSettings;
+namespace sofaimgui {
+
+constexpr int getDrivingWindowCount() { return 4; }
+
+// Driving window for Robotics Simulation GUI
+enum DrivingWindow {
+    NONE    = 0,
+    MOVE    = 1, // 1. Move Window - For moving the robot using sliders.
+    PROGRAM = 2, // 2. Program Window - For programming the robot using a block based timeline.
+    IO      = 3  // 3. IO Window - For piloting the robot from input / output data.
+};
+
+// Function to get the names of the DrivingWindow enum as strings
+inline const char* getDrivingWindowName(DrivingWindow drivingWindow) {
+    switch (drivingWindow) {
+    case MOVE: return "Move";
+    case PROGRAM: return "Program";
+    case IO: return "Input/Output";
+    default: return "None";
+    }
 }
 
-BaseWindow::BaseWindow()
-{
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+// Function to get the description of the Workbench enum as strings
+inline const char* getDrivingWindowDescription(DrivingWindow drivingWindow) {
+    switch (drivingWindow) {
+    case MOVE: return "For moving the robot using sliders.";
+    case PROGRAM: return "For programming the robot using a block based timeline.";
+    case IO: return "For piloting the robot from input / output data.";
+    default: return "None";
+    }
 }
 
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
-{
-    SOFA_UNUSED(baseGUI);
-    SOFA_UNUSED(windowFlags);
-}
+extern DrivingWindow drivingWindow;
 
-std::string BaseWindow::getName() const
-{
-    return m_name;
-}
-
-std::string& BaseWindow::getLabel()
-{
-    m_labelname = "       " + m_name;
-    return m_labelname;
-}
-
-bool& BaseWindow::isOpen()
-{
-    return m_isOpen;
-}
-
-void BaseWindow::setOpen(const bool &isOpen)
-{
-    m_isOpen=isOpen;
-}
-
-const bool& BaseWindow::getDefaultIsOpen()
-{
-    return m_defaultIsOpen;
-}
-
-bool BaseWindow::isEnabledInWorkbench()
-{
-    return (m_workbenches & workbench);
-}
-
-void BaseWindow::showInfoMessage(const char* message)
-{
-    ImGui::BeginDisabled();
-    ImGui::Text(ICON_FA_CIRCLE_INFO);
-    ImGui::SameLine();
-    ImGui::TextWrapped("%s", message);
-    ImGui::EndDisabled();
-}
 }

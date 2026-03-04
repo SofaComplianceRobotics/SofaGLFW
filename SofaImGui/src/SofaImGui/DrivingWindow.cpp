@@ -19,65 +19,11 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#include "IconsFontAwesome6.h"
-#include <SofaImGui/windows/BaseWindow.h>
 
-namespace sofaimgui::windows {
+#include <SofaImGui/DrivingWindow.h>
 
-WindowsSettings &WindowsSettings::getInstance()
-{
-    static WindowsSettings windowsSettings;
-    return windowsSettings;
-}
+namespace sofaimgui {
 
-BaseWindow::BaseWindow()
-{
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
-}
+DrivingWindow drivingWindow = DrivingWindow::MOVE;
 
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
-{
-    SOFA_UNUSED(baseGUI);
-    SOFA_UNUSED(windowFlags);
-}
-
-std::string BaseWindow::getName() const
-{
-    return m_name;
-}
-
-std::string& BaseWindow::getLabel()
-{
-    m_labelname = "       " + m_name;
-    return m_labelname;
-}
-
-bool& BaseWindow::isOpen()
-{
-    return m_isOpen;
-}
-
-void BaseWindow::setOpen(const bool &isOpen)
-{
-    m_isOpen=isOpen;
-}
-
-const bool& BaseWindow::getDefaultIsOpen()
-{
-    return m_defaultIsOpen;
-}
-
-bool BaseWindow::isEnabledInWorkbench()
-{
-    return (m_workbenches & workbench);
-}
-
-void BaseWindow::showInfoMessage(const char* message)
-{
-    ImGui::BeginDisabled();
-    ImGui::Text(ICON_FA_CIRCLE_INFO);
-    ImGui::SameLine();
-    ImGui::TextWrapped("%s", message);
-    ImGui::EndDisabled();
-}
 }

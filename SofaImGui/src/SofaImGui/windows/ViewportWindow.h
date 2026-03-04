@@ -39,8 +39,8 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     std::string getDescription() override;
 
     void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
+    bool addAnimateButton(bool *animate, const float& shift_x);
     bool addStepButton();
-    bool addAnimateButton(bool *animate);
     bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
 
     std::pair<float, float> m_windowSize{0., 0.};

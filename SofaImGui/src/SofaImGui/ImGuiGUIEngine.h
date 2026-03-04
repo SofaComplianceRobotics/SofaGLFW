@@ -114,6 +114,7 @@ public:
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
 
 protected:
+
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
 
@@ -152,7 +153,6 @@ protected:
     models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;
     bool m_animate{false};
-    int m_mode{0};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
     std::vector<ImGuiID> m_dockIDs;

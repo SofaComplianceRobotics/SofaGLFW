@@ -23,6 +23,7 @@
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>
 
@@ -530,9 +531,10 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (workbench != Workbench::SCENE_EDITOR)
     {
         m_animate = groot->animate_.getValue();
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_IPController? 3: 1);
 
         // Animate button
-        if (m_viewportWindow.addAnimateButton(&m_animate))
+        if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
             sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
 
         // Step button
@@ -550,40 +552,16 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        static const char* listTabs[]{"Move", "Program", "Input/Output"};
-
-        if(!m_IPController)
-            ImGui::BeginDisabled();
-
-        if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
+        if(m_IPController)
         {
-            const auto filename = baseGUI->getFilename();
+            int dWindow = drivingWindow;
+            const char* listTabs[getDrivingWindowCount()];
+            for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                listTabs[i] = getDrivingWindowName(DrivingWindow(i));
 
-            m_moveWindow.setDrivingTCPTarget(false);
-            m_programWindow.setDrivingTCPTarget(false);
-            m_IOWindow.setDrivingTCPTarget(false);
-            switch (m_mode) {
-            case 1:
-            {
-                m_programWindow.setTime(groot->getTime());
-                m_programWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            case 2:
-            {
-                m_IOWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            default:
-            {
-                m_moveWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            }
+            if (m_viewportWindow.addDrivingTabCombo(&dWindow, listTabs, IM_ARRAYSIZE(listTabs)))
+                drivingWindow = DrivingWindow(dWindow);
         }
-
-        if(!m_IPController)
-            ImGui::EndDisabled();
     }
 }
 

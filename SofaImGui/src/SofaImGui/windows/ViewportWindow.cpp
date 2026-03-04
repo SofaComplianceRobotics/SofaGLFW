@@ -89,24 +89,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 {
                     addStateWindow(baseGUI, windowFlags);
                     addSimulationTimeAndFPS(groot);
-
-                    // Panel backgroung
-                    ImDrawList* drawList = ImGui::GetWindowDrawList();
-                    ImVec2 size(ImGui::GetFrameHeight() * 2 + ImGui::GetStyle().ItemSpacing.x * 4 + m_maxPanelItemWidth, ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2);
-
-                    float x = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f + ImGui::GetStyle().FramePadding.x;
-                    float y = ImGui::GetWindowPos().y + ImGui::GetStyle().FramePadding.y;
-
-                    ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
-
-                    { // Draw
-                        auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-                        color.w = 0.6f;
-                        drawList->AddRectFilled(bb.Min, bb.Max,
-                                                ImGui::GetColorU32(color),
-                                                ImGui::GetStyle().FrameRounding,
-                                                ImDrawFlags_None);
-                    }
                 }
 
                 addCameraButtons(baseGUI, groot);
@@ -171,8 +153,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-    if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow |
-                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+    if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
+                                                        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
         ImGui::ItemSize(wosize);
@@ -255,8 +237,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     // Buttons
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool translate = false;
-    if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow |
-                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+    if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImGui::TextDisabled("  " ICON_FA_VIDEO);
 
@@ -531,6 +513,52 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
     }
 }
 
+bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
+{
+    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    bool isItemClicked = false;
+
+    if (m_isOpen)
+    {
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            auto position = ImGui::GetWindowPos();
+            position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
+            position.y += ImGui::GetStyle().FramePadding.y;
+            ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
+
+            // Middle buttons background
+            // Clip down
+            auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+            color.w = 0.6f;
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
+
+            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            {
+                // ImGui::SameLine();
+                ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
+                ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
+
+                if (ImGui::IsItemClicked())
+                {
+                    *animate = !*animate;
+                    isItemClicked = true;
+                }
+            }
+            ImGui::EndChild();
+
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar();
+        }
+        ImGui::End();
+    }
+
+    return isItemClicked;
+}
+
 bool ViewportWindow::addStepButton()
 {
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
@@ -540,71 +568,17 @@ bool ViewportWindow::addStepButton()
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if(ImGui::BeginChild("Render"))
+            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                auto position = ImGui::GetWindowPos();
-                position.x += ImGui::GetWindowWidth() / 2 - ImGui::GetFrameHeight() * 4.f;
-                position.y += ImGui::GetStyle().FramePadding.y;
-                ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
-
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                if (ImGui::Begin("ViewportChildButtons", &m_isOpen,
-                                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
-                {
-                    ImGui::SameLine();
-                    ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                    if (ImGui::Button(ICON_FA_FORWARD_STEP, buttonSize))
-                        isItemClicked = true;
-                    ImGui::PopItemFlag();
-                    ImGui::SetItemTooltip("One step of simulation");
-                }
-                ImGui::End();
-                ImGui::PopStyleColor();
-                ImGui::EndChild();
+                ImGui::SameLine();
+                ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
+                if (ImGui::Button(ICON_FA_FORWARD_STEP, buttonSize))
+                    isItemClicked = true;
+                ImGui::PopItemFlag();
+                ImGui::SetItemTooltip("One step of simulation");
             }
-        }
-        ImGui::End();
-    }
-
-    return isItemClicked;
-}
-
-bool ViewportWindow::addAnimateButton(bool *animate)
-{
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-    bool isItemClicked = false;
-    
-    if (m_isOpen)
-    {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
-        {
-            if(ImGui::BeginChild("Render"))
-            {
-                auto position = ImGui::GetWindowPos();
-                position.x += ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f;
-                position.y += ImGui::GetStyle().FramePadding.y;
-                ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
-
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                if (ImGui::Begin("ViewportChildButtons", &m_isOpen,
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
-                {
-                    ImGui::SameLine();
-                    ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
-                    ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
-
-                    if (ImGui::IsItemClicked())
-                    {
-                        *animate = !*animate;
-                        isItemClicked = true;
-                    }
-
-                }
-                ImGui::End();
-                ImGui::PopStyleColor();
-
-                ImGui::EndChild();
-            }
+            ImGui::EndChild();
         }
         ImGui::End();
     }
@@ -620,33 +594,20 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if(ImGui::BeginChild("Render"))
+            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                auto position = ImGui::GetWindowPos();
-                position.x += ImGui::GetWindowWidth() / 2.f - ImGui::GetFrameHeight() * 4.f;
-                position.y += ImGui::GetStyle().FramePadding.y;
-                ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
-
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                if (ImGui::Begin("ViewportChildButtons", &m_isOpen,
-                                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
-                {
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(m_maxPanelItemWidth);
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
-                    ImGui::PopStyleColor(3);
-                    ImGui::PopItemWidth();
-                    ImGui::SetItemTooltip("Choose a window to drive the TCP target");
-
-                }
-                ImGui::End();
-                ImGui::PopStyleColor();
-
-                ImGui::EndChild();
+                ImGui::SameLine();
+                ImGui::PushItemWidth(m_maxPanelItemWidth);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+                ImGui::PopStyleColor(3);
+                ImGui::PopItemWidth();
+                ImGui::SetItemTooltip("Choose a window to drive the TCP target");
             }
+            ImGui::EndChild();
         }
         ImGui::End();
     }

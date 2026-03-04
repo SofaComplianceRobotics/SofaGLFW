@@ -40,7 +40,6 @@ MoveWindow::MoveWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_isDrivingSimulation = true;
     m_moveType = MoveType::SLIDERS;
 
     m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
@@ -122,7 +121,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                 {
                     ImGui::Spacing();
 
-                    if(m_isDrivingSimulation)
+                    if(isDrivingSimulation())
                         m_IPController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
                     if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
@@ -219,7 +218,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         ImGui::LocalEndCollapsingHeader();
                     }
 
-                    if (m_isDrivingSimulation)
+                    if (isDrivingSimulation())
                     {
                         sofa::type::Quat<SReal> q = m_IPController->getTCPPosition().getOrientation();
                         sofa::type::Vec3 rotation = q.toEulerVector();
@@ -264,7 +263,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                 actuator.value=buffer;
                             }
                         }
-                        if (m_IPController && !solveInverseProblem && m_isDrivingSimulation)
+                        if (m_IPController && !solveInverseProblem && isDrivingSimulation())
                         {
                             // TODO: don't solve the inverse problem since we'll overwrite the solution
                             m_IPController->applyActuatorsForce(m_actuators);
@@ -293,7 +292,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                                                ("##Input" + name).c_str(),
                                                                &buffer, accessory.min, accessory.max,
                                                                ImVec4(0, 0, 0, 0));
-                            if (hasChanged && m_isDrivingSimulation)
+                            if (hasChanged && isDrivingSimulation())
                             {
                                 accessory.data->read(std::to_string(buffer));
                             }

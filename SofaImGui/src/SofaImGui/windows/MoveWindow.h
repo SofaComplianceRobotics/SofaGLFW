@@ -24,6 +24,7 @@
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/IPController.h>
 #include <SofaImGui/widgets/MovePad.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -101,6 +102,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     void showWeightOption(const int &index);
     void showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
+    bool isDrivingSimulation() {return drivingWindow == DrivingWindow::MOVE;}
 };
 
 }
