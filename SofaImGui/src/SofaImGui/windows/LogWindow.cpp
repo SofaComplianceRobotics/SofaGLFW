@@ -21,6 +21,7 @@
 ******************************************************************************/
 
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 #include <iomanip>
@@ -33,7 +34,6 @@
 #include <nfd.h>
 #include <IconsFontAwesome6.h>
 #include <fstream>
-#include <SofaImGui/ImGuiDataWidget.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/LineAxis.h>
 #include <sofa/gui/common/BaseGUI.h>

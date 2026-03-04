@@ -26,7 +26,7 @@
 #include <SofaImGui/FooterStatusBar.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>

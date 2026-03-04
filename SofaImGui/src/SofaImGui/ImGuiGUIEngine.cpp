@@ -21,7 +21,7 @@
 ******************************************************************************/
 #include <sofa/helper/system/Locale.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>

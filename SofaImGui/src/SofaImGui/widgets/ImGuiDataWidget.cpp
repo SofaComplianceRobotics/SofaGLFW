@@ -20,7 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <sofa/core/objectmodel/Base.h>
 
@@ -30,8 +30,10 @@
 #include <sofa/helper/SelectableItem.h>
 #include <SofaImGui/widgets/LinearSpringWidget.h>
 #include <SofaImGui/widgets/MaterialWidget.h>
-#include <SofaImGui/widgets/RigidMass.h>
+#include <SofaImGui/widgets/RigidMassWidget.h>
+#include <SofaImGui/widgets/VecVectorWidget.h>
 #include <SofaImGui/widgets/IntWidget.h>
+#include <SofaImGui/widgets/BoundingBoxWidget.h>
 
 namespace sofaimgui
 {
@@ -193,104 +195,6 @@ void DataWidget<sofa::type::Vec<4, float> >::showWidget(MyData& data)
  * Vectors of Vec
  **********************************************************************************************************************/
 
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<N, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < N; ++i)
-    {
-        ImGui::TableSetupColumn(std::to_string(i).c_str());
-    }
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<type::vector<ValueType> >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("Value");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<1, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("X");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<2, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<3, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-    ImGui::TableSetupColumn("Z");
-}
-
-template<Size N, typename ValueType>
-bool showLine(unsigned int lineNumber, const std::string& tableLabel, type::Vec<N, ValueType>& vec)
-{
-    int i=0;
-    ImGui::PushID(lineNumber);
-    for (auto& v : vec)
-    {
-        ImGui::TableNextColumn();
-        showScalarWidget("", tableLabel + ImGui::TableGetColumnName(i++) + std::to_string(v), v);
-    }
-    ImGui::PopID();
-    return false;
-}
-
-template<typename ValueType>
-bool showLine(unsigned int lineNumber, const std::string& tableLabel, ValueType& value)
-{
-    ImGui::TableNextColumn();
-    return showScalarWidget("", tableLabel + std::to_string(lineNumber), value);
-}
-
-template<class T>
-void showVectorWidget(Data<T>& data)
-{
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    const auto nbColumns = data.getValueTypeInfo()->size() + 1;
-    const auto tableLabel = data.getName() + data.getOwner()->getPathName();
-    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, flags))
-    {
-        showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
-
-        auto accessor = helper::getWriteAccessor(data);
-        bool anyChange = false;
-        for (std::size_t i = 0; i < accessor.size(); ++i)
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%zu", i);
-            auto& vec = accessor[i];
-            if (showLine(i, tableLabel, vec))
-            {
-                anyChange = true;
-                data.setDirtyValue();
-            }
-        }
-        if (anyChange)
-        {
-            data.updateIfDirty();
-        }
-
-        ImGui::EndTable();
-    }
-}
-
 template<>
 void DataWidget<type::vector<double> >::showWidget(MyData& data)
 {
@@ -354,88 +258,6 @@ void DataWidget<sofa::type::vector<sofa::type::Vec<4, float> > >::showWidget(MyD
 /***********************************************************************************************************************
  * Vectors of RigidCoord
  **********************************************************************************************************************/
-
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < sofa::defaulttype::RigidCoord<N, ValueType>::total_size; ++i)
-    {
-        ImGui::TableSetupColumn(std::to_string(i).c_str());
-    }
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<3, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-    ImGui::TableSetupColumn("Z");
-
-    ImGui::TableSetupColumn("qX");
-    ImGui::TableSetupColumn("qY");
-    ImGui::TableSetupColumn("qZ");
-    ImGui::TableSetupColumn("qW");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<2, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-
-    ImGui::TableSetupColumn("w");
-}
-
-template< sofa::Size N, typename ValueType>
-void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >& data)
-{
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags))
-    {
-        showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
-
-        unsigned int counter {};
-        for (auto& vec : *sofa::helper::getWriteAccessor(data))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%d", counter++);
-            int i=0;
-            for (auto& v : vec.getCenter())
-            {
-                ImGui::TableNextColumn();
-                ImGui::PushID(i++);
-                showScalarWidget("", "pos" + std::to_string(counter), v);
-                ImGui::PopID();
-
-            }
-            if constexpr (std::is_scalar_v<std::decay_t<decltype(vec.getOrientation())> >)
-            {
-                ImGui::TableNextColumn();
-                ImGui::Text("%f", vec.getOrientation());
-            }
-            else
-            {
-                for (unsigned int i = 0 ; i < 4; ++i)
-                {
-                    ImGui::TableNextColumn();
-                    auto& v = vec.getOrientation()[i];
-                    ImGui::PushID(i);
-                    showScalarWidget("", "orien" + std::to_string(counter), v);
-                    ImGui::PopID();
-                }
-            }
-        }
-
-        ImGui::EndTable();
-    }
-}
 
 template<>
 void DataWidget<sofa::type::vector<sofa::defaulttype::RigidCoord<3, double> > >::showWidget(MyData& data)
@@ -778,6 +600,16 @@ void DataWidget<sofa::type::vector<sofa::defaulttype::Rigid2Mass>>::showWidget(M
 }
 
 /***********************************************************************************************************************
+ * Bounding Box
+ **********************************************************************************************************************/
+
+template<>
+void DataWidget<sofa::type::BoundingBox>::showWidget(MyData& data)
+{
+    showBoundingBoxWidget(data);
+}
+
+/***********************************************************************************************************************
  * Factory
  **********************************************************************************************************************/
 
@@ -869,4 +701,6 @@ const bool dw_rigid2mass = DataWidgetFactory::Add<sofa::defaulttype::Rigid2Mass>
 const bool dw_vector_rigid2mass = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::Rigid2Mass>>();
 const bool dw_rigid3mass = DataWidgetFactory::Add<sofa::defaulttype::Rigid3Mass>();
 const bool dw_vector_rigid3mass = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::Rigid3Mass>>();
+
+const bool dw_boundingbox = DataWidgetFactory::Add<sofa::type::BoundingBox>();
 }
