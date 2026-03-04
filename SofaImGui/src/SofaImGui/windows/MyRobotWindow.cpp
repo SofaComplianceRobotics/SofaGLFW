@@ -45,7 +45,6 @@ MyRobotWindow::MyRobotWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_isDrivingSimulation = true;
 }
 
 std::string MyRobotWindow::getDescription()
