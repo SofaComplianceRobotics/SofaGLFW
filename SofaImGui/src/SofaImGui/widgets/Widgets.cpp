@@ -1,3 +1,4 @@
+#include "IconsFontAwesome6.h"
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <string>
@@ -220,6 +221,13 @@ void LocalEndCollapsingHeader()
 {
     ImGui::Spacing();
     ImGui::Unindent();
+}
+
+void LocalTextLinkOpenURL(const char* label, const char* url)
+{
+    std::string _label = ICON_FA_GLOBE" ";
+    _label += label;
+    TextLinkOpenURL(_label.c_str(), url);
 }
 
 void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float &offset)

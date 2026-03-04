@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/ComponentsWindow.h>
 #include <filesystem>
 #include <sofa/simulation/graph/DAGNode.h>
@@ -170,9 +171,9 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
 
     if (!selectedComponent->documentationURL.empty())
     {
-        ImGui::TextDisabled("Documentation URL:");
+        ImGui::TextDisabled("Documentation:");
         ImGui::SameLine();
-        ImGui::TextLinkOpenURL("link", selectedComponent->documentationURL.c_str());
+        ImGui::LocalTextLinkOpenURL("Documentation", selectedComponent->documentationURL.c_str());
     }
 
     if (!m_selectedComponentExamples.empty())
