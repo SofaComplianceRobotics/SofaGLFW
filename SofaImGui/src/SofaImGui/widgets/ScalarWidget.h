@@ -29,17 +29,13 @@ namespace sofaimgui
 
 inline bool showScalarWidget(const std::string& label, const std::string& id, float& value)
 {
-    ImGui::PushItemWidth(-1); // Fit container width
-    bool result = ImGui::LocalInputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
-    ImGui::PopItemWidth();
+    bool result = ImGui::LocalInputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
     return result;
 }
 
 inline bool showScalarWidget(const std::string& label, const std::string& id, double& value)
 {
-    ImGui::PushItemWidth(-1); // Fit container width
-    bool result = ImGui::LocalInputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
-    ImGui::PopItemWidth();
+    bool result = ImGui::LocalInputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
     return result;
 }
 

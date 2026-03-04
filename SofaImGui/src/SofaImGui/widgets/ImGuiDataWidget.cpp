@@ -61,6 +61,12 @@ void DataWidget<bool>::showWidget(MyData& data)
 }
 
 template<>
+void DataWidget<float>::showWidget(MyData& data)
+{
+    showScalarWidget(data);
+}
+
+template<>
 void DataWidget<double>::showWidget(MyData& data)
 {
     showScalarWidget(data);
