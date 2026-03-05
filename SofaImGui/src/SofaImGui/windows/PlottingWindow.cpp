@@ -150,15 +150,19 @@ void PlottingWindow::showButtons()
     if (!enabled())
         ImGui::BeginDisabled();
 
-    if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+    if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
     {
         exportData();
     }
 
     if (!enabled())
     {
-        ImGui::SetItemTooltip("No values to export.");
+        ImGui::SetItemTooltip("No values to export");
         ImGui::EndDisabled();
+    }
+    else
+    {
+        ImGui::SetItemTooltip("Export data");
     }
 
     ImGui::SameLine();
