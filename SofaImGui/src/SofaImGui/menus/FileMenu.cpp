@@ -175,8 +175,10 @@ bool FileMenu::addImportExportProgram()
     if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
-    if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I"))
+    if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I")) {
         engine->m_programWindow.importProgram();
+        engine->m_programWindow.setOpen(true);
+    }
 
     if (!engine->m_programWindow.isOpen())
         ImGui::BeginDisabled();

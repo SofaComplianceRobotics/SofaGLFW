@@ -207,6 +207,11 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
     }
 }
 
+void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+{
+    m_programWindow.setBaseGUI(baseGUI);
+}
+
 void ImGuiGUIEngine::init()
 {
     IMGUI_CHECKVERSION();
@@ -316,6 +321,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
         createGUINode();
+        setWindowsBaseGUI(m_baseGUI);
     }
     else
     {

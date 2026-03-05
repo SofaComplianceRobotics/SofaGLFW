@@ -148,6 +148,8 @@ protected:
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
 
+    void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
+
     models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;
     bool m_animate{false};
