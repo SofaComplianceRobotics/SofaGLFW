@@ -180,7 +180,7 @@ void ProgramWindow::showProgramButtons()
     auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
             // Left buttons
-    if (ImGui::Button(ICON_FA_FOLDER_OPEN, buttonSize))
+    if (ImGui::Button(ICON_FA_FILE_IMPORT, buttonSize))
     {
         importProgram();
     }
@@ -188,7 +188,7 @@ void ProgramWindow::showProgramButtons()
 
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, buttonSize))
+    if (ImGui::Button(ICON_FA_FILE_EXPORT, buttonSize))
     {
         exportProgram();
     }

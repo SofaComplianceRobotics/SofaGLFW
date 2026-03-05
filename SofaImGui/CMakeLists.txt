@@ -83,6 +83,7 @@ set(IMGUI_HEADER_FILES
     resources/fa-regular-400.h
     resources/fa-solid-900.h
     resources/OpenSans-Regular.h
+    resources/DejaVuSans.h
     resources/Style.h
     resources/ProgramStyle.h
 )
