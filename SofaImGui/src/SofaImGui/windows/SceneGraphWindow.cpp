@@ -26,7 +26,7 @@
 #include <SofaImGui/FooterStatusBar.h>
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
@@ -585,6 +585,9 @@ bool SceneGraphWindow::showComponentWindow(sofa::core::objectmodel::BaseObject* 
                     ImGui::TextDisabled("Type:");
                     ImGui::TextWrapped("%s", component->getClassName().c_str());
                     ImGui::Spacing();
+                    ImGui::TextDisabled("Documentation:");
+                    addComponentDocTextLinkOpenURL(component);
+                    ImGui::Spacing();
                     ImGui::TextDisabled("Linkpath:");
                     ImGui::TextWrapped("@%s", component->getPathName().c_str());
                     ImGui::Spacing();
@@ -658,6 +661,18 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
     ImGui::End();
     ImGui::PopStyleVar();
     return isOpen;
+}
+
+void SceneGraphWindow::addComponentDocTextLinkOpenURL(sofa::core::objectmodel::BaseObject *component)
+{
+    sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
+    if (!entry.creatorMap.empty())
+    {
+        if (!entry.documentationURL.empty() && entry.documentationURL != std::string("TODO"))
+        {
+            ImGui::LocalTextLinkOpenURL("Documentation", entry.documentationURL.c_str());
+        }
+    }
 }
 
 void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa::core::BaseData*> >& groupMap)
@@ -808,6 +823,10 @@ void SceneGraphWindow::addComponentContextMenu(sofa::core::objectmodel::BaseObje
     if (component)
     {
         addBaseContextMenu(component);
+
+        ImGui::Separator();
+
+        addComponentDocTextLinkOpenURL(component);
     }
 }
 
@@ -818,14 +837,14 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
         const std::string instantiationFilename = object->getInstanciationSourceFileName();
         const std::string implementationFilename = object->getDefinitionSourceFileName();
 
-        if(ImGui::MenuItem("Copy Scene Graph Path"))
+        if(ImGui::MenuItem("Copy Linkpath"))
             ImGui::SetClipboardText(object->getPathName().c_str());
 
         ImGui::Separator();
 
         if (!instantiationFilename.empty())
         {
-            if(ImGui::MenuItem("Open Instantiation File..."))
+            if(ImGui::MenuItem("Open Instantiation File"))
             {
                 if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(instantiationFilename))
                     FooterStatusBar::getInstance().setTempMessage("Opening file : " + instantiationFilename);
@@ -836,7 +855,7 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
 
         if (!implementationFilename.empty())
         {
-            if(ImGui::MenuItem("Open Implementation File..."))
+            if(ImGui::MenuItem("Open Implementation File"))
             {
                 if(sofa::helper::system::FileSystem::openFileWithDefaultApplication(implementationFilename))
                     FooterStatusBar::getInstance().setTempMessage("Opening file : " + implementationFilename);

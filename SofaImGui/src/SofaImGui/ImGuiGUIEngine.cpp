@@ -21,8 +21,9 @@
 ******************************************************************************/
 #include <sofa/helper/system/Locale.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>
 
@@ -501,9 +502,10 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (workbench != Workbench::SCENE_EDITOR)
     {
         m_animate = groot->animate_.getValue();
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_IPController? 3: 1);
 
         // Animate button
-        if (m_viewportWindow.addAnimateButton(&m_animate))
+        if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
             sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
 
         // Step button
@@ -521,40 +523,16 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        static const char* listTabs[]{"Move", "Program", "Input/Output"};
-
-        if(!m_IPController)
-            ImGui::BeginDisabled();
-
-        if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
+        if(m_IPController)
         {
-            const auto filename = baseGUI->getFilename();
+            int dWindow = drivingWindow;
+            const char* listTabs[getDrivingWindowCount()];
+            for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                listTabs[i] = getDrivingWindowName(DrivingWindow(i));
 
-            m_moveWindow.setDrivingTCPTarget(false);
-            m_programWindow.setDrivingTCPTarget(false);
-            m_IOWindow.setDrivingTCPTarget(false);
-            switch (m_mode) {
-            case 1:
-            {
-                m_programWindow.setTime(groot->getTime());
-                m_programWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            case 2:
-            {
-                m_IOWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            default:
-            {
-                m_moveWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            }
+            if (m_viewportWindow.addDrivingTabCombo(&dWindow, listTabs, IM_ARRAYSIZE(listTabs)))
+                drivingWindow = DrivingWindow(dWindow);
         }
-
-        if(!m_IPController)
-            ImGui::EndDisabled();
     }
 }
 
@@ -655,10 +633,16 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::PopStyleColor();
 
             // Manual
-            std::string url = "https://docs-support.compliance-robotics.com/docs/";
-            url += (version.length()>6)? "next": version;
-            url += "/Users/SOFARobotics/GUI-user-manual/";
-            ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
+            std::string manualURL = "https://docs-support.compliance-robotics.com/docs/";
+            manualURL += (version.length()>6)? "next": version;
+            manualURL += "/Users/SOFARobotics/GUI-user-manual/";
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics Manual", manualURL.c_str());
+
+            // Sofa Robotics GitHub
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics GitHub", "https://github.com/SofaComplianceRobotics/SofaGLFW/tree/robotics");
+
+            // Compliance Robotics Website
+            ImGui::LocalTextLinkOpenURL("Compliance Robotics", "https://compliance-robotics.com/");
 
             if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
@@ -687,6 +671,10 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
                 ImGui::Text("%s", text.c_str());
             }
+
+            // Support SOFA
+            ImGui::LocalTextLinkOpenURL("Support SOFA", "https://www.sofa-framework.org/consortium/support-us/");
+
             ImGui::End();
         }
 

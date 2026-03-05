@@ -122,6 +122,8 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ImGuiDataWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/BoundingBoxWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
@@ -129,7 +131,8 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MovePad.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.h
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMass.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMassWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/VecVectorWidget.h
 
     ${SOFAIMGUI_SOURCE_DIR}/menus/FileMenu.h
     ${SOFAIMGUI_SOURCE_DIR}/menus/ViewMenu.h
@@ -148,20 +151,18 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.h
 
-    ${SOFAIMGUI_SOURCE_DIR}/ImGuiDataWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.h
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.h
 
     ${SOFAIMGUI_SOURCE_DIR}/Utils.h
+    ${SOFAIMGUI_SOURCE_DIR}/DrivingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.h
     ${SOFAIMGUI_SOURCE_DIR}/Robot.h
     ${SOFAIMGUI_SOURCE_DIR}/Workbench.h
     ${SOFAIMGUI_SOURCE_DIR}/config.h.in
     ${SOFAIMGUI_SOURCE_DIR}/init.h
 
-    # ${SOFAIMGUI_SOURCE_DIR}/windows/Performances.h
-    # ${SOFAIMGUI_SOURCE_DIR}/windows/Profiler.h
     ${SOFAIMGUI_SOURCE_DIR}/AppIniFile.h
 )
 
@@ -181,6 +182,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
 
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ImGuiDataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
@@ -209,18 +211,16 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.cpp
 
-    ${SOFAIMGUI_SOURCE_DIR}/ImGuiDataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/DrivingWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Utils.cpp
     ${SOFAIMGUI_SOURCE_DIR}/FooterStatusBar.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Robot.cpp
     ${SOFAIMGUI_SOURCE_DIR}/Workbench.cpp
     ${SOFAIMGUI_SOURCE_DIR}/initSofaImGui.cpp
 
-    # ${SOFAIMGUI_SOURCE_DIR}/windows/Performances.cpp
-    # ${SOFAIMGUI_SOURCE_DIR}/windows/Profiler.cpp
     ${SOFAIMGUI_SOURCE_DIR}/AppIniFile.cpp
 )
 

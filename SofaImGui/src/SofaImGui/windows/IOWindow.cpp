@@ -650,7 +650,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
     {
         rclcpp::spin_some(m_rosnode);  // Create a default single-threaded executor and execute any immediately available work.
 
-        if(m_IPController && m_isDrivingSimulation) // If the window is driving the simulation
+        if(m_IPController && isDrivingSimulation()) // If the window is driving the simulation
         {
             // Overwrite the TCPTarget with ROS input
             for (const auto& [stateName, stateValue]: m_rosnode->m_selectedDataToOverwrite)

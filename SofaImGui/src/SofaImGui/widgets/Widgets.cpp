@@ -1,3 +1,4 @@
+#include "IconsFontAwesome6.h"
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <string>
@@ -22,7 +23,7 @@ bool LocalInputDouble(const char* label, double* v, double step, double step_fas
 
     ImGui::PushItemWidth(inputWidth);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-3))? "%0.2e": "%0.2f";
+    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-2))? "%0.2e": "%0.2f";
     bool result =  ImGui::InputDouble(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
@@ -38,7 +39,7 @@ bool LocalInputFloat(const char* label, float* v, float step, float step_fast, c
 
     ImGui::PushItemWidth(inputWidth);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-3))? "%0.2e": "%0.2f";
+    const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-2))? "%0.2e": "%0.2f";
     bool result =  ImGui::InputFloat(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
@@ -220,6 +221,13 @@ void LocalEndCollapsingHeader()
 {
     ImGui::Spacing();
     ImGui::Unindent();
+}
+
+void LocalTextLinkOpenURL(const char* label, const char* url)
+{
+    std::string _label = ICON_FA_GLOBE" ";
+    _label += label;
+    TextLinkOpenURL(_label.c_str(), url);
 }
 
 void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float &offset)
