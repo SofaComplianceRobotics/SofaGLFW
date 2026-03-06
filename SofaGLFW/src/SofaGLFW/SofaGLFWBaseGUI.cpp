@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
 *                 SOFA, Simulation Open-Framework Architecture                *
 *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
@@ -600,7 +600,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
 {
     const char sofaKey = SofaGLFWBaseGUI::handleArrowKeys(key);
     const bool isCtrlKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
-    const bool isShiftKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT ) == GLFW_PRESS;
+    const bool isAltKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_ALT ) == GLFW_PRESS;
 
     auto currentGUI = s_mapGUIs.find(window);
     if (currentGUI == s_mapGUIs.end() || currentGUI->second == nullptr)
@@ -615,7 +615,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
         return;
     }
 
-    if (isCtrlKeyPressed && isShiftKeyPressed)
+    if (isCtrlKeyPressed && isAltKeyPressed)
     {
         if (action == GLFW_PRESS)
         {
@@ -666,7 +666,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
     const char* keyName = glfwGetKeyName(key, scancode);
     if (keyName)
     {
-        if (isCtrlKeyPressed && !isShiftKeyPressed)
+        if (isCtrlKeyPressed && !isAltKeyPressed)
         {
             if (strcmp(keyName, "q") == 0)
             {
