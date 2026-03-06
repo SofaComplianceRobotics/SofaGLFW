@@ -19,8 +19,10 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#include "IconsFontAwesome6.h"
-#include "imgui_internal.h"
+#include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/Widgets.h>
+#include <imgui_internal.h>
+#include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <sofa/version.h>
@@ -61,26 +63,30 @@ void FooterStatusBar::showFooterStatusBar()
 void FooterStatusBar::showTempMessageOnStatusBar()
 {
     static float infoRefreshTime = 0.;
+    float messageLifeSpan = m_tempMessagePath.empty()? m_tempMessageLifeSpan: m_tempMessageLifeSpan*2.;
 
-    if (!m_tempMessage.empty())
+    if (ImGui::Begin("##FooterStatusBar"))
     {
-        if (m_refreshTempMessage)
+        if (ImGui::BeginMenuBar())
         {
-            infoRefreshTime = (float)ImGui::GetTime();
-            m_refreshTempMessage = false;
-        }
-        
-        if((float)ImGui::GetTime() - infoRefreshTime > m_tempMessageLifeSpan)
-        {
-            m_tempMessage.clear();
-            return;
-        }
+            showFilePopUpModal();
 
-        if (ImGui::Begin("##FooterStatusBar"))
-        {
-            if (ImGui::BeginMenuBar())
+            if (!m_tempMessage.empty())
             {
-                float length = ImGui::CalcTextSize(m_tempMessage.c_str()).x;
+                if (m_refreshTempMessage)
+                {
+                    infoRefreshTime = (float)ImGui::GetTime();
+                    m_refreshTempMessage = false;
+                }
+
+                if((float)ImGui::GetTime() - infoRefreshTime > messageLifeSpan)
+                {
+                    m_tempMessage.clear();
+                    m_tempMessagePath.clear();
+                    return;
+                }
+
+                float length = ImGui::CalcTextSize((m_tempMessage + m_tempMessagePath).c_str()).x;
                 float center = (ImGui::GetWindowWidth() - length) * 0.5f;
                 ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
 
@@ -106,20 +112,79 @@ void FooterStatusBar::showTempMessageOnStatusBar()
                 }
                 }
                 ImGui::Text("%s", (icon + " " + m_tempMessage).c_str());
-                ImGui::PopStyleColor();
 
-                ImGui::EndMenuBar();
+                showPath();
+
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::EndMenuBar();
+        }
+    }
+    ImGui::End();
+}
+
+void FooterStatusBar::showPath()
+{
+    if (!m_tempMessagePath.empty())
+    {
+        m_fileToOpen = m_tempMessagePath;
+        ImGui::SameLine(0., ImGui::GetStyle().FramePadding.x);
+
+        if (sofa::helper::system::FileSystem::exists(m_tempMessagePath, true))
+        {
+            ImGui::TextLink(m_tempMessagePath.c_str());
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                if (sofa::helper::system::FileSystem::isFile(m_tempMessagePath, true))
+                {
+                    ImGui::OpenPopup(m_fileToOpenPopUpLabel.c_str());
+                }
+                else
+                    sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_tempMessagePath);
             }
         }
-        ImGui::End();
+        else if (m_tempMessagePath.starts_with("http"))
+        {
+            ImGui::LocalTextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
+        }
+        else
+        {
+            ImGui::Text("%s", m_tempMessagePath.c_str());
+        }
     }
 }
 
-void FooterStatusBar::setTempMessage(const std::string &message, const MessageType& type)
+void FooterStatusBar::showFilePopUpModal()
+{
+    if (ImGui::BeginPopupModal(m_fileToOpenPopUpLabel.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::NewLine();
+        ImGui::Text("Path: %s", m_fileToOpen.c_str());
+        ImGui::NewLine();
+
+        if (ImGui::Button("Open File"))
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_fileToOpen);
+        ImGui::SameLine();
+        if (ImGui::Button("Open File Location"))
+        {
+            auto location = sofa::helper::system::FileSystem::getParentDirectory(m_fileToOpen);
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(location);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+}
+
+void FooterStatusBar::setTempMessage(const std::string &message, const MessageType& type, const std::string &path)
 {
     m_refreshTempMessage = true;
     m_tempMessageType = type;
     m_tempMessage = message;
+    m_tempMessagePath = path;
     std::string from = "GUI";
 
     switch (type) {
