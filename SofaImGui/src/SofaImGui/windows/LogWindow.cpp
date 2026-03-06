@@ -92,7 +92,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
             }
 
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
             {
                 nfdchar_t *outPath;
                 const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "log.txt");
@@ -133,6 +133,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
                     NFD_FreePath(outPath);
                 }
             }
+            ImGui::SetItemTooltip("Export Logs");
 
             std::size_t nbRows = 0;
             if (ImGui::BeginTable("logTable", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
