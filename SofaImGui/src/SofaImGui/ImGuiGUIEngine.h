@@ -84,7 +84,7 @@ public:
 
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
-    void saveProject();
+    void saveProject(const bool& saveAs=false);
 
     void setIPController(sofa::simulation::Node::SPtr groot,
                          softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
@@ -149,6 +149,8 @@ protected:
     void createGUINode();
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
+
+    void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
 
     models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;

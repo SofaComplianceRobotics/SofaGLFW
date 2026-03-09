@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -775,7 +775,7 @@ void ProgramWindow::initFilePath(const std::string& filename)
     }
 }
 
-void ProgramWindow::importProgram()
+bool ProgramWindow::importProgram()
 {
     bool successfulImport = false;
     nfdchar_t *outPath;
@@ -802,6 +802,8 @@ void ProgramWindow::importProgram()
     {
         FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
     }
+
+    return successfulImport;
 }
 
 bool ProgramWindow::importProgram(const std::string &filename)
