@@ -20,7 +20,8 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "imgui_internal.h"
+#include <imgui_internal.h>
+#include <sofa/gl/component/rendering3d/OglModel.h>
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
@@ -62,6 +63,9 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     std::set<sofa::simulation::Node*> nodeToOpen;
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> componentToOpenContextMenu;
     std::set<std::pair<sofa::simulation::Node*, bool>> nodeToOpenContextMenu;
+
+    auto c = baseGUI->m_selectionColor;
+    m_highlightMaterial.setColor(c.r(), c.g(), c.b(), c.a());
 
     if (isOpen())
     {
@@ -316,6 +320,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         {
             const auto o = baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
+            const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.5);
             const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
             // Node
@@ -342,7 +347,22 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
 
             std::string nodeIcons = ICON_FA_SITEMAP " ";
+
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, selectedColorBg);
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth); // Name
+            ImGui::PopStyleColor();
+
+            auto hoveredTag = sofa::core::objectmodel::Tag("GUIHovered");
+            if (ImGui::IsItemHovered() && !node->hasTag(hoveredTag))
+            {
+                node->addTag(hoveredTag);
+                highlightOglModels(node);
+            }
+            else if (!ImGui::IsItemHovered() && node->hasTag(hoveredTag))
+            {
+                node->removeTag(hoveredTag);
+                resetOglModels(node);
+            }
 
             { // Click on node
                 // Double click on the node, open the window
@@ -859,6 +879,8 @@ void SceneGraphWindow::addComponentContextMenu(sofa::core::objectmodel::BaseObje
             ImGui::EndDisabled();
         }
 
+        ImGui::Separator();
+
         addBaseContextMenu(component);
 
         ImGui::Separator();
@@ -913,5 +935,40 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
     }
 }
 
+void SceneGraphWindow::highlightOglModels(sofa::simulation::Node *node)
+{
+    if (node)
+    {
+        for (const auto object : node->getNodeObjects())
+        {
+            auto oglModel = dynamic_cast<sofa::gl::component::rendering3d::OglModel*>(object);
+            if (oglModel)
+                oglModel->d_material.setValue(m_highlightMaterial);
+        }
+
+        for (const auto child : node->getChildren())
+        {
+            highlightOglModels(dynamic_cast<sofa::simulation::Node*>(child));
+        }
+    }
+}
+
+void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
+{
+    if (node)
+    {
+        for (const auto object : node->getNodeObjects())
+        {
+            auto oglModel = dynamic_cast<sofa::gl::component::rendering3d::OglModel*>(object);
+            if (oglModel)
+                oglModel->d_material.setValue(oglModel->m_resetMaterial);
+        }
+
+        for (const auto child : node->getChildren())
+        {
+            resetOglModels(dynamic_cast<sofa::simulation::Node*>(child));
+        }
+    }
+}
 }
 

@@ -21,6 +21,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <sofa/type/Material.h>
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
@@ -45,6 +46,8 @@ protected:
     std::set<sofa::simulation::Node*> m_openedNodes;
     std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
     std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
+
+    sofa::type::Material m_highlightMaterial;
 
     void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
                    std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
@@ -73,6 +76,9 @@ protected:
 
     void getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
     void updateSelection(sofa::core::objectmodel::Base::SPtr object);
+
+    void highlightOglModels(sofa::simulation::Node *node);
+    void resetOglModels(sofa::simulation::Node *node);
 };
 
 }
