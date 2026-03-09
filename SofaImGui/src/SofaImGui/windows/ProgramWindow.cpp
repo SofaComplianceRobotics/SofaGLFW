@@ -800,8 +800,7 @@ void ProgramWindow::importProgram()
 
     if (successfulImport)
     {
-        //FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
-        FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]", FooterStatusBar::MINFO, path.string());
+        FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
     }
 }
 
