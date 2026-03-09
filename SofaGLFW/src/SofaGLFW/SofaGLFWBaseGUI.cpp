@@ -66,7 +66,7 @@ SofaGLFWBaseGUI::SofaGLFWBaseGUI()
     m_showSelectedObjectBoundingBox = false;
     m_showSelectedObjectPositions = true;
     m_showSelectedObjectSurfaces = true;
-    m_selectionColor = type::RGBAColor::orange();
+    m_selectionColor = type::RGBAColor(0.439, 0.588, 0.702, 1.);
 }
 
 SofaGLFWBaseGUI::~SofaGLFWBaseGUI()
@@ -1094,9 +1094,9 @@ bool SofaGLFWBaseGUI::initRecorder(int width,
     }
 
     std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
-    m_videoFilename = generateFilename("video", codecExtension);
-    m_videoFilename = sofa::helper::system::FileSystem::append(screenshotPath, m_videoFilename);
-    return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, m_videoFilename, width, height, framerate, bitrate, codecName);
+    m_videoFilePath = m_videoFilename.empty()? generateFilename("video", codecExtension): m_videoFilename;
+    m_videoFilePath = sofa::helper::system::FileSystem::append(screenshotPath, m_videoFilePath);
+    return m_videoRecorderFFMPEG.init(ffmpeg_exec_path, m_videoFilePath, width, height, framerate, bitrate, codecName);
 }
 
 bool SofaGLFWBaseGUI::isVideoRecording() const
@@ -1121,7 +1121,11 @@ std::string SofaGLFWBaseGUI::generateFilename(const std::string& prefix, const s
         ss << path.filename().replace_extension("").string() << "_";
     }
 
-    ss << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << "." << extension;
+    ss << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S");
+
+    if (!extension.empty())
+        ss << "." << extension;
+
     filename = ss.str();
     return filename;
 }

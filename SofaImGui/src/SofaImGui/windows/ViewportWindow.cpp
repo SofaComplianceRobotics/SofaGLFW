@@ -19,6 +19,7 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
 #include <Style.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
@@ -55,9 +56,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 {
     if (isOpen())
     {
-        if (baseGUI)
-            m_viewmenu.m_baseGUI = baseGUI;
-        else
+        if (!baseGUI)
             return;
 
         auto groot = baseGUI->getRootNode().get();
@@ -95,7 +94,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // TODO create a stylesheet
                 if(baseGUI->isVideoRecording())
                     addRecordingStatus(red);
-                addContextMenu(texture);
+                addContextMenu(baseGUI, texture);
             }
             ImGui::EndChild();
         }
@@ -261,50 +260,10 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             const auto& bbox = groot->f_bbox.getValue();
 
-            if (workbench != Workbench::SCENE_EDITOR)
-            {
-                { // Recorder
-                    bool recording = baseGUI->isVideoRecording();
-                    ImVec4 red = ImVec4(1., 0.3, 0.3, 1.);
-                    int pushCount = 1;
-
-                    if (recording)
-                    {
-                        ImGui::PushStyleColor(ImGuiCol_Button, red);
-                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1));
-                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3));
-                        pushCount = 3;
-                    }
-                    else
-                    {
-                        ImGui::PushStyleColor(ImGuiCol_ButtonText, red);
-                    }
-                    if (ImGui::Button(recording? ICON_FA_STOP: ICON_FA_RECORD_VINYL, buttonSize))
-                    {
-                        if(baseGUI->toggleVideoRecording())
-                        {
-                            recording = baseGUI->isVideoRecording();
-                            std::string message = recording? "Start": "Finished";
-                            message += " recording to: " + baseGUI->getVideoFilename();
-                            FooterStatusBar::getInstance().setTempMessage(message);
-                        }
-                    }
-                    ImGui::PopStyleColor(pushCount);
-
-                    std::string tooltip = recording? "Stop": "Start";
-                    tooltip += " Recording";
-                    ImGui::SetItemTooltip("%s", tooltip.c_str());
-                }
-
-                ImGui::PushStyleColor(ImGuiCol_Separator, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
-                ImGui::PopStyleColor();
-            }
-
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
-                    m_viewmenu.addShowIn3DViewMenuItems();
+                    menus::ViewMenu(baseGUI).addShowIn3DViewMenuItems();
                     ImGui::EndPopup();
                 }
 
@@ -488,17 +447,18 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::EndChild();
 }
 
-void ViewportWindow::addContextMenu(const ImTextureID& texture)
+void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture)
 {
     if (ImGui::BeginPopup("##ViewportContextMenu"))
     {
-        m_viewmenu.addSaveCameraMenuItem();
-        m_viewmenu.addRestoreCameraMenuItem();
+        menus::ViewMenu viewMenu(baseGUI);
+        viewMenu.addSaveCameraMenuItem();
+        viewMenu.addRestoreCameraMenuItem();
 
         ImGui::Separator();
 
-        m_viewmenu.addStartRecordingMenuItem();
-        m_viewmenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
+        viewMenu.addRecordVideoMenuItem();
+        viewMenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
         ImGui::EndPopup();
     }
 
@@ -512,6 +472,7 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
         ImGui::OpenPopup("##ViewportContextMenu");
     }
 }
+
 
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
@@ -538,7 +499,6 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
             if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                // ImGui::SameLine();
                 ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
                 ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
@@ -548,10 +508,11 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
                     isItemClicked = true;
                 }
             }
-            ImGui::EndChild();
 
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar();
+
+            ImGui::EndChild();
         }
         ImGui::End();
     }
@@ -667,7 +628,7 @@ void ViewportWindow::addRecordingStatus(const ImVec4& red)
                 // Recording
                 std::string icon = ICON_FA_CIRCLE_DOT;
                 std::string text = " Recording";
-                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize((icon+text).c_str()).x - ImGui::GetFrameHeight();
+                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize((icon+text).c_str()).x - ImGui::GetFrameHeight() * 0.5f;
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetStyle().ItemSpacing.y);
                 ImGui::PushStyleColor(ImGuiCol_Text, red);

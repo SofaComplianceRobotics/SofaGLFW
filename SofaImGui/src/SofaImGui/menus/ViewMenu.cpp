@@ -37,11 +37,12 @@
 #include <sofa/gui/common/BaseGUI.h>
 
 #include <nfd.h>
-#include <filesystem>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 namespace sofaimgui::menus {
+
+bool ViewMenu::openRecordVideoWindow = false;
 
 using sofaglfw::SofaGLFWWindow;
 
@@ -83,7 +84,7 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 
         ImGui::Separator();
 
-        addStartRecordingMenuItem();
+        addRecordVideoMenuItem();
         addSaveScreenShotMenuItem(fboSize, texture);
 
         ImGui::Separator();
@@ -548,24 +549,15 @@ void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned 
     }
 }
 
-void ViewMenu::addStartRecordingMenuItem()
+void ViewMenu::addRecordVideoMenuItem()
 {
-    if (!m_baseGUI)
-        return;
+    if (ImGui::MenuItem("Record Video..."))
+        showRecordVideo();
+}
 
-    bool recording = m_baseGUI->isVideoRecording();
-    std::string label = recording? "Stop": "Start";
-    label += " Recording";
-    if (ImGui::MenuItem(label.c_str()))
-    {
-        if(m_baseGUI->toggleVideoRecording())
-        {
-            recording = m_baseGUI->isVideoRecording();
-            std::string message = recording? "Start": "Finished";
-            message += " recording to: " + m_baseGUI->getVideoFilename();
-            FooterStatusBar::getInstance().setTempMessage(message);
-        }
-    }
+void ViewMenu::showRecordVideo()
+{
+    openRecordVideoWindow = true;
 }
 
 }

@@ -41,10 +41,8 @@
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/windows/ProfilerWindow.h>
-
+#include <SofaImGui/windows/RecordVideoWindow.h>
 #include <SofaImGui/windows/PluginsWindow.h>
-
-#include <SofaImGui/menus/ViewMenu.h>
 
 #include <SofaImGui/models/IPController.h>
 #include <SofaImGui/models/SimulationState.h>
@@ -112,6 +110,7 @@ public:
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
+    windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video", false);
 
 protected:
 

@@ -115,6 +115,8 @@ public:
     bool toggleVideoRecording();
     bool isVideoRecording() const;
     const std::string& getVideoFilename() {return m_videoFilename;}
+    void setVideoFilename(const std::string filename) {m_videoFilename = filename;}
+    const std::string& getVideoFilePath() {return m_videoFilePath;}
 
     std::string generateFilename(const std::string &prefix, const std::string &extension);
 
@@ -170,6 +172,7 @@ private:
     sofa::type::Vec2f m_viewPortPosition;
     sofa::type::Vec2f m_windowPosition;
     
+    std::string m_videoFilePath;
     std::string m_videoFilename;
     bool m_isVideoRecording {false};
     sofa::gl::VideoRecorderFFMPEG m_videoRecorderFFMPEG;
