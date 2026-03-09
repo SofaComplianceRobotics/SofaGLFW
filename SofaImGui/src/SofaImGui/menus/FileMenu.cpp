@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -177,8 +177,8 @@ bool FileMenu::addImportExportProgram()
 
 
     if (ImGui::MenuItem("Import Program...", "Ctrl+Shift+I")){
-        engine->m_programWindow.importProgram();
-        engine->m_programWindow.setOpen(true);
+        if(engine->m_programWindow.importProgram())
+            engine->m_programWindow.setOpen(true);
     }
 
     if (!engine->m_programWindow.isOpen())

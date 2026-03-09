@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -58,7 +58,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void setIPController(models::IPController::SPtr IPController);
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
-    void importProgram();
+    bool importProgram();
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
