@@ -66,6 +66,8 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
 
     auto c = baseGUI->m_selectionColor;
     m_highlightMaterial.setColor(c.r(), c.g(), c.b(), c.a());
+    m_highlightMaterial.emissive.set(c.r()*0.8, c.g()*0.8, c.b()*0.8, c.a());
+    m_highlightMaterial.useEmissive = true;
 
     if (isOpen())
     {
