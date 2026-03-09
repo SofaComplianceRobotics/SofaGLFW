@@ -29,6 +29,7 @@ SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <SofaImGui/widgets/Gizmos.h>
+#include <Style.h>
 
 namespace sofaimgui::widget {
 
@@ -163,15 +164,6 @@ bool drawNegativeLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color
     return isHovered;
 }
 
-ImVec4 blendColor(const ImVec4& color1, const ImVec4& color2, const float& w)
-{
-    return ImVec4((1 - w) * color1.x + w * color2.x,
-                 (1 - w) * color1.y + w * color2.y,
-                 (1 - w) * color1.z + w * color2.z,
-                 (1 - w) * color1.w + w * color2.w
-                 );
-}
-
 } // namespace internal
 
 static struct Config {
@@ -237,22 +229,22 @@ void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix
     for (const auto& [fst, snd] : pairs) {
         switch (fst) {
         case 0: // +x axis
-            axisClicked[0] = internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
+            axisClicked[0] = internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColor(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
             continue;
         case 1: // +y axis
-            axisClicked[1] = internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
+            axisClicked[1] = internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColor(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
             continue;
         case 2: // +z axis
-            axisClicked[2] = internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
+            axisClicked[2] = internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColor(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
             continue;
         case 3: // -x axis
-            axisClicked[3] = internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, internal::blendColor(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness, "-X");
+            axisClicked[3] = internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColor(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness, "-X");
             continue;
         case 4: // -y axis
-            axisClicked[4] = internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, internal::blendColor(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness, "-Y");
+            axisClicked[4] = internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColor(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness, "-Y");
             continue;
         case 5: // -z axis
-            axisClicked[5] = internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, internal::blendColor(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness, "-Z");
+            axisClicked[5] = internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColor(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness, "-Z");
             continue;
         default: break;
         }

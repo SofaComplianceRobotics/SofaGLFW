@@ -23,6 +23,9 @@
 #include <SofaGLFW/config.h>
 #include <sofa/simulation/Node.h>
 
+#include <sofa/type/fwd.h>
+#include <vector>
+
 struct GLFWwindow;
 
 namespace sofaglfw
@@ -42,6 +45,7 @@ public:
     virtual void afterDraw() = 0;
     virtual void terminate() = 0;
     virtual bool dispatchMouseEvents() = 0;
+    virtual sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) = 0;
 
     virtual void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {SOFA_UNUSED(window); SOFA_UNUSED(key); SOFA_UNUSED(scancode); SOFA_UNUSED(action); SOFA_UNUSED(mods);}
 

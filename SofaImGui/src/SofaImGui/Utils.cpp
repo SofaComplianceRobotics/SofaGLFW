@@ -20,13 +20,16 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include <sofa/core/visual/VisualParams.h>
-#include <SofaImGui/menus/ViewMenu.h>
+#include <sofa/simulation/Simulation.h>
 #include <sofa/helper/system/FileSystem.h>
-#include <SofaImGui/Utils.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
+#include <sofa/core/visual/VisualParams.h>
 #include <sofa/gui/common/ArgumentParser.h>
+
 #include <SofaGLFW/SofaGLFWWindow.h>
+
+#include <SofaImGui/menus/ViewMenu.h>
+#include <SofaImGui/Utils.h>
 
 namespace sofaimgui::Utils {
 

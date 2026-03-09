@@ -52,7 +52,7 @@ void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
             ImGuiIO& io = ImGui::GetIO();
             const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);
             ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
-            ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags | ImGuiWindowFlags_NoDocking);
+            ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags);
 
             ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
 
