@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -26,6 +26,8 @@
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <sofa/version.h>
+
+#include <filesystem>
 
 namespace sofaimgui {
 
@@ -83,39 +85,40 @@ void FooterStatusBar::showTempMessageOnStatusBar()
                 {
                     m_tempMessage.clear();
                     m_tempMessagePath.clear();
-                    return;
                 }
-
-                float length = ImGui::CalcTextSize((m_tempMessage + m_tempMessagePath).c_str()).x;
-                float center = (ImGui::GetWindowWidth() - length) * 0.5f;
-                ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
-
-                std::string icon;
-                switch (m_tempMessageType) {
-                case MessageType::MWARNING:
+                else 
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.f, 1.f));
-                    icon = ICON_FA_CIRCLE_EXCLAMATION;
-                    break;
-                }
-                case MessageType::MERROR:
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.f, 0.f, 1.f));
-                    icon = ICON_FA_CIRCLE_EXCLAMATION;
-                    break;
-                }
-                default:
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-                    icon = ICON_FA_CIRCLE_INFO;
-                    break;
-                }
-                }
-                ImGui::Text("%s", (icon + " " + m_tempMessage).c_str());
+                    float length = ImGui::CalcTextSize((m_tempMessage + m_tempMessagePath).c_str()).x;
+                    float center = (ImGui::GetWindowWidth() - length) * 0.5f;
+                    ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
 
-                showPath();
+                    std::string icon;
+                    switch (m_tempMessageType) {
+                    case MessageType::MWARNING:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.f, 1.f));
+                        icon = ICON_FA_CIRCLE_EXCLAMATION;
+                        break;
+                    }
+                    case MessageType::MERROR:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.f, 0.f, 1.f));
+                        icon = ICON_FA_CIRCLE_EXCLAMATION;
+                        break;
+                    }
+                    default:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+                        icon = ICON_FA_CIRCLE_INFO;
+                        break;
+                    }
+                    }
+                    ImGui::Text("%s", (icon + " " + m_tempMessage).c_str());
 
-                ImGui::PopStyleColor();
+                    showPath();
+
+                    ImGui::PopStyleColor();
+                }
             }
 
             ImGui::EndMenuBar();
@@ -136,7 +139,7 @@ void FooterStatusBar::showPath()
             ImGui::TextLink(m_tempMessagePath.c_str());
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
             {
-                if (sofa::helper::system::FileSystem::isFile(m_tempMessagePath, true))
+                if (sofa::helper::system::FileSystem::isFile(m_tempMessagePath, true) && std::filesystem::path(m_tempMessagePath).has_parent_path())
                 {
                     ImGui::OpenPopup(m_fileToOpenPopUpLabel.c_str());
                 }
@@ -164,12 +167,15 @@ void FooterStatusBar::showFilePopUpModal()
         ImGui::NewLine();
 
         if (ImGui::Button("Open File"))
+        {
             sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_fileToOpen);
+            ImGui::CloseCurrentPopup();
+        }
         ImGui::SameLine();
         if (ImGui::Button("Open File Location"))
         {
-            auto location = sofa::helper::system::FileSystem::getParentDirectory(m_fileToOpen);
-            sofa::helper::system::FileSystem::openFileWithDefaultApplication(location);
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(std::filesystem::path(m_fileToOpen).parent_path().string());
+            ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
         if (ImGui::Button("Cancel"))
