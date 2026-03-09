@@ -51,6 +51,13 @@ protected:
                    std::set<sofa::simulation::Node *> &nodeToOpen,
                    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
                    std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
+    void showNodeComponents(sofaglfw::SofaGLFWBaseGUI *baseGUI,
+                            sofa::simulation::Node* node,
+                            const ImGuiTextFilter &filter,
+                            const bool &showSearch, const bool &showFiltered,
+                            const bool& expandAll, const bool&collapseAll,
+                            std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
+                            std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
 
