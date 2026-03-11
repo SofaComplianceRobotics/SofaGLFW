@@ -89,9 +89,6 @@ class SOFAIMGUI_API BaseWindow
     /// Will be displayed as a tooltip
     virtual std::string getDescription() = 0;
 
-    /// Set the window as able to drive the robot in simulation.
-    virtual void setDrivingTCPTarget(const bool &isDrivingSimulation);
-
     /// This is called before loading / reloading a simulation.
     virtual void clearWindow();
 
@@ -100,9 +97,6 @@ class SOFAIMGUI_API BaseWindow
 
     /// Get the label of the window (name to display in the tab). We add spaces for aesthetic reason
     std::string& getLabel();
-
-    /// Does the window have tools to drive the robot in simulation.
-    bool isDrivingSimulation();
 
     /// Set the user choice to open the window or not.
     void setOpen(const bool &isOpen);
@@ -126,6 +120,7 @@ class SOFAIMGUI_API BaseWindow
     virtual void removeGUIData(sofaimgui::models::GUIData::SPtr data);
     void clearGUIData() { m_GUIData.clear(); }
 
+
    protected:
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
@@ -138,7 +133,6 @@ class SOFAIMGUI_API BaseWindow
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
-    bool m_isDrivingSimulation{false}; /// Does the window have tools to drive the robot in simulation
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
 

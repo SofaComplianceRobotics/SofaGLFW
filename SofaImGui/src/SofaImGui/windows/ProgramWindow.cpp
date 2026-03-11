@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -180,7 +180,7 @@ void ProgramWindow::showProgramButtons()
     auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
             // Left buttons
-    if (ImGui::Button(ICON_FA_FOLDER_OPEN, buttonSize))
+    if (ImGui::Button(ICON_FA_FILE_IMPORT, buttonSize))
     {
         importProgram();
     }
@@ -188,7 +188,7 @@ void ProgramWindow::showProgramButtons()
 
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, buttonSize))
+    if (ImGui::Button(ICON_FA_FILE_EXPORT, buttonSize))
     {
         exportProgram();
     }
@@ -264,7 +264,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     m_cursorPos = m_time * ProgramSizes().TimelineOneSecondSize;
 
     // On animate, follow the cursor marker
-    if (m_baseGUI->getRootNode()->getAnimate() && m_isDrivingSimulation)
+    if (m_baseGUI->getRootNode()->getAnimate() && isDrivingSimulation())
     {
         float step = m_cursorPos - (ImGui::GetWindowContentRegionMax().x + ImGui::GetScrollX() - borderSize - m_trackBeginPos.x);
         if (step > 0)
@@ -775,7 +775,7 @@ void ProgramWindow::initFilePath(const std::string& filename)
     }
 }
 
-void ProgramWindow::importProgram()
+bool ProgramWindow::importProgram()
 {
     bool successfulImport = false;
     nfdchar_t *outPath;
@@ -802,6 +802,8 @@ void ProgramWindow::importProgram()
     {
         FooterStatusBar::getInstance().setTempMessage("Imported program [" + path.string() + "]");
     }
+
+    return successfulImport;
 }
 
 bool ProgramWindow::importProgram(const std::string &filename)
@@ -868,7 +870,7 @@ void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
 {
-    if (m_isDrivingSimulation)
+    if (isDrivingSimulation())
     {
         double eps = 1e-5;
         for (const auto& track: m_program.getTracks())
@@ -896,7 +898,7 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
 
 void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 {
-    if (m_isDrivingSimulation)
+    if (isDrivingSimulation())
     {
         if (m_program.isEmpty())
             return;
@@ -962,7 +964,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
-    if (m_isDrivingSimulation)
+    if (isDrivingSimulation())
         groot->setTime(m_time);
 }
 
@@ -973,15 +975,10 @@ void ProgramWindow::setKinematicsController(models::KinematicsController::SPtr k
         m_program = models::Program(kinematicsController);
 }
 
-void ProgramWindow::setDrivingTCPTarget(const bool &isDrivingSimulation)
-{
-    m_isDrivingSimulation=isDrivingSimulation;
-}
-
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
-                                      const sofa::Index& trackIndex,
-                                      std::shared_ptr<models::Track> track,
-                                      std::shared_ptr<models::actions::StartMove> startmove)
+                                        const sofa::Index& trackIndex,
+                                        std::shared_ptr<models::Track> track,
+                                        std::shared_ptr<models::actions::StartMove> startmove)
 {
     if (ImGui::BeginPopup(menuLabel.c_str()))
     {

@@ -28,6 +28,7 @@
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/SimulationState.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
 
 #if SOFAIMGUI_WITH_ROS
@@ -166,6 +167,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     /// Update ROS input lists with the topics selected from the GUI
     void updateROSInput();
+
+    bool isDrivingSimulation() {return drivingWindow == DrivingWindow::IO;}
 
     std::map<std::string, bool> m_publishListboxItems;
     std::map<std::string, bool> m_subcriptionListboxItems;

@@ -36,14 +36,21 @@ public:
 
     void showFooterStatusBar();
     void showTempMessageOnStatusBar(); /// Show temporary info message in the middle of the status bar.
-    void setTempMessage(const std::string &message, const MessageType &type=MessageType::MINFO); /// Set the temporary info message
+    void setTempMessage(const std::string &message, const MessageType &type=MessageType::MINFO, const std::string &path=""); /// Set the temporary info message
 
 protected:
 
+    void showPath();
+    void showFilePopUpModal();
+
     std::string m_tempMessage;
+    std::string m_tempMessagePath;
     MessageType m_tempMessageType;
     bool m_refreshTempMessage;
     float m_tempMessageLifeSpan{6.}; /// Life span of the temporary message, in seconds
+
+    std::string m_fileToOpen;
+    std::string m_fileToOpenPopUpLabel{"Open##FiletoTopen"};
 
 };
 

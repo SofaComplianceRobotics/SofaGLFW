@@ -84,7 +84,7 @@ public:
 
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
-    void saveProject();
+    void saveProject(const bool& saveAs=false);
 
     void setKinematicsController(sofa::simulation::Node::SPtr groot,
                          softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
@@ -97,7 +97,6 @@ public:
 
     models::SimulationState& getSimulationState() {return m_simulationState;}
 
-    std::shared_ptr<windows::DataMonitorWindow> m_dataMonitorWindow = std::make_shared<windows::DataMonitorWindow>("Data Monitor", false);
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
@@ -110,11 +109,13 @@ public:
     windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
+    windows::DataMonitorWindow  m_dataMonitorWindow  = windows::DataMonitorWindow("Data Monitor", false);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
 
 protected:
+
     std::unique_ptr<sofa::gl::FrameBufferObject> m_fbo;
     std::pair<unsigned int, unsigned int> m_currentFBOSize;
 
@@ -129,7 +130,7 @@ protected:
                                                                         m_componentsWindow,
                                                                         m_logWindow,
                                                                         m_profilerWindow,
-                                                                        *m_dataMonitorWindow
+                                                                        m_dataMonitorWindow
                                                                        };
 
     CSimpleIniA iniGUISettings;
@@ -152,9 +153,9 @@ protected:
     void setDockSizeFromFile(const ImGuiID& id);
 
     models::KinematicsController::SPtr m_kinematicsController;
+    void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
     models::SimulationState m_simulationState;
     bool m_animate{false};
-    int m_mode{0};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
     std::vector<ImGuiID> m_dockIDs;

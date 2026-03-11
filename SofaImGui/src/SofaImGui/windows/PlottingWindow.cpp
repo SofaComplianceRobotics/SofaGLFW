@@ -169,15 +169,19 @@ void PlottingWindow::showButtons()
     if (!enabled())
         ImGui::BeginDisabled();
 
-    if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+    if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
     {
         exportData();
     }
 
     if (!enabled())
     {
-        ImGui::SetItemTooltip("No values to export.");
+        ImGui::SetItemTooltip("No values to export");
         ImGui::EndDisabled();
+    }
+    else
+    {
+        ImGui::SetItemTooltip("Export data");
     }
 
     ImGui::SameLine();
@@ -248,6 +252,7 @@ void PlottingWindow::showPlots()
                 ImPlot::SetupAxes("Time (s)", nullptr,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
+
 				size_t k = 0;
                 for (auto& data: plots.second)
                 {

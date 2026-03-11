@@ -20,7 +20,8 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "IconsFontAwesome6.h"
+#include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -31,7 +32,6 @@
 #include <SofaImGui/windows/MyRobotWindow.h>
 #include <SofaImGui/Robot.h>
 #include <SofaImGui/Workbench.h>
-#include <SofaImGui/ImGuiDataWidget.h>
 
 
 namespace sofaimgui::windows {
@@ -44,7 +44,6 @@ MyRobotWindow::MyRobotWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_isDrivingSimulation = true;
 }
 
 std::string MyRobotWindow::getDescription()
@@ -179,6 +178,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                     {
                         std::string groups;
                         int k=0;
+
                         for (auto& itGroup : m_groupedGUIData)
                         {
                             ImGui::PushID(k++);
@@ -212,7 +212,6 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
 
                         ImGui::LocalEndCollapsingHeader();
                     }
-               
 
                     // Settings
                     if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -239,7 +238,6 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                                     ImGui::SameLine();
                                     showWidget(*data->getData());
                                 }
-
                             }
 
                             if (!isInEmptyGroup(itGroup.first) && !firsttime)

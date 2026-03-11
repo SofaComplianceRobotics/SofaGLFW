@@ -24,6 +24,7 @@
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/KinematicsController.h>
 #include <SofaImGui/widgets/MovePad.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
 
 namespace sofaimgui::windows {
@@ -38,8 +39,9 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     std::string getDescription() override;
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
+
     void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
-    void setTCPLimits(int minPosition, int maxPosition, double minOrientation, double maxOrientation);
+    void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
 
     void setActuatorsDescriptions(const std::string &description);
     void setActuatorsLimits(const double &min, const double &max);
@@ -101,6 +103,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     void showWeightOption(const int &index);
     void showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
+    bool isDrivingSimulation() {return drivingWindow == DrivingWindow::MOVE;}
 };
 
 }

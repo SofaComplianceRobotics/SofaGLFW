@@ -19,9 +19,11 @@
 *                                                                             *
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
+#include <sofa/helper/system/Locale.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>
 
@@ -65,6 +67,7 @@
 #include <fa-regular-400.h>
 #include <fa-solid-900.h>
 #include <OpenSans-Regular.h>
+#include <DejaVuSans.h>
 #include <Style.h>
 
 #include <SofaImGui/menus/FileMenu.h>
@@ -86,6 +89,11 @@ namespace sofaimgui
 
 void ImGuiGUIEngine::saveSettings()
 {
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
     const std::string settingsFile = sofaimgui::AppIniFile::getSettingsIniFile();
     FooterStatusBar::getInstance().setTempMessage("Saving application settings in " + settingsFile);
 
@@ -97,9 +105,32 @@ void ImGuiGUIEngine::saveSettings()
     iniGUISettings.SaveFile(settingsFile.c_str());
 }
 
-void ImGuiGUIEngine::saveProject()
+void ImGuiGUIEngine::saveProject(const bool& saveAs)
 {
-    const std::string projectFile = sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename());
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
+    std::filesystem::path path(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()));
+
+    // Save Dialog
+    if (saveAs)
+    {
+        nfdchar_t* outPath;
+        std::vector<nfdfilteritem_t> nfd_filters;
+        nfd_filters.push_back({ "project file", "crproj" });
+
+        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), path.parent_path().string().c_str(), path.stem().string().c_str());
+        if (result == NFD_OKAY)
+        {
+            path = outPath;
+            path = (!path.has_extension()) ? outPath + path.extension().string() : outPath;
+            NFD_FreePath(outPath);
+        }
+    }
+
+    const std::string projectFile = path.string();
     FooterStatusBar::getInstance().setTempMessage("Saving project in " + projectFile);
 
     auto& windowSettings = windows::WindowsSettings::getInstance();
@@ -178,6 +209,11 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
     }
 }
 
+void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+{
+    m_programWindow.setBaseGUI(baseGUI);
+}
+
 void ImGuiGUIEngine::init()
 {
     IMGUI_CHECKVERSION();
@@ -243,14 +279,24 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
         ImFontConfig config;
         config.MergeMode = true;
         config.GlyphMinAdvanceX = .0f; // Use if you want to make the icon monospaced
+        config.GlyphOffset.y = -2.f;
+        ImFontConfig configDejaVu(config);
+        configDejaVu.GlyphOffset.y = -5.f;
         static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        static const ImWchar icon_rangesDejaVu[] = { 0x2022, 0x2b54, 0};
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_REGULAR_400_compressed_data, FA_REGULAR_400_compressed_size, 12 * yscale, &config, icon_ranges);
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_SOLID_900_compressed_data, FA_SOLID_900_compressed_size, 12 * yscale, &config, icon_ranges);
+        io.Fonts->AddFontFromMemoryCompressedTTF(DejaVuSans_compressed_data, DejaVuSans_compressed_size, 12 * yscale, &configDejaVu, icon_rangesDejaVu);
     }
 }
 
 void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
+    // Temporarily set the numeric formatting locale to ensure that
+    // floating-point values are interpreted correctly. (I.e. the
+    // decimal separator is a dot '.').
+    sofa::helper::system::TemporaryLocale locale(LC_NUMERIC, "C");
+
     // Start the Dear ImGui frame
 #if SOFAIMGUI_FORCE_OPENGL2 == 1
     ImGui_ImplOpenGL2_NewFrame();
@@ -277,9 +323,11 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             changeWorkbench(Workbench(workbenchIni.GetLongValue("Workbench", "type", Workbench::SIMULATION_MODE)));
         }
 
+        m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
         m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
         createGUINode();
+        setWindowsBaseGUI(m_baseGUI);
     }
     else
     {
@@ -459,9 +507,10 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (workbench != Workbench::SCENE_EDITOR)
     {
         m_animate = groot->animate_.getValue();
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsController? 3: 1);
 
         // Animate button
-        if (m_viewportWindow.addAnimateButton(&m_animate))
+        if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
             sofa::helper::getWriteOnlyAccessor(groot->animate_).wref() = m_animate;
 
         // Step button
@@ -479,40 +528,16 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        static const char* listTabs[]{"Move", "Program", "Input/Output"};
-
-        if(!m_kinematicsController)
-            ImGui::BeginDisabled();
-
-        if (m_viewportWindow.addDrivingTabCombo(&m_mode, listTabs, IM_ARRAYSIZE(listTabs)))
+        if(m_kinematicsController)
         {
-            const auto filename = baseGUI->getFilename();
+            int dWindow = drivingWindow;
+            const char* listTabs[getDrivingWindowCount()];
+            for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                listTabs[i] = getDrivingWindowName(DrivingWindow(i));
 
-            m_moveWindow.setDrivingTCPTarget(false);
-            m_programWindow.setDrivingTCPTarget(false);
-            m_IOWindow.setDrivingTCPTarget(false);
-            switch (m_mode) {
-            case 1:
-            {
-                m_programWindow.setTime(groot->getTime());
-                m_programWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            case 2:
-            {
-                m_IOWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            default:
-            {
-                m_moveWindow.setDrivingTCPTarget(true);
-                break;
-            }
-            }
+            if (m_viewportWindow.addDrivingTabCombo(&dWindow, listTabs, IM_ARRAYSIZE(listTabs)))
+                drivingWindow = DrivingWindow(dWindow);
         }
-
-        if(!m_kinematicsController)
-            ImGui::EndDisabled();
     }
 }
 
@@ -613,10 +638,16 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             ImGui::PopStyleColor();
 
             // Manual
-            std::string url = "https://docs-support.compliance-robotics.com/docs/";
-            url += (version.length()>6)? "next": version;
-            url += "/Users/SOFARobotics/GUI-user-manual/";
-            ImGui::TextLinkOpenURL(ICON_FA_GLOBE" Manual", url.c_str());
+            std::string manualURL = "https://docs-support.compliance-robotics.com/docs/";
+            manualURL += (version.length()>6)? "next": version;
+            manualURL += "/Users/SOFARobotics/GUI-user-manual/";
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics Manual", manualURL.c_str());
+
+            // Sofa Robotics GitHub
+            ImGui::LocalTextLinkOpenURL("Sofa Robotics GitHub", "https://github.com/SofaComplianceRobotics/SofaGLFW/tree/robotics");
+
+            // Compliance Robotics Website
+            ImGui::LocalTextLinkOpenURL("Compliance Robotics", "https://compliance-robotics.com/");
 
             if (ImGui::MenuItem("\t About...", nullptr, false, true))
                 isAboutOpen = true;
@@ -645,6 +676,10 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
                 ImGui::Text("%s", text.c_str());
             }
+
+            // Support SOFA
+            ImGui::LocalTextLinkOpenURL("Support SOFA", "https://www.sofa-framework.org/consortium/support-us/");
+
             ImGui::End();
         }
 

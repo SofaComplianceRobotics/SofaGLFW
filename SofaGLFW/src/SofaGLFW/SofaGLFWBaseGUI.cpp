@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
 *                 SOFA, Simulation Open-Framework Architecture                *
 *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
 *                                                                             *
@@ -600,6 +600,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
 {
     const char sofaKey = SofaGLFWBaseGUI::handleArrowKeys(key);
     const bool isCtrlKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+    const bool isAltKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_ALT ) == GLFW_PRESS;
 
     auto currentGUI = s_mapGUIs.find(window);
     if (currentGUI == s_mapGUIs.end() || currentGUI->second == nullptr)
@@ -614,12 +615,10 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
         return;
     }
 
-    if (isCtrlKeyPressed)
+    if (isCtrlKeyPressed && isAltKeyPressed)
     {
         if (action == GLFW_PRESS)
         {
-            dmsg_info_when(key == GLFW_KEY_LEFT_CONTROL, "SofaGLFWBaseGUI") << "KeyPressEvent, CONTROL pressed";
-
             sofa::core::objectmodel::KeypressedEvent keyPressedEvent(sofaKey);
             rootNode->propagateEvent(sofa::core::ExecParams::defaultInstance(), &keyPressedEvent);
         }
@@ -667,18 +666,14 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
     const char* keyName = glfwGetKeyName(key, scancode);
     if (keyName)
     {
-        if(strcmp(keyName, "f") == 0)
+        if (isCtrlKeyPressed && !isAltKeyPressed)
         {
-            if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL))
+            if (strcmp(keyName, "q") == 0)
             {
-                currentGUI->second->switchFullScreen(window);
-            }
-        }
-        else if (strcmp(keyName, "q") == 0)
-        {
-            if (action == GLFW_PRESS && isCtrlKeyPressed)
-            {
-                glfwSetWindowShouldClose(window, GLFW_TRUE);
+                if (action == GLFW_PRESS )
+                {
+                    glfwSetWindowShouldClose(window, GLFW_TRUE);
+                }
             }
         }
     }
