@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -25,6 +25,7 @@
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/models/Program.h>
 
 #include <SofaImGui/models/KinematicsController.h>
@@ -55,9 +56,9 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void setTime(const double &time) {m_time=time;}
     void setKinematicsController(models::KinematicsController::SPtr KinematicsController);
-    void setDrivingTCPTarget(const bool &isDrivingSimulation) override;
+    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
-    void importProgram();
+    bool importProgram();
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
@@ -131,6 +132,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void saveProgramDirAndFilename(const std::string& filename);
     void loadAndProcessWindowSettings();
+
+    bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
 
 };
 

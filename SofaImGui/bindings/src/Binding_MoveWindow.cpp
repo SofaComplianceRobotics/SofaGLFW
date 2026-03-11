@@ -58,7 +58,7 @@ void moduleAddMoveWindow(py::module &m)
         );
 
     m_a.def("setTCPLimits",
-        [engine](const int &minPosition, const int &maxPosition, const double &minOrientation, const double &maxOrientation)
+        [engine](const float &minPosition, const float &maxPosition, const double &minOrientation, const double &maxOrientation)
         {
             if (engine)
             {

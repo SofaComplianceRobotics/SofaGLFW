@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -19,11 +19,15 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#include "IconsFontAwesome6.h"
-#include "imgui_internal.h"
+#include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/Widgets.h>
+#include <imgui_internal.h>
+#include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <sofa/version.h>
+
+#include <filesystem>
 
 namespace sofaimgui {
 
@@ -61,65 +65,132 @@ void FooterStatusBar::showFooterStatusBar()
 void FooterStatusBar::showTempMessageOnStatusBar()
 {
     static float infoRefreshTime = 0.;
+    float messageLifeSpan = m_tempMessagePath.empty()? m_tempMessageLifeSpan: m_tempMessageLifeSpan*2.;
 
-    if (!m_tempMessage.empty())
+    if (ImGui::Begin("##FooterStatusBar"))
     {
-        if (m_refreshTempMessage)
+        if (ImGui::BeginMenuBar())
         {
-            infoRefreshTime = (float)ImGui::GetTime();
-            m_refreshTempMessage = false;
-        }
-        
-        if((float)ImGui::GetTime() - infoRefreshTime > m_tempMessageLifeSpan)
-        {
-            m_tempMessage.clear();
-            return;
-        }
+            showFilePopUpModal();
 
-        if (ImGui::Begin("##FooterStatusBar"))
-        {
-            if (ImGui::BeginMenuBar())
+            if (!m_tempMessage.empty())
             {
-                float length = ImGui::CalcTextSize(m_tempMessage.c_str()).x;
-                float center = (ImGui::GetWindowWidth() - length) * 0.5f;
-                ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
+                if (m_refreshTempMessage)
+                {
+                    infoRefreshTime = (float)ImGui::GetTime();
+                    m_refreshTempMessage = false;
+                }
 
-                std::string icon;
-                switch (m_tempMessageType) {
-                case MessageType::MWARNING:
+                if((float)ImGui::GetTime() - infoRefreshTime > messageLifeSpan)
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.f, 1.f));
-                    icon = ICON_FA_CIRCLE_EXCLAMATION;
-                    break;
+                    m_tempMessage.clear();
+                    m_tempMessagePath.clear();
                 }
-                case MessageType::MERROR:
+                else 
                 {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.f, 0.f, 1.f));
-                    icon = ICON_FA_CIRCLE_EXCLAMATION;
-                    break;
-                }
-                default:
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-                    icon = ICON_FA_CIRCLE_INFO;
-                    break;
-                }
-                }
-                ImGui::Text("%s", (icon + " " + m_tempMessage).c_str());
-                ImGui::PopStyleColor();
+                    float length = ImGui::CalcTextSize((m_tempMessage + m_tempMessagePath).c_str()).x;
+                    float center = (ImGui::GetWindowWidth() - length) * 0.5f;
+                    ImGui::SetCursorPosX(center); // Set the position to the middle of the status bar
 
-                ImGui::EndMenuBar();
+                    std::string icon;
+                    switch (m_tempMessageType) {
+                    case MessageType::MWARNING:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.f, 1.f));
+                        icon = ICON_FA_CIRCLE_EXCLAMATION;
+                        break;
+                    }
+                    case MessageType::MERROR:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.f, 0.f, 1.f));
+                        icon = ICON_FA_CIRCLE_EXCLAMATION;
+                        break;
+                    }
+                    default:
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+                        icon = ICON_FA_CIRCLE_INFO;
+                        break;
+                    }
+                    }
+                    ImGui::Text("%s", (icon + " " + m_tempMessage).c_str());
+
+                    showPath();
+
+                    ImGui::PopStyleColor();
+                }
+            }
+
+            ImGui::EndMenuBar();
+        }
+    }
+    ImGui::End();
+}
+
+void FooterStatusBar::showPath()
+{
+    if (!m_tempMessagePath.empty())
+    {
+        m_fileToOpen = m_tempMessagePath;
+        ImGui::SameLine(0., ImGui::GetStyle().FramePadding.x);
+
+        if (sofa::helper::system::FileSystem::exists(m_tempMessagePath, true))
+        {
+            ImGui::TextLink(m_tempMessagePath.c_str());
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                if (sofa::helper::system::FileSystem::isFile(m_tempMessagePath, true) && std::filesystem::path(m_tempMessagePath).has_parent_path())
+                {
+                    ImGui::OpenPopup(m_fileToOpenPopUpLabel.c_str());
+                }
+                else
+                    sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_tempMessagePath);
             }
         }
-        ImGui::End();
+        else if (m_tempMessagePath.starts_with("http"))
+        {
+            ImGui::LocalTextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
+        }
+        else
+        {
+            ImGui::Text("%s", m_tempMessagePath.c_str());
+        }
     }
 }
 
-void FooterStatusBar::setTempMessage(const std::string &message, const MessageType& type)
+void FooterStatusBar::showFilePopUpModal()
+{
+    if (ImGui::BeginPopupModal(m_fileToOpenPopUpLabel.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::NewLine();
+        ImGui::Text("Path: %s", m_fileToOpen.c_str());
+        ImGui::NewLine();
+
+        if (ImGui::Button("Open File"))
+        {
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_fileToOpen);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Open File Location"))
+        {
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(std::filesystem::path(m_fileToOpen).parent_path().string());
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+}
+
+void FooterStatusBar::setTempMessage(const std::string &message, const MessageType& type, const std::string &path)
 {
     m_refreshTempMessage = true;
     m_tempMessageType = type;
     m_tempMessage = message;
+    m_tempMessagePath = path;
     std::string from = "GUI";
 
     switch (type) {

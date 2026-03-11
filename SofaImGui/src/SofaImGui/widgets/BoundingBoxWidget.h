@@ -20,34 +20,43 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
-#include <sofa/core/objectmodel/Data.h>
 #include <imgui.h>
-#include <SofaImGui/widgets/Widgets.h>
+#include <sofa/core/objectmodel/Data.h>
+#include <sofa/type/BoundingBox.h>
 
 namespace sofaimgui
 {
 
-inline bool showScalarWidget(const std::string& label, const std::string& id, float& value)
+inline void showBoundingBoxWidget(sofa::Data<sofa::type::BoundingBox>& data)
 {
-    bool result = ImGui::LocalInputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
-    return result;
-}
+    const auto box = data.getValue();
 
-inline bool showScalarWidget(const std::string& label, const std::string& id, double& value)
-{
-    bool result = ImGui::LocalInputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
-    return result;
-}
+    static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
 
-template<typename Scalar>
-void showScalarWidget(sofa::Data<Scalar>& data)
-{
-    Scalar initialValue = data.getValue();
-    const auto& label = data.getName();
-    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
-    if (showScalarWidget(label, id, initialValue))
+    if (ImGui::BeginTable("bbox_table", 4, flags))
     {
-        data.setValue(initialValue);
+        ImGui::TableSetupColumn("");
+        ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableHeadersRow();
+
+        // Second row: ["min", min.x, min.y, min.z]
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0); ImGui::Text("min");
+        ImGui::TableSetColumnIndex(1); ImGui::Text("%.2f", box.minBBox().x());
+        ImGui::TableSetColumnIndex(2); ImGui::Text("%.2f", box.minBBox().y());
+        ImGui::TableSetColumnIndex(3); ImGui::Text("%.2f", box.minBBox().z());
+
+        // Third row: ["max", max.x, max.y, max.z]
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0); ImGui::Text("max");
+        ImGui::TableSetColumnIndex(1); ImGui::Text("%.2f", box.maxBBox().x());
+        ImGui::TableSetColumnIndex(2); ImGui::Text("%.2f", box.maxBBox().y());
+        ImGui::TableSetColumnIndex(3); ImGui::Text("%.2f", box.maxBBox().z());
+
+        ImGui::EndTable();
     }
 }
 

@@ -133,6 +133,7 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
             if (m_method == 0) // ROS
                 showROSWindow();
 #endif
+
             if (!isEnabledInWorkbench())
                 ImGui::EndDisabled();
         }
@@ -516,7 +517,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                 sofa::core::BaseData* data = guiData->getData();
                 if (data)
                 {
-                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsController && m_isDrivingSimulation )
+                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsController && isDrivingSimulation() )
                     {
                         if (data->getValueTypeInfo()->size() == IOWindow::RigidCoord::total_size)
                         {

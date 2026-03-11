@@ -54,6 +54,8 @@ protected:
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
 
+    void addComponentDocTextLinkOpenURL(sofa::core::objectmodel::BaseObject *component);
+
     void addGroupTab(const std::map<std::string, std::vector<sofa::core::BaseData*> >& groupMap);
     void addLinksTab(const sofa::core::objectmodel::Base::VecLink& links);
     void addMessagesTab(const std::deque<sofa::helper::logging::Message> &messages, const std::string& name, const std::string &icon);

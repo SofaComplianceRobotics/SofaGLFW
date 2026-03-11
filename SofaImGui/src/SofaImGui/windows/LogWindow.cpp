@@ -21,6 +21,7 @@
 ******************************************************************************/
 
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 #include <iomanip>
@@ -33,7 +34,6 @@
 #include <nfd.h>
 #include <IconsFontAwesome6.h>
 #include <fstream>
-#include <SofaImGui/ImGuiDataWidget.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/LineAxis.h>
 #include <sofa/gui/common/BaseGUI.h>
@@ -47,7 +47,6 @@ LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_isDrivingSimulation = false;
 }
 
 std::string LogWindow::getDescription()
@@ -93,7 +92,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
             }
 
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ARROW_UP_FROM_BRACKET, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
             {
                 nfdchar_t *outPath;
                 const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "log.txt");
@@ -134,6 +133,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
                     NFD_FreePath(outPath);
                 }
             }
+            ImGui::SetItemTooltip("Export Logs");
 
             std::size_t nbRows = 0;
             if (ImGui::BeginTable("logTable", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))

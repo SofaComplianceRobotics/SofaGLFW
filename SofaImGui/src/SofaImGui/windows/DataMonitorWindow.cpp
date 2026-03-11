@@ -22,7 +22,7 @@
 
 #include <SofaImGui/windows/DataMonitorWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
-#include <SofaImGui/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <imgui_internal.h>
 
 

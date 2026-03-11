@@ -60,6 +60,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
                                             Section section = Section::NONE);
 	void removeGUIData(sofaimgui::models::GUIData::SPtr guiData) override;
 
+
    protected:
 
     Connection m_connection;

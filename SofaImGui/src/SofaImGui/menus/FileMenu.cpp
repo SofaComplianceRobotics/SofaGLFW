@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -56,15 +56,7 @@ void FileMenu::addMenu()
     {
         ImGui::PopStyleColor();
 
-        { // Project
-            ImGuiGUI* gui = ImGuiGUI::getGUI();
-            std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
-            if (engine)
-            {
-                if (ImGui::MenuItem("Save", "Ctrl+S"))
-                    engine->saveProject();
-            }
-        }
+        saveProject();
 
         ImGui::Separator();
 
@@ -181,8 +173,14 @@ bool FileMenu::addImportExportProgram()
     if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
-    if (ImGui::MenuItem("Import Program", "Ctrl+Shift+I"))
-        engine->m_programWindow.importProgram();
+    if (ImGui::MenuItem("Import Program...", "Ctrl+Shift+I"))
+    {
+        if(engine->m_programWindow.importProgram())
+            engine->m_programWindow.setOpen(true);
+    }
+
+    if (!engine->m_programWindow.isOpen())
+        ImGui::BeginDisabled();
 
     if (ImGui::MenuItem("Export Program", "Ctrl+Shift+E"))
         engine->m_programWindow.exportProgram(false);
@@ -192,6 +190,9 @@ bool FileMenu::addImportExportProgram()
         engine->m_programWindow.exportProgram();
     ImGui::SetItemTooltip("Export the current program at a desired location.");
 
+    if (!engine->m_programWindow.isOpen())
+        ImGui::EndDisabled();
+
     if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::EndDisabled();
 
@@ -200,17 +201,25 @@ bool FileMenu::addImportExportProgram()
 
 void FileMenu::saveProject()
 {
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui ? gui->getGUIEngine() : nullptr;
     auto filename = m_baseGUI->getFilename();
     filename += ".crproj";
     if (ImGui::MenuItem("Save", "Ctrl+S"))
     {
-
+        if (engine)
+        {
+                engine->saveProject();
+        }
     }
 
-    if (ImGui::MenuItem("Save As", "Ctrl+Shift+S"))
-    {
-
-    }
+    //if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+    //{
+    //    if (engine)
+    //    {
+    //        engine->saveProject(true);
+    //    }
+    //}
     ImGui::SetItemTooltip("%s", filename.c_str());
 }
 

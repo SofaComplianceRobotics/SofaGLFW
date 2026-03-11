@@ -40,7 +40,6 @@ MoveWindow::MoveWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_isDrivingSimulation = true;
     m_moveType = MoveType::SLIDERS;
 
     m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
@@ -68,7 +67,7 @@ void MoveWindow::setTCPDescriptions(const std::string &positionDescription, cons
     m_TCPRotationDescription = rotationDescription;
 }
 
-void MoveWindow::setTCPLimits(int minPosition, int maxPosition, double minOrientation, double maxOrientation)
+void MoveWindow::setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation)
 {
     m_TCPMinPosition = minPosition;
     m_TCPMaxPosition = maxPosition;
@@ -122,7 +121,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                 {
                     ImGui::Spacing();
 
-                    if(m_isDrivingSimulation)
+                    if(isDrivingSimulation())
                         m_kinematicsController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
                     if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
@@ -143,6 +142,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         { // Method area (sliders or pad)
                             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                             ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
                             const auto &initPosition = m_kinematicsController->getTCPTargetInitPosition();
 
                             if (m_moveType == MoveType::PAD)
@@ -219,14 +219,14 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         ImGui::LocalEndCollapsingHeader();
                     }
 
-                    if (m_isDrivingSimulation)
+                    if (isDrivingSimulation())
                     {
                         sofa::type::Quat<SReal> q = m_kinematicsController->getTCPPosition().getOrientation();
                         sofa::type::Vec3 rotation = q.toEulerVector();
                         m_kinematicsController->setTCPTargetPosition(m_x, m_y, m_z,
-                                                             m_freeRoll? rotation[0]: m_rx,
-                                                             m_freePitch? rotation[1]: m_ry,
-                                                             m_freeYaw? rotation[2]: m_rz);
+                                                                     m_freeRoll? rotation[0]: m_rx,
+                                                                     m_freePitch? rotation[1]: m_ry,
+                                                                     m_freeYaw? rotation[2]: m_rz);
                     }
                 }
 
@@ -264,7 +264,8 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                 actuator.value=buffer;
                             }
                         }
-                        if (m_kinematicsController && !solveInverseProblem && m_isDrivingSimulation)
+
+                        if (m_kinematicsController && !solveInverseProblem && isDrivingSimulation())
                         {
                             // TODO: don't solve the inverse problem since we'll overwrite the solution
                             m_kinematicsController->applyActuatorsForce(m_actuators);
@@ -293,7 +294,8 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                                                ("##Input" + name).c_str(),
                                                                &buffer, accessory.min, accessory.max,
                                                                ImVec4(0, 0, 0, 0));
-                            if (hasChanged && m_isDrivingSimulation)
+
+                            if (hasChanged && isDrivingSimulation())
                             {
                                 accessory.data->read(std::to_string(buffer));
                             }
