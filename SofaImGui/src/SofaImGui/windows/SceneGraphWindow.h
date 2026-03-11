@@ -79,6 +79,11 @@ protected:
 
     void highlightOglModels(sofa::simulation::Node *node);
     void resetOglModels(sofa::simulation::Node *node);
+
+    void showAddNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *node);
+
+    bool showRemoveNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::simulation::Node *node);
+    bool showRemoveComponent(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component);
 };
 
 }

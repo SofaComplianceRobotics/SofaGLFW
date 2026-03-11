@@ -142,6 +142,13 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                             m_selectedComponentExamples.push_back(examplePath);
                     }
                 }
+                if(workbench == Workbench::SCENE_EDITOR && ImGui::BeginDragDropSource())
+                {
+                    m_dragedName = name;
+                    ImGui::SetDragDropPayload("_COMPONENT", &m_dragedName, sizeof(m_dragedName));
+                    ImGui::Text("%s", name.c_str());
+                    ImGui::EndDragDropSource();
+                }
             }
         }
     }

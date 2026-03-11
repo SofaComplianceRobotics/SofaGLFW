@@ -317,8 +317,8 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         // Table
         unsigned int treeDepth {};
 
-        std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        std::function<void(sofa::simulation::Node*, sofa::simulation::Node*, const bool&, const bool&)> showNode;
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* parent, sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
             const auto o = baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
@@ -354,7 +354,22 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth); // Name
             ImGui::PopStyleColor();
 
-            auto hoveredTag = sofa::core::objectmodel::Tag("GUIHovered");
+            if (workbench == Workbench::SCENE_EDITOR)
+            {
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_COMPONENT"))
+                    {
+                        std::string *sp = static_cast<std::string*>(payload->Data);
+                        std::string nodeName = *sp;
+                        if (node)
+                            node->createChild(nodeName);
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+
+            auto hoveredTag = sofa::core::objectmodel::Tag("GUIHovered")    ;
             if (ImGui::IsItemHovered() && !node->hasTag(hoveredTag))
             {
                 node->addTag(hoveredTag);
@@ -389,8 +404,21 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             ImGui::TableNextColumn();
             ImGui::TextDisabled("Node"); // Class Name
 
+            bool removed = false;
+            if (workbench == Workbench::SCENE_EDITOR)
+            {
+                ImGui::TableNextColumn();
+                if (parent)
+                {
+                    removed = showRemoveNode(baseGUI, parent, node);
+                    ImGui::SameLine();
+                }
+                if (!removed)
+                    showAddNode(baseGUI, node);
+            }
+
             // Components in the node
-            if (open)
+            if (!removed && open)
             {
                 ImGui::Indent();
                 ImGui::Indent();
@@ -404,7 +432,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 // Child nodes
                 for (const auto child : node->getChildren())
                 {
-                    showNode(dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
+                    showNode(node, dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
                 }
                 --treeDepth;
                 ImGui::Unindent();
@@ -419,16 +447,18 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                                        ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
 
-        if (ImGui::BeginTable("SceneGraphTable", 2, flags))
+        if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
         {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Type");
+            if (workbench == Workbench::SCENE_EDITOR)
+                ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
             sofa::simulation::Node *groot = baseGUI->getRootNode().get();
 
-            showNode(groot, showSearch, showFiltered);
+            showNode(nullptr, groot, showSearch, showFiltered);
             baseGUI->setCurrentSelection(m_selection);
 
             ImGui::EndTable();
@@ -527,10 +557,18 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 if (!description.empty())
                     ImGui::SetItemTooltip("%s", (description).c_str());
             }
+
+            bool removed = false;
+            if (workbench == Workbench::SCENE_EDITOR)
+            {
+                ImGui::TableNextColumn();
+                removed = showRemoveComponent(baseGUI, node, object);
+            }
+
             ImGui::PopID();
 
             // Components created by the component
-            if (objectOpen && !slaves.empty())
+            if (!removed && objectOpen && !slaves.empty())
             {
                 for (const auto &slave : slaves)
                 {
@@ -579,6 +617,12 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                         ImGui::TableNextColumn();
                         ImGui::TextDisabled("%s", slave->getClassName().c_str()); // Class Name
+
+                        if (workbench == Workbench::SCENE_EDITOR)
+                        {
+                            ImGui::TableNextColumn();
+                        }
+
                         ImGui::PopID();
                     }
                 }
@@ -972,5 +1016,54 @@ void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
         }
     }
 }
+
+void SceneGraphWindow::showAddNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *node)
+{
+    if (node && !node->hasTag(baseGUI->getGUITag()))
+    {
+        auto text = ICON_FA_PLUS"   ";
+        ImGui::Text("%s", text);
+        ImGui::SetItemTooltip("Add Node");
+        if(ImGui::IsItemClicked())
+        {
+            node->createChild("New Node");
+        }
+    }
+}
+
+bool SceneGraphWindow::showRemoveNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::simulation::Node *node)
+{
+    if (node && parent && !node->hasTag(baseGUI->getGUITag()))
+    {
+        auto text = ICON_FA_TRASH_CAN;
+        ImGui::Text("%s", text);
+        ImGui::SetItemTooltip("Delete Node");
+        if(ImGui::IsItemClicked())
+        {
+            parent->removeChild(node);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool SceneGraphWindow::showRemoveComponent(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component)
+{
+    if (component && parent && !component->hasTag(baseGUI->getGUITag()))
+    {
+        auto text = ICON_FA_TRASH_CAN;
+        ImGui::Text("%s", text);
+        ImGui::SetItemTooltip("Delete Component");
+        if(ImGui::IsItemClicked())
+        {
+            parent->removeObject(component);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 }
 
