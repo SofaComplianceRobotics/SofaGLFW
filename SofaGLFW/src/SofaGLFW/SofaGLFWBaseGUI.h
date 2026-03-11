@@ -133,9 +133,10 @@ public:
         }
     }
 
-    const char* getGUINodeName() {
-        return "GUI";
-    }
+
+    const char* getGUINodeName() {return "GUI";}
+    sofa::core::objectmodel::Tag getGUITag() {return sofa::core::objectmodel::Tag("createdByGUI");}
+
 
 private:
     // GLFW callbacks

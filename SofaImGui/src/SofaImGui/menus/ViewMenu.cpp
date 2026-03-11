@@ -126,7 +126,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
                 auto newGrid = sofa::core::objectmodel::New<sofa::component::visual::VisualGrid>();
                 guiNode->addObject(newGrid);
                 newGrid->setName(name);
-                newGrid->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+                newGrid->addTag(m_baseGUI->getGUITag());
                 newGrid->d_enable.setValue(show);
                 newGrid->d_size.setValue(gridSize);
                 newGrid->d_thickness.setValue(thickness);
@@ -158,7 +158,7 @@ void ViewMenu::showOriginFrame(const bool& show)
                 auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
                 guiNode->addObject(newOriginFrame);
                 newOriginFrame->setName("ViewportOriginFrame");
-                newOriginFrame->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+                newOriginFrame->addTag(m_baseGUI->getGUITag());
                 newOriginFrame->d_enable.setValue(show);
                 newOriginFrame->d_infinite.setValue(true);
                 newOriginFrame->d_thickness.setValue(2.f);
