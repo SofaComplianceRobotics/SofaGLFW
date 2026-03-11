@@ -74,7 +74,7 @@ void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                 float rightPosition = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::CalcTextSize(buttonText.c_str()).x - ImGui::GetStyle().FramePadding.x * 2;
 
                 // Instructions / help
-                if (ImGui::BeginChild("#LoadPluginsInstructions", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x * 0.32), false, ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("#LoadPluginsInstructions", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x * 0.32), ImGuiChildFlags_AlwaysUseWindowPadding))
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
                     ImGui::TextWrapped("A plugin can be loaded by either:");
@@ -111,7 +111,7 @@ void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                 }
                 
                 // List of plugins
-                if (ImGui::BeginChild("#LoadPluginsList", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("#LoadPluginsList", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
                 {
                     static std::map<std::string, bool> isSelected;
                     for (const auto& [path, plugin] : pluginMap)
@@ -138,12 +138,12 @@ void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
             ImGui::EndChild();
             ImGui::SameLine();
 
-            if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
+            if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
             {
                 ImGui::Text("Plugin Info:");
 
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
                 {
                     if (!selectedPlugin.empty())
                     {

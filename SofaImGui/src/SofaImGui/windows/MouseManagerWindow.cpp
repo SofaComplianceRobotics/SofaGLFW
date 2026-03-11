@@ -56,11 +56,11 @@ void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
 
             ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
 
-            if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+            if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
             {
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                 ImGui::Text("Left Button:");
-                if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
                     showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::LEFT);
                 ImGui::EndChild();
                 ImGui::PopStyleColor();
@@ -69,11 +69,11 @@ void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
 
             ImGui::SameLine();
 
-            if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+            if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
             {
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                 ImGui::Text("Middle Button:");
-                if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
                     showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::MIDDLE);
                 ImGui::EndChild();
                 ImGui::PopStyleColor();
@@ -82,11 +82,11 @@ void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
 
             ImGui::SameLine();
 
-            if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+            if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
             {
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                 ImGui::Text("Right Button:");
-                if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None, ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
                     showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::RIGHT);
                 ImGui::EndChild();
                 ImGui::PopStyleColor();

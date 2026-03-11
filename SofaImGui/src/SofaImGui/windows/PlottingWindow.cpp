@@ -244,8 +244,7 @@ void PlottingWindow::showPlots()
                         ImPlot::PlotLine(data.description.c_str(),
                                          &buffer.data[0].x,
                                          &buffer.data[0].y,
-                                         buffer.data.size(),
-                                         0, 0, 2 * sizeof(float));
+                                         buffer.data.size());
 
                         if (ImPlot::BeginDragDropSourceItem(data.description.c_str())) {
                             dragedData = &data;

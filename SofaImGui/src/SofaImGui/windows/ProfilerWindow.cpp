@@ -113,7 +113,7 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
                 ImGui::SameLine();
                 ImGui::TextDisabled("(duration in ms: %0.2f)", m_selectedFrameDuration);
 
-                if (ImGui::BeginChild("##SelectedFrameTable", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding))
+                if (ImGui::BeginChild("##SelectedFrameTable", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
                 {
                     showTable(allRecords, selectedTimers);
                 }
