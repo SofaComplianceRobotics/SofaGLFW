@@ -25,7 +25,7 @@ include(FetchContent)
 
 FetchContent_Declare(imgui
         GIT_REPOSITORY https://github.com/SofaComplianceRobotics/imgui
-        GIT_TAG        2499911fc3165fdb5040ea53643d581cefcb6c8c  # branch internaldocking up to date with ocornut/imgui/docking
+        GIT_TAG        763283c0732e311153eec857a50e7770cb98f839  # branch internaldocking up to date with ocornut/imgui/docking
 )
 FetchContent_MakeAvailable(imgui)
 
@@ -52,7 +52,7 @@ endif()
 
 FetchContent_Declare(ImPlot
         GIT_REPOSITORY https://github.com/epezent/implot
-        GIT_TAG        f156599faefe316f7dd20fe6c783bf87c8bb6fd9
+        GIT_TAG        bd99f8d8b9a80c493782ab8cb3335af102f61304
 )
 FetchContent_MakeAvailable(ImPlot)
 
