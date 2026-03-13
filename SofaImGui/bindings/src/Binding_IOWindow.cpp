@@ -60,12 +60,15 @@ void moduleAddIOWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("IOWindow", "");
+    auto m_a_input = m_a.def_submodule("Input", "");
+    auto m_a_output = m_a.def_submodule("Output", "");
     std::string m_a_name = py::str(m_a.attr("__name__"));
 
+    // Deprecated
     m_a.def("addSubscribableData",
         [engine, m_a_name](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
-            msg_deprecated(m_a_name) << "addSubscribableData is deprecated and will be removed in future versions.Please use Sofa.ImGui.IOWindow.addSubData instead.";
+            msg_deprecated(m_a_name) << "addSubscribableData is deprecated and will be removed in future versions. Please use Sofa.ImGui.IOWindow.Input.addData instead.";
             if (engine)
             {
                 addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::SUBSCRIBE);
@@ -76,7 +79,7 @@ void moduleAddIOWindow(py::module &m)
         );
 
 
-    m_a.def("addPubData",
+    m_a_output.def("addData",
         [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
             if (engine)
@@ -89,7 +92,7 @@ void moduleAddIOWindow(py::module &m)
     );
 
 
-    m_a.def("addSubData",
+    m_a_input.def("addData",
         [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
             if (engine)
