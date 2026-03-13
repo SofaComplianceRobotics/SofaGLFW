@@ -97,7 +97,7 @@ void showVectorWidget(Data<T>& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
     const auto nbColumns = data.getValueTypeInfo()->size() + 1;
-    const auto tableLabel = data.getName() + data.getOwner()->getPathName();
+    const auto tableLabel = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
@@ -173,7 +173,9 @@ void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueT
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags, innerWidth))
+
+    const auto label = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
+    if (ImGui::BeginTable(label.c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags, innerWidth))
     {
         showVecTableHeader(data);
 

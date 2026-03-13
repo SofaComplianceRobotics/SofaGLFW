@@ -22,7 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <SofaImGui/widgets/MovePad.h>
 #include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
@@ -39,13 +39,14 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     std::string getDescription() override;
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
-    void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
+
+    void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
     void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
 
     void setActuatorsDescriptions(const std::string &description);
     void setActuatorsLimits(const double &min, const double &max);
     void setActuatorLimits(const sofa::Size &id, const double &min, const double &max);
-    void setActuators(std::vector<models::IPController::Actuator> actuators) {m_actuators = actuators;}
+    void setActuators(std::vector<models::KinematicsController::Actuator> actuators) {m_actuators = actuators;}
 
     struct Accessory {
         double buffer;
@@ -68,7 +69,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
    protected:
     
-    models::IPController::SPtr m_IPController;
+    models::KinematicsController::SPtr m_kinematicsController;
     std::string m_TCPPositionDescription{"TCP Target Position (mm)"};
     std::string m_TCPRotationDescription{"TCP Target Rotation (rad)"};
     double m_TCPMinPosition{-500.};
@@ -83,7 +84,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     double m_ry;
     double m_rz;
     
-    std::vector<models::IPController::Actuator> m_actuators;
+    std::vector<models::KinematicsController::Actuator> m_actuators;
     std::string m_actuatorsDescription{"Motors Position (rad)"};
 
     bool m_freeRoll{true};
@@ -94,7 +95,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     ImGui::MovePad m_movePad;
 
-    bool enabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
+    bool enabled() override {return (m_kinematicsController!=nullptr || !m_actuators.empty());}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

@@ -56,7 +56,7 @@ std::string MoveWindow::getDescription()
 
 void MoveWindow::clearWindow()
 {
-    m_IPController = nullptr;
+    m_kinematicsController = nullptr;
     m_accessories.clear();
     m_actuators.clear();
 }
@@ -117,12 +117,12 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
         {
             if (enabled())
             {
-                if (m_IPController != nullptr)
+                if (m_kinematicsController != nullptr)
                 {
                     ImGui::Spacing();
 
                     if(isDrivingSimulation())
-                        m_IPController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
+                        m_kinematicsController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
                     if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
@@ -142,7 +142,8 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         { // Method area (sliders or pad)
                             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                             ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_AlwaysUseWindowPadding);
-                            const auto &initPosition = m_IPController->getTCPTargetInitPosition();
+
+                            const auto &initPosition = m_kinematicsController->getTCPTargetInitPosition();
 
                             if (m_moveType == MoveType::PAD)
                             {
@@ -166,9 +167,9 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         }
                     }
 
-                    m_IPController->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+                    m_kinematicsController->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-                    if (m_IPController->hasRotationEffector() && ImGui::LocalBeginCollapsingHeader(m_TCPRotationDescription.c_str(), ImGuiTreeNodeFlags_AllowOverlap))
+                    if (m_kinematicsController->hasRotationEffector() && ImGui::LocalBeginCollapsingHeader(m_TCPRotationDescription.c_str(), ImGuiTreeNodeFlags_AllowOverlap))
                     {
                         ImGui::SameLine();
 
@@ -220,12 +221,12 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                     if (isDrivingSimulation())
                     {
-                        sofa::type::Quat<SReal> q = m_IPController->getTCPPosition().getOrientation();
+                        sofa::type::Quat<SReal> q = m_kinematicsController->getTCPPosition().getOrientation();
                         sofa::type::Vec3 rotation = q.toEulerVector();
-                        m_IPController->setTCPTargetPosition(m_x, m_y, m_z,
-                                                             m_freeRoll? rotation[0]: m_rx,
-                                                             m_freePitch? rotation[1]: m_ry,
-                                                             m_freeYaw? rotation[2]: m_rz);
+                        m_kinematicsController->setTCPTargetPosition(m_x, m_y, m_z,
+                                                                     m_freeRoll? rotation[0]: m_rx,
+                                                                     m_freePitch? rotation[1]: m_ry,
+                                                                     m_freeYaw? rotation[2]: m_rz);
                     }
                 }
 
@@ -263,10 +264,11 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                 actuator.value=buffer;
                             }
                         }
-                        if (m_IPController && !solveInverseProblem && isDrivingSimulation())
+
+                        if (m_kinematicsController && !solveInverseProblem && isDrivingSimulation())
                         {
                             // TODO: don't solve the inverse problem since we'll overwrite the solution
-                            m_IPController->applyActuatorsForce(m_actuators);
+                            m_kinematicsController->applyActuatorsForce(m_actuators);
                         }
 
                         if (!isEnabledInWorkbench())
@@ -292,6 +294,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                                                ("##Input" + name).c_str(),
                                                                &buffer, accessory.min, accessory.max,
                                                                ImVec4(0, 0, 0, 0));
+
                             if (hasChanged && isDrivingSimulation())
                             {
                                 accessory.data->read(std::to_string(buffer));
@@ -396,7 +399,7 @@ void MoveWindow::showWeightOption(const int &i)
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    auto* weight = m_IPController->getRotationWeight();
+    auto* weight = m_kinematicsController->getRotationWeight();
     double w = weight[i];
     ImGui::AlignTextToFramePadding();
     ImGui::Text("weight");

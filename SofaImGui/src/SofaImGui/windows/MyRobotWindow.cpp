@@ -20,7 +20,8 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "IconsFontAwesome6.h"
+#include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -34,8 +35,6 @@
 
 
 namespace sofaimgui::windows {
-
-std::string MyRobotWindow::DEFAULTGROUP = "empty";
 
 MyRobotWindow::MyRobotWindow(const std::string& name,
                          const bool& isWindowOpen)
@@ -55,13 +54,13 @@ std::string MyRobotWindow::getDescription()
 
 void MyRobotWindow::clearWindow()
 {
-    m_informationGroups.clear();
-    m_settingGroups.clear();
+    BaseWindow::clearWindow();
+	m_sectionedGUIData.clear();
 }
 
 bool MyRobotWindow::isInEmptyGroup(const std::string &group)
 {
-    return DEFAULTGROUP.find(group) != std::string::npos;
+    return sofaimgui::models::GUIData::DEFAULTGROUP.find(group) != std::string::npos;
 }
 
 void MyRobotWindow::setAvailablePorts(const std::vector<std::string> &ports)
@@ -87,62 +86,28 @@ MyRobotWindow::Connection& MyRobotWindow::getConnection()
     return m_connection;
 }
 
-
-void MyRobotWindow::addInformation(const Information &info, const std::string &group)
+sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
+                                                        const std::pair<sofa::core::BaseData*, bool>& data,
+                                                        const std::pair<sofa::core::BaseData*, bool>& min,
+                                                        const std::pair<sofa::core::BaseData*, bool>& max,
+                                                        const std::string& group,
+                                                        const std::string& tooltip, Section section)
 {
-    bool found=false;
-    for (auto &g: m_informationGroups)
-    {
-        if (g.description.find(group) != std::string::npos)
-        {
-            found=true;
-            g.information.push_back(info);
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        InformationGroup g;
-        g.description = group;
-        g.information.push_back(info);
-
-        if (isInEmptyGroup(group))
-            m_informationGroups.insert(m_informationGroups.begin(), g);
-        else
-            m_informationGroups.push_back(g);
-    }
+	auto added = BaseWindow::addData(label, data, min, max, group, tooltip);
+	m_sectionedGUIData[section].insert(added);
+	return added;
 }
 
-void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
+void MyRobotWindow::removeGUIData(sofaimgui::models::GUIData::SPtr guiData)
 {
-    bool found=false;
-    for (auto &s: m_settingGroups)
-    {
-        if (s.description.find(group) != std::string::npos)
-        {
-            found=true;
-            s.settings.push_back(setting);
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        SettingGroup s;
-        s.description = group;
-        s.settings.push_back(setting);
-
-        if (isInEmptyGroup(group))
-            m_settingGroups.insert(m_settingGroups.begin(), s);
-        else
-            m_settingGroups.push_back(s);
-    }
+	BaseWindow::removeGUIData(guiData);
+	m_sectionedGUIData[Section::INFORMATION].erase(guiData);
+	m_sectionedGUIData[Section::SETTINGS].erase(guiData);
 }
 
 bool MyRobotWindow::enabled()
 {
-    return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
+    return (m_connection.listAvailablePortsCallback || !BaseWindow::m_groupedGUIData.empty() || !BaseWindow::m_GUIData.empty());
 }
 
 void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
@@ -206,44 +171,40 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                     }
                 }
 
-                // Information
-                if (!m_informationGroups.empty())
+                if (!m_sectionedGUIData.empty())
                 {
+                    // Information
                     if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
                     {
                         std::string groups;
                         int k=0;
-                        for (auto &group: m_informationGroups)
+
+                        for (auto& itGroup : m_groupedGUIData)
                         {
                             ImGui::PushID(k++);
-                            if (!isInEmptyGroup(group.description))
-                            {
-                                ImGui::TextDisabled("%s", group.description.c_str());
-                                ImGui::Indent();
-                            }
+                            bool firsttime = true;
 
                             int i=0;
-                            for (auto &information: group.information)
+                            for (auto &data : itGroup.second)
                             {
-                                ImGui::PushID(i++);
-                                ImGui::AlignTextToFramePadding();
-                                ImGui::Text("%s", information.description.c_str());
-                                ImGui::SameLine();
-
-                                auto* typeinfo = information.data->getValueTypeInfo();
-                                auto* values = information.data->getValueVoidPtr();
-
-                                ImGui::BeginDisabled();
-                                for (size_t i=0; i<typeinfo->size(); i++)
+								if(m_sectionedGUIData[Section::INFORMATION].contains(data))
                                 {
-                                    double buffer = typeinfo->getScalarValue(values, i);
-                                    ImGui::LocalInputDouble(("##information" + information.description).c_str(), &buffer, 0, 0);
+                                    if (!isInEmptyGroup(data->group) && firsttime)
+                                    {
+                                        ImGui::TextDisabled("%s", data->group.c_str());
+                                        ImGui::Indent();
+									    firsttime = false;
+                                    }
+                                    ImGui::PushID(i++);
+                                    ImGui::AlignTextToFramePadding();
+                                    ImGui::Text("%s", data->label.c_str());
+                                    ImGui::SameLine();
+                                    BaseDataWidget::showWidgetAsText(*data->getData());
+                                    ImGui::PopID();
                                 }
-                                ImGui::EndDisabled();
-                                ImGui::PopID();
                             }
 
-                            if (!isInEmptyGroup(group.description))
+                            if (!isInEmptyGroup(itGroup.first) && !firsttime)
                                 ImGui::Unindent();
 
                             ImGui::PopID();
@@ -251,45 +212,35 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
 
                         ImGui::LocalEndCollapsingHeader();
                     }
-                }
 
-                // Settings
-                if (!m_settingGroups.empty())
-                {
+                    // Settings
                     if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         std::string groups;
-                        int k=0;
-                        for (auto &group: m_settingGroups)
+                        int k = 0;
+                        for (auto& itGroup : m_groupedGUIData)
                         {
                             ImGui::PushID(k++);
-                            if (!isInEmptyGroup(group.description))
+                            bool firsttime = true;
+
+                            for (auto& data : itGroup.second)
                             {
-                                ImGui::TextDisabled("%s", group.description.c_str());
-                                ImGui::Indent();
-                            }
-
-                            for (auto &setting: group.settings)
-                            {
-                                ImGui::AlignTextToFramePadding();
-                                ImGui::Text("%s", setting.description.c_str());
-                                ImGui::SameLine();
-
-                                auto* typeinfo = setting.data->getValueTypeInfo();
-                                auto* values = setting.data->getValueVoidPtr();
-
-                                std::string uiValue;
-                                for (size_t i=0; i<typeinfo->size(); i++)
+                                if (m_sectionedGUIData[Section::SETTINGS].contains(data))
                                 {
-                                    setting.buffer = typeinfo->getScalarValue(values, i);
-                                    showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2);
-                                    setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
-                                    uiValue += std::to_string(setting.buffer) + " ";
+                                    if (!isInEmptyGroup(data->group) && firsttime)
+                                    {
+                                        ImGui::TextDisabled("%s", data->group.c_str());
+                                        ImGui::Indent();
+                                        firsttime = false;
+                                    }
+                                    ImGui::AlignTextToFramePadding();
+                                    ImGui::Text("%s", data->label.c_str());
+                                    ImGui::SameLine();
+                                    showWidget(*data->getData());
                                 }
-                                setting.data->read(uiValue);
                             }
 
-                            if (!isInEmptyGroup(group.description))
+                            if (!isInEmptyGroup(itGroup.first) && !firsttime)
                                 ImGui::Unindent();
 
                             ImGui::PopID();
@@ -309,6 +260,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
         ImGui::End();
     }
 }
+
 
 bool MyRobotWindow::showSliderDouble(const std::string& name, double* v, const double& min, const double& max, const int nbIndents)
 {

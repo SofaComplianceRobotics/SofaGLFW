@@ -18,7 +18,10 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include <pybind11/pybind11.h>
+#include "Module_SofaImGui.h"
+
+#include <pybind11/stl.h>
+#include <pybind11/cast.h>
 
 #include <SofaImGui/init.h>
 #include <Binding_IOWindow.h>
@@ -43,9 +46,9 @@ namespace py { using namespace pybind11; }
 namespace sofaimgui::python3
 {
 
-void setIPController(sofa::simulation::Node &TCPTargetNode,
-                     sofa::simulation::Node &TCPNode,
-                     sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
+void setKinematicsComponents(sofa::simulation::Node &TCPTargetNode,
+                             sofa::simulation::Node &TCPNode,
+                             sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
 
@@ -72,7 +75,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
                 break;
             }
 
-            engine->setIPController(groot, qpsolver, TCPTargetNode.getMechanicalState(), TCPNode.getMechanicalState(), rotationEffector);
+            engine->setKinematicsController(groot, qpsolver, TCPTargetNode.getMechanicalState(), TCPNode.getMechanicalState(), rotationEffector);
         }
     }
 }
@@ -111,7 +114,8 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
 
 PYBIND11_MODULE(ImGui, m)
 {
-    m.def("setIPController", &setIPController);
+    m.def("setIPController", &setKinematicsComponents); // TODO: Deprecate
+    m.def("setKinematicsComponents", &setKinematicsComponents);
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
 
@@ -120,7 +124,27 @@ PYBIND11_MODULE(ImGui, m)
     moduleAddMyRobotWindow(m);
     moduleAddPlottingWindow(m);
     moduleAddProgramWindow(m);
-    moduleAddSimulationState(m);
+    moduleAddDataMonitor(m);
+}
+
+std::pair<sofa::core::BaseData*, bool> getDataFromPyObject(py::object& obj, std::string type)
+{
+    if (obj.is_none())
+        return std::pair<sofa::core::BaseData*, bool>(nullptr, false);
+
+    if (py::isinstance<sofa::core::objectmodel::BaseData>(obj))
+    {
+        return std::pair<sofa::core::BaseData*, bool>(py::cast<sofa::core::objectmodel::BaseData*>(obj), false); //sofapython3::addData(py::none(), "Label", obj, py::none(), "", "group", type); //py::cast<sofa::core::objectmodel::BaseData*>(obj);
+    }
+    else {
+        sofa::core::BaseData* data = sofapython3::PythonFactory::createInstance(type);
+        if (!obj.is_none() and data) {
+            sofapython3::PythonFactory::fromPython(data, obj);
+            return std::pair<sofa::core::BaseData*, bool>(data, true);
+        }
+    }
+    msg_error("Module_SofaImGui") << "Unable to convert py::object " << obj;
+    return std::pair<sofa::core::BaseData*, bool>(nullptr, false);
 }
 
 } // namespace sofaimgui::python3

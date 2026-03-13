@@ -29,7 +29,7 @@
 
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <SofaImGui/models/Track.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <SofaImGui/config.h>
 
 namespace sofaimgui::models {
@@ -41,9 +41,9 @@ class SOFAIMGUI_API Program
    public:
 
     Program() = default;
-    Program(models::IPController::SPtr IPController): m_IPController(IPController)
+    Program(models::KinematicsController::SPtr KinematicsController): m_KinematicsController(KinematicsController)
     {
-        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(IPController);
+        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(KinematicsController);
         addTrack(track);
     }
     ~Program() = default;
@@ -65,7 +65,7 @@ class SOFAIMGUI_API Program
 
    protected:
     
-    models::IPController::SPtr m_IPController;
+    models::KinematicsController::SPtr m_KinematicsController;
     std::vector<std::shared_ptr<Track>> m_tracks;
 
     bool checkExtension(const std::string &filename);

@@ -31,14 +31,28 @@
 #include <sofa/gui/common/GUIManager.h>
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
+#include <Module_SofaImGui.h>
+#include <SofaImGui/windows/IOWindow.h>
 
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
 /// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
+	void addData(std::shared_ptr<ImGuiGUIEngine> engine, const std::string& label, py::object data, py::object min, py::object max, const std::string& group, const std::string& help, std::string type = "double", sofaimgui::windows::IOWindow::Role role = sofaimgui::windows::IOWindow::Role::ALL)
+	{
+		if (engine)
+		{
+			engine->m_IOWindow.addData(label,
+				getDataFromPyObject(data, type),
+				getDataFromPyObject(min, type),
+				getDataFromPyObject(max, type),
+				group, help, role);
+		}
+	}
 
 void moduleAddIOWindow(py::module &m)
 {
@@ -46,16 +60,62 @@ void moduleAddIOWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("IOWindow", "");
+    auto m_a_input = m_a.def_submodule("Input", "");
+    auto m_a_output = m_a.def_submodule("Output", "");
+    std::string m_a_name = py::str(m_a.attr("__name__"));
 
+    // Deprecated
     m_a.def("addSubscribableData",
-        [engine](std::string name, sofa::core::BaseData* data)
+        [engine, m_a_name](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
+        {
+            msg_deprecated(m_a_name) << "addSubscribableData is deprecated and will be removed in future versions. Please use Sofa.ImGui.IOWindow.Input.addData instead.";
+            if (engine)
+            {
+                addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::SUBSCRIBE);
+            }
+        }
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "[DEPRECATED] Add a data to subscribe to in the IO window."
+        );
+
+
+    m_a_output.def("addData",
+        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
             if (engine)
             {
-                engine->m_IOWindow.addSubscribableData(name, data);
+                addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::PUBLISH);
             }
         }
-        );
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "Add a data to publish from the IO window."
+    );
+
+
+    m_a_input.def("addData",
+        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
+        {
+            if (engine)
+            {
+				addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::SUBSCRIBE);
+            }
+        }
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "Add a data to subscribe to in the IO window."
+    );
+
+
+    m_a.def("addData",
+        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
+        {
+            if (engine)
+            {
+				addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::ALL);
+            }
+        }
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "Add a data to subscribe to and publish from the IO window."
+    );
 }
 
 }

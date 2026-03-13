@@ -28,7 +28,7 @@
 #include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/models/Program.h>
 
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
 struct ImDrawList;
@@ -49,13 +49,13 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override {m_IPController=nullptr;}
+    void clearWindow() override {m_kinematicsController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
 
     void setTime(const double &time) {m_time=time;}
-    void setIPController(models::IPController::SPtr IPController);
+    void setKinematicsController(models::KinematicsController::SPtr KinematicsController);
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
     bool importProgram();
@@ -64,7 +64,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    protected:
     
-    models::IPController::SPtr m_IPController;
+    models::KinematicsController::SPtr m_kinematicsController;
 
     double m_cursorPos = 0;
     ImVec2 m_trackBeginPos = ImVec2(0, 0);
@@ -83,7 +83,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool enabled() override {return m_IPController!=nullptr;}
+    bool enabled() override {return m_kinematicsController!=nullptr;}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.

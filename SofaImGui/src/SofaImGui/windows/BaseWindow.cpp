@@ -52,6 +52,12 @@ std::string& BaseWindow::getLabel()
     return m_labelname;
 }
 
+void BaseWindow::clearWindow()
+{
+	m_groupedGUIData.clear();
+	m_GUIData.clear();
+}
+
 bool& BaseWindow::isOpen()
 {
     return m_isOpen;
@@ -80,4 +86,56 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::TextWrapped("%s", message);
     ImGui::EndDisabled();
 }
+
+sofaimgui::models::GUIData::SPtr BaseWindow::addData(const std::string& label, 
+                                                    const std::pair<sofa::core::BaseData*, bool>& data,
+                                                    const std::pair<sofa::core::BaseData*, bool>& min,
+	                                                const std::pair<sofa::core::BaseData*, bool>& max,
+                                                    const std::string& group,
+                                                    const std::string& tooltip)
+{
+    if(data.first)
+    {
+        sofaimgui::models::OwnedBaseData::SPtr newdata = std::make_shared<sofaimgui::models::OwnedBaseData>(data.first, data.second);
+        sofaimgui::models::OwnedBaseData::SPtr newmin = std::make_shared<sofaimgui::models::OwnedBaseData>(min.first, min.second);
+        sofaimgui::models::OwnedBaseData::SPtr newmax = std::make_shared<sofaimgui::models::OwnedBaseData>(max.first, max.second);
+
+		auto guiDataPtr = std::make_shared<sofaimgui::models::GUIData>(newdata, newmin, newmax, label, group, tooltip);
+
+        return addGUIData(guiDataPtr);
+    }
+
+	return nullptr;
+}
+
+sofaimgui::models::GUIData::SPtr sofaimgui::windows::BaseWindow::addGUIData(const sofaimgui::models::GUIData::SPtr& guidata)
+{
+	// Check if already in the set
+	if (m_GUIData.find(guidata) != m_GUIData.end())
+	{
+		return nullptr;
+	}
+
+    auto inserted = m_GUIData.insert(guidata);
+    if (inserted.second) // Check if the insertion was successful
+    {
+        
+		m_groupedGUIData[guidata.get()->group].push_back(*inserted.first);
+        return *inserted.first;
+    }
+    return nullptr;
+}
+
+void BaseWindow::removeGUIData(sofaimgui::models::GUIData::SPtr data)
+{
+    if (data)
+    {
+        m_GUIData.erase(data);
+	    std::vector<sofaimgui::models::GUIData::SPtr>& group = m_groupedGUIData[data->group];
+		auto it = std::find(group.begin(), group.end(), data);
+        if(it != group.end())
+		    group.erase(it);
+    }
+}
+
 }

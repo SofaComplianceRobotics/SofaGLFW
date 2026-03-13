@@ -36,7 +36,6 @@
 namespace sofaimgui::windows {
 
 ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow)
-    : m_stateWindow(stateWindow)
 {
     m_defaultIsOpen = true;
     m_name = name;
@@ -86,7 +85,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addStateWindow(baseGUI, windowFlags);
                     addSimulationTimeAndFPS(groot);
                 }
 
@@ -97,13 +95,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
         }
         ImGui::End();
     }
-}
-
-void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                    const ImGuiWindowFlags& windowFlags)
-{
-    ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow(baseGUI, windowFlags);
 }
 
 bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
@@ -479,7 +470,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
         {
             auto position = ImGui::GetWindowPos();
             position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
-            position.y += ImGui::GetStyle().FramePadding.y;
+            position.y += ImGui::GetStyle().FramePadding.y * 2.;
             ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
 
             // Middle buttons background

@@ -332,7 +332,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (value_changed)
     {
         ImGui::MarkItemEdited(id);
-        const auto& groot = m_IPController->getRootNode().get();
+        const auto& groot = m_kinematicsController->getRootNode().get();
         m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
         groot->setTime(m_time);
         stepProgram();
@@ -883,10 +883,10 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
                 blockEnd += action->getDuration();
                 if ((!reverse && (blockEnd - m_time) > eps) || (reverse && (blockEnd - m_time - dt) > eps))
                 {
-                    RigidCoord position = m_IPController->getTCPPosition();
+                    RigidCoord position = m_kinematicsController->getTCPPosition();
                     if (action->apply(position, m_time + dt - blockStart)) // apply the time corresponding to the end of the time step
                     {
-                        m_IPController->setTCPTargetPosition(position);
+                        m_kinematicsController->setTCPTargetPosition(position);
                     }
                     break;
                 }
@@ -968,11 +968,11 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
         groot->setTime(m_time);
 }
 
-void ProgramWindow::setIPController(models::IPController::SPtr IPController)
+void ProgramWindow::setKinematicsController(models::KinematicsController::SPtr kinematicsController)
 {
-    m_IPController = IPController;
-    if (m_IPController)
-        m_program = models::Program(IPController);
+    m_kinematicsController = kinematicsController;
+    if (m_kinematicsController)
+        m_program = models::Program(kinematicsController);
 }
 
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
@@ -990,7 +990,7 @@ void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
         ImGui::Separator();
         if (ImGui::MenuItem("Overwrite waypoint"))
         {
-            startmove->setWaypoint(m_IPController->getTCPTargetPosition());
+            startmove->setWaypoint(m_kinematicsController->getTCPTargetPosition());
             track->updateNextMoveInitialPoint(-1, startmove->getWaypoint());
         }
         ImGui::EndPopup();
@@ -1087,7 +1087,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
         {
             if (ImGui::MenuItem("Overwrite waypoint"))
             {
-                move->setWaypoint(m_IPController->getTCPTargetPosition());
+                move->setWaypoint(m_kinematicsController->getTCPTargetPosition());
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
             }
             ImGui::Separator();
@@ -1116,9 +1116,9 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
-                                                            m_IPController->getTCPTargetPosition(),
+                                                            m_kinematicsController->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
-                                                            m_IPController,
+                                                            m_kinematicsController,
                                                             true,
                                                             models::actions::Move::Type::LINE);
         move->insertInTrack(track, actionIndex);
@@ -1161,7 +1161,7 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
         }
         if (ImGui::MenuItem(("Add track##" + std::to_string(index)).c_str(), nullptr, false, false))
         {
-            m_program.addTrack(std::make_shared<models::Track>(m_IPController));
+            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsController));
         }
         if (ImGui::MenuItem(("Remove track##" + std::to_string(index)).c_str(), nullptr, false, (index>0)? true : false))
         {

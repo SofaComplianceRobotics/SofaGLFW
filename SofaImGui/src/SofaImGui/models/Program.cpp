@@ -34,7 +34,7 @@ namespace sofaimgui::models {
 void Program::clearTracks()
 {
     m_tracks.clear();
-    std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_IPController);
+    std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_KinematicsController);
     addTrack(track);
 }
 
@@ -80,7 +80,7 @@ bool Program::importProgram(const std::string &filename)
                 std::vector<std::shared_ptr<Track>> tracks;
                 for(auto* t = root->FirstChildElement("track"); t != nullptr; t = t->NextSiblingElement("track"))
                 {
-                    std::shared_ptr<Track> track = std::make_shared<Track>(m_IPController);
+                    std::shared_ptr<Track> track = std::make_shared<Track>(m_KinematicsController);
 
                     for(const auto* e = t->FirstChildElement("action"); e != nullptr; e = e->NextSiblingElement("action"))
                     {
@@ -123,7 +123,7 @@ bool Program::importProgram(const std::string &filename)
                                 move = std::make_shared<actions::Move>(RigidCoord(),
                                                                        wp,
                                                                        duration,
-                                                                       m_IPController,
+                                                                       m_KinematicsController,
                                                                        freeInRotation,
                                                                        type);
 

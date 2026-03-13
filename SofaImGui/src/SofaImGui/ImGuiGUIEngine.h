@@ -41,12 +41,13 @@
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/windows/ProfilerWindow.h>
+#include <SofaImGui/windows/DataMonitorWindow.h>
 
 #include <SofaImGui/windows/PluginsWindow.h>
 
 #include <SofaImGui/menus/ViewMenu.h>
 
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/KinematicsController.h>
 #include <SofaImGui/models/SimulationState.h>
 
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
@@ -85,7 +86,7 @@ public:
 
     void saveProject(const bool& saveAs=false);
 
-    void setIPController(sofa::simulation::Node::SPtr groot,
+    void setKinematicsController(sofa::simulation::Node::SPtr groot,
                          softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
                          sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
@@ -108,6 +109,7 @@ public:
     windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
+    windows::DataMonitorWindow  m_dataMonitorWindow  = windows::DataMonitorWindow("Data Monitor", false);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
@@ -127,7 +129,8 @@ protected:
                                                                         m_sceneGraphWindow,
                                                                         m_componentsWindow,
                                                                         m_logWindow,
-                                                                        m_profilerWindow
+                                                                        m_profilerWindow,
+                                                                        m_dataMonitorWindow
                                                                        };
 
     CSimpleIniA iniGUISettings;
@@ -149,9 +152,8 @@ protected:
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
 
+    models::KinematicsController::SPtr m_kinematicsController;
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
-
-    models::IPController::SPtr m_IPController;
     models::SimulationState m_simulationState;
     bool m_animate{false};
     bool m_darkMode{false};
