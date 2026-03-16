@@ -178,7 +178,6 @@ private:
     sofa::gl::VideoRecorderFFMPEG m_videoRecorderFFMPEG;
 
     std::shared_ptr<sofaglfw::BaseGUIEngine> m_guiEngine;
-
 };
 
 } // namespace sofaglfw

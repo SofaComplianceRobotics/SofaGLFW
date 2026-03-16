@@ -115,6 +115,8 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
                 baseGUI->setVideoFilename(filename + ".mp4");
                 if(baseGUI->toggleVideoRecording())
                     showRecordingMessage(baseGUI);
+                else
+                    FooterStatusBar::getInstance().setTempMessage("Something went wrong, check the Log Window", FooterStatusBar::MERROR);
                 record = baseGUI->isVideoRecording();
             }
 
