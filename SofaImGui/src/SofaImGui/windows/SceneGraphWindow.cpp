@@ -687,7 +687,7 @@ bool SceneGraphWindow::showNodeWindow(sofa::simulation::Node* node, const ImGuiW
 void SceneGraphWindow::addComponentDocTextLinkOpenURL(sofa::core::objectmodel::BaseObject *component)
 {
     sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
-    if (!entry.creatorMap.empty() && !entry.documentationURL.empty() && entry.documentationURL != std::string("TODO"))
+    if (!entry.creatorMap.empty() &&  !entry.documentationURL.empty() && entry.documentationURL.starts_with("http"))
         ImGui::LocalTextLinkOpenURL("Documentation", entry.documentationURL.c_str());
     else
     {
