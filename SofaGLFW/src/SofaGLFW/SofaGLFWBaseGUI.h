@@ -121,6 +121,8 @@ public:
     std::string generateFilename(const std::string &prefix, const std::string &extension);
 
     const char* getGUINodeName() {return "GUI";}
+    sofa::core::objectmodel::Tag getGUITag() {return sofa::core::objectmodel::Tag("createdByGUI");}
+
 
 private:
     // GLFW callbacks
@@ -143,11 +145,9 @@ private:
     void makeCurrentContext(GLFWwindow* sofaWindow);
     void runStep();
 
-    // static members
     inline static std::map< GLFWwindow*, SofaGLFWWindow*> s_mapWindows{};
     inline static std::map< GLFWwindow*, SofaGLFWBaseGUI*> s_mapGUIs{};
 
-    //members
     bool m_bGlfwIsInitialized{ false };
     bool m_bGlewIsInitialized{ false };
 
