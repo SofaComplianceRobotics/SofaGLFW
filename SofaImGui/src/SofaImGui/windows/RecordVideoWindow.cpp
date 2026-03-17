@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  *                 SOFA, Simulation Open-Framework Architecture                *
  *                    (c) 2006 INRIA, USTL, UJF, CNRS, MGH                     *
  *                                                                             *
@@ -102,7 +102,7 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
 
             // ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area
             static bool clicked = false;
-            if (ImGui::Button(record? ICON_FA_STOP " Stop": "⬤ Record"))
+            if (ImGui::Button(record? ICON_FA_STOP " Stop": "\xE2\xAC\xA4 Record"))
             {
                 clicked = true;
                 record = !record;
@@ -113,7 +113,7 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
             {
                 clicked = false;
                 baseGUI->setVideoFilename(filename + ".mp4");
-                if(baseGUI->toggleVideoRecording())
+                if (baseGUI->toggleVideoRecording())
                     showRecordingMessage(baseGUI);
                 else
                     FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
@@ -131,7 +131,12 @@ void RecordVideoWindow::showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI)
     bool recording = baseGUI->isVideoRecording();
     std::string message = recording? "Start": "Finished";
     message += " recording to:" + (recording? " " + baseGUI->getVideoFilePath() : "");
-    FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording? "": baseGUI->getVideoFilePath());
+
+    FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : baseGUI->getVideoFilePath());
+
+    if (!recording && !sofa::helper::system::FileSystem::exists(baseGUI->getVideoFilePath(), true)) // if there is no file after recording
+            FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
+
 }
 } // namespace
 
