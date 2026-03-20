@@ -284,6 +284,9 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
         configDejaVu.GlyphOffset.y = -5.f;
         static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
         static const ImWchar icon_rangesDejaVu[] = { 0x2022, 0x2b54, 0};
+
+        config.GlyphExcludeRanges = icon_rangesDejaVu;
+        configDejaVu.GlyphExcludeRanges = icon_ranges;
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_REGULAR_400_compressed_data, FA_REGULAR_400_compressed_size, 12 * yscale, &config, icon_ranges);
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_SOLID_900_compressed_data, FA_SOLID_900_compressed_size, 12 * yscale, &config, icon_ranges);
         io.Fonts->AddFontFromMemoryCompressedTTF(DejaVuSans_compressed_data, DejaVuSans_compressed_size, 12 * yscale, &configDejaVu, icon_rangesDejaVu);
