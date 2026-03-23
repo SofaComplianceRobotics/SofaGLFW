@@ -21,48 +21,26 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/windows/StateWindow.h>
 #include <SofaImGui/menus/ViewMenu.h>
+#include <SofaImGui/windows/BaseWindow.h>
 #include <imgui.h>
+#include <implot.h>
+#include <implot_internal.h>
 
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API ViewportWindow : public BaseWindow
+class SOFAIMGUI_API RecordVideoWindow : public BaseWindow
 {
-   public:
+public:
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow);
-    ~ViewportWindow() = default;
+    RecordVideoWindow(const std::string& name, const bool& isWindowOpen);
+    ~RecordVideoWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
-    bool addAnimateButton(bool *animate, const float &shift_x);
-    bool addStepButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
-
-    std::pair<float, float> m_windowSize{0., 0.};
-
-    bool isMouseOnViewport() {return m_isMouseOnViewport;}
-    bool isFocusOnViewport() {return m_isFocusOnViewport;}
-
-   protected:
-
-    std::shared_ptr<StateWindow> m_stateWindow;
-    float m_fps{0.f};
-
-    bool m_isMouseOnViewport{false};
-    bool m_isFocusOnViewport{false};
-
-    double m_maxPanelItemWidth{0.0};
-
-    void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
-    void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
-    void addRecordingStatus(const ImVec4 &red);
-    bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture);
+protected:
+    void showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI);
 };
 
 }

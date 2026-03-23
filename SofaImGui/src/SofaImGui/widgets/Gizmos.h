@@ -46,8 +46,6 @@ bool drawPositiveLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color
 
 bool drawNegativeLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color, const float radius, const float thickness, const char* text);
 
-ImVec4 blendColor(const ImVec4& color1, const ImVec4& color2, const float& w);
-
 } // namespace internal
 
 /// @brief Set the center and size of the gizmo (square). Should be called before drawing the gizmo. 

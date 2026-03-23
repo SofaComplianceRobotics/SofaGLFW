@@ -41,6 +41,7 @@ public:
     void afterDraw() override {}
     void terminate() override;
     bool dispatchMouseEvents() override;
+    sofa::type::Vec2i getFrameBufferPixels(std::vector<uint8_t>& pixels) override;
 };
 
 } // namespace sofaglfw

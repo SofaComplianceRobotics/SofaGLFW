@@ -19,7 +19,9 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
+#include <Style.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
@@ -31,7 +33,7 @@
 #include <GLFW/glfw3.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/Workbench.h>
-
+#include <SofaImGui/FooterStatusBar.h>
 
 namespace sofaimgui::windows {
 
@@ -54,9 +56,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 {
     if (isOpen())
     {
-        if (baseGUI)
-            m_viewmenu.m_baseGUI = baseGUI;
-        else
+        if (!baseGUI)
             return;
 
         auto groot = baseGUI->getRootNode().get();
@@ -91,7 +91,10 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 }
 
                 addCameraButtons(baseGUI, groot);
-                addContextMenu(texture);
+                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // TODO create a stylesheet
+                if(baseGUI->isVideoRecording())
+                    addRecordingStatus(red);
+                addContextMenu(baseGUI, texture);
             }
             ImGui::EndChild();
         }
@@ -260,7 +263,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
-                    m_viewmenu.addShowIn3DViewMenuItems();
+                    menus::ViewMenu(baseGUI).addShowIn3DViewMenuItems();
                     ImGui::EndPopup();
                 }
 
@@ -444,16 +447,18 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::EndChild();
 }
 
-void ViewportWindow::addContextMenu(const ImTextureID& texture)
+void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture)
 {
     if (ImGui::BeginPopup("##ViewportContextMenu"))
     {
-        m_viewmenu.addSaveCameraMenuItem();
-        m_viewmenu.addRestoreCameraMenuItem();
+        menus::ViewMenu viewMenu(baseGUI);
+        viewMenu.addSaveCameraMenuItem();
+        viewMenu.addRestoreCameraMenuItem();
 
         ImGui::Separator();
 
-        m_viewmenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
+        viewMenu.addRecordVideoMenuItem();
+        viewMenu.addSaveScreenShotMenuItem(std::pair<unsigned int, unsigned int>(m_windowSize.first, m_windowSize.second), texture);
         ImGui::EndPopup();
     }
 
@@ -467,6 +472,7 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
         ImGui::OpenPopup("##ViewportContextMenu");
     }
 }
+
 
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
@@ -493,7 +499,6 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
             if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                // ImGui::SameLine();
                 ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
                 ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
@@ -503,10 +508,11 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
                     isItemClicked = true;
                 }
             }
-            ImGui::EndChild();
 
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar();
+
+            ImGui::EndChild();
         }
         ImGui::End();
     }
@@ -603,6 +609,35 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
                 }
+
+                ImGui::EndChild();
+            }
+        }
+        ImGui::End();
+    }
+}
+
+void ViewportWindow::addRecordingStatus(const ImVec4& red)
+{
+    if (m_isOpen)
+    {
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if(ImGui::BeginChild("Render"))
+            {
+                // Recording
+                std::string icon = ICON_FA_CIRCLE_DOT;
+                std::string text = " Recording";
+                auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize((icon+text).c_str()).x - ImGui::GetFrameHeight() * 0.5f;
+                ImGui::SetCursorPosX(position);
+                ImGui::SetCursorPosY(ImGui::GetStyle().ItemSpacing.y);
+                ImGui::PushStyleColor(ImGuiCol_Text, red);
+                ImGui::Text("%s", icon.c_str());
+                ImGui::PopStyleColor();
+                ImGui::SameLine(0.f, 0.f);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::Text("%s", text.c_str());
+                ImGui::PopStyleColor();
 
                 ImGui::EndChild();
             }
