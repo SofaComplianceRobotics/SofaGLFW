@@ -129,13 +129,18 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
 void RecordVideoWindow::showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI)
 {
     bool recording = baseGUI->isVideoRecording();
-    std::string message = recording? "Start": "Finished";
-    message += " recording to:" + (recording? " " + baseGUI->getVideoFilePath() : "");
 
-    FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : baseGUI->getVideoFilePath());
+    if (!recording && !sofa::helper::system::FileSystem::exists(baseGUI->getVideoFilePath(), true))
+    {
+        FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
+    }
+    else
+    {
+        std::string message = recording ? "Start" : "Finished";
+        message += " recording to:" + (recording ? " " + baseGUI->getVideoFilePath() : "");
 
-    if (!recording && !sofa::helper::system::FileSystem::exists(baseGUI->getVideoFilePath(), true)) // if there is no file after recording
-            FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
+        FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : baseGUI->getVideoFilePath());
+    }
 
 }
 } // namespace
