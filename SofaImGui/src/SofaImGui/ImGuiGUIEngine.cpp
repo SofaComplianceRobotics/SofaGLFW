@@ -27,6 +27,9 @@
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/AppIniFile.h>
 
+#include <SofaImGui/menus/FileMenu.h>
+#include <SofaImGui/menus/ViewMenu.h>
+
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 
@@ -70,8 +73,6 @@
 #include <DejaVuSans.h>
 #include <Style.h>
 
-#include <SofaImGui/menus/FileMenu.h>
-#include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
 
@@ -289,6 +290,8 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_SOLID_900_compressed_data, FA_SOLID_900_compressed_size, 12 * yscale, &config, icon_ranges);
         io.Fonts->AddFontFromMemoryCompressedTTF(DejaVuSans_compressed_data, DejaVuSans_compressed_size, 12 * yscale, &configDejaVu, icon_rangesDejaVu);
     }
+
+    glGenBuffers(s_NB_PBOS, m_pbos);
 }
 
 void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -339,8 +342,9 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
     showSecondaryMenuBar();
-    m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
-    m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_None);
+    m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
+    m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
+    m_recordVideoWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
 
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
@@ -365,6 +369,8 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
+
+    m_frameCount++;
 }
 
 void ImGuiGUIEngine::beforeDraw(GLFWwindow*)
@@ -408,6 +414,7 @@ void ImGuiGUIEngine::terminate()
 {
     saveSettings();
     NFD_Quit();
+    glDeleteBuffers(s_NB_PBOS, m_pbos);
 
 #if SOFAIMGUI_FORCE_OPENGL2 == 1
     ImGui_ImplOpenGL2_Shutdown();
@@ -423,6 +430,54 @@ void ImGuiGUIEngine::terminate()
 bool ImGuiGUIEngine::dispatchMouseEvents()
 {
     return !ImGui::GetIO().WantCaptureMouse || m_viewportWindow.isMouseOnViewport();
+}
+
+type::Vec2i ImGuiGUIEngine::getFrameBufferPixels(std::vector<uint8_t>& pixels)
+{
+    int readIndex = m_frameCount % s_NB_PBOS;
+    int processIndex = (m_frameCount + 1) % s_NB_PBOS;
+
+    m_fbo->start();
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    if(m_pboSize[0] != viewport[2] || m_pboSize[1] != viewport[3])
+    {
+        // Size for your frame (e.g., 1920x1080 RGBA)
+        int size = viewport[2] * viewport[3] * 4;
+
+        for (int i = 0; i < s_NB_PBOS; i++) {
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbos[i]);
+            glBufferData(GL_PIXEL_PACK_BUFFER, size, NULL, GL_STREAM_READ);
+        }
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+        m_pboSize[0] = viewport[2];
+        m_pboSize[1] = viewport[3];
+    }
+
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+    // Read to PBO (asynchronous)
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbos[readIndex]);
+    glReadPixels(0, 0, viewport[2], viewport[3], GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    // Map and process previous frame
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbos[processIndex]);
+    void* data = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    if (data)
+    {
+        int size = viewport[2] * viewport[3] * 4;
+        pixels.resize(size);
+        memcpy(pixels.data(), data, size);
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    m_fbo->stop();
+
+    return {viewport[2], viewport[3]};
 }
 
 void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
@@ -558,131 +613,149 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
     if (ImGui::BeginMainMenuBar())
     {
-        std::string version = "v" + std::string(SOFA_VERSION_STR);
-        menus::FileMenu fileMenu(baseGUI);
-        fileMenu.addMenu();
-        if (fileMenu.m_loadSimulation) {
-            saveProject();
-            loadSimulation(false, fileMenu.getFilename());
-        }
-        if(fileMenu.m_reloadSimulation)
-            loadSimulation(true, fileMenu.getFilename());
-
-        if(fileMenu.m_openPluginsManager)
-            m_pluginsWindow.setOpen(true);
-
-        if(fileMenu.m_openMouseManager)
-            m_mouseManagerWindow.setOpen(true);
-
-        menus::ViewMenu(baseGUI).addMenu(m_currentFBOSize, m_fbo->getColorTexture());
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-        if (ImGui::BeginMenu("Workbench"))
-        {
-            bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
-
-            if (disableWorkbench)
-                ImGui::BeginDisabled();
-
-            ImGui::PopStyleColor();
-            int value = workbench;
-            for (int i=0; i<getWorkbenchCount(); i++)
+        { // File menu
+            menus::FileMenu fileMenu = menus::FileMenu(baseGUI);
+            fileMenu.addMenu();
+            if (fileMenu.m_loadSimulation)
             {
-                ImGui::PushID(i);
+                saveProject();
+                loadSimulation(false, fileMenu.getFilename());
+            }
+            if(fileMenu.m_reloadSimulation)
+                loadSimulation(true, fileMenu.getFilename());
 
-                int j = pow(2, i);
-                if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
-                    changeWorkbench(Workbench(value));
-                ImGui::SetItemTooltip("%s", getWorkbenchDescription(Workbench(j)));
+            if(fileMenu.m_openPluginsManager)
+                m_pluginsWindow.setOpen(true);
 
-                ImGui::PopID();
+            if(fileMenu.m_openMouseManager)
+                m_mouseManagerWindow.setOpen(true);
+        }
+
+        { // View menu
+            menus::ViewMenu viewMenu = menus::ViewMenu(baseGUI);
+            viewMenu.addMenu(m_currentFBOSize, m_fbo->getColorTexture());
+
+            if(menus::ViewMenu::openRecordVideoWindow)
+            {
+                m_recordVideoWindow.setOpen(true);
+                menus::ViewMenu::openRecordVideoWindow = false;
+            }
+        }
+
+        { // Workbench
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            if (ImGui::BeginMenu("Workbench"))
+            {
+                bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
+
+                if (disableWorkbench)
+                    ImGui::BeginDisabled();
+
+                ImGui::PopStyleColor();
+                int value = workbench;
+                for (int i=0; i<getWorkbenchCount(); i++)
+                {
+                    ImGui::PushID(i);
+
+                    int j = pow(2, i);
+                    if (ImGui::LocalRadioButton(getWorkbenchName(Workbench(j)), &value, j))
+                        changeWorkbench(Workbench(value));
+                    ImGui::SetItemTooltip("%s", getWorkbenchDescription(Workbench(j)));
+
+                    ImGui::PopID();
+                }
+
+                if (disableWorkbench)
+                    ImGui::EndDisabled();
+
+                ImGui::EndMenu();
+            }
+            else
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+
+        { // Windows
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            if (ImGui::BeginMenu("Windows"))
+            {
+                ImGui::PopStyleColor();
+
+                for (auto& window : m_windows)
+                {
+                    auto windowName = window.get().getName();
+
+                    bool isViewport = (windowName == m_viewportWindow.getName());
+                    if(isViewport)
+                        ImGui::Separator();
+                    ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
+                    ImGui::SetItemTooltip("%s", window.get().getDescription().c_str());
+                    if (isViewport)
+                        ImGui::Separator();
+                }
+
+                ImGui::EndMenu();
+            }
+            else
+            {
+                ImGui::PopStyleColor();
+            }
+        }
+
+        { // Help
+            std::string version = "v" + std::string(SOFA_VERSION_STR);
+            static bool isAboutOpen = false;
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            if (ImGui::BeginMenu("Help"))
+            {
+                ImGui::PopStyleColor();
+
+                // Manual
+                std::string manualURL = "https://docs-support.compliance-robotics.com/docs/";
+                manualURL += (version.length()>6)? "next": version;
+                manualURL += "/Users/SOFARobotics/GUI-user-manual/";
+                ImGui::LocalTextLinkOpenURL("Sofa Robotics Manual", manualURL.c_str());
+
+                // Sofa Robotics GitHub
+                ImGui::LocalTextLinkOpenURL("Sofa Robotics GitHub", "https://github.com/SofaComplianceRobotics/SofaGLFW/tree/robotics");
+
+                // Compliance Robotics Website
+                ImGui::LocalTextLinkOpenURL("Compliance Robotics", "https://compliance-robotics.com/");
+
+                if (ImGui::MenuItem("\t About...", nullptr, false, true))
+                    isAboutOpen = true;
+                ImGui::EndMenu();
+            }
+            else
+            {
+                ImGui::PopStyleColor();
             }
 
-            if (disableWorkbench)
-                ImGui::EndDisabled();
-
-            ImGui::EndMenu();
-        }
-        else
-        {
-            ImGui::PopStyleColor();
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-        if (ImGui::BeginMenu("Windows"))
-        {
-            ImGui::PopStyleColor();
-
-            for (auto& window : m_windows) 
+            if (isAboutOpen)
             {
-                auto windowName = window.get().getName();
+                ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize);
 
-                bool isViewport = (windowName == m_viewportWindow.getName());
-                if(isViewport)
-                    ImGui::Separator();
-                ImGui::LocalCheckBox(windowName.c_str(), &window.get().isOpen());
-                ImGui::SetItemTooltip("%s", window.get().getDescription().c_str());
-                if (isViewport)
-                    ImGui::Separator();
+                auto windowWidth = ImGui::GetWindowSize().x;
+                std::vector<std::string> texts = {"\n", "SOFA, Simulation Open-Framework Architecture \n (c) 2006 INRIA, USTL, UJF, CNRS, MGH",
+                                                  "&", "(c) Compliance Robotics", "\n",
+                                                  version,
+                                                  "SOFA is an open-source framework for interactive physics simulation, \n"
+                                                  "with an emphasis on soft body dynamics. After years of research and \n"
+                                                  "development, the project remains open-source under the LGPL v2.1 license, \n"
+                                                  "fostering both research and development."};
+                for (const auto& text : texts)
+                {
+                    auto textWidth   = ImGui::CalcTextSize(text.c_str()).x;
+                    ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+                    ImGui::Text("%s", text.c_str());
+                }
+
+                // Support SOFA
+                ImGui::LocalTextLinkOpenURL("Support SOFA", "https://www.sofa-framework.org/consortium/support-us/");
+
+                ImGui::End();
             }
-
-            ImGui::EndMenu();
-        }
-        else
-        {
-            ImGui::PopStyleColor();
-        }
-
-        static bool isAboutOpen = false;
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
-        if (ImGui::BeginMenu("Help"))
-        {
-            ImGui::PopStyleColor();
-
-            // Manual
-            std::string manualURL = "https://docs-support.compliance-robotics.com/docs/";
-            manualURL += (version.length()>6)? "next": version;
-            manualURL += "/Users/SOFARobotics/GUI-user-manual/";
-            ImGui::LocalTextLinkOpenURL("Sofa Robotics Manual", manualURL.c_str());
-
-            // Sofa Robotics GitHub
-            ImGui::LocalTextLinkOpenURL("Sofa Robotics GitHub", "https://github.com/SofaComplianceRobotics/SofaGLFW/tree/robotics");
-
-            // Compliance Robotics Website
-            ImGui::LocalTextLinkOpenURL("Compliance Robotics", "https://compliance-robotics.com/");
-
-            if (ImGui::MenuItem("\t About...", nullptr, false, true))
-                isAboutOpen = true;
-            ImGui::EndMenu();
-        }
-        else
-        {
-            ImGui::PopStyleColor();
-        }
-
-        if (isAboutOpen)
-        {
-            ImGui::Begin("About##SofaComplianceRobotics", &isAboutOpen, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize);
-
-            auto windowWidth = ImGui::GetWindowSize().x;
-            std::vector<std::string> texts = {"\n", "SOFA, Simulation Open-Framework Architecture \n (c) 2006 INRIA, USTL, UJF, CNRS, MGH",
-                                              "&", "(c) Compliance Robotics", "\n",
-                                              version,
-                                              "SOFA is an open-source framework for interactive physics simulation, \n"
-                                              "with an emphasis on soft body dynamics. After years of research and \n"
-                                              "development, the project remains open-source under the LGPL v2.1 license, \n"
-                                              "fostering both research and development."};
-            for (const auto& text : texts)
-            {
-                auto textWidth   = ImGui::CalcTextSize(text.c_str()).x;
-                ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-                ImGui::Text("%s", text.c_str());
-            }
-
-            // Support SOFA
-            ImGui::LocalTextLinkOpenURL("Support SOFA", "https://www.sofa-framework.org/consortium/support-us/");
-
-            ImGui::End();
         }
 
         const auto posX = ImGui::GetCursorPosX();

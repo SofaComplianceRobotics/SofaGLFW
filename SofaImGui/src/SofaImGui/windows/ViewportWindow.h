@@ -39,7 +39,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     std::string getDescription() override;
 
     void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
-    bool addAnimateButton(bool *animate, const float& shift_x);
+    bool addAnimateButton(bool *animate, const float &shift_x);
     bool addStepButton();
     bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
 
@@ -60,8 +60,9 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     double m_maxPanelItemWidth{0.0};
 
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
+    void addRecordingStatus(const ImVec4 &red);
     bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(const ImTextureID& texture);
+    void addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture);
 };
 
 }

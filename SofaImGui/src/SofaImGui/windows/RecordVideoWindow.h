@@ -21,45 +21,28 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/config.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
+#include <SofaImGui/menus/ViewMenu.h>
+#include <SofaImGui/windows/BaseWindow.h>
 #include <imgui.h>
+#include <implot.h>
+#include <implot_internal.h>
 
+namespace sofaimgui::windows {
 
-namespace sofaimgui::menus {
-
-class ViewMenu
+class SOFAIMGUI_API RecordVideoWindow : public BaseWindow
 {
-   public:
-    ViewMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI);
-    ~ViewMenu();
+public:
 
-    void addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
-                 const GLuint &texture);
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI;
+    RecordVideoWindow(const std::string& name, const bool& isWindowOpen);
+    ~RecordVideoWindow() = default;
 
-    void addShowIn3DViewMenu();
-    void addShowIn3DViewMenuItems();
-    void addAlignCameraMenu(sofa::component::visual::BaseCamera::SPtr camera);
-    void addOrthographicMenuItem(sofa::component::visual::BaseCamera::SPtr camera);
-    void addCenterCameraMenuItems(sofa::component::visual::BaseCamera::SPtr camera);
+    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    std::string getDescription() override;
 
-    void addSaveCameraMenuItem();
-    void addRestoreCameraMenuItem();
-    void addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned int>& fboSize,
-                                   const GLuint& texture);
-    void addRecordVideoMenuItem();
-    void showRecordVideo();
-
-    void addFullScreenMenuItem();
-
-    static bool openRecordVideoWindow;
-
-   protected:
-
-    void showGrid(const bool& show, const float &squareSize, const float &thickness, const sofa::type::RGBAColor& color);
-    void showOriginFrame(const bool& show);
-    void showBoundingBox(const bool& show);
+protected:
+    void showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI);
 };
 
 }
+
+

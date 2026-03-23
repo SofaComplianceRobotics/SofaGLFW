@@ -227,4 +227,13 @@ void setStyle(const std::string& style)
     }
 }
 
+ImVec4 blendColor(const ImVec4& color1, const ImVec4& color2, const float& w)
+{
+    return ImVec4((1 - w) * color1.x + w * color2.x,
+                  (1 - w) * color1.y + w * color2.y,
+                  (1 - w) * color1.z + w * color2.z,
+                  (1 - w) * color1.w + w * color2.w
+                  );
+}
+
 }
