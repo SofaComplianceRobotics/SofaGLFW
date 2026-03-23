@@ -37,11 +37,12 @@
 #include <sofa/gui/common/BaseGUI.h>
 
 #include <nfd.h>
-#include <filesystem>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 namespace sofaimgui::menus {
+
+bool ViewMenu::openRecordVideoWindow = false;
 
 using sofaglfw::SofaGLFWWindow;
 
@@ -83,6 +84,7 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
 
         ImGui::Separator();
 
+        addRecordVideoMenuItem();
         addSaveScreenShotMenuItem(fboSize, texture);
 
         ImGui::Separator();
@@ -523,22 +525,9 @@ void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned 
     {
         std::string screenshotPath = sofa::gui::common::BaseGUI::getScreenshotDirectoryPath();
         nfdchar_t *outPath;
-        std::array<nfdfilteritem_t, 1> filterItem{ {{"Image", "jpg,png"}} };
+        std::array<nfdfilteritem_t, 1> filterItem{{{"Image", "jpg,png"}}};
 
-        // Add the date and time to the filename
-        auto now = std::chrono::system_clock::now();
-        auto localTime = std::chrono::system_clock::to_time_t(now);
-        std::stringstream ss;
-
-        auto sceneFilename = m_baseGUI->getFilename();
-        if (!sceneFilename.empty())
-        {
-            std::filesystem::path path(sceneFilename);
-            ss << path.filename().replace_extension("").string() << "_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
-        } else {
-            ss << "screenshot_" << std::put_time(std::localtime(&localTime), "%F_%H-%M-%S") << ".png";
-        }
-        sceneFilename = ss.str();
+        auto sceneFilename = m_baseGUI->generateFilename("screenshot", "png");
 
         nfdresult_t result = NFD_SaveDialog(&outPath, filterItem.data(), filterItem.size(), screenshotPath.c_str(), sceneFilename.c_str());
         if (result == NFD_OKAY)
@@ -558,6 +547,17 @@ void ViewMenu::addSaveScreenShotMenuItem(const std::pair<unsigned int, unsigned 
             image.save(outPath, 90);
         }
     }
+}
+
+void ViewMenu::addRecordVideoMenuItem()
+{
+    if (ImGui::MenuItem("Record Video..."))
+        showRecordVideo();
+}
+
+void ViewMenu::showRecordVideo()
+{
+    openRecordVideoWindow = true;
 }
 
 }

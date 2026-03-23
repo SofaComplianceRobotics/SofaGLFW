@@ -193,20 +193,24 @@ void FooterStatusBar::setTempMessage(const std::string &message, const MessageTy
     m_tempMessagePath = path;
     std::string from = "GUI";
 
+    auto getFullMessage = [this] {
+        return m_tempMessage + m_tempMessagePath;
+    };
+
     switch (type) {
     case MessageType::MWARNING:
     {
-        msg_warning(from) << m_tempMessage;
+        msg_warning(from) << getFullMessage();
         break;
     }
     case MessageType::MERROR:
     {
-        msg_error(from) << m_tempMessage;
+        msg_error(from) << getFullMessage();
         break;
     }
     default:
     {
-        msg_info(from) << m_tempMessage;
+        msg_info(from) << getFullMessage();
         break;
     }
     }

@@ -64,7 +64,7 @@ void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
         static std::string selectedPlugin;
         const auto& pluginMap = sofa::helper::system::PluginManager::getInstance().getPluginMap();
 
-        if (ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags | ImGuiWindowFlags_NoDocking))
+        if (ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags))
         {
             if (ImGui::BeginChild("#LoadedPlugins", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
             {
