@@ -361,9 +361,18 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_COMPONENT"))
                     {
                         std::string *sp = static_cast<std::string*>(payload->Data);
-                        std::string nodeName = *sp;
+                        std::string componentClassName = *sp;
                         if (node)
-                            node->createChild(nodeName);
+                        {
+                            sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(componentClassName);
+                            if (! entry.creatorMap.empty())
+                            {
+                                auto creator = entry.creatorMap.begin()->second;
+                                sofa::core::objectmodel::BaseObjectDescription desc;
+                                desc.setName(componentClassName);
+                                const auto object = creator->createInstance(node, &desc);
+                            }
+                        }
                     }
                     ImGui::EndDragDropTarget();
                 }
