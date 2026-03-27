@@ -54,6 +54,7 @@ public:
     bool init(int nbMSAASamples = 0);
     void setErrorCallback() const;
     void setSimulation(sofa::simulation::NodeSPtr groot, const std::string& filename = std::string());
+    void setSelectionSettings();
     void setSimulationCanRun(bool canRun);
     void setSimulationIsRunning(bool running);
     bool simulationIsRunning() const;

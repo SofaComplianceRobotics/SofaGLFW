@@ -369,15 +369,15 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 }
             }
 
-            auto hoveredTag = sofa::core::objectmodel::Tag("GUIHovered")    ;
-            if (ImGui::IsItemHovered() && !node->hasTag(hoveredTag))
+            auto selectedTag = sofa::core::objectmodel::Tag("GUISelected")    ;
+            if (isNodeSelected && !node->hasTag(selectedTag))
             {
-                node->addTag(hoveredTag);
+                node->addTag(selectedTag);
                 highlightOglModels(node);
             }
-            else if (!ImGui::IsItemHovered() && node->hasTag(hoveredTag))
+            else if (!isNodeSelected && node->hasTag(selectedTag))
             {
-                node->removeTag(hoveredTag);
+                node->removeTag(selectedTag);
                 resetOglModels(node);
             }
 
