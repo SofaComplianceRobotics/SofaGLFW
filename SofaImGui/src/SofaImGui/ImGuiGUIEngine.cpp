@@ -1025,7 +1025,7 @@ void ImGuiGUIEngine::createGUINode()
             guinode = root->createChild(nodeName);
         }
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
-        guinode->addTag(sofa::core::objectmodel::Tag("createdByGUI"));
+        guinode->addTag(m_baseGUI->getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);
     }
 }
