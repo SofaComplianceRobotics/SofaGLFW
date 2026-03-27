@@ -36,7 +36,6 @@
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
-#include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
@@ -44,11 +43,11 @@
 #include <SofaImGui/windows/DataMonitorWindow.h>
 
 #include <SofaImGui/windows/PluginsWindow.h>
+#include <SofaImGui/windows/MouseManagerWindow.h>
 
 #include <SofaImGui/menus/ViewMenu.h>
 
-#include <SofaImGui/models/KinematicsController.h>
-#include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
@@ -86,20 +85,21 @@ public:
 
     void saveProject(const bool& saveAs=false);
 
-    void setKinematicsController(sofa::simulation::Node::SPtr groot,
-                         softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                         softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
+    // to remove
+    // void setKinematicsController(sofa::simulation::Node::SPtr groot,
+    //                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
+    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
+    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
+    //                              softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
 
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
 
-    models::SimulationState& getSimulationState() {return m_simulationState;}
+    // to remove
+    // models::SimulationState& getSimulationState() {return m_simulationState;}
+    // std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
 
-    std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
-
-    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
+    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
     windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
@@ -113,6 +113,8 @@ public:
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
+
+    models::KinematicsGUIDataManager m_kinematicsDataManager = models::KinematicsGUIDataManager();
 
 protected:
 
@@ -151,10 +153,8 @@ protected:
     void createGUINode();
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
-
-    models::KinematicsController::SPtr m_kinematicsController;
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
-    models::SimulationState m_simulationState;
+
     bool m_animate{false};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};

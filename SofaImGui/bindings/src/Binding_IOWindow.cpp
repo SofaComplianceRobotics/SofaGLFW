@@ -47,10 +47,10 @@ namespace sofaimgui::python3
 		if (engine)
 		{
 			engine->m_IOWindow.addData(label,
-				getDataFromPyObject(data, type),
-				getDataFromPyObject(min, type),
-				getDataFromPyObject(max, type),
-				group, help, role);
+                                        getDataFromPyObject(data, type),
+                                        getDataFromPyObject(min, type),
+                                        getDataFromPyObject(max, type),
+                                        group, help, role);
 		}
 	}
 

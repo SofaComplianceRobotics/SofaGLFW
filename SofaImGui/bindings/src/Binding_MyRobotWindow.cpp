@@ -31,7 +31,7 @@
 #include <sofa/gui/common/GUIManager.h>
 
 #include <SofaImGui/ImGuiGUI.h>
-#include <SofaImGui/models/GUIData.h>
+#include <SofaImGui/models/guidata/GUIData.h>
 #include <Module_SofaImGui.h>
 
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()

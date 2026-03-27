@@ -20,50 +20,31 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #pragma once
+#include <SofaImGui/config.h>
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/windows/StateWindow.h>
-#include <SofaImGui/menus/ViewMenu.h>
-#include <imgui.h>
+#include <SofaImGui/models/guidata/GUIData.h>
 
-namespace sofaimgui::windows {
+#include <unordered_set>
 
-class SOFAIMGUI_API ViewportWindow : public BaseWindow
+namespace sofaimgui::models::guidata {
+
+class SOFAIMGUI_API GUIDataManager
 {
-   public:
+public:
+    virtual GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = GUIData::DEFAULTGROUP,
+                                                     const std::string& help = "");
+    virtual GUIData::SPtr addGUIData(const GUIData::SPtr& data);
+    virtual void removeGUIData(GUIData::SPtr data);
+    void clearGUIData() { m_GUIData.clear(); }
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen);
-    ~ViewportWindow() = default;
+protected:
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
-    std::string getDescription() override;
-
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
-    bool addAnimateButton(bool *animate, const float& shift_x);
-    bool addStepButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
-
-    std::pair<float, float> m_windowSize{0., 0.};
-
-    bool isMouseOnViewport() {return m_isMouseOnViewport;}
-    bool isFocusOnViewport() {return m_isFocusOnViewport;}
-
-   protected:
-
-    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
-
-    float m_fps{0.f};
-
-    bool m_isMouseOnViewport{false};
-    bool m_isFocusOnViewport{false};
-
-    double m_maxPanelItemWidth{0.0};
-
-    void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
-    bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(const ImTextureID& texture);
+    std::unordered_set<GUIData::SPtr, GUIDataHash, GUIDataEqual> m_GUIData; /// A set of GUIData to use in the window
+    std::map<std::string, std::vector<GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
 };
 
 }
-
-

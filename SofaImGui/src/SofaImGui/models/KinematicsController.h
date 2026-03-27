@@ -32,7 +32,7 @@
 
 namespace sofaimgui::models {
 
-class SOFAIMGUI_API KinematicsController : public sofa::component::controller::Controller
+class SOFAIMGUI_API KinematicsController : sofa::component::controller::Controller
 {
    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
@@ -50,12 +50,12 @@ class SOFAIMGUI_API KinematicsController : public sofa::component::controller::C
     };
 
     KinematicsController(sofa::simulation::Node::SPtr groot,
-                 softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                 sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                 sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                 softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
+                         softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
+                         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
+                         sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
+                         softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
     ~KinematicsController() = default;
-    
+
     const RigidCoord& getTCPTargetInitPosition();
     RigidCoord getTCPTargetPosition();
     void getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz);
@@ -77,12 +77,12 @@ class SOFAIMGUI_API KinematicsController : public sofa::component::controller::C
    protected:
 
     sofa::simulation::Node::SPtr m_groot;
-    softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_solver;
+    softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver;
+
     sofa::core::behavior::BaseMechanicalState::SPtr m_TCPTargetState;
     sofa::core::behavior::BaseMechanicalState::SPtr m_TCPState;
     softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr m_rotationEffector;
     RigidCoord m_initTCPTargetPosition;
-    
     double m_rotationWeight[3];
     std::vector<Actuator> m_actuators;
     

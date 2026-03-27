@@ -91,23 +91,23 @@ sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::string& label
                                                         const std::pair<sofa::core::BaseData*, bool>& min,
                                                         const std::pair<sofa::core::BaseData*, bool>& max,
                                                         const std::string& group,
-                                                        const std::string& tooltip, Section section)
+                                                        const std::string& help, Section section)
 {
-	auto added = BaseWindow::addData(label, data, min, max, group, tooltip);
+    auto added = BaseWindow::addData(label, data, min, max, group, help);
 	m_sectionedGUIData[section].insert(added);
 	return added;
 }
 
 void MyRobotWindow::removeGUIData(sofaimgui::models::GUIData::SPtr guiData)
 {
-	BaseWindow::removeGUIData(guiData);
+    BaseWindow::removeGUIData(guiData);
 	m_sectionedGUIData[Section::INFORMATION].erase(guiData);
 	m_sectionedGUIData[Section::SETTINGS].erase(guiData);
 }
 
 bool MyRobotWindow::enabled()
 {
-    return (m_connection.listAvailablePortsCallback || !BaseWindow::m_groupedGUIData.empty() || !BaseWindow::m_GUIData.empty());
+    return (m_connection.listAvailablePortsCallback || !m_groupedGUIData.empty() || !m_GUIData.empty());
 }
 
 void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)

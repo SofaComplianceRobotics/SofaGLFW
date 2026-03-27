@@ -23,9 +23,8 @@
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
-#include <SofaImGui/models/GUIData.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <string>
-#include <unordered_set>
 
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
@@ -76,7 +75,7 @@ protected:
 
 };
 
-class SOFAIMGUI_API BaseWindow
+class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 {
    public:
     BaseWindow();
@@ -110,16 +109,9 @@ class SOFAIMGUI_API BaseWindow
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench();
 
-    virtual sofaimgui::models::GUIData::SPtr addData(const std::string& label,
-                                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::string& group = models::GUIData::DEFAULTGROUP,
-                                                     const std::string& tooltip = "");
-    virtual sofaimgui::models::GUIData::SPtr addGUIData(const sofaimgui::models::GUIData::SPtr& data);
-    virtual void removeGUIData(sofaimgui::models::GUIData::SPtr data);
-    void clearGUIData() { m_GUIData.clear(); }
-
+    using models::guidata::GUIDataManager::addData;
+    using models::guidata::GUIDataManager::addGUIData;
+    using models::guidata::GUIDataManager::removeGUIData;
 
    protected:
 
@@ -130,13 +122,13 @@ class SOFAIMGUI_API BaseWindow
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
 
+    using models::guidata::GUIDataManager::m_GUIData;
+    using models::guidata::GUIDataManager::m_groupedGUIData;
+
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
-
-    std::unordered_set<sofaimgui::models::GUIData::SPtr, sofaimgui::models::GUIDataHash, sofaimgui::models::GUIDataEqual> m_GUIData; /// A set of GUIData to use in the window
-	std::map<std::string, std::vector<sofaimgui::models::GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
 };
 }

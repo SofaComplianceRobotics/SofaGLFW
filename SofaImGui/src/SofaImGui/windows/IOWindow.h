@@ -23,10 +23,10 @@
 
 #include <string>
 #include <map>
-#include <SofaImGui/models/KinematicsController.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
@@ -137,21 +137,21 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
     
-    void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
+    // void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
 
-    sofaimgui::models::GUIData::SPtr addData(const std::string& label,
-                                             const std::pair<sofa::core::BaseData*, bool>& data,
-                                             const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                             const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                             const std::string& group = models::GUIData::DEFAULTGROUP,
-                                             const std::string& tooltip = "",
-                                             Role role = Role::ALL);
+    sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = models::guidata::GUIData::DEFAULTGROUP,
+                                                     const std::string& tooltip = "",
+                                                     Role role = Role::ALL);
 
-    void clearWindow() override { m_kinematicsController = nullptr; m_selectableData.clear(); }
+    void clearWindow() override {/* m_kinematicsController = nullptr;*/ m_selectableData.clear(); }
 
    protected:
     
-    models::KinematicsController::SPtr m_kinematicsController;
+    // models::KinematicsController::SPtr m_kinematicsController;
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
 
@@ -173,7 +173,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     std::map<std::string, bool> m_publishListboxItems;
     std::map<std::string, bool> m_subcriptionListboxItems;
 
-    std::map<Role, std::map<std::string, sofaimgui::models::GUIData::SPtr>> m_selectableData; // <Role<label, GUIData::SPtr>> Fed by the user from the python bindings API
+    std::map<Role, std::map<std::string, sofaimgui::models::guidata::GUIData::SPtr>> m_selectableData; // <Role<label, GUIData::SPtr>> Fed by the user from the python bindings API
 
     float m_itemWidth;
 

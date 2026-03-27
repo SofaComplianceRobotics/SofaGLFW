@@ -33,7 +33,7 @@ KinematicsController::KinematicsController(sofa::simulation::Node::SPtr groot,
                            sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
                            softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector)
     : m_groot(groot)
-    , m_solver(solver)
+    , m_inverseProblemSolver(solver)
     , m_TCPTargetState(TCPTargetMechanical)
     , m_TCPState(TCPMechanical)
     , m_rotationEffector(rotationEffector)
@@ -187,7 +187,7 @@ void KinematicsController::handleEvent(sofa::core::objectmodel::Event *event)
 {
     if (sofa::simulation::SolveConstraintSystemEndEvent::checkEventType(event) && m_updateSolutionOnSolveEndEvent)
     {
-        const auto& problem = m_solver->getConstraintProblem();
+        const auto& problem = m_inverseProblemSolver->getConstraintProblem();
         softrobotsinverse::solver::module::QPInverseProblem* inverseProblem = dynamic_cast<softrobotsinverse::solver::module::QPInverseProblem*>(problem);
 
         if (inverseProblem)

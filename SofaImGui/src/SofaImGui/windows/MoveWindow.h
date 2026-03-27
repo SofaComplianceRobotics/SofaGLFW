@@ -22,7 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/KinematicsController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/widgets/MovePad.h>
 #include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
@@ -40,13 +40,13 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
 
-    void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
+    // void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
     void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
 
     void setActuatorsDescriptions(const std::string &description);
     void setActuatorsLimits(const double &min, const double &max);
     void setActuatorLimits(const sofa::Size &id, const double &min, const double &max);
-    void setActuators(std::vector<models::KinematicsController::Actuator> actuators) {m_actuators = actuators;}
+    // void setActuators(std::vector<models::KinematicsController::Actuator> actuators) {m_actuators = actuators;}
 
     struct Accessory {
         double buffer;
@@ -65,11 +65,11 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     void clearWindow() override;
 
     void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
-    bool hasActuators() {return !m_actuators.empty();}
+    // bool hasActuators() {return !m_actuators.empty();}
 
    protected:
     
-    models::KinematicsController::SPtr m_kinematicsController;
+    // models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
     std::string m_TCPPositionDescription{"TCP Target Position (mm)"};
     std::string m_TCPRotationDescription{"TCP Target Rotation (rad)"};
     double m_TCPMinPosition{-500.};
@@ -84,7 +84,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     double m_ry;
     double m_rz;
     
-    std::vector<models::KinematicsController::Actuator> m_actuators;
+    // std::vector<models::KinematicsController::Actuator> m_actuators;
     std::string m_actuatorsDescription{"Motors Position (rad)"};
 
     bool m_freeRoll{true};
@@ -95,7 +95,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     ImGui::MovePad m_movePad;
 
-    bool enabled() override {return (m_kinematicsController!=nullptr || !m_actuators.empty());}
+    bool enabled() override {return true; /*(m_kinematicsController!=nullptr || !m_actuators.empty());*/}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

@@ -165,29 +165,30 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
     projectSettings.SaveFile(projectFile.c_str());
 }
 
-void ImGuiGUIEngine::setKinematicsController(sofa::simulation::Node::SPtr groot,
-                                     softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                                     sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                                     core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                                     softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
-{
-    if (m_kinematicsController)
-        groot->removeObject(m_kinematicsController.get());
+// to remove
+// void ImGuiGUIEngine::setKinematicsController(sofa::simulation::Node::SPtr groot,
+//                                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
+//                                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
+//                                              core::behavior::BaseMechanicalState::SPtr TCPMechanical,
+//                                              softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
+// {
+//     if (m_kinematicsController)
+//         groot->removeObject(m_kinematicsController.get());
 
-    m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
-    m_kinematicsController->setName(groot->getNameHelper().resolveName(m_kinematicsController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
+//     m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
+//     m_kinematicsController->setName(groot->getNameHelper().resolveName(m_kinematicsController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
 
-    groot->addObject(m_kinematicsController.get());
-    m_programWindow.setKinematicsController(m_kinematicsController);
-    m_moveWindow.setKinematicsController(m_kinematicsController);
-    m_IOWindow.setKinematicsController(m_kinematicsController);
-}
+//     groot->addObject(m_kinematicsController.get());
+//     m_programWindow.setKinematicsController(m_kinematicsController);
+//     m_moveWindow.setKinematicsController(m_kinematicsController);
+//     m_IOWindow.setKinematicsController(m_kinematicsController);
+// }
 
 void ImGuiGUIEngine::clearGUI()
 {
-    m_kinematicsController = nullptr;
-
-    m_simulationState.clearData();
+    // to remove
+    // m_kinematicsController = nullptr;
+    // m_simulationState.clearData();
 
     for (auto& window : m_windows) 
     {
@@ -324,7 +325,8 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
-        m_stateWindow->setSimulationState(m_simulationState);
+        // to remove
+        // m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
@@ -507,7 +509,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (workbench != Workbench::SCENE_EDITOR)
     {
         m_animate = groot->animate_.getValue();
-        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsController? 3: 1);
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsGUIDataManager? 3: 1);
 
         // Animate button
         if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
@@ -528,7 +530,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        if(m_kinematicsController)
+        if(m_kinematicsGUIDataManager)
         {
             int dWindow = drivingWindow;
             const char* listTabs[getDrivingWindowCount()];
@@ -934,23 +936,29 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     clearGUI();
     Utils::loadSimulation(m_baseGUI, reload, filename);
     createGUINode();
-    m_stateWindow->setSimulationState(m_simulationState);
+    // to remove
+    // m_stateWindow->setSimulationState(m_simulationState);
     enableWindows();
 }
 
 void ImGuiGUIEngine::createGUINode()
 {
-    const char* nodeName = m_baseGUI->getGUINodeName();
+    const auto nodeName = m_baseGUI->getGUINodeName();
     sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
     if (root)
     {
         sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
         if (!guinode)
-        {
             guinode = root->createChild(nodeName);
-        }
-        guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
-        guinode->addTag(m_baseGUI->getGUITag());
+
+        const auto noBBoxTag = sofa::core::objectmodel::Tag("NoBBox");
+        if (!guinode->hasTag(noBBoxTag))
+            guinode->addTag(noBBoxTag);
+
+        const auto& guiTag = m_baseGUI->getGUITag();
+        if (!guinode->hasTag(guiTag))
+            guinode->addTag(guiTag);
+
         guinode->f_bbox.setParent(&root->f_bbox);
     }
 }

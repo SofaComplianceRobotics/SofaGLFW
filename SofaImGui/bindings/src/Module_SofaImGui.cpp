@@ -37,7 +37,6 @@
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
-#include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
 #include <sofa/component/constraint/lagrangian/solver/ConstraintSolverImpl.h>
 
 
@@ -46,36 +45,111 @@ namespace py { using namespace pybind11; }
 namespace sofaimgui::python3
 {
 
-void setKinematicsComponents(sofa::simulation::Node &TCPTargetNode,
-                             sofa::simulation::Node &TCPNode,
-                             sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
+void setIPController(sofa::simulation::Node &TCPTargetNode,
+                     sofa::simulation::Node &TCPNode,
+                     sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
+{
+    msg_deprecated("SofaImGui.setIPController") << "This method is deprecated, use setInverseProblemSolver, addTCP, and addActuator instead.";
+
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+    softrobotsinverse::solver::QPInverseProblemSolver::SPtr qpsolver = dynamic_cast<softrobotsinverse::solver::QPInverseProblemSolver*>(&solver);
+
+    if (engine && qpsolver)
+    {
+        sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPTargetNode.getRoot());
+
+        // Find the PositionEffector component corresponding to the rotation if any
+        sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
+        groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);
+        softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes>* rotationEffector{ nullptr };
+
+        for (auto* effector: effectors)
+        {
+            auto useDirections = effector->d_useDirections.getValue();
+            if (useDirections[0] || useDirections[1] || useDirections[2])
+                continue;
+            rotationEffector = effector;
+            break;
+        }
+
+        engine->m_kinematicsDataManager.setInverseProblemSolver(qpsolver);
+    }
+}
+
+void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl* solver)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+    softrobotsinverse::solver::QPInverseProblemSolver::SPtr qpsolver = dynamic_cast<softrobotsinverse::solver::QPInverseProblemSolver*>(solver);
 
-    if (gui)
+    if (engine && qpsolver)
     {
-        std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
-        softrobotsinverse::solver::QPInverseProblemSolver::SPtr qpsolver = dynamic_cast<softrobotsinverse::solver::QPInverseProblemSolver*>(&solver);
+        engine->m_kinematicsDataManager.setInverseProblemSolver(qpsolver);
+    }
+}
 
-        if (engine && qpsolver)
+void addTCP(softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+    if (engine)
+    {
+        if (constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR)
         {
-            sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPTargetNode.getRoot());
+            engine->m_kinematicsDataManager.addTCP(constraint,
+                                                   getDataFromPyObject(min, "float"),
+                                                   getDataFromPyObject(max, "float"),
+                                                   group,
+                                                   help);
+        } else {
+            msg_error("[addTCP]") << "Expects a PositionEffector component as the first parameter.";
+        }
+    }
+}
 
-            // Find the PositionEffector component corresponding to the rotation if any
-            sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
-            groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);
-            softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes>* rotationEffector{ nullptr };
+void addActuator(std::string label, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
-            for (auto* effector: effectors)
-            {
-                auto useDirections = effector->d_useDirections.getValue();
-                if (useDirections[0] || useDirections[1] || useDirections[2])
-                    continue;
-                rotationEffector = effector;
-                break;
-            }
+    if (engine)
+    {
+        if(constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR)
+        {
+            engine->m_kinematicsDataManager.addActuator(label,
+                                                        constraint,
+                                                        getDataFromPyObject(min, "float"),
+                                                        getDataFromPyObject(max, "float"),
+                                                        group,
+                                                        help);
+        } else {
+            msg_error("[addTCP]") << "Expects an Actuator component as the first parameter.";
+        }
+    }
+}
 
-            engine->setKinematicsController(groot, qpsolver, TCPTargetNode.getMechanicalState(), TCPNode.getMechanicalState(), rotationEffector);
+void addAccessoryComponent(std::string accessoryLabel, std::string componentLabel, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+    if (engine)
+    {
+        if (constraint && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
+        {
+            engine->m_kinematicsDataManager.addAccessoryComponent(accessoryLabel,
+                                                                  componentLabel,
+                                                                  constraint,
+                                                                  getDataFromPyObject(min, "float"),
+                                                                  getDataFromPyObject(max, "float"),
+                                                                  group,
+                                                                  help);
+        }
+        else
+        {
+            msg_error("[addTCP]") << "Expects either a PositionEffector of Actuator component as the third parameter.";
         }
     }
 }
@@ -83,16 +157,10 @@ void setKinematicsComponents(sofa::simulation::Node &TCPTargetNode,
 bool getRobotConnectionToggle()
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
-    if (gui)
-    {
-        std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
-
-        if (engine)
-        {
-            return engine->getRobotConnection();
-        }
-    }
+    if (engine)
+        return engine->getRobotConnection();
 
     return false;
 }
@@ -100,22 +168,22 @@ bool getRobotConnectionToggle()
 void setRobotConnectionToggle(const bool& robotConnectionToggle)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
-    if (gui)
-    {
-        std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
-
-        if (engine)
-        {
-            engine->setRobotConnection(robotConnectionToggle);
-        }
-    }
+    if (engine)
+        engine->setRobotConnection(robotConnectionToggle);
 }
 
 PYBIND11_MODULE(ImGui, m)
 {
-    m.def("setIPController", &setKinematicsComponents); // TODO: Deprecate
-    m.def("setKinematicsComponents", &setKinematicsComponents);
+    // Deprecated
+    m.def("setIPController", &setIPController);
+
+    m.def("setInverseProblemSolver", &setInverseProblemSolver);
+    m.def("addTCP", &addTCP);
+    m.def("addActuator", &addActuator);
+    m.def("addAccessoryComponent", &addAccessoryComponent);
+
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
 

@@ -134,7 +134,7 @@ public:
     }
 
 
-    const char* getGUINodeName() {return "GUI";}
+    constexpr static std::string getGUINodeName() {return "GUI";}
     sofa::core::objectmodel::Tag getGUITag() {return sofa::core::objectmodel::Tag("createdByGUI");}
 
 

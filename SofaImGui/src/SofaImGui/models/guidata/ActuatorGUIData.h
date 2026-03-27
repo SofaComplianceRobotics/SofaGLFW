@@ -21,49 +21,33 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/windows/StateWindow.h>
-#include <SofaImGui/menus/ViewMenu.h>
-#include <imgui.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 
-namespace sofaimgui::windows {
 
-class SOFAIMGUI_API ViewportWindow : public BaseWindow
+namespace sofaimgui::models::guidata
 {
-   public:
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen);
-    ~ViewportWindow() = default;
+class ActuatorGUIData: public GUIData
+{
+public:
+    ActuatorGUIData(OwnedBaseData::SPtr data,
+                    OwnedBaseData::SPtr min,
+                    OwnedBaseData::SPtr max,
+                    std::string label,
+                    std::string group,
+                    std::string help,
+                    size_t _indexInProblem,
+                    int _valueType)
+        : GUIData(data, min, max, label, group, help)
+        , indexInProblem(_indexInProblem)
+    {
+        valueType.setSelectedItem(_valueType);
+    }
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
-    std::string getDescription() override;
+    size_t indexInProblem;
+    sofa::helper::OptionsGroup valueType{"force", "displacement"};
 
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
-    bool addAnimateButton(bool *animate, const float& shift_x);
-    bool addStepButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
-
-    std::pair<float, float> m_windowSize{0., 0.};
-
-    bool isMouseOnViewport() {return m_isMouseOnViewport;}
-    bool isFocusOnViewport() {return m_isFocusOnViewport;}
-
-   protected:
-
-    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
-
-    float m_fps{0.f};
-
-    bool m_isMouseOnViewport{false};
-    bool m_isFocusOnViewport{false};
-
-    double m_maxPanelItemWidth{0.0};
-
-    void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
-    bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(const ImTextureID& texture);
+protected:
 };
 
 }
-
-
