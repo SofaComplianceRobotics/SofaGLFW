@@ -66,8 +66,13 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
 
     auto c = baseGUI->m_selectionColor;
     m_highlightMaterial.setColor(c.r(), c.g(), c.b(), c.a());
-    m_highlightMaterial.emissive.set(c.r()*0.65, c.g()*0.65, c.b()*0.65, c.a());
+    float s = 0.7;
+    m_highlightMaterial.emissive.set(c.r()*s, c.g()*s, c.b()*s, c.a());
+    m_highlightMaterial.ambient.set(c.r()*s, c.g()*s, c.b()*s, c.a());
+    m_highlightMaterial.diffuse.set(c.r()*s, c.g()*s, c.b()*s, c.a());
     m_highlightMaterial.useEmissive = true;
+    m_highlightMaterial.useAmbient = true;
+    m_highlightMaterial.useDiffuse = true;
 
     if (isOpen())
     {
