@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "Style.h"
 #include <imgui_internal.h>
 #include <sofa/gl/component/rendering3d/OglModel.h>
 #include <SofaImGui/windows/SceneGraphWindow.h>
@@ -327,19 +328,40 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         {
             const auto o = baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
-            const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.5);
+            const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
             const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
             // Node
             if (node == nullptr) return;
+            ImGui::TableNextRow();
+            bool highlightRow = ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex();
+
+            if (workbench == Workbench::SCENE_EDITOR && highlightRow)
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(selectedColorBg));
+
+            ImGui::TableNextColumn();
+
+            if (workbench == Workbench::SCENE_EDITOR) // Show add button
+            {
+                if (highlightRow && !node->hasTag(baseGUI->getGUITag()))
+                {
+                    bool newNode = showAddNode(node);
+                    ImGui::SameLine(0, 0);
+                    if (newNode)
+                        ImGui::SetNextItemOpen(true);
+                }
+                else
+                {
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX()+ImGui::GetFrameHeight());
+                }
+            }
+
             if (treeDepth == 0)
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
             if (expandAll)
                 ImGui::SetNextItemOpen(true);
             if (collapseAll)
                 ImGui::SetNextItemOpen(false);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
 
             const auto& nodeName = node->getName();
             const bool& isDeactivated = !node->is_activated.getValue();
@@ -355,11 +377,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             std::string nodeIcons = ICON_FA_SITEMAP " ";
 
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, selectedColorBg);
             const bool open = ImGui::TreeNodeEx(std::string(nodeIcons + nodeName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth); // Name
-            ImGui::PopStyleColor();
 
-            if (workbench == Workbench::SCENE_EDITOR)
+            if (workbench == Workbench::SCENE_EDITOR) // Drop component from Component Window
             {
                 if (ImGui::BeginDragDropTarget())
                 {
@@ -419,7 +439,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             ImGui::TextDisabled("Node"); // Class Name
 
             bool removed = false;
-            if (workbench == Workbench::SCENE_EDITOR)
+            if (workbench == Workbench::SCENE_EDITOR) // Add remove button
             {
                 ImGui::TableNextColumn();
                 if (parent)
@@ -427,8 +447,6 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                     removed = showRemoveNode(baseGUI, parent, node);
                     ImGui::SameLine();
                 }
-                if (!removed)
-                    showAddNode(baseGUI, node);
             }
 
             // Components in the node
@@ -446,7 +464,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 // Child nodes
                 for (const auto child : node->getChildren())
                 {
+                    ImGui::PushID(child->getName().c_str());
                     showNode(node, dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
+                    ImGui::PopID();
                 }
                 --treeDepth;
                 ImGui::Unindent();
@@ -464,15 +484,22 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
         {
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Type");
-            if (workbench == Workbench::SCENE_EDITOR)
-                ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+            if (workbench == Workbench::SCENE_EDITOR) // Delete buttons
+                ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoResize, ImGui::GetFrameHeightWithSpacing());
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
             sofa::simulation::Node *groot = baseGUI->getRootNode().get();
 
+            const auto o = baseGUI->m_selectionColor;
+            const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, workbench == Workbench::SCENE_EDITOR? ImVec4(0., 0., 0., 0): selectedColorBg);
+
             showNode(nullptr, groot, showSearch, showFiltered);
+
+            ImGui::PopStyleColor();
+
             baseGUI->setCurrentSelection(m_selection);
 
             ImGui::EndTable();
@@ -491,6 +518,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 {
     const auto o = baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
+    const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
     int i = 0;
@@ -507,6 +535,11 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
         {
             ImGui::PushID(object);
             ImGui::TableNextRow();
+            bool highlightRow = ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex();
+
+            if (workbench == Workbench::SCENE_EDITOR && highlightRow)
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(selectedColorBg));
+
             ImGui::TableNextColumn();
             ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnArrow;
 
@@ -529,12 +562,17 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
             ImGui::PushID(i++);
             ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
+            if (workbench == Workbench::SCENE_EDITOR && highlightRow)
+                ImGui::AlignTextToFramePadding();
             const auto objectOpen = ImGui::TreeNodeEx(std::string(icon + " ").c_str(), objectFlags);
             ImGui::PopStyleColor();
 
-            const auto& templateName = object->getTemplateName();
-            if (!templateName.empty())
-                ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+            if (workbench != Workbench::SCENE_EDITOR) // Templates are displayed elsewhere
+            {
+                const auto& templateName = object->getTemplateName();
+                if (!templateName.empty())
+                    ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+            }
             ImGui::PopID();
 
             { // Double click on the component, open the window
@@ -564,6 +602,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
             ImGui::TableNextColumn();
             ImGui::TextDisabled("%s", objectClassName.c_str()); // Class Name
+
             sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(objectClassName);
             if (! entry.creatorMap.empty())
             {
@@ -573,10 +612,82 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             }
 
             bool removed = false;
-            if (workbench == Workbench::SCENE_EDITOR)
+
+            if (workbench == Workbench::SCENE_EDITOR) // Show template as option
+            {
+                const size_t nbTemplates = object->getTemplateName().empty()? 0: entry.creatorMap.size();
+                int rowIndex = ImGui::TableGetRowIndex();
+                bool rowHovered = ImGui::TableGetHoveredRow() == rowIndex || m_modifyingRow == rowIndex;
+
+                if (nbTemplates > 0)
+                {
+                    // Has at least one template
+                    ImGui::SameLine();
+                    ImGui::Text("/");
+                    ImGui::SameLine();
+
+                    static int componentTemplateIndex = 0;
+                    static std::vector<std::string> componentTemplatesList;
+
+                    if (rowHovered) // Update list and selection index on hover
+                    {
+                        componentTemplatesList.clear();
+                        componentTemplatesList.reserve(nbTemplates);
+                        int i=0;
+                        for (const auto& [templateInstance, creator] : entry.creatorMap)
+                        {
+                            componentTemplatesList.push_back(templateInstance);
+                            if (templateInstance == object->getTemplateName())
+                                componentTemplateIndex = i;
+                            i++;
+                        }
+                    }
+
+                    if (rowHovered)
+                    {
+                        if (componentTemplatesList.size() == nbTemplates)
+                        {
+                            ImGui::SameLine();
+                            ImGui::PushItemWidth(ImGui::CalcTextSize(object->getTemplateName().c_str()).x + ImGui::GetFrameHeight() * 2);
+
+                            std::string currentTemplate = componentTemplatesList[componentTemplateIndex];
+                            if (ImGui::BeginCombo("##Template", currentTemplate.c_str(), ImGuiComboFlags_None))
+                            {
+                                m_modifyingRow = rowIndex;
+
+                                for (size_t n = 0; n < nbTemplates; n++)
+                                {
+                                    if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
+                                    {
+                                        auto componentClassName = object->getClassName();
+                                        node->removeObject(object);
+                                        removed = true;
+
+                                        auto creator = entry.creatorMap.find(componentTemplatesList[n])->second;
+                                        sofa::core::objectmodel::BaseObjectDescription desc;
+                                        desc.setName(componentClassName);
+                                        creator->createInstance(node, &desc);
+                                        m_modifyingRow = -1;
+                                    }
+                                }
+
+                                ImGui::EndCombo();
+                            }
+                            else
+                                m_modifyingRow = -1;
+                            ImGui::PopItemWidth();
+                        }
+                    }
+                    else
+                        ImGui::Text("%s", object->getTemplateName().c_str());
+                }
+            }
+
+            if (workbench == Workbench::SCENE_EDITOR) // Show delete buttons
             {
                 ImGui::TableNextColumn();
-                removed = showRemoveComponent(baseGUI, node, object);
+                if (!removed)
+                    removed = showRemoveComponent(baseGUI, node, object);
             }
 
             ImGui::PopID();
@@ -608,9 +719,12 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                           ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth);
                         ImGui::PopStyleColor();
 
-                        const auto& templateName = object->getTemplateName();
-                        if (!templateName.empty())
-                            ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+                        if (workbench != Workbench::SCENE_EDITOR)
+                        {
+                            const auto& templateName = object->getTemplateName();
+                            if (!templateName.empty())
+                                ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
+                        }
                         { // Double click on the component, open the window
                             if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                             {
@@ -632,10 +746,8 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                         ImGui::TableNextColumn();
                         ImGui::TextDisabled("%s", slave->getClassName().c_str()); // Class Name
 
-                        if (workbench == Workbench::SCENE_EDITOR)
-                        {
+                        if (workbench == Workbench::SCENE_EDITOR) // We cannot delete those components
                             ImGui::TableNextColumn();
-                        }
 
                         ImGui::PopID();
                     }
@@ -1032,52 +1144,69 @@ void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
     }
 }
 
-void SceneGraphWindow::showAddNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *node)
+bool SceneGraphWindow::showAddNode(sofa::simulation::Node *node)
 {
-    if (node && !node->hasTag(baseGUI->getGUITag()))
+    bool clicked = false;
+    if (node)
     {
-        auto text = ICON_FA_PLUS"   ";
-        ImGui::Text("%s", text);
-        ImGui::SetItemTooltip("Add Node");
-        if(ImGui::IsItemClicked())
+        if(ImGui::Button("\xe2\x9c\x9a", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
         {
             node->createChild("New Node");
+            clicked = true;
         }
+        ImGui::SetItemTooltip("Add New Node");
     }
+    return clicked;
 }
 
 bool SceneGraphWindow::showRemoveNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::simulation::Node *node)
 {
+    bool clicked = false;
     if (node && parent && !node->hasTag(baseGUI->getGUITag()))
     {
-        auto text = ICON_FA_TRASH_CAN;
-        ImGui::Text("%s", text);
-        ImGui::SetItemTooltip("Delete Node");
-        if(ImGui::IsItemClicked())
+        if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            parent->removeChild(node);
-            return true;
+            ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_Button, red);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
+
+            if(ImGui::Button(ICON_FA_TRASH_CAN, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            {
+                parent->removeChild(node);
+                clicked = true;
+            }
+            ImGui::SetItemTooltip("Delete Node");
+
+            ImGui::PopStyleColor(3);
         }
     }
-
-    return false;
+    return clicked;
 }
 
 bool SceneGraphWindow::showRemoveComponent(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component)
 {
+    bool clicked = false;
     if (component && parent && !component->hasTag(baseGUI->getGUITag()))
     {
-        auto text = ICON_FA_TRASH_CAN;
-        ImGui::Text("%s", text);
-        ImGui::SetItemTooltip("Delete Component");
-        if(ImGui::IsItemClicked())
+        if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            parent->removeObject(component);
-            return true;
+            ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_Button, red);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
+
+            if(ImGui::Button(ICON_FA_TRASH_CAN, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            {
+                parent->removeObject(component);
+                clicked = true;
+            }
+            ImGui::SetItemTooltip("Delete Component");
+
+            ImGui::PopStyleColor(3);
         }
     }
-
-    return false;
+    return clicked;
 }
 
 }
