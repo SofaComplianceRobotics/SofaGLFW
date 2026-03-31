@@ -189,6 +189,7 @@ void ViewMenu::showBoundingBox(const bool& show)
                 auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
                 guiNode->addObject(newBBox);
                 newBBox->setName("VisualBoundingBox");
+                newBBox->addTag(m_baseGUI->getGUITag());
                 newBBox->d_enable.setValue(show);
                 newBBox->f_bbox.setParent(&groot->f_bbox);
                 newBBox->d_color.setValue(sofa::type::RGBAColor::white());

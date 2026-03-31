@@ -222,9 +222,9 @@ void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedCo
 
     std::map<std::string, std::map<std::string, DataInfo>> allData;
     {
-        const auto tmpNode = sofa::core::objectmodel::New<sofa::simulation::Node>("tmp");
         for (const auto& [templateInstance, creator] : selectedComponent->creatorMap)
         {
+            const auto tmpNode = sofa::core::objectmodel::New<sofa::simulation::Node>("tmp");
             sofa::core::objectmodel::BaseObjectDescription desc;
             const auto object = creator->createInstance(tmpNode.get(), &desc);
             if (object)
