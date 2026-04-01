@@ -49,8 +49,11 @@ protected:
 
     sofa::type::Material m_highlightMaterial;
 
-    int m_modifyingRow = -1;
-    bool m_renaming = false;
+    int m_modifyingRow{-1};
+
+    bool m_renaming{false};
+    bool m_renamingTreeOpen{false};
+    sofa::core::objectmodel::Base* m_renamingObject{nullptr};
 
     void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
                    std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
@@ -84,7 +87,7 @@ protected:
     void resetOglModels(sofa::simulation::Node *node);
 
     bool showTemplateCombo(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node);
-    bool showName(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, const bool& isSelected, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
+    bool showName(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
 
     bool showAddNodeButton(sofa::simulation::Node *node);
 

@@ -381,7 +381,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             std::string nodeIcon = ICON_FA_SITEMAP " ";
 
-            const bool open = showName(baseGUI, node, nodeIcon, node->getName(), isNodeSelected);
+            const bool open = showName(baseGUI, node, nodeIcon, node->getName());
 
             if (workbench == Workbench::SCENE_EDITOR) // Drop component from Component Window
             {
@@ -478,7 +478,6 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 --treeDepth;
                 ImGui::Unindent();
                 ImGui::Unindent();
-                ImGui::TreePop();
             }
 
             if (isDeactivated)
@@ -553,7 +552,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             const auto& slaves = object->getSlaves();
             if (slaves.empty())
             {
-                objectFlags = ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
+                objectFlags = ImGuiTreeNodeFlags_Leaf;
             }
             else
             {
@@ -569,12 +568,12 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
             ImGui::PushID(i++);
 
-            if (!(m_renaming && isObjectSelected))
+            if (!(m_renaming && object == m_renamingObject))
                 ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
             if (workbench == Workbench::SCENE_EDITOR && !object->hasTag(baseGUI->getGUITag()) && highlightRow)
                 ImGui::AlignTextToFramePadding();
-            const bool objectOpen = showName(baseGUI, object, std::string(icon + " "), "", isObjectSelected, objectFlags);
-            if (!(m_renaming && isObjectSelected))
+            const bool objectOpen = showName(baseGUI, object, std::string(icon + " "), "", objectFlags);
+            if (!(m_renaming && object == m_renamingObject))
                 ImGui::PopStyleColor();
 
             if (workbench != Workbench::SCENE_EDITOR) // Templates are displayed elsewhere
@@ -604,7 +603,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 }
             }
 
-            if (!(isObjectSelected && m_renaming)) // Name
+            if (!(object == m_renamingObject && m_renaming)) // Name
             {
                 ImGui::SameLine(0.f, 0.f);
                 if (isObjectSelected)
@@ -701,7 +700,6 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                         ImGui::PopID();
                     }
                 }
-                ImGui::TreePop();
             }
         }
     }
@@ -1145,7 +1143,7 @@ bool SceneGraphWindow::showTemplateCombo(sofa::core::objectmodel::BaseObject *ob
                     {
                         if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
                         {
-                            auto componentClassName = object->getClassName();
+                            auto componentClassName = object->getName();
                             node->removeObject(object);
                             removed = true;
 
@@ -1175,28 +1173,52 @@ bool SceneGraphWindow::showName(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                 sofa::core::objectmodel::Base *object,
                                 const std::string icon,
                                 const std::string name,
-                                const bool& isSelected,
                                 ImGuiTreeNodeFlags objectFlags)
 {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().FramePadding.x); // Add padding
 
     bool open = false;
-    if (isSelected && !object->hasTag(baseGUI->getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming))
+    if (m_renamingObject == object && !object->hasTag(baseGUI->getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
     {
-        m_renaming = true;
         std::string newName = object->getName();
-        ImGui::InputText("##RenamingNode", &newName);
+        ImGui::InputText("##RenamingNode", &newName, ImGuiInputTextFlags_AutoSelectAll);
+        if (!m_renaming)
+        {
+            ImGui::SetFocusID(ImGui::GetItemID(), ImGui::GetCurrentWindow());
+        }
+        m_renaming = true;
+        open = m_renamingTreeOpen;
 
-        if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter)) // Validate renaming
         {
             m_renaming = false;
+            m_renamingObject = nullptr;
             object->setName(newName);
         }
-    } else
-    {
-        objectFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
-        open = ImGui::TreeNodeEx(std::string(icon + name).c_str(), objectFlags); // Name
     }
+    else // Default tree
+    {
+        objectFlags |= ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+        open = ImGui::TreeNodeEx(std::string(icon + name).c_str(), objectFlags); // Name
+
+        if (m_renamingObject == object)
+            m_renamingTreeOpen = open;
+    }
+
+    if (m_renamingObject == object &&
+        (!ImGui::IsItemFocused() || ImGui::IsMouseClicked(ImGuiMouseButton_Right) || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemClicked(ImGuiMouseButton_Left)))
+       ) // Loose focus
+    {
+        m_renaming = false;
+        m_renamingObject = nullptr;
+    }
+
+    if (m_renamingObject != object && ImGui::IsItemFocused()) // New focus
+    {
+        m_renaming = false;
+        m_renamingObject = object;
+    }
+
     return open;
 }
 
