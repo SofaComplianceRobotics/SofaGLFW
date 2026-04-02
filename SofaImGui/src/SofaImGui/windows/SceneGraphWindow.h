@@ -86,7 +86,7 @@ protected:
     void highlightOglModels(sofa::simulation::Node *node);
     void resetOglModels(sofa::simulation::Node *node);
 
-    bool showTemplateCombo(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node);
+    bool showTemplate(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node);
     bool showName(sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
 
     bool showAddNodeButton(sofa::simulation::Node *node);

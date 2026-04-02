@@ -59,6 +59,9 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
 
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
+            if (workbench == Workbench::SCENE_EDITOR)
+                showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
+
             static bool firstTime = true;
             if (firstTime)
             {

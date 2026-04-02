@@ -271,7 +271,10 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
         if (!isEnabledInWorkbench())
-            showInfoMessage("Modifying the scene graph is disabled in the active workbench.");
+            showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
+
+        if (workbench == Workbench::SCENE_EDITOR)
+            showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window.");
 
         // Top option buttons
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
@@ -383,7 +386,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             const bool open = showName(node, nodeIcon, node->getName());
 
-            if (workbench == Workbench::SCENE_EDITOR) // Drop component from Component Window
+            if (workbench == Workbench::SCENE_EDITOR && !node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag())) // Drop component from Component Window
             {
                 if (ImGui::BeginDragDropTarget())
                 {
@@ -489,10 +492,10 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
         if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
         {
-            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Type  /  Template":"Type", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Add | Name": "Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Type  /  Template", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
             if (workbench == Workbench::SCENE_EDITOR) // Delete buttons
-                ImGui::TableSetupColumn("  " ICON_FA_TRASH_CAN, ImGuiTableColumnFlags_NoResize, ImGui::GetFrameHeightWithSpacing());
+                ImGui::TableSetupColumn("Delete", ImGuiTableColumnFlags_NoResize);
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
@@ -576,13 +579,6 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             if (!(m_renaming && object == m_renamingObject))
                 ImGui::PopStyleColor();
 
-            if (workbench != Workbench::SCENE_EDITOR) // Templates are displayed elsewhere
-            {
-                const auto& templateName = object->getTemplateName();
-                if (!templateName.empty())
-                    ImGui::SetItemTooltip("%s", (std::string("template: ")+templateName).c_str());
-            }
-
             ImGui::PopID();
 
             if (!m_renaming)
@@ -625,11 +621,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                     ImGui::SetItemTooltip("%s", (description).c_str());
             }
 
-            bool removed = false;
-            if (workbench == Workbench::SCENE_EDITOR) // Show template as option
-            {
-                removed = showTemplateCombo(object, node);
-            }
+            bool removed = showTemplate(object, node);
 
             if (workbench == Workbench::SCENE_EDITOR) // Show delete buttons
             {
@@ -1094,7 +1086,7 @@ void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
     }
 }
 
-bool SceneGraphWindow::showTemplateCombo(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node)
+bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node)
 {
     bool removed = false;
 
@@ -1107,63 +1099,73 @@ bool SceneGraphWindow::showTemplateCombo(sofa::core::objectmodel::BaseObject *ob
     {
         // Has at least one template
         ImGui::SameLine();
-        ImGui::Text("/");
-        ImGui::SameLine();
 
-        static int componentTemplateIndex = 0;
-        static std::vector<std::string> componentTemplatesList;
-
-        if (rowHovered) // Update list and selection index on hover
+        if (workbench == Workbench::SCENE_EDITOR)
         {
-            componentTemplatesList.clear();
-            componentTemplatesList.reserve(nbTemplates);
-            int templateIndex=0;
-            for (const auto& [templateInstance, creator] : entry.creatorMap)
-            {
-                componentTemplatesList.push_back(templateInstance);
-                if (templateInstance == object->getTemplateName())
-                    componentTemplateIndex = templateIndex;
-                templateIndex++;
-            }
-        }
+            ImGui::Text("/");
+            ImGui::SameLine();
 
-        if (rowHovered)
-        {
-            if (componentTemplatesList.size() == nbTemplates)
-            {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(ImGui::CalcTextSize(object->getTemplateName().c_str()).x + ImGui::GetFrameHeight() * 2);
+            static int componentTemplateIndex = 0;
+            static std::vector<std::string> componentTemplatesList;
 
-                std::string currentTemplate = componentTemplatesList[componentTemplateIndex];
-                if (ImGui::BeginCombo("##Template", currentTemplate.c_str(), ImGuiComboFlags_None))
+            if (rowHovered) // Update list and selection index on hover
+            {
+                componentTemplatesList.clear();
+                componentTemplatesList.reserve(nbTemplates);
+                int templateIndex=0;
+                for (const auto& [templateInstance, creator] : entry.creatorMap)
                 {
-                    m_modifyingRow = rowIndex;
-
-                    for (size_t n = 0; n < nbTemplates; n++)
-                    {
-                        if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
-                        {
-                            auto componentClassName = object->getName();
-                            node->removeObject(object);
-                            removed = true;
-
-                            auto creator = entry.creatorMap.find(componentTemplatesList[n])->second;
-                            sofa::core::objectmodel::BaseObjectDescription desc;
-                            desc.setName(componentClassName);
-                            creator->createInstance(node, &desc);
-                            m_modifyingRow = -1;
-                        }
-                    }
-
-                    ImGui::EndCombo();
+                    componentTemplatesList.push_back(templateInstance);
+                    if (templateInstance == object->getTemplateName())
+                        componentTemplateIndex = templateIndex;
+                    templateIndex++;
                 }
-                else
-                    m_modifyingRow = -1;
-                ImGui::PopItemWidth();
             }
+
+            if (rowHovered)
+            {
+                if (componentTemplatesList.size() == nbTemplates)
+                {
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(ImGui::CalcTextSize(object->getTemplateName().c_str()).x + ImGui::GetFrameHeight() * 2);
+
+                    std::string currentTemplate = componentTemplatesList[componentTemplateIndex];
+                    if (ImGui::BeginCombo("##Template", currentTemplate.c_str(), ImGuiComboFlags_None))
+                    {
+                        m_modifyingRow = rowIndex;
+
+                        for (size_t n = 0; n < nbTemplates; n++)
+                        {
+                            if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
+                            {
+                                auto componentClassName = object->getName();
+                                node->removeObject(object);
+                                removed = true;
+
+                                auto creator = entry.creatorMap.find(componentTemplatesList[n])->second;
+                                sofa::core::objectmodel::BaseObjectDescription desc;
+                                desc.setName(componentClassName);
+                                creator->createInstance(node, &desc);
+                                m_modifyingRow = -1;
+                            }
+                        }
+
+                        ImGui::EndCombo();
+                    }
+                    else
+                        m_modifyingRow = -1;
+                    ImGui::PopItemWidth();
+                }
+            }
+            else
+                ImGui::Text("%s", object->getTemplateName().c_str());
         }
         else
-            ImGui::Text("%s", object->getTemplateName().c_str());
+        {
+            ImGui::TextDisabled("/");
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", object->getTemplateName().c_str());
+        }
     }
 
     return removed;
@@ -1177,7 +1179,7 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().FramePadding.x); // Add padding
 
     bool open = false;
-    if (m_renamingObject == object && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
+    if (workbench == Workbench::SCENE_EDITOR && m_renamingObject == object && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
     {
         std::string newName = object->getName();
         ImGui::InputText("##RenamingNode", &newName, ImGuiInputTextFlags_AutoSelectAll);
