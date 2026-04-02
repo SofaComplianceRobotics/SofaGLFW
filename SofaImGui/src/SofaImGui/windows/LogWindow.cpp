@@ -76,7 +76,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
             static bool showInfo = true;
 
             bool openOptions = false;
-            if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if (ImGui::LocalButton(ICON_FA_BARS))
                 openOptions = true;
 
             if (openOptions)
@@ -92,7 +92,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
             }
 
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
             {
                 nfdchar_t *outPath;
                 const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "log.txt");

@@ -234,7 +234,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     }
 }
 
-void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon)
+std::string SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon)
 {
     // Different color for component with a message
     objectColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
@@ -243,23 +243,27 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
                                         sofa::helper::logging::Message::Fatal})!=0)
     {
         icon = ICON_FA_CIRCLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+        objectColor = ImVec4(1.f, 0.3f, 0.3f, 1.f); //red
+        return "error";
     }
-    else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
+
+    if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
     {
         icon = ICON_FA_TRIANGLE_EXCLAMATION;
         objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+        return "warning";
     }
-    else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
-                                            sofa::helper::logging::Message::Deprecated,
-                                            sofa::helper::logging::Message::Advice})!=0)
+
+    if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
+                                    sofa::helper::logging::Message::Deprecated,
+                                    sofa::helper::logging::Message::Advice})!=0)
     {
         icon = ICON_FA_CIRCLE_INFO;
+        return "info";
     }
-    else
-    {
-        objectColor = ImVec4(0.5f, 0.5f, 0.5f, 1.f); //grey //getObjectColor(object);
-    }
+
+    objectColor = ImVec4(0.5f, 0.5f, 0.5f, 1.f); //grey //getObjectColor(object);
+    return "";
 }
 
 void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags,
@@ -277,49 +281,59 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window.");
 
         // Top option buttons
-        ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
-        const bool expandAll = ImGui::Button(ICON_FA_EXPAND, buttonSize);
+        const bool expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
         ImGui::SetItemTooltip("Expand all");
         ImGui::SameLine();
 
-        const bool collapseAll = ImGui::Button(ICON_FA_COMPRESS, buttonSize);
+        const bool collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
         ImGui::SetItemTooltip("Collapse all");
         ImGui::SameLine();
 
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
 
-        static bool showSearch = false;
-        static bool showFiltered = false;
 
-        if (ImGui::Button(ICON_FA_MAGNIFYING_GLASS, buttonSize))
+        if (ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS))
         {
-            showSearch = !showSearch;
-            showFiltered = false;
+            m_showSearch = !m_showSearch;
+            m_showFiltered = false;
         }
         ImGui::SetItemTooltip("Search by name");
         ImGui::SameLine();
 
-        if (ImGui::Button(ICON_FA_FILTER, buttonSize))
+        if (ImGui::LocalButton(ICON_FA_FILTER))
         {
-            showFiltered = !showFiltered;
-            showSearch = false;
+            m_showFiltered = !m_showFiltered;
+            m_showSearch = false;
         }
         ImGui::SetItemTooltip("Filter by name");
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
         static ImGuiTextFilter filter;
-        ImGui::PushItemWidth(buttonSize.x * 5);
-        if (showSearch)
+        ImGui::PushItemWidth(ImGui::GetFrameHeight() * 5);
+        if (m_showSearch)
         {
             ImGui::SameLine();
             filter.Draw("Search");
         }
-        if (showFiltered)
+        if (m_showFiltered)
         {
             ImGui::SameLine();
             filter.Draw("Filter");
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.3f, 0.3f, 1.f));
+            ImGui::LocalPushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showFilteredError);
+            ImGui::SetItemTooltip("Filter Errors");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.5f, 0.f, 1.f));
+            ImGui::LocalPushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showFilteredWarning);
+            ImGui::SetItemTooltip("Filter Warnings");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::LocalPushButton(ICON_FA_CIRCLE_INFO, &m_showFilteredInfo);
+            ImGui::SetItemTooltip("Filter Info");
         }
         ImGui::PopItemWidth();
         ImGui::PopStyleVar();
@@ -327,8 +341,8 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         // Table
         unsigned int treeDepth {};
 
-        std::function<void(sofa::simulation::Node*, sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* parent, sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        std::function<void(sofa::simulation::Node*, sofa::simulation::Node*)> showNode;
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* parent, sofa::simulation::Node* node)
         {
             const auto o = baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
@@ -370,7 +384,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             const auto& nodeName = node->getName();
             const bool& isDeactivated = !node->is_activated.getValue();
             const bool isNodeSelected = m_selection.contains(node);
-            const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && showSearch;
+            const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && m_showSearch;
 
             if (isDeactivated)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
@@ -466,8 +480,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 ImGui::Indent();
 
                 showNodeComponents(baseGUI, node,
-                                   filter, showSearch, showFiltered,
-                                   expandAll, collapseAll,
+                                   filter, expandAll, collapseAll,
                                    componentToOpen, componentToOpenContextMenu);
 
                 ++treeDepth;
@@ -475,7 +488,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 for (const auto child : node->getChildren())
                 {
                     ImGui::PushID(child->getName().c_str());
-                    showNode(node, dynamic_cast<sofa::simulation::Node*>(child), showSearch, showFiltered);
+                    showNode(node, dynamic_cast<sofa::simulation::Node*>(child));
                     ImGui::PopID();
                 }
                 --treeDepth;
@@ -505,7 +518,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, workbench == Workbench::SCENE_EDITOR? ImVec4(0., 0., 0., 0): selectedColorBg);
 
-            showNode(nullptr, groot, showSearch, showFiltered);
+            showNode(nullptr, groot);
 
             ImGui::PopStyleColor();
 
@@ -520,7 +533,6 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                           sofa::simulation::Node* node,
                                           const ImGuiTextFilter& filter,
-                                          const bool& showSearch, const bool& showFiltered,
                                           const bool& expandAll, const bool&collapseAll,
                                           std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                                           std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu)
@@ -533,12 +545,25 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
     int i = 0;
     for (const auto object : node->getNodeObjects())
     {
+        ImVec4 objectColor;
+        std::string icon = ICON_FA_STOP;
+        std::string objectMessage = getComponentIconAlert(object, objectColor, icon);
+
         const auto& objectName = object->getName();
         const auto objectClassName = object->getClassName();
         const bool isObjectSelected = m_selection.contains(object);
-        const bool isObjectFiltered = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
-        const bool isObjectHighlighted = !filter.Filters.empty() && isObjectFiltered && (showSearch || showFiltered);
-        const bool isObjectHidden = !filter.Filters.empty() && !isObjectFiltered && showFiltered;
+        const bool onlySpecial = m_showFilteredError || m_showFilteredWarning || m_showFilteredInfo;
+        bool isObjectFiltered = false;
+        if (m_showFilteredError)
+            isObjectFiltered = isObjectFiltered || (objectMessage == "error");
+        if (m_showFilteredWarning)
+            isObjectFiltered = isObjectFiltered || (objectMessage == "warning");
+        if (m_showFilteredInfo)
+            isObjectFiltered = isObjectFiltered || (objectMessage == "info");
+        if (!onlySpecial)
+            isObjectFiltered = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
+        const bool isObjectHighlighted = (!filter.Filters.empty() || onlySpecial) && isObjectFiltered && (m_showSearch || m_showFiltered);
+        const bool isObjectHidden = (!filter.Filters.empty() || onlySpecial) && !isObjectFiltered && m_showFiltered;
 
         if (!isObjectHidden)
         {
@@ -564,10 +589,6 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 if (collapseAll)
                     ImGui::SetNextItemOpen(false);
             }
-
-            ImVec4 objectColor;
-            std::string icon = ICON_FA_STOP;
-            getComponentIconAlert(object, objectColor, icon);
 
             ImGui::PushID(i++);
 
@@ -635,14 +656,16 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             // Components created by the component
             if (!removed && objectOpen && !slaves.empty())
             {
+                ImGui::Indent();
+                ImGui::Indent();
                 for (const auto &slave : slaves)
-                {
+                {   
                     const auto& slaveName = slave->getName();
                     const auto slaveClassName = slave->getClassName();
                     const bool isSlaveSelected = m_selection.contains(slave.get());
                     const bool isSlaveFiltered = !filter.Filters.empty() && (filter.PassFilter(slaveName.c_str()) || filter.PassFilter(slaveClassName.c_str()));
-                    const bool isSlaveHighlighted = isSlaveFiltered && (showSearch || showFiltered);
-                    const bool isSlaveHidden = !isSlaveFiltered && showFiltered;
+                    const bool isSlaveHighlighted = isSlaveFiltered && (m_showSearch || m_showFiltered);
+                    const bool isSlaveHidden = !isSlaveFiltered && m_showFiltered;
 
                     if (!isSlaveHidden)
                     {
@@ -692,6 +715,9 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                         ImGui::PopID();
                     }
                 }
+
+                ImGui::Unindent();
+                ImGui::Unindent();
             }
         }
     }
@@ -1228,7 +1254,7 @@ bool SceneGraphWindow::showAddNodeButton(sofa::simulation::Node *node)
     bool clicked = false;
     if (node)
     {
-        if(ImGui::Button("\xe2\x9c\x9a", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+        if(ImGui::LocalButton("\xe2\x9c\x9a"))
         {
             node->createChild("New Node");
             clicked = true;
@@ -1250,7 +1276,7 @@ bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
 
-            if(ImGui::Button(ICON_FA_TRASH_CAN, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
                 parent->removeChild(node);
                 clicked = true;
@@ -1275,7 +1301,7 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
 
-            if(ImGui::Button(ICON_FA_TRASH_CAN, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
                 parent->removeObject(component);
                 clicked = true;

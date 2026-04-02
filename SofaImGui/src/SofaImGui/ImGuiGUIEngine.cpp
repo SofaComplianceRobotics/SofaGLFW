@@ -819,14 +819,12 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                     if (disableWorkbench)
                         ImGui::BeginDisabled();
 
-                    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-
-                    auto addWorkbenchButton = [highlightColorIcon, &buttonSize, this](Workbench w, const std::string& icon, const std::string& tooltip)
+                    auto addWorkbenchButton = [highlightColorIcon, this](Workbench w, const std::string& icon, const std::string& tooltip)
                     {
                         bool highlight = (workbench == w);
                         if (highlight)
                             ImGui::PushStyleColor(ImGuiCol_ButtonText, highlightColorIcon);
-                        if (ImGui::Button(icon.c_str(), buttonSize))
+                        if (ImGui::LocalButton(icon.c_str()))
                             changeWorkbench(w);
                         if (highlight)
                             ImGui::PopStyleColor();

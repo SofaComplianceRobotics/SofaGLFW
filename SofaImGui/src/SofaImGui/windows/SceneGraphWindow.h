@@ -55,6 +55,12 @@ protected:
     bool m_renamingTreeOpen{false};
     sofa::core::objectmodel::Base* m_renamingObject{nullptr};
 
+    bool m_showSearch = false;
+    bool m_showFiltered = false;
+    bool m_showFilteredWarning = false;
+    bool m_showFilteredError = false;
+    bool m_showFilteredInfo = false;
+
     void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
                    std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                    std::set<sofa::simulation::Node *> &nodeToOpen,
@@ -63,7 +69,6 @@ protected:
     void showNodeComponents(sofaglfw::SofaGLFWBaseGUI *baseGUI,
                             sofa::simulation::Node* node,
                             const ImGuiTextFilter &filter,
-                            const bool &showSearch, const bool &showFiltered,
                             const bool& expandAll, const bool&collapseAll,
                             std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                             std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu);
@@ -80,7 +85,7 @@ protected:
     void addComponentContextMenu(sofa::core::objectmodel::BaseObject*component);
     void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
-    void getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
+    std::string getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
     void updateSelection(sofa::core::objectmodel::Base::SPtr object);
 
     void highlightOglModels(sofa::simulation::Node *node);
