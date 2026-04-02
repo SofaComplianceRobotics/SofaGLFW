@@ -1015,7 +1015,7 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
 void ImGuiGUIEngine::createGUINode()
 {
-    const char* nodeName = m_baseGUI->getGUINodeName();
+    const std::string nodeName = sofaglfw::SofaGLFWBaseGUI::getGUINodeName();
     sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
     if (root)
     {
@@ -1025,7 +1025,7 @@ void ImGuiGUIEngine::createGUINode()
             guinode = root->createChild(nodeName);
         }
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
-        guinode->addTag(m_baseGUI->getGUITag());
+        guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);
     }
 }

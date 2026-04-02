@@ -344,7 +344,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             if (workbench == Workbench::SCENE_EDITOR) // Show add button
             {
-                if (highlightRow && !node->hasTag(baseGUI->getGUITag()))
+                if (highlightRow && !node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
                 {
                     bool newNode = showAddNodeButton(node);
                     ImGui::SameLine(0, 0);
@@ -381,7 +381,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
 
             std::string nodeIcon = ICON_FA_SITEMAP " ";
 
-            const bool open = showName(baseGUI, node, nodeIcon, node->getName());
+            const bool open = showName(node, nodeIcon, node->getName());
 
             if (workbench == Workbench::SCENE_EDITOR) // Drop component from Component Window
             {
@@ -451,7 +451,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 ImGui::TableNextColumn();
                 if (parent)
                 {
-                    removed = showRemoveNodeButton(baseGUI, parent, node);
+                    removed = showRemoveNodeButton(parent, node);
                     ImGui::SameLine();
                 }
             }
@@ -570,9 +570,9 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
             if (!(m_renaming && object == m_renamingObject))
                 ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
-            if (workbench == Workbench::SCENE_EDITOR && !object->hasTag(baseGUI->getGUITag()) && highlightRow)
+            if (workbench == Workbench::SCENE_EDITOR && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && highlightRow)
                 ImGui::AlignTextToFramePadding();
-            const bool objectOpen = showName(baseGUI, object, std::string(icon + " "), "", objectFlags);
+            const bool objectOpen = showName(object, std::string(icon + " "), "", objectFlags);
             if (!(m_renaming && object == m_renamingObject))
                 ImGui::PopStyleColor();
 
@@ -635,7 +635,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             {
                 ImGui::TableNextColumn();
                 if (!removed)
-                    removed = showRemoveComponentButton(baseGUI, node, object);
+                    removed = showRemoveComponentButton(node, object);
             }
 
             ImGui::PopID();
@@ -1169,8 +1169,7 @@ bool SceneGraphWindow::showTemplateCombo(sofa::core::objectmodel::BaseObject *ob
     return removed;
 }
 
-bool SceneGraphWindow::showName(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                sofa::core::objectmodel::Base *object,
+bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
                                 const std::string icon,
                                 const std::string name,
                                 ImGuiTreeNodeFlags objectFlags)
@@ -1178,7 +1177,7 @@ bool SceneGraphWindow::showName(sofaglfw::SofaGLFWBaseGUI* baseGUI,
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().FramePadding.x); // Add padding
 
     bool open = false;
-    if (m_renamingObject == object && !object->hasTag(baseGUI->getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
+    if (m_renamingObject == object && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
     {
         std::string newName = object->getName();
         ImGui::InputText("##RenamingNode", &newName, ImGuiInputTextFlags_AutoSelectAll);
@@ -1237,10 +1236,10 @@ bool SceneGraphWindow::showAddNodeButton(sofa::simulation::Node *node)
     return clicked;
 }
 
-bool SceneGraphWindow::showRemoveNodeButton(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::simulation::Node *node)
+bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa::simulation::Node *node)
 {
     bool clicked = false;
-    if (node && parent && !node->hasTag(baseGUI->getGUITag()))
+    if (node && parent && !node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
@@ -1262,10 +1261,10 @@ bool SceneGraphWindow::showRemoveNodeButton(sofaglfw::SofaGLFWBaseGUI* baseGUI, 
     return clicked;
 }
 
-bool SceneGraphWindow::showRemoveComponentButton(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component)
+bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component)
 {
     bool clicked = false;
-    if (component && parent && !component->hasTag(baseGUI->getGUITag()))
+    if (component && parent && !component->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {

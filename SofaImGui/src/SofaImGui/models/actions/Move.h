@@ -70,7 +70,7 @@ class Move : public StartMove
 
    protected:
 
-    const Trajectory::SPtr m_trajectory = sofa::core::objectmodel::New<Trajectory>();
+    const Trajectory::SPtr m_trajectory;
     sofa::simulation::Node::SPtr m_groot;
 
     Type m_type;

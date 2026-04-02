@@ -87,12 +87,12 @@ protected:
     void resetOglModels(sofa::simulation::Node *node);
 
     bool showTemplateCombo(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node);
-    bool showName(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
+    bool showName(sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
 
     bool showAddNodeButton(sofa::simulation::Node *node);
 
-    bool showRemoveNodeButton(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::simulation::Node *node);
-    bool showRemoveComponentButton(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component);
+    bool showRemoveNodeButton(sofa::simulation::Node *parent, sofa::simulation::Node *node);
+    bool showRemoveComponentButton(sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component);
 };
 
 }

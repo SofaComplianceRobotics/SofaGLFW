@@ -222,7 +222,7 @@ void SofaGLFWWindow::setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const Vis
         sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
         if (groot)
         {
-            auto guiNode = groot->getChild(baseGUI->getGUINodeName());
+            auto guiNode = groot->getChild(SofaGLFWBaseGUI::getGUINodeName());
             if (guiNode)
             {
                 auto squareSizes = GridSquareSize::getSquareSizes();

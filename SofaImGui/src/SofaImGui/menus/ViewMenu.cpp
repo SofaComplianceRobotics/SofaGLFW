@@ -118,7 +118,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
             return;
         }
 
-        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
         if (guiNode)
         {
             std::string name = "ViewportGrid" + SofaGLFWWindow::GridSquareSize::getString(squareSize);
@@ -128,7 +128,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
                 auto newGrid = sofa::core::objectmodel::New<sofa::component::visual::VisualGrid>();
                 guiNode->addObject(newGrid);
                 newGrid->setName(name);
-                newGrid->addTag(m_baseGUI->getGUITag());
+                newGrid->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
                 newGrid->d_enable.setValue(show);
                 newGrid->d_size.setValue(gridSize);
                 newGrid->d_thickness.setValue(thickness);
@@ -151,7 +151,7 @@ void ViewMenu::showOriginFrame(const bool& show)
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
         if (guiNode)
         {
             auto originFrame = guiNode->get<sofa::component::visual::LineAxis>();
@@ -160,7 +160,7 @@ void ViewMenu::showOriginFrame(const bool& show)
                 auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
                 guiNode->addObject(newOriginFrame);
                 newOriginFrame->setName("ViewportOriginFrame");
-                newOriginFrame->addTag(m_baseGUI->getGUITag());
+                newOriginFrame->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
                 newOriginFrame->d_enable.setValue(show);
                 newOriginFrame->d_infinite.setValue(true);
                 newOriginFrame->d_thickness.setValue(2.f);
@@ -180,7 +180,7 @@ void ViewMenu::showBoundingBox(const bool& show)
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto guiNode = groot->getChild(m_baseGUI->getGUINodeName());
+        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
         if (guiNode)
         {
             auto bbox = guiNode->get<sofa::component::visual::VisualBoundingBox>();
@@ -189,7 +189,7 @@ void ViewMenu::showBoundingBox(const bool& show)
                 auto newBBox = sofa::core::objectmodel::New<sofa::component::visual::VisualBoundingBox>();
                 guiNode->addObject(newBBox);
                 newBBox->setName("VisualBoundingBox");
-                newBBox->addTag(m_baseGUI->getGUITag());
+                newBBox->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
                 newBBox->d_enable.setValue(show);
                 newBBox->f_bbox.setParent(&groot->f_bbox);
                 newBBox->d_color.setValue(sofa::type::RGBAColor::white());
