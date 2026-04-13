@@ -560,8 +560,9 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
             isObjectFiltered = isObjectFiltered || (objectMessage == "warning");
         if (m_showFilteredInfo)
             isObjectFiltered = isObjectFiltered || (objectMessage == "info");
-        if (!onlySpecial)
+        if (!onlySpecial || (isObjectFiltered && !filter.Filters.empty()))
             isObjectFiltered = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
+
         const bool isObjectHighlighted = (!filter.Filters.empty() || onlySpecial) && isObjectFiltered && (m_showSearch || m_showFiltered);
         const bool isObjectHidden = (!filter.Filters.empty() || onlySpecial) && !isObjectFiltered && m_showFiltered;
 
