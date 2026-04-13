@@ -188,7 +188,7 @@ bool LocalCheckBoxEx(const char* label, bool* v)
     {
         // Undocumented tristate/mixed/indeterminate checkbox (#2644)
         // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
-        ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_sz / 4.6f)), ImMax(1.0f, IM_FLOOR(square_sz / 4.6f)));
+        ImVec2 pad(ImMax(1.0f, IM_TRUNC(square_sz / 4.6f)), ImMax(1.0f, IM_TRUNC(square_sz / 4.6f)));
 
         window->DrawList->AddRectFilled(ImVec2(check_bb.Min.x + pad.x, check_bb.Min.y + pad.y),
                                         ImVec2(check_bb.Max.x - pad.x, check_bb.Max.y - pad.y),

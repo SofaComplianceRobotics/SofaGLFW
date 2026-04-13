@@ -82,7 +82,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                     ImVec2(0, 1), ImVec2(1, 0), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)),
                                     ImGui::GetStyle().FrameRounding);
 
-                m_isMouseOnViewport = ImGui::IsItemHovered();
+                m_isMouseOnViewport = ImGui::IsWindowHovered();
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
