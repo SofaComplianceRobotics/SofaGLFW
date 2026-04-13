@@ -1102,7 +1102,7 @@ void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
         {
             auto oglModel = dynamic_cast<sofa::gl::component::rendering3d::OglModel*>(object);
             if (oglModel)
-                oglModel->d_material.setValue(oglModel->m_resetMaterial);
+                oglModel->d_material.setValue(oglModel->getSavedMaterial());
         }
 
         for (const auto child : node->getChildren())
