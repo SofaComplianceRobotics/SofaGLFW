@@ -115,7 +115,8 @@ public:
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
     windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video", false);
 
-    models::KinematicsGUIDataManager m_kinematicsDataManager = models::KinematicsGUIDataManager();
+    models::guidata::KinematicsGUIDataManager m_kinematicsDataManager = models::guidata::KinematicsGUIDataManager();
+
 
 protected:
 
