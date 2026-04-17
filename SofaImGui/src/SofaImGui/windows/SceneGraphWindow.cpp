@@ -407,7 +407,7 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
     const auto& nodeName = node->getName();
     const bool& isDeactivated = !node->is_activated.getValue();
     const bool isNodeSelected = m_selection.contains(node);
-    const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && m_showSearch;
+    const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && (m_showSearch || m_showFiltered);
 
     if (isDeactivated)
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
