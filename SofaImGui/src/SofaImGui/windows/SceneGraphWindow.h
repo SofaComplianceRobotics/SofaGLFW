@@ -41,6 +41,11 @@ public:
 
 protected:
 
+    std::set<sofa::core::objectmodel::BaseObject*> m_componentToOpen;
+    std::set<sofa::simulation::Node*> m_nodeToOpen;
+    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_componentToOpenContextMenu;
+    std::set<std::pair<sofa::simulation::Node*, bool>> m_nodeToOpenContextMenu;
+
     std::set<std::pair<sofa::simulation::Node*, bool>> m_openedNodePopups;
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_openedComponentPopups;
     std::set<sofa::simulation::Node*> m_openedNodes;
@@ -55,23 +60,20 @@ protected:
     bool m_renamingTreeOpen{false};
     sofa::core::objectmodel::Base* m_renamingObject{nullptr};
 
+    bool m_expandAll = false;
+    bool m_collapseAll = false;
+
     bool m_showSearch = false;
     bool m_showFiltered = false;
     bool m_showFilteredWarning = false;
     bool m_showFilteredError = false;
     bool m_showFilteredInfo = false;
 
-    void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
-                   std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                   std::set<sofa::simulation::Node *> &nodeToOpen,
-                   std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
-                   std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
-    void showNodeComponents(sofaglfw::SofaGLFWBaseGUI *baseGUI,
-                            sofa::simulation::Node* node,
-                            const ImGuiTextFilter &filter,
-                            const bool& expandAll, const bool&collapseAll,
-                            std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                            std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu);
+    inline static const sofa::core::objectmodel::Tag selectedTag = sofa::core::objectmodel::Tag("GUISelected");
+
+    void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
+    void showNode(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
+    void showNodeComponents(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node* node, const ImGuiTextFilter &filter);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
 
