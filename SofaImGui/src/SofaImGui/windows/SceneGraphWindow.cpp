@@ -531,7 +531,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, so
     for (const auto object : node->getNodeObjects())
     {
         ImVec4 objectColor;
-        std::string icon = ICON_FA_STOP;
+        std::string icon = ICON_FA_STOP; //"\xE2\x96\xAA";
         std::string objectMessage = getComponentIconAlert(object, objectColor, icon);
 
         const auto& objectName = object->getName();
@@ -660,7 +660,6 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, so
                         ImGui::PushID(slave.get());
 
                         ImVec4 objectColor;
-                        std::string icon = ICON_FA_STOP;
                         getComponentIconAlert(object, objectColor, icon);
 
                         ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
