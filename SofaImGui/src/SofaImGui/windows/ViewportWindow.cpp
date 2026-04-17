@@ -302,6 +302,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                    sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
                 }
                 ImGui::SetItemTooltip("Orthographic/Perspective");
             }
