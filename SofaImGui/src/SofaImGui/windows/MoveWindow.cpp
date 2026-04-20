@@ -29,6 +29,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <SofaImGui/Workbench.h>
+#include <GUIColors.h>
 
 namespace sofaimgui::windows {
 
@@ -154,11 +155,11 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                             else if (m_moveType == MoveType::SLIDERS)
                             {
                                 ImGui::Indent();
-                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImColor(COLOR_RED));
                                 ImGui::Spacing();
-                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImColor(COLOR_GREEN));
                                 ImGui::Spacing();
-                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImColor(COLOR_BLUE));
                                 ImGui::Unindent();
                             }
                             ImGui::EndChild();
@@ -195,7 +196,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freeRoll)
                             ImGui::BeginDisabled();
-                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_RED));
                         if (m_freeRoll)
                             ImGui::EndDisabled();
 
@@ -203,7 +204,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freePitch)
                             ImGui::BeginDisabled();
-                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_GREEN));
                         if (m_freePitch)
                             ImGui::EndDisabled();
 
@@ -211,7 +212,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freeYaw)
                             ImGui::BeginDisabled();
-                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_BLUE));
                         if (m_freeYaw)
                             ImGui::EndDisabled();
 
@@ -254,7 +255,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                 double buffer = typeinfo->getScalarValue(value, 0);
                                 bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
                                                                    actuator.min, actuator.max,
-                                                                   ImVec4(0, 0, 0, 0));
+                                                                   ImColor(COLOR_TRANSPARENT));
                                 if (hasChanged)
                                 {
                                     actuator.data->read(std::to_string(buffer));
@@ -291,7 +292,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                                                                ("##Slider" + name).c_str(),
                                                                ("##Input" + name).c_str(),
                                                                &buffer, accessory.min, accessory.max,
-                                                               ImVec4(0, 0, 0, 0));
+                                                               ImColor(COLOR_TRANSPARENT));
                             if (hasChanged && isDrivingSimulation())
                             {
                                 accessory.data->read(std::to_string(buffer));

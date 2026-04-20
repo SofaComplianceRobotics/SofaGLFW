@@ -22,6 +22,7 @@
 
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
+#include <GUIColors.h>
 
 #include <IconsFontAwesome6.h>
 
@@ -212,8 +213,11 @@ void IOWindow::showROSWindow()
     if (pulse > 2)
         pulseDuration = 0;
 
+    ImVec4 color = ImColor(COLOR_GREEN);
+    color.w = 0.75f + 0.25f * sin(pulse * 2 * 3.1415);
+
     { // Show output section
-        ImGui::PushStyleColor(ImGuiCol_Text, (m_isPublishing)? ImVec4(0.46f, 0.73f, 0.16f, 0.75f + 0.25f * sin(pulse * 2 * 3.1415)): ImGui::GetStyle().Colors[ImGuiCol_Text]);
+        ImGui::PushStyleColor(ImGuiCol_Text, (m_isPublishing)? color: ImGui::GetStyle().Colors[ImGuiCol_Text]);
         if (ImGui::LocalBeginCollapsingHeader("Output", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::PopStyleColor();
@@ -227,7 +231,7 @@ void IOWindow::showROSWindow()
     }
 
     { // Show input section
-        ImGui::PushStyleColor(ImGuiCol_Text, (m_isListening)? ImVec4(0.46f, 0.73f, 0.16f, 0.75f + 0.25f * sin(pulse * 2 * 3.1415)): ImGui::GetStyle().Colors[ImGuiCol_Text]);
+        ImGui::PushStyleColor(ImGuiCol_Text, (m_isListening)? color: ImGui::GetStyle().Colors[ImGuiCol_Text]);
         if (ImGui::LocalBeginCollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::PopStyleColor();
@@ -283,7 +287,7 @@ void IOWindow::showROSOutput()
 
         if (!validNodeName)
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 0., 0., 1.0));
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_RED);
             ImGui::Text("%s", rmw_node_name_validation_result_string(nameCheckResult));
             ImGui::PopStyleColor();
         }

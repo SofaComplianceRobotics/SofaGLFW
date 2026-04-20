@@ -39,6 +39,7 @@
 #include <nfd.h>
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
+#include <GUIColors.h>
 
 namespace sofaimgui::menus {
 
@@ -60,7 +61,7 @@ void ViewMenu::addMenu(const std::pair<unsigned int, unsigned int>& fboSize,
     if (!m_baseGUI)
         return;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
     if (ImGui::BeginMenu("View"))
     {
         sofa::component::visual::BaseCamera::SPtr camera;

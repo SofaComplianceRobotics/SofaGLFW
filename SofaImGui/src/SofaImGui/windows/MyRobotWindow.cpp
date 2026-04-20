@@ -20,7 +20,6 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "IconsFontAwesome6.h"
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -31,6 +30,7 @@
 #include <SofaImGui/windows/MyRobotWindow.h>
 #include <SofaImGui/Robot.h>
 #include <SofaImGui/Workbench.h>
+#include <GUIColors.h>
 
 
 namespace sofaimgui::windows {
@@ -195,7 +195,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                         ImGui::Text("Status:");
                         ImGui::SameLine();
 
-                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImVec4(0.56f, 0.83f, 0.26f, 1.f): ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
+                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
                         ImGui::Text((connected)? "Connected": "Disconnected");
                         ImGui::PopStyleColor();
 

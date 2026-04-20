@@ -20,14 +20,16 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "Style.h"
 #include <imgui_internal.h>
+#include <Style.h>
+#include <GUIColors.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <sofa/gl/component/rendering3d/OglModel.h>
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <IconsFontAwesome6.h>
+#include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <sofa/core/ObjectFactory.h>
@@ -243,14 +245,14 @@ std::string SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::Bas
                                         sofa::helper::logging::Message::Fatal})!=0)
     {
         icon = ICON_FA_CIRCLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.3f, 0.3f, 1.f); //red
+        objectColor = ImColor(COLOR_RED);
         return "error";
     }
 
     if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
     {
         icon = ICON_FA_TRIANGLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+        objectColor = ImColor(COLOR_ORANGE);
         return "warning";
     }
 
@@ -928,12 +930,12 @@ void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Me
                 {
                     switch (t)
                     {
-                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
-                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
-                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
+                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                     case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
-                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
-                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
+                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
+                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
                     case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
                     default: return;
                     }
@@ -1239,7 +1241,7 @@ bool SceneGraphWindow::showAddNodeButton(sofa::simulation::Node *node)
     bool clicked = false;
     if (node)
     {
-        if(ImGui::LocalButton("\xe2\x9c\x9a"))
+        if(ImGui::LocalButton(ICON_DVS_PLUS))
         {
             node->createChild("New Node");
             clicked = true;
@@ -1256,10 +1258,9 @@ bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // todo: style sheet
-            ImGui::PushStyleColor(ImGuiCol_Button, red);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
 
             if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
@@ -1281,10 +1282,9 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // todo: style sheet
-            ImGui::PushStyleColor(ImGuiCol_Button, red);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.1)); // todo: style sheet
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColor(red, ImVec4(0.5,0.,0.,1.), 0.3)); // todo: style sheet
+            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
 
             if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {

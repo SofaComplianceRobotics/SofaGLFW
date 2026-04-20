@@ -30,6 +30,7 @@ SOFTWARE.
 #include <algorithm>
 #include <SofaImGui/widgets/Gizmos.h>
 #include <Style.h>
+#include <GUIColors.h>
 
 namespace sofaimgui::widget {
 
@@ -171,12 +172,12 @@ static struct Config {
     float lineThicknessScale = 0.015f;
     float axisLengthScale = 0.13f;
     float radius = 0.08f;
-    ImVec4 xCircleFrontColor{1.f, 0.21f, 0.32f, 1.f};
-    ImVec4 xCircleBackColor{0.6f, 0.22f, 0.28f, 1.f};
-    ImVec4 yCircleFrontColor{0.54f, 0.86f, 0.f, 1.f};
-    ImVec4 yCircleBackColor{0.38f, 0.54f, 0.13f, 1.f};
-    ImVec4 zCircleFrontColor{0.17f, 0.56f, 1.f, 1.f};
-    ImVec4 zCircleBackColor{0.2f, 0.35f, 0.6f, 1.f};
+    ImU32 xCircleBackColor{COLOR_DARK_RED};
+    ImU32 xCircleFrontColor{COLOR_RED};
+    ImU32 yCircleBackColor{COLOR_DARK_GREEN};
+    ImU32 yCircleFrontColor{COLOR_GREEN};
+    ImU32 zCircleBackColor{COLOR_DARK_BLUE};
+    ImU32 zCircleFrontColor{COLOR_BLUE};
 } config;
 
 void SetRect(const float x, const float y, const float size)
@@ -229,22 +230,22 @@ void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix
     for (const auto& [fst, snd] : pairs) {
         switch (fst) {
         case 0: // +x axis
-            axisClicked[0] = internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColor(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
+            axisClicked[0] = internal::drawPositiveLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColors(config.xCircleFrontColor, config.xCircleBackColor, xW), radius, lineThickness, "X");
             continue;
         case 1: // +y axis
-            axisClicked[1] = internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColor(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
+            axisClicked[1] = internal::drawPositiveLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColors(config.yCircleFrontColor, config.yCircleBackColor, yW), radius, lineThickness, "Y");
             continue;
         case 2: // +z axis
-            axisClicked[2] = internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColor(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
+            axisClicked[2] = internal::drawPositiveLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColors(config.zCircleFrontColor, config.zCircleBackColor, zW), radius, lineThickness, "Z");
             continue;
         case 3: // -x axis
-            axisClicked[3] = internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColor(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness, "-X");
+            axisClicked[3] = internal::drawNegativeLine(center, ImVec2{ xAxis.x, -xAxis.y }, sofaimgui::blendColors(config.xCircleBackColor, config.xCircleFrontColor, xW), radius, lineThickness, "-X");
             continue;
         case 4: // -y axis
-            axisClicked[4] = internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColor(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness, "-Y");
+            axisClicked[4] = internal::drawNegativeLine(center, ImVec2{ yAxis.x, -yAxis.y }, sofaimgui::blendColors(config.yCircleBackColor, config.yCircleFrontColor, yW), radius, lineThickness, "-Y");
             continue;
         case 5: // -z axis
-            axisClicked[5] = internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColor(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness, "-Z");
+            axisClicked[5] = internal::drawNegativeLine(center, ImVec2{ zAxis.x, -zAxis.y }, sofaimgui::blendColors(config.zCircleBackColor, config.zCircleFrontColor, zW), radius, lineThickness, "-Z");
             continue;
         default: break;
         }
@@ -287,21 +288,21 @@ void DrawOrientationGizmo(float* const viewMatrix, const float* const projection
     const float lineThickness = size * config.lineThicknessScale;
 
     bool isXHoverable = (!isYClicked && !isZClicked);
-    bool isXHovered = internal::drawEllipse(viewProjection, center, yAxis, zAxis, ImGui::GetColorU32(config.xCircleBackColor), lineThickness, isXHoverable, isXClicked);
+    bool isXHovered = internal::drawEllipse(viewProjection, center, yAxis, zAxis, config.xCircleBackColor, lineThickness, isXHoverable, isXClicked);
 
     if (isXHoverable && isXHovered && ImGui::IsMouseClicked(0)) {
         isXClicked = true;
     }
 
     bool isYHoverable = (!isXClicked && !isZClicked && !isXHovered);
-    bool isYHovered = internal::drawEllipse(viewProjection, center, xAxis, zAxis, ImGui::GetColorU32(config.yCircleBackColor), lineThickness, isYHoverable, isYClicked);
+    bool isYHovered = internal::drawEllipse(viewProjection, center, xAxis, zAxis, config.yCircleBackColor, lineThickness, isYHoverable, isYClicked);
 
     if (isYHoverable && isYHovered && ImGui::IsMouseClicked(0)) {
         isYClicked = true;
     }
 
     bool isZHoverable = (!isYClicked && !isXClicked && !isXHovered && !isYHovered);
-    bool isZHovered = internal::drawEllipse(viewProjection, center, xAxis, yAxis, ImGui::GetColorU32(config.zCircleBackColor), lineThickness, isZHoverable, isZClicked);
+    bool isZHovered = internal::drawEllipse(viewProjection, center, xAxis, yAxis, config.zCircleBackColor, lineThickness, isZHoverable, isZClicked);
 
     if (isZHoverable && isZHovered && ImGui::IsMouseClicked(0)) {
         isZClicked = true;
