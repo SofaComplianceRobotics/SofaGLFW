@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include <sofa/type/Quat.h>
 
 #include <SofaImGui/windows/PlottingWindow.h>
@@ -214,7 +215,7 @@ void PlottingWindow::showPlots()
 {
     static PlottingData* dragedData;
 
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
 
     bool portraitLayout = (ImGui::GetWindowWidth() * 0.75 < ImGui::GetWindowHeight());
     if (ImPlot::BeginSubplots("##myplots",
@@ -286,7 +287,7 @@ void PlottingWindow::showPlots()
                 {
                     ImGui::PopStyleColor();
                     showMenu(plot, i);
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
                     ImGui::EndPopup();
                 }
 

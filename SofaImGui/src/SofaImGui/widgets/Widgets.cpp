@@ -1,3 +1,4 @@
+#include "GUIColors.h"
 #include "IconsFontAwesome6.h"
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -82,7 +83,7 @@ bool LocalToggleButton(const char* str_id, bool* v)
                                            t));
     else
         col_bg = ImGui::GetColorU32(ImLerp(ImVec4(0.72f, 0.70f, 0.65f, 1.00f),
-                                           ImVec4(0.56f, 0.83f, 0.26f, 1.0f),
+                                           ImColor(COLOR_GREEN),
                                            t));
 
     draw_list->AddRectFilled(ImVec2(p.x, p.y + (height - 2 * radius) / 2.f),
@@ -100,7 +101,7 @@ void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
     colorActive.y -= 0.25;
     colorActive.z -= 0.25;
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
-    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_BorderShadow, COLOR_TRANSPARENT);
     ImGui::PushStyleColor(ImGuiCol_Button, *v? colorActive : ImGui::GetStyle().Colors[ImGuiCol_Button]);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, *v? colorActive : ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);

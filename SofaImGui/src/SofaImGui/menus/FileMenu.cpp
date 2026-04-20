@@ -29,6 +29,7 @@
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SofaImGui/Utils.h>
+#include <GUIColors.h>
 #include <imgui.h>
 
 #include <nfd.h>
@@ -51,7 +52,7 @@ void FileMenu::addMenu()
     if (m_baseGUI == nullptr)
         return;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
     if (ImGui::BeginMenu("File"))
     {
         ImGui::PopStyleColor();

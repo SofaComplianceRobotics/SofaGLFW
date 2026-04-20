@@ -80,10 +80,11 @@ set(IMGUI_HEADER_FILES
     ${implot_SOURCE_DIR}/implot_internal.h
     ${iconfontcppheaders_SOURCE_DIR}/IconsFontAwesome6.h
     ${simpleini_SOURCE_DIR}/SimpleIni.h
+    resources/DejaVuSans.h
     resources/fa-regular-400.h
     resources/fa-solid-900.h
+    resources/GUIColors.h
     resources/OpenSans-Regular.h
-    resources/DejaVuSans.h
     resources/Style.h
     resources/ProgramStyle.h
 )

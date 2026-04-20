@@ -19,6 +19,7 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#include "GUIColors.h"
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <imgui_internal.h>
@@ -96,13 +97,13 @@ void FooterStatusBar::showTempMessageOnStatusBar()
                     switch (m_tempMessageType) {
                     case MessageType::MWARNING:
                     {
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.f, 1.f));
+                        ImGui::PushStyleColor(ImGuiCol_Text, COLOR_ORANGE);
                         icon = ICON_FA_CIRCLE_EXCLAMATION;
                         break;
                     }
                     case MessageType::MERROR:
                     {
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.f, 0.f, 1.f));
+                        ImGui::PushStyleColor(ImGuiCol_Text, COLOR_RED);
                         icon = ICON_FA_CIRCLE_EXCLAMATION;
                         break;
                     }
