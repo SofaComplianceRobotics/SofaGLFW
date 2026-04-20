@@ -209,6 +209,7 @@ void SofaGLFWWindow::alignCamera(sofaglfw::SofaGLFWBaseGUI* baseGUI, const Camer
                 camera->setView(cameraPosition + bbCenter, orientation);
                 camera->d_lookAt.setValue(bbCenter);
                 camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
+                cameraAligned = true;
             }
         }
     }
@@ -248,7 +249,25 @@ void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos, SofaGLFWBaseGUI* baseGui
         {
             sofa::core::objectmodel::MouseEvent* mEvent = nullptr;
             if (m_currentButton == GLFW_MOUSE_BUTTON_LEFT)
+            {
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::LeftPressed, xpos, ypos);
+                if (cameraAligned)
+                {
+                    cameraAligned = false;
+                    setGridsPlane(baseGui);
+                    if (!userSelectedOrthographic)
+                    {
+                        if (auto groot = baseGui->getRootNode())
+                        {
+                            sofa::component::visual::BaseCamera::SPtr camera;
+                            groot->get(camera);
+
+                            if (camera)
+                                camera->setCameraType(sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                        }
+                    }
+                }
+            }
             else if (m_currentButton == GLFW_MOUSE_BUTTON_RIGHT)
                 mEvent = new sofa::core::objectmodel::MouseEvent(sofa::core::objectmodel::MouseEvent::RightPressed, xpos, ypos);
             else if (m_currentButton == GLFW_MOUSE_BUTTON_MIDDLE)
