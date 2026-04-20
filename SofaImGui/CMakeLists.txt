@@ -81,6 +81,7 @@ set(IMGUI_HEADER_FILES
     ${iconfontcppheaders_SOURCE_DIR}/IconsFontAwesome6.h
     ${simpleini_SOURCE_DIR}/SimpleIni.h
     resources/DejaVuSans.h
+    resources/IconsDejaVuSans.h
     resources/fa-regular-400.h
     resources/fa-solid-900.h
     resources/GUIColors.h

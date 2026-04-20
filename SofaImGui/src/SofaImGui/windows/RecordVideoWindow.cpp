@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #include "GUIColors.h"
+#include "IconsDejaVuSans.h"
 #include "IconsFontAwesome6.h"
 #include "Style.h"
 #include <SofaImGui/widgets/Widgets.h>
@@ -102,7 +103,7 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
 
             // ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area
             static bool clicked = false;
-            if (ImGui::Button(record? ICON_FA_STOP " Stop": "\xE2\xAC\xA4 Record"))
+            if (ImGui::Button(record? ICON_FA_STOP " Stop": ICON_DVS_CIRCLE_FULL" Record"))
             {
                 clicked = true;
                 record = !record;
