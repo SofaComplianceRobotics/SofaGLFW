@@ -429,6 +429,7 @@ void ViewMenu::addOrthographicMenuItem(sofa::component::visual::BaseCamera::SPtr
     if (ImGui::MenuItem((ortho)?"Perspective":"Orthographic"))
     {
         camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+        SofaGLFWWindow::userSelectedOrthographic = !ortho;
     }
 }
 

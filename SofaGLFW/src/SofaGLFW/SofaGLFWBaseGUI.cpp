@@ -863,11 +863,8 @@ void SofaGLFWBaseGUI::mouse_button_callback(GLFWwindow* window, int button, int 
     }
     else
     {
-        if (currentGUI != s_mapGUIs.end() && currentGUI->second)
-        {
-            if (!currentGUI->second->getGUIEngine()->dispatchMouseEvents())
-                return;
-        }
+        if (!currentGUI->second->getGUIEngine()->dispatchMouseEvents())
+            return;
 
         auto currentSofaWindow = s_mapWindows.find(window);
         if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
