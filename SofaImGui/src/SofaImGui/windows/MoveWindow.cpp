@@ -33,13 +33,15 @@
 namespace sofaimgui::windows {
 
 MoveWindow::MoveWindow(const std::string& name,
-                         const bool& isWindowOpen)
+                       const bool& isWindowOpen,
+                       models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+    m_kinematicsDataManager = kinematicsGUIDataManager;
     m_moveType = MoveType::SLIDERS;
 
     m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
@@ -109,7 +111,7 @@ void MoveWindow::setActuatorLimits(const sofa::Index &id, const double &min, con
     // }
 }
 
-void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
@@ -149,7 +151,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                 //                 m_movePad.setBounds("X", m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0]);
                 //                 m_movePad.setBounds("Y", m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1]);
                 //                 m_movePad.setBounds("Z", m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2]);
-                //                 showPad(baseGUI);
+                //                 showPad(m_baseGUI);
                 //             }
                 //             else if (m_moveType == MoveType::SLIDERS)
                 //             {

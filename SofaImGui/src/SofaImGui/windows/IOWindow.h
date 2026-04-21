@@ -25,7 +25,6 @@
 #include <map>
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/SimulationState.h>
 #include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/DrivingWindow.h>
@@ -126,18 +125,16 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     };
 
     IOWindow(){}
-    IOWindow(const std::string& name, const bool& isWindowOpen);
+    IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager kinematicsGUIDataManager);
     ~IOWindow();
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
-    
-    // void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
 
     sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
                                                      const std::pair<sofa::core::BaseData*, bool>& data,
@@ -147,11 +144,11 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
                                                      const std::string& tooltip = "",
                                                      Role role = Role::ALL);
 
-    void clearWindow() override {/* m_kinematicsController = nullptr;*/ m_selectableData.clear(); }
+    void clearWindow() override { m_selectableData.clear(); }
 
    protected:
-    
-    // models::KinematicsController::SPtr m_kinematicsController;
+
+    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
 

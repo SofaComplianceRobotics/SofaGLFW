@@ -25,6 +25,13 @@
 
 namespace sofaimgui::models::guidata {
 
+void KinematicsGUIDataManager::clear()
+{
+    m_inverseProblemSolver = nullptr;
+    m_effectorsGUIData.clear();
+    m_actuatorsGUIData.clear();
+}
+
 void KinematicsGUIDataManager::setInverseProblemSolver(softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver)
 {
     m_inverseProblemSolver = solver;
@@ -58,8 +65,10 @@ void KinematicsGUIDataManager::addTCP(softrobots::behavior::SoftRobotsBaseConstr
                                                                                      group,
                                                                                      help,
                                                                                      effector);
-                if (guiDataPtr)
-                    m_effectorsGUIData[KinematicsSection::TCP].insert(guiDataPtr);
+                if (guiDataPtr && guiDataPtr->validState)
+                    m_effectorsGUIData[KinematicsSection::TCP].push_back(guiDataPtr);
+                else
+                    msg_error("[addTCP]") << "Something went wrong. Expects a valid PositionEffector component as the first parameter.";
             }
         }
     }
@@ -74,7 +83,7 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
 {
     if (actuator)
     {
-        auto guiDataPtr = std::make_shared<ActuatorGUIData>(std::make_shared<OwnedBaseData>(sofa::Data<float>(), true),
+        auto guiDataPtr = std::make_shared<ActuatorGUIData>(std::make_shared<OwnedBaseData>(sofa::Data<float>().getData(), true),
                                                             std::make_shared<OwnedBaseData>(min.first, min.second),
                                                             std::make_shared<OwnedBaseData>(max.first, max.second),
                                                             label,
@@ -83,8 +92,11 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
                                                             actuator->d_constraintIndex.getValue(),
                                                             1);
 
-        addGUIData(guiDataPtr);
-        m_actuatorsGUIData[KinematicsSection::ACTUATOR].insert(guiDataPtr);
+        if (guiDataPtr && guiDataPtr->validState)
+        {
+            addGUIData(guiDataPtr);
+            m_actuatorsGUIData[KinematicsSection::ACTUATOR].push_back(guiDataPtr);
+        }
     }
 }
 

@@ -51,13 +51,15 @@ using sofa::type::Vec3;
 using sofa::type::Quat;
 
 ProgramWindow::ProgramWindow(const std::string& name,
-                             const bool& isWindowOpen)
+                             const bool& isWindowOpen,
+                             models::guidata::KinematicsGUIDataManager &kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+    m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 }
 
 std::string ProgramWindow::getDescription()
@@ -76,15 +78,10 @@ void ProgramWindow::loadAndProcessWindowSettings()
         importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
 
-void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        if (baseGUI)
-            m_baseGUI = baseGUI;
-        else
-            return;
-
         ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
         ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
         static bool firstTime = true;
@@ -332,7 +329,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (value_changed)
     {
         ImGui::MarkItemEdited(id);
-        const auto& groot = m_kinematicsController->getRootNode().get();
+        const auto& groot = m_baseGUI->getRootNode().get();
         m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
         groot->setTime(m_time);
         stepProgram();
@@ -883,10 +880,10 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
                 blockEnd += action->getDuration();
                 if ((!reverse && (blockEnd - m_time) > eps) || (reverse && (blockEnd - m_time - dt) > eps))
                 {
-                    RigidCoord position = m_kinematicsController->getTCPPosition();
+                    RigidCoord position = m_kinematicsGUIDataManager.getEffectorGUIData()->getTCPPosition();
                     if (action->apply(position, m_time + dt - blockStart)) // apply the time corresponding to the end of the time step
                     {
-                        m_kinematicsController->setTCPTargetPosition(position);
+                        m_kinematicsGUIDataManager.getEffectorGUIData()->setTCPTargetPosition(position);
                     }
                     break;
                 }
@@ -968,13 +965,6 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
         groot->setTime(m_time);
 }
 
-void ProgramWindow::setKinematicsController(models::KinematicsController::SPtr kinematicsController)
-{
-    m_kinematicsController = kinematicsController;
-    if (m_kinematicsController)
-        m_program = models::Program(kinematicsController);
-}
-
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
                                         const sofa::Index& trackIndex,
                                         std::shared_ptr<models::Track> track,
@@ -990,7 +980,7 @@ void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
         ImGui::Separator();
         if (ImGui::MenuItem("Overwrite waypoint"))
         {
-            startmove->setWaypoint(m_kinematicsController->getTCPTargetPosition());
+            startmove->setWaypoint(m_kinematicsGUIDataManager.getEffectorGUIData()->getTCPTargetPosition());
             track->updateNextMoveInitialPoint(-1, startmove->getWaypoint());
         }
         ImGui::EndPopup();
@@ -1087,7 +1077,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
         {
             if (ImGui::MenuItem("Overwrite waypoint"))
             {
-                move->setWaypoint(m_kinematicsController->getTCPTargetPosition());
+                move->setWaypoint(m_kinematicsGUIDataManager.getEffectorGUIData()->getTCPTargetPosition());
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
             }
             ImGui::Separator();
@@ -1116,7 +1106,7 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
-                                                            m_kinematicsController->getTCPTargetPosition(),
+                                                            m_kinematicsGUIDataManager.getEffectorGUIData()->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
                                                             m_kinematicsController,
                                                             true,

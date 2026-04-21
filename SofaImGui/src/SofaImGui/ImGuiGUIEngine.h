@@ -95,27 +95,23 @@ public:
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
 
-    // to remove
-    // models::SimulationState& getSimulationState() {return m_simulationState;}
-    // std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
+    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager = models::guidata::KinematicsGUIDataManager();
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
     windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
-    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false);
-    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true);
+    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false, m_kinematicsGUIDataManager);
+    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true, m_kinematicsGUIDataManager);
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
     windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
-    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
+    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true, m_kinematicsGUIDataManager);
     windows::DataMonitorWindow  m_dataMonitorWindow  = windows::DataMonitorWindow("Data Monitor", false);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
     windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video", false);
-
-    models::guidata::KinematicsGUIDataManager m_kinematicsDataManager = models::guidata::KinematicsGUIDataManager();
 
 
 protected:
@@ -137,13 +133,19 @@ protected:
                                                                         m_dataMonitorWindow
                                                                        };
 
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_popupWindows{
+                                                                            m_pluginsWindow,
+                                                                            m_mouseManagerWindow,
+                                                                            m_recordVideoWindow
+                                                                            };
+
     CSimpleIniA iniGUISettings;
 
     void initDockSpace(const bool& firstTime);
     void changeWorkbench(Workbench wb);
 
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
-    void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    void showOptionWindows();
     void showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showSecondaryMenuBar();
     void showStatusBar();

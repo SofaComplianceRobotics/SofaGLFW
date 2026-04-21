@@ -35,9 +35,8 @@ BaseWindow::BaseWindow()
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+void BaseWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
     SOFA_UNUSED(windowFlags);
 }
 

@@ -35,7 +35,7 @@ public:
     PluginsWindow(const std::string& name, const bool& isWindowOpen);
     ~PluginsWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:

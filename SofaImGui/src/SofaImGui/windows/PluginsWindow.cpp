@@ -45,10 +45,8 @@ std::string PluginsWindow::getDescription()
     return "List loaded plugins.";
 }
 
-void PluginsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void PluginsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     static std::string configPluginPath = "plugin_list.conf.default";
 
     static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));

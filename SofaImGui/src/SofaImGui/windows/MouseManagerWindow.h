@@ -37,7 +37,7 @@ public:
     MouseManagerWindow(const std::string& name, const bool& isWindowOpen);
     ~MouseManagerWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:

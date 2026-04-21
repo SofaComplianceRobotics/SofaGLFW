@@ -28,15 +28,15 @@ namespace sofaimgui::models::actions {
 Move::Move(const RigidCoord& initialPoint,
            const RigidCoord& waypoint,
            const double &duration,
-           KinematicsController::SPtr KinematicsController,
+           guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
            const bool &freeInRotation,
            Type type):
-                        StartMove(initialPoint, waypoint, duration, KinematicsController, freeInRotation),
+                        StartMove(initialPoint, waypoint, duration, kinematicsGUIDataManager, freeInRotation),
                         m_type(type),
                         view(*this)
 {
     setComment("Move to waypoint");
-    m_groot = m_KinematicsController->getRootNode();
+    m_groot = kinematicsGUIDataManager.getRootNode();
     addTrajectoryComponent(m_groot);
 }
 
@@ -51,7 +51,7 @@ std::shared_ptr<Action> Move::duplicate()
     auto move = std::make_shared<models::actions::Move>(m_initialPoint,
                                                         m_waypoint,
                                                         m_duration,
-                                                        m_KinematicsController,
+                                                        m_kinematicsGUIDataManager,
                                                         m_freeInRotation,
                                                         m_type);
     return move;

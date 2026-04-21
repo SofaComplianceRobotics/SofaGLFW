@@ -32,7 +32,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     MyRobotWindow(const std::string& name, const bool& isWindowOpen);
     ~MyRobotWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     struct Connection{
@@ -52,12 +52,12 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     std::string getSelectedPort();
     Connection& getConnection();
     models::guidata::GUIData::SPtr addData(const std::string& label,
-                                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::string& group = "",
-                                                     const std::string& help = "",
-                                                     Section section = Section::NONE);
+                                         const std::pair<sofa::core::BaseData*, bool>& data,
+                                         const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                         const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                         const std::string& group = "",
+                                         const std::string& help = "",
+                                         Section section = Section::NONE);
     void removeGUIData(models::guidata::GUIData::SPtr guiData) override;
 
 

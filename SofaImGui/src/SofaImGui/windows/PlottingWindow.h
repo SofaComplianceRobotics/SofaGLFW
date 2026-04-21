@@ -75,7 +75,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     PlottingWindow(const std::string& name, const bool& isWindowOpen);
     ~PlottingWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
     void clearWindow() override;
 

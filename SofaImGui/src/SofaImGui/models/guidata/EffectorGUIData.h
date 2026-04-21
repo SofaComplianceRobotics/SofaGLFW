@@ -23,6 +23,7 @@
 
 #include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
+#include <sofa/defaulttype/RigidCoord.h>
 
 
 namespace sofaimgui::models::guidata
@@ -30,7 +31,13 @@ namespace sofaimgui::models::guidata
 
 class EffectorGUIData: public GUIData
 {
+    // Todo: use template to allow different type of effector
+    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
+    typedef sofa::defaulttype::RigidDeriv<3, double> RigidDeriv;
+
 public:
+    typedef std::shared_ptr<EffectorGUIData> SPtr;
+
     EffectorGUIData(OwnedBaseData::SPtr data,
                     OwnedBaseData::SPtr min,
                     OwnedBaseData::SPtr max,
@@ -43,8 +50,24 @@ public:
         initFromEffector(effector);
     }
 
-    size_t indexInMechanical;
+    sofa::Data<sofa::type::vector<unsigned int>> indices;
     OwnedBaseData::SPtr target{nullptr};
+    OwnedBaseData::SPtr targetInit{nullptr};
+    OwnedBaseData::SPtr weights{nullptr};
+    OwnedBaseData::SPtr useDirections{nullptr};
+
+    const RigidCoord& getTCPTargetInitPosition();
+
+    RigidCoord getTCPTargetPosition();
+    void getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz);
+
+    void setTCPTargetPosition(const RigidCoord& position);
+    void setTCPTargetPosition(const double &x, const double &y, const double &z, const double &rx, const double &ry, const double &rz);
+
+    RigidCoord getTCPPosition();
+
+    bool hasRotation() {return useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;}
+    void setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw);
 
 protected:
 
@@ -52,4 +75,5 @@ protected:
 };
 
 }
+
 

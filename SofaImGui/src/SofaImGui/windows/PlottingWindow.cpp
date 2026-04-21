@@ -106,10 +106,10 @@ sofaimgui::models::guidata::GUIData::SPtr PlottingWindow::addData(const std::str
     return newData;;
 }
 
-void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(windowFlags);
-    auto groot = baseGUI->getRootNode().get();
+    auto groot = m_baseGUI->getRootNode().get();
 
     size_t nbData = m_GUIData.size();
     if (m_buffers.size() != nbData)

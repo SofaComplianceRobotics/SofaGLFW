@@ -54,10 +54,8 @@ std::string LogWindow::getDescription()
     return "Inspect the logs.";
 }
 
-void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))

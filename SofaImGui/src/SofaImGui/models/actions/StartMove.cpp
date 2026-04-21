@@ -27,12 +27,12 @@ namespace sofaimgui::models::actions {
 StartMove::StartMove(const RigidCoord& initialPoint,
                      const RigidCoord& waypoint,
                      const double &duration,
-                     KinematicsController::SPtr KinematicsController,
+                     guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
                      const bool &freeInRotation):
                                                 Action(duration),
                                                 m_initialPoint(initialPoint),
                                                 m_waypoint(waypoint),
-                                                m_KinematicsController(KinematicsController),
+                                                m_kinematicsGUIDataManager(kinematicsGUIDataManager),
                                                 m_freeInRotation(freeInRotation),
                                                 view(*this)
 {
@@ -61,7 +61,7 @@ bool StartMove::apply(RigidCoord &position, const double &time)
         position = getInterpolatedPosition(time);
     }
 
-    m_KinematicsController->setFreeInRotation(m_freeInRotation, m_freeInRotation, m_freeInRotation);
+    m_kinematicsGUIDataManager.getEffectorGUIData()->setFreeInRotation(m_freeInRotation, m_freeInRotation, m_freeInRotation);
 
     return hasChanged;
 }

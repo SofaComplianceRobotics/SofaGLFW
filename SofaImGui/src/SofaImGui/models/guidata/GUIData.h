@@ -118,6 +118,7 @@ public:
     std::string label;
     std::string group;
     std::string help;
+    bool validState;
 
     virtual ~GUIData() {};
 
@@ -131,6 +132,7 @@ public:
         this->label = label;
         this->group = group;
         this->help = help;
+        this->validState = true;
     }
 
     sofa::core::BaseData* getData() const { return data? data->getData(): nullptr; };

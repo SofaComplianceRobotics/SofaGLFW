@@ -46,10 +46,8 @@ std::string RecordVideoWindow::getDescription()
     return "Record video of the simulation.";
 }
 
-void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     if (isOpen())
     {
         ImGui::SetNextWindowSize(ImVec2(0., 0.), ImGuiCond_Once);
@@ -67,10 +65,10 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Output file");
             ImGui::SameLine();
-            static std::string filename = baseGUI->generateFilename("video", "");
+            static std::string filename = m_baseGUI->generateFilename("video", "");
             ImGui::InputText("##OutputFile", &filename);
             if (filename.empty())
-                filename = baseGUI->generateFilename("video", "");
+                filename = m_baseGUI->generateFilename("video", "");
             ImGui::SameLine();
             ImGui::TextDisabled(".mp4");
 
@@ -90,7 +88,7 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
             ImGui::LocalInputFloat("##EndTime", &end_time);
 
             // Current time
-            const auto& current_time = baseGUI->getRootNode()->getTime();
+            const auto& current_time = m_baseGUI->getRootNode()->getTime();
 
             if (record)
                 ImGui::EndDisabled();
@@ -112,12 +110,12 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
             if ((clicked && current_time >= start_time) || (record && current_time >= end_time))
             {
                 clicked = false;
-                baseGUI->setVideoFilename(filename + ".mp4");
-                if (baseGUI->toggleVideoRecording())
-                    showRecordingMessage(baseGUI);
+                m_baseGUI->setVideoFilename(filename + ".mp4");
+                if (m_baseGUI->toggleVideoRecording())
+                    showRecordingMessage();
                 else
                     FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
-                record = baseGUI->isVideoRecording();
+                record = m_baseGUI->isVideoRecording();
             }
 
             ImGui::PopStyleColor(3);
@@ -126,20 +124,20 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
     }
 }
 
-void RecordVideoWindow::showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI)
+void RecordVideoWindow::showRecordingMessage()
 {
-    bool recording = baseGUI->isVideoRecording();
+    bool recording = m_baseGUI->isVideoRecording();
 
-    if (!recording && !sofa::helper::system::FileSystem::exists(baseGUI->getVideoFilePath(), true))
+    if (!recording && !sofa::helper::system::FileSystem::exists(m_baseGUI->getVideoFilePath(), true))
     {
         FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
     }
     else
     {
         std::string message = recording ? "Start" : "Finished";
-        message += " recording to:" + (recording ? " " + baseGUI->getVideoFilePath() : "");
+        message += " recording to:" + (recording ? " " + m_baseGUI->getVideoFilePath() : "");
 
-        FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : baseGUI->getVideoFilePath());
+        FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : m_baseGUI->getVideoFilePath());
     }
 
 }

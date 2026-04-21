@@ -42,6 +42,8 @@ public:
     KinematicsGUIDataManager(){}
     ~KinematicsGUIDataManager() = default;
 
+    void clear();
+
     void setInverseProblemSolver(softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver);
 
     void addTCP(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
@@ -64,15 +66,21 @@ public:
 
     bool hasInverseProblemSolver(){return m_inverseProblemSolver == nullptr;}
     bool hasTCP(){return m_effectorsGUIData.contains(KinematicsSection::TCP);}
+    bool hasInverseProblemSolverAndTCP(){return hasInverseProblemSolver() && hasTCP();}
     bool hasActuator(){return m_actuatorsGUIData.contains(KinematicsSection::ACTUATOR);}
     bool hasAccessoryComponent(){return m_effectorsGUIData.contains(KinematicsSection::ACCESSORY) || m_actuatorsGUIData.contains(KinematicsSection::ACCESSORY);}
 
+    EffectorGUIData::SPtr getEffectorGUIData() {return m_effectorsGUIData[KinematicsSection::TCP][0];} // Temp: for the moment we handle only one TCP
+
+    void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) {m_baseGUI=baseGUI;}
+    sofa::simulation::Node::SPtr getRootNode() {return m_baseGUI->getRootNode();}
+
 protected:
 
+    sofaglfw::SofaGLFWBaseGUI* m_baseGUI;
     softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver;
-    std::map<KinematicsSection, std::unordered_set<ActuatorGUIData::SPtr>> m_actuatorsGUIData;
-    std::map<KinematicsSection, std::unordered_set<EffectorGUIData::SPtr>> m_effectorsGUIData;
-
+    std::map<KinematicsSection, std::vector<ActuatorGUIData::SPtr>> m_actuatorsGUIData;
+    std::map<KinematicsSection, std::vector<EffectorGUIData::SPtr>> m_effectorsGUIData;
 };
 
 }

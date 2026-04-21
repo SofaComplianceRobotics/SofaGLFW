@@ -43,9 +43,8 @@ namespace sofaimgui::windows {
     }
 
 
-    void DataMonitorWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+    void DataMonitorWindow::showWindow(const ImGuiWindowFlags& windowFlags)
     {
-        SOFA_UNUSED(baseGUI);
         SOFA_UNUSED(windowFlags);
 
         if (enabled() && isOpen())

@@ -42,35 +42,30 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    public:
     ProgramWindow(){}
-    ProgramWindow(const std::string& name, const bool& isWindowOpen);
+    ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager);
     ~ProgramWindow() = default;
 
     models::Program m_program; // robot program
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override {/*m_kinematicsController=nullptr;*/}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
 
     void setTime(const double &time) {m_time=time;}
-    void setKinematicsController(models::KinematicsController::SPtr KinematicsController);
-    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
     bool importProgram();
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
    protected:
-    
-    // models::KinematicsController::SPtr m_kinematicsController;
+
+    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
 
     double m_cursorPos = 0;
     ImVec2 m_trackBeginPos = ImVec2(0, 0);
     double m_time = 0;
-
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI = nullptr;
 
     bool m_timeBasedDisplay = true;
     bool m_drawTrajectory = true;
@@ -83,7 +78,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool enabled() override {return false; /*m_kinematicsController!=nullptr;*/}
+    bool enabled() override {return m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP();}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.

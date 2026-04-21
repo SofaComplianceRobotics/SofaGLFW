@@ -110,10 +110,8 @@ bool MyRobotWindow::enabled()
     return (m_connection.listAvailablePortsCallback || !m_groupedGUIData.empty() || !m_GUIData.empty());
 }
 
-void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))

@@ -30,6 +30,8 @@ namespace sofaimgui::models::guidata
 class ActuatorGUIData: public GUIData
 {
 public:
+    typedef std::shared_ptr<ActuatorGUIData> SPtr;
+
     ActuatorGUIData(OwnedBaseData::SPtr data,
                     OwnedBaseData::SPtr min,
                     OwnedBaseData::SPtr max,

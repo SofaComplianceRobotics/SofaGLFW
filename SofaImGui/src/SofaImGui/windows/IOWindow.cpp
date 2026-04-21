@@ -38,13 +38,14 @@
 
 namespace sofaimgui::windows {
 
-IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen)
+IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
     m_defaultIsOpen = false;
     m_name = name;
     m_isOpen = isWindowOpen;
+    m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 
 #if SOFAIMGUI_WITH_ROS
     rclcpp::init(0, nullptr);
@@ -97,10 +98,8 @@ bool IOWindow::sanitizeName(std::string &name)
     return input != name;
 }
 
-void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void IOWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-    
     if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
@@ -517,14 +516,15 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                 sofa::core::BaseData* data = guiData->getData();
                 if (data)
                 {
-                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsController && isDrivingSimulation() )
+                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsGUIDataManager.hasTCP() && isDrivingSimulation())
                     {
                         if (data->getValueTypeInfo()->size() == IOWindow::RigidCoord::total_size)
                         {
                             IOWindow::RigidCoord position;
                             for (size_t i=0; i<IOWindow::RigidCoord::total_size; i++)
                                 position[i] = data->getValueTypeInfo()->getScalarValue(data->getValueVoidPtr(), i);
-                            m_kinematicsController->setTCPTargetPosition(position);
+
+                            m_kinematicsGUIDataManager.getEffectorGUIData()->setTCPTargetPosition(position);
                         }
                         else
                         {

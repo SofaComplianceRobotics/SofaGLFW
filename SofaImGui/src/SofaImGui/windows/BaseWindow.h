@@ -81,8 +81,10 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     BaseWindow();
     ~BaseWindow() = default;
 
+    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
+
     /// Implements the drawing of the window
-    virtual void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
+    virtual void showWindow(const ImGuiWindowFlags &windowFlags);
 
     /// Every window must implement this method, give a description of the window
     /// Will be displayed as a tooltip
@@ -124,6 +126,8 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     using models::guidata::GUIDataManager::m_GUIData;
     using models::guidata::GUIDataManager::m_groupedGUIData;
+
+    sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
 
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window

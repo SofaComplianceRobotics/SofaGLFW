@@ -32,10 +32,10 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MoveWindow : public BaseWindow
 {
    public:
-    MoveWindow(const std::string& name, const bool& isWindowOpen);
+    MoveWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager);
     ~MoveWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
@@ -68,8 +68,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     // bool hasActuators() {return !m_actuators.empty();}
 
    protected:
-    
-    // models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
+
+    models::guidata::KinematicsGUIDataManager m_kinematicsDataManager;
     std::string m_TCPPositionDescription{"TCP Target Position (mm)"};
     std::string m_TCPRotationDescription{"TCP Target Rotation (rad)"};
     double m_TCPMinPosition{-500.};

@@ -56,7 +56,7 @@ void SceneGraphWindow::clearWindow()
     m_selection.clear();
 }
 
-void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+void SceneGraphWindow::showWindow(const ImGuiWindowFlags& windowFlags)
 {
     std::set<sofa::core::objectmodel::BaseObject*> componentToOpen;
     std::set<sofa::simulation::Node*> nodeToOpen;
@@ -65,7 +65,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
 
     if (isOpen())
     {
-        showGraph(baseGUI, windowFlags, componentToOpen, nodeToOpen, componentToOpenContextMenu, nodeToOpenContextMenu);
+        showGraph(windowFlags, componentToOpen, nodeToOpen, componentToOpenContextMenu, nodeToOpenContextMenu);
     }
 
     ImGuiIO& io = ImGui::GetIO();
@@ -249,7 +249,7 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
     }
 }
 
-void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags,
+void SceneGraphWindow::showGraph(const ImGuiWindowFlags& windowFlags,
                                  std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                                  std::set<sofa::simulation::Node*>& nodeToOpen,
                                  std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
@@ -312,9 +312,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
         unsigned int treeDepth {};
 
         std::function<void(sofa::simulation::Node*, const bool&, const bool&)> showNode;
-        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this, baseGUI](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
+        showNode = [&showNode, &treeDepth, expandAll, collapseAll, &componentToOpen, &nodeToOpen, &componentToOpenContextMenu, &nodeToOpenContextMenu, this](sofa::simulation::Node* node, const bool& showSearch, const bool& showFiltered)
         {
-            const auto o = baseGUI->m_selectionColor;
+            const auto o = m_baseGUI->m_selectionColor;
             const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
             const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
@@ -373,7 +373,7 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
                 ImGui::Indent();
                 ImGui::Indent();
 
-                showNodeComponents(baseGUI, node,
+                showNodeComponents(node,
                                    filter, showSearch, showFiltered,
                                    expandAll, collapseAll,
                                    componentToOpen, componentToOpenContextMenu);
@@ -404,10 +404,10 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
-            sofa::simulation::Node *groot = baseGUI->getRootNode().get();
+            sofa::simulation::Node *groot = m_baseGUI->getRootNode().get();
 
             showNode(groot, showSearch, showFiltered);
-            baseGUI->setCurrentSelection(m_selection);
+            m_baseGUI->setCurrentSelection(m_selection);
 
             ImGui::EndTable();
         }
@@ -415,15 +415,14 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
     ImGui::End();
 }
 
-void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                          sofa::simulation::Node* node,
+void SceneGraphWindow::showNodeComponents(sofa::simulation::Node* node,
                                           const ImGuiTextFilter& filter,
                                           const bool& showSearch, const bool& showFiltered,
                                           const bool& expandAll, const bool&collapseAll,
                                           std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                                           std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu)
 {
-    const auto o = baseGUI->m_selectionColor;
+    const auto o = m_baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 

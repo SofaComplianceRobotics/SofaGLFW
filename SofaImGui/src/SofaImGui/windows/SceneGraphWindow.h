@@ -22,7 +22,6 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
 #include <imgui.h>
 
@@ -34,7 +33,7 @@ public:
     SceneGraphWindow(const std::string& name, const bool& isWindowOpen);
     ~SceneGraphWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
     void clearWindow() override;
 
@@ -46,13 +45,12 @@ protected:
     std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
     std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
 
-    void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags,
+    void showGraph(const ImGuiWindowFlags &windowFlags,
                    std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
                    std::set<sofa::simulation::Node *> &nodeToOpen,
                    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
                    std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
-    void showNodeComponents(sofaglfw::SofaGLFWBaseGUI *baseGUI,
-                            sofa::simulation::Node* node,
+    void showNodeComponents(sofa::simulation::Node* node,
                             const ImGuiTextFilter &filter,
                             const bool &showSearch, const bool &showFiltered,
                             const bool& expandAll, const bool&collapseAll,

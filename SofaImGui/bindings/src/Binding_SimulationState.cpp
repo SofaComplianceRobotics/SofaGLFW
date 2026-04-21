@@ -72,11 +72,11 @@ void moduleAddDataMonitor(py::module &m)
 				addData(engine, description, data, py::none(), py::none(), group, "", "double");
 
 				// TODO Remove this when SimulationState is removed
-                models::SimulationState::StateData stateData;
-                stateData.group = group;
-                stateData.description = description;
-                stateData.data = getDataFromPyObject(data, "double").first;
-                engine->getSimulationState().addStateData(stateData);
+                // models::SimulationState::StateData stateData;
+                // stateData.group = group;
+                // stateData.description = description;
+                // stateData.data = getDataFromPyObject(data, "double").first;
+                // engine->getSimulationState().addStateData(stateData);
 
             }
         },
