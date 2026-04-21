@@ -41,7 +41,7 @@ class StartMove : public Action
     StartMove(const RigidCoord& initialPoint,
               const RigidCoord& waypoint,
               const double& duration,
-              guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
+              guidata::KinematicsGUIDataManager& kinematicsGUIDataManager,
               const bool& freeInRotation = true);
 
     virtual ~StartMove();

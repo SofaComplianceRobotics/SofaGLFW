@@ -81,7 +81,7 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addSimulationTimeAndFPS(groot);
+                    addSimulationTimeAndFPS();
                 }
 
                 addCameraButtons();
@@ -119,7 +119,7 @@ void ViewportWindow::addCameraButtons()
     auto groot = m_baseGUI->getRootNode().get();
 
     // If the camera is not correctly initialized don't draw anything
-    if (!checkCamera(groot))
+    if (!checkCamera())
         return;
 
     // Windows settings

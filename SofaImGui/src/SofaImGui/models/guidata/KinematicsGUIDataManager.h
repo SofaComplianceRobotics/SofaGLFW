@@ -72,7 +72,7 @@ public:
 
     EffectorGUIData::SPtr getEffectorGUIData() {return m_effectorsGUIData[KinematicsSection::TCP][0];} // Temp: for the moment we handle only one TCP
 
-    void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) {m_baseGUI=baseGUI;}
+    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) {m_baseGUI=baseGUI;}
     sofa::simulation::Node::SPtr getRootNode() {return m_baseGUI->getRootNode();}
 
 protected:

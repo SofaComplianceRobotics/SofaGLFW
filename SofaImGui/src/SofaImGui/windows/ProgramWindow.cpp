@@ -1108,7 +1108,7 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
                                                             m_kinematicsGUIDataManager.getEffectorGUIData()->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
-                                                            m_kinematicsController,
+                                                            m_kinematicsGUIDataManager,
                                                             true,
                                                             models::actions::Move::Type::LINE);
         move->insertInTrack(track, actionIndex);
@@ -1151,7 +1151,7 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
         }
         if (ImGui::MenuItem(("Add track##" + std::to_string(index)).c_str(), nullptr, false, false))
         {
-            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsController));
+            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsGUIDataManager));
         }
         if (ImGui::MenuItem(("Remove track##" + std::to_string(index)).c_str(), nullptr, false, (index>0)? true : false))
         {

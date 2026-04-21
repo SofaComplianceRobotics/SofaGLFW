@@ -27,7 +27,7 @@ namespace sofaimgui::models::actions {
 StartMove::StartMove(const RigidCoord& initialPoint,
                      const RigidCoord& waypoint,
                      const double &duration,
-                     guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
+                     guidata::KinematicsGUIDataManager &kinematicsGUIDataManager,
                      const bool &freeInRotation):
                                                 Action(duration),
                                                 m_initialPoint(initialPoint),

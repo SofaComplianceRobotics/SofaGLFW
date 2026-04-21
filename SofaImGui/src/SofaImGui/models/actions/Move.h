@@ -42,12 +42,12 @@ class Move : public StartMove
         LINE
     };
 
-    Move(const RigidCoord& initialPoint,
-         const RigidCoord& waypoint,
-         const double& duration,
-         guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
-         const bool& freeInRotation = true,
-         Type type = LINE);
+       Move(const RigidCoord& initialPoint,
+            const RigidCoord& waypoint,
+            const double& duration,
+            guidata::KinematicsGUIDataManager &kinematicsGUIDataManager,
+            const bool& freeInRotation = true,
+            Type type = LINE);
 
     virtual ~Move();
 

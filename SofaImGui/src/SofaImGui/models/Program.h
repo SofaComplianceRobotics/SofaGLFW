@@ -29,7 +29,7 @@
 
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <SofaImGui/models/Track.h>
-#include <SofaImGui/models/KinematicsController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/config.h>
 
 namespace sofaimgui::models {
@@ -41,9 +41,10 @@ class SOFAIMGUI_API Program
    public:
 
     Program() = default;
-    Program(models::KinematicsController::SPtr KinematicsController): m_KinematicsController(KinematicsController)
+    Program(models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager):
+        m_kinematicsGUIDataManager(kinematicsGUIDataManager)
     {
-        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(KinematicsController);
+        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(kinematicsGUIDataManager);
         addTrack(track);
     }
     ~Program() = default;
@@ -64,8 +65,8 @@ class SOFAIMGUI_API Program
     std::string getExtension() {return ".crprog";}
 
    protected:
-    
-    models::KinematicsController::SPtr m_KinematicsController;
+
+    guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
     std::vector<std::shared_ptr<Track>> m_tracks;
 
     bool checkExtension(const std::string &filename);

@@ -28,7 +28,7 @@ namespace sofaimgui::models::actions {
 Move::Move(const RigidCoord& initialPoint,
            const RigidCoord& waypoint,
            const double &duration,
-           guidata::KinematicsGUIDataManager kinematicsGUIDataManager,
+           guidata::KinematicsGUIDataManager& kinematicsGUIDataManager,
            const bool &freeInRotation,
            Type type):
                         StartMove(initialPoint, waypoint, duration, kinematicsGUIDataManager, freeInRotation),
@@ -36,7 +36,7 @@ Move::Move(const RigidCoord& initialPoint,
                         view(*this)
 {
     setComment("Move to waypoint");
-    m_groot = kinematicsGUIDataManager.getRootNode();
+    m_groot = m_kinematicsGUIDataManager.getRootNode();
     addTrajectoryComponent(m_groot);
 }
 
