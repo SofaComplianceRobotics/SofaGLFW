@@ -80,11 +80,13 @@ public:
     };
 
     static void resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI);
+    inline static bool cameraAligned = false;
+    inline static bool userSelectedOrthographic = false;
     static void alignCamera(sofaglfw::SofaGLFWBaseGUI* baseGUI, const CameraAlignement &align);
     static void setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const VisualGrid::PlaneType &plane = VisualGrid::PlaneType("y"));
 
 private:
-    GLFWwindow* m_glfwWindow{nullptr};
+    GLFWwindow* m_glfwWindow{ nullptr };
     sofa::component::visual::BaseCamera::SPtr m_currentCamera;
     int m_currentButton{ -1 };
     int m_currentAction{ -1 };

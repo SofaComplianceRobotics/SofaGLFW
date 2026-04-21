@@ -257,11 +257,13 @@ void PlottingWindow::showPlots()
                 {
                     RollingBuffer& buffer = m_buffers[k];
 
+                    ImPlotSpec spec;
+                    spec.Stride = 2 * sizeof(float);
                     ImPlot::PlotLine(data->label.c_str(),
-                                        &buffer.data[0].x,
-                                        &buffer.data[0].y,
-                                        buffer.data.size(),
-                                        0, 0, 2 * sizeof(float));
+                                     &buffer.data[0].x,
+                                     &buffer.data[0].y,
+                                     buffer.data.size(),
+                                     spec);
 
                     if (ImPlot::BeginDragDropSourceItem(data->label.c_str())) {
                         dragedData = data;

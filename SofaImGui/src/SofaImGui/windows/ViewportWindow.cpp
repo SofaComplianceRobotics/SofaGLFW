@@ -81,7 +81,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                                     ImVec2(0, 1), ImVec2(1, 0), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)),
                                     ImGui::GetStyle().FrameRounding);
 
-                m_isMouseOnViewport = ImGui::IsItemHovered();
+                m_isMouseOnViewport = ImGui::IsWindowHovered();
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
@@ -293,6 +293,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
+                    sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
                 }
                 ImGui::SetItemTooltip("Orthographic/Perspective");
             }
