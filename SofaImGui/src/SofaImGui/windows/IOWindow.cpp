@@ -141,7 +141,7 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
     }
 }
 
-sofaimgui::models::GUIData::SPtr IOWindow::addData(const std::string& label,
+models::guidata::GUIData::SPtr IOWindow::addData(const std::string& label,
                                                     const std::pair<sofa::core::BaseData*, bool>& data,
                                                     const std::pair<sofa::core::BaseData*, bool>& min,
                                                     const std::pair<sofa::core::BaseData*, bool>& max,

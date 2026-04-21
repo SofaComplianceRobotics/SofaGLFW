@@ -94,7 +94,7 @@ void moduleAddDataMonitor(py::module &m)
 				addData(engine, label, data, min, max, group, help, type);
             }
         }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
         , "Add a setting to the window."
     );
 }

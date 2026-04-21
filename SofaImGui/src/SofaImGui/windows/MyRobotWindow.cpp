@@ -60,7 +60,7 @@ void MyRobotWindow::clearWindow()
 
 bool MyRobotWindow::isInEmptyGroup(const std::string &group)
 {
-    return sofaimgui::models::GUIData::DEFAULTGROUP.find(group) != std::string::npos;
+    return models::guidata::GUIData::DEFAULTGROUP.find(group) != std::string::npos;
 }
 
 void MyRobotWindow::setAvailablePorts(const std::vector<std::string> &ports)
@@ -86,7 +86,7 @@ MyRobotWindow::Connection& MyRobotWindow::getConnection()
     return m_connection;
 }
 
-sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
+models::guidata::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
                                                         const std::pair<sofa::core::BaseData*, bool>& data,
                                                         const std::pair<sofa::core::BaseData*, bool>& min,
                                                         const std::pair<sofa::core::BaseData*, bool>& max,
@@ -98,7 +98,7 @@ sofaimgui::models::GUIData::SPtr MyRobotWindow::addData(const std::string& label
 	return added;
 }
 
-void MyRobotWindow::removeGUIData(sofaimgui::models::GUIData::SPtr guiData)
+void MyRobotWindow::removeGUIData(models::guidata::GUIData::SPtr guiData)
 {
     BaseWindow::removeGUIData(guiData);
 	m_sectionedGUIData[Section::INFORMATION].erase(guiData);

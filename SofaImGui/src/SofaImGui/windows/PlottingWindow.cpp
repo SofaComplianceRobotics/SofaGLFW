@@ -44,8 +44,7 @@ PlottingWindow::PlottingWindow(const std::string& name,
     m_isOpen = isWindowOpen;
 
     for (size_t i = 0; i < MAX_NB_PLOT; i++)
-        m_data[i] = std::set<sofaimgui::models::GUIData::SPtr>();
-    
+        m_data[i] = std::set<sofaimgui::models::guidata::GUIData::SPtr>();
 }
 
 std::string PlottingWindow::getDescription()
@@ -230,7 +229,7 @@ void PlottingWindow::showButtons()
 
 void PlottingWindow::showPlots()
 {
-    static sofaimgui::models::GUIData::SPtr dragedData;
+    static sofaimgui::models::guidata::GUIData::SPtr dragedData;
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 

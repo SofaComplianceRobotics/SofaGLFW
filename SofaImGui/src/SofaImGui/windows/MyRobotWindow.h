@@ -51,20 +51,20 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
     Connection& getConnection();
-    sofaimgui::models::GUIData::SPtr addData(const std::string& label,
-                                             const std::pair<sofa::core::BaseData*, bool>& data,
-                                             const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                             const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                             const std::string& group = "",
-                                             const std::string& help = "",
-                                             Section section = Section::NONE);
-	void removeGUIData(sofaimgui::models::GUIData::SPtr guiData) override;
+    models::guidata::GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = "",
+                                                     const std::string& help = "",
+                                                     Section section = Section::NONE);
+    void removeGUIData(models::guidata::GUIData::SPtr guiData) override;
 
 
    protected:
 
     Connection m_connection;
-	std::map<Section, std::unordered_set<sofaimgui::models::GUIData::SPtr>> m_sectionedGUIData;
+    std::map<Section, std::unordered_set<models::guidata::GUIData::SPtr>> m_sectionedGUIData;
 
     bool enabled() override;
 

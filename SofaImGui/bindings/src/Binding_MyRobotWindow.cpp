@@ -95,7 +95,7 @@ void moduleAddMyRobotWindow(py::module &m)
         [engine, m_a_name](const std::string &description, py::object data)
         {
             msg_deprecated(m_a_name) << "addInformation is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Information.addData instead.";
-            addInformation(engine, description, data, sofaimgui::models::GUIData::DEFAULTGROUP, "");
+            addInformation(engine, description, data, models::guidata::GUIData::DEFAULTGROUP, "");
         }, "[DEPRECATED] Add an information to the window."
         );
 
@@ -113,7 +113,7 @@ void moduleAddMyRobotWindow(py::module &m)
             msg_deprecated(m_a_name) << "addSetting is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Settings.addData instead.";
             if (engine)
             {
-				addSetting(engine, description, data, min, max, sofaimgui::models::GUIData::DEFAULTGROUP, "");
+                addSetting(engine, description, data, min, max, models::guidata::GUIData::DEFAULTGROUP, "");
             }
         }, "[DEPRECATED] Add a setting to the window."
         );
@@ -215,12 +215,12 @@ void moduleAddMyRobotWindow(py::module &m)
 			if (engine)
 			{
 				if (group.empty())
-				    addInformation(engine, label, data, sofaimgui::models::GUIData::DEFAULTGROUP, help);
+                    addInformation(engine, label, data, models::guidata::GUIData::DEFAULTGROUP, help);
                 else
 					addInformation(engine, label, data, group, help);
 			}
 		}
-		, "label"_a, "data"_a, "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = ""
+        , "label"_a, "data"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
         ,"Add an information to the window."
 	);
 
@@ -237,12 +237,12 @@ void moduleAddMyRobotWindow(py::module &m)
 			if (engine)
 			{
 				if (group.empty())
-					addSetting(engine, label, data, min, max, sofaimgui::models::GUIData::DEFAULTGROUP, help, type);
+                    addSetting(engine, label, data, min, max, models::guidata::GUIData::DEFAULTGROUP, help, type);
 				else
 					addSetting(engine, label, data, min, max, group, help, type);
 			}
 		}
-		, "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
 		, "Add a setting to the window."
 	);
 

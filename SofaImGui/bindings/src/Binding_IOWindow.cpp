@@ -71,10 +71,10 @@ void moduleAddIOWindow(py::module &m)
             msg_deprecated(m_a_name) << "addSubscribableData is deprecated and will be removed in future versions. Please use Sofa.ImGui.IOWindow.Input.addData instead.";
             if (engine)
             {
-                addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::SUBSCRIBE);
+                addData(engine, label, data, min, max, group, help, type, windows::IOWindow::Role::SUBSCRIBE);
             }
         }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
         , "[DEPRECATED] Add a data to subscribe to in the IO window."
         );
 
@@ -84,10 +84,10 @@ void moduleAddIOWindow(py::module &m)
         {
             if (engine)
             {
-                addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::PUBLISH);
+                addData(engine, label, data, min, max, group, help, type, windows::IOWindow::Role::PUBLISH);
             }
         }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
         , "Add a data to publish from the IO window."
     );
 
@@ -97,10 +97,10 @@ void moduleAddIOWindow(py::module &m)
         {
             if (engine)
             {
-				addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::SUBSCRIBE);
+                addData(engine, label, data, min, max, group, help, type, windows::IOWindow::Role::SUBSCRIBE);
             }
         }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
         , "Add a data to subscribe to in the IO window."
     );
 
@@ -110,10 +110,10 @@ void moduleAddIOWindow(py::module &m)
         {
             if (engine)
             {
-				addData(engine, label, data, min, max, group, help, type, sofaimgui::windows::IOWindow::Role::ALL);
+                addData(engine, label, data, min, max, group, help, type, windows::IOWindow::Role::ALL);
             }
         }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = sofaimgui::models::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
         , "Add a data to subscribe to and publish from the IO window."
     );
 }
