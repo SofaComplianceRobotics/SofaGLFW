@@ -255,8 +255,6 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (window->SkipItems)
         return;
 
-    ImVec4 color(0.95f, 0.f, 0.f, 1.0f);
-
     float thicknessRect = 1.0f;
     const float borderSize = ImGui::GetWindowWidth() * 1.f / 8.f;
     float widthTri = ImGui::GetStyle().ItemInnerSpacing.x * 2;
@@ -338,8 +336,8 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
         stepProgram();
     }
 
-    window->DrawList->AddTriangleFilled(p0Tri, p1Tri, p2Tri, ImGui::GetColorU32(color));
-    window->DrawList->AddRectFilled(p0Rect, p1Rect, ImGui::GetColorU32(color), 1.0f);
+    window->DrawList->AddTriangleFilled(p0Tri, p1Tri, p2Tri, COLOR_RED);
+    window->DrawList->AddRectFilled(p0Rect, p1Rect, COLOR_RED, 1.0f);
 }
 
 void ProgramWindow::showTimeline()
