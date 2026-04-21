@@ -119,8 +119,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
             return;
         }
 
-        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        if (guiNode)
+        if (auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
         {
             std::string name = "ViewportGrid" + SofaGLFWWindow::GridSquareSize::getString(squareSize);
             auto grid = guiNode->get<sofa::component::visual::VisualGrid>(name);
@@ -152,18 +151,21 @@ void ViewMenu::showOriginFrame(const bool& show)
     const auto& groot = m_baseGUI->getRootNode();
     if (groot)
     {
-        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        if (guiNode)
+        if (auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
         {
             auto originFrame = guiNode->get<sofa::component::visual::LineAxis>();
             if (!originFrame)
             {
+                const auto& bbox = groot->f_bbox.getValue();
+                auto bboxSize = bbox.maxBBox() - bbox.minBBox();
+                auto lineSize = floor(*std::max_element(bboxSize.begin(), bboxSize.end()) * 10);
                 auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
                 guiNode->addObject(newOriginFrame);
                 newOriginFrame->setName("ViewportOriginFrame");
                 newOriginFrame->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
                 newOriginFrame->d_enable.setValue(show);
-                newOriginFrame->d_infinite.setValue(true);
+                newOriginFrame->d_infinite.setValue(false);
+                newOriginFrame->d_size.setValue(lineSize);
                 newOriginFrame->d_thickness.setValue(2.f);
                 newOriginFrame->d_vanishing.setValue(true);
                 newOriginFrame->init();
@@ -178,11 +180,9 @@ void ViewMenu::showOriginFrame(const bool& show)
 
 void ViewMenu::showBoundingBox(const bool& show)
 {
-    const auto& groot = m_baseGUI->getRootNode();
-    if (groot)
+    if (const auto& groot = m_baseGUI->getRootNode())
     {
-        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        if (guiNode)
+        if (auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
         {
             auto bbox = guiNode->get<sofa::component::visual::VisualBoundingBox>();
             if (!bbox)

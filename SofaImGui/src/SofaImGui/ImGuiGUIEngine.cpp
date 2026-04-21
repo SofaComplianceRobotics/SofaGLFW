@@ -1010,24 +1010,30 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
 void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filename)
 {
     clearGUI();
+
+    sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
+
+    // When we reload the simulation, keep the GUI node
+    sofa::simulation::Node::SPtr guiNode = root->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
+    if (guiNode)
+        root->removeChild(guiNode);
+
     Utils::loadSimulation(m_baseGUI, reload, filename);
-    createGUINode();
+    createGUINode(guiNode);
     m_IOWindow.setSimulationState(m_simulationState);
     m_stateWindow->setSimulationState(m_simulationState);
     enableWindows();
 }
 
-void ImGuiGUIEngine::createGUINode()
+void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)
 {
     const std::string nodeName = sofaglfw::SofaGLFWBaseGUI::getGUINodeName();
-    sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
-    if (root)
+    if (sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode())
     {
-        sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
-        if (!guinode)
-        {
+        if (guinode && guinode->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
+            root->addChild(guinode);
+        else
             guinode = root->createChild(nodeName);
-        }
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
         guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);

@@ -145,7 +145,7 @@ protected:
     void saveSettings();
     void loadSimulation(const bool& reload, const std::string &filename);
     void enableWindows();
-    void createGUINode();
+    void createGUINode(Node::SPtr guiNode = nullptr);
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
 
