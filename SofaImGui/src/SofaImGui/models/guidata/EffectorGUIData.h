@@ -50,12 +50,6 @@ public:
         initFromEffector(effector);
     }
 
-    sofa::Data<sofa::type::vector<unsigned int>> indices;
-    OwnedBaseData::SPtr target{nullptr};
-    OwnedBaseData::SPtr targetInit{nullptr};
-    OwnedBaseData::SPtr weights{nullptr};
-    OwnedBaseData::SPtr useDirections{nullptr};
-
     const RigidCoord& getTCPTargetInitPosition();
 
     RigidCoord getTCPTargetPosition();
@@ -69,9 +63,18 @@ public:
     bool hasRotation() {return useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;}
     void setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw);
 
+    double getWeight(const sofa::Index &index);
+    void setWeight(const sofa::Index &index, const double &w);
+
 protected:
 
     void initFromEffector(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector);
+
+    sofa::Data<sofa::type::vector<unsigned int>> indices;
+    OwnedBaseData::SPtr target{nullptr};
+    OwnedBaseData::SPtr targetInit{nullptr};
+    OwnedBaseData::SPtr weights{nullptr};
+    OwnedBaseData::SPtr useDirections{nullptr};
 };
 
 }

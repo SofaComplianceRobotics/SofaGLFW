@@ -24,16 +24,12 @@
 #include <SofaImGui/config.h>
 #include <sofa/type/Vec.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/behavior/BaseMechanicalState.h>
-#include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
-#include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
 #include <sofa/component/controller/Controller.h>
 #include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 namespace sofaimgui::models {
 
-class SOFAIMGUI_API KinematicsController : sofa::component::controller::Controller
+class SOFAIMGUI_API KinematicsController : public sofa::component::controller::Controller
 {
    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
@@ -41,40 +37,15 @@ class SOFAIMGUI_API KinematicsController : sofa::component::controller::Controll
 
     SOFA_CLASS(KinematicsController, sofa::component::controller::Controller);
 
-    // struct Actuator{
-    //    sofa::core::BaseData* data;
-    //    size_t indexInProblem;
-    //    double value;
-    //    sofa::helper::OptionsGroup valueType{"force", "displacement"};
-    //    double min{-500};
-    //    double max{500};
-    // };
-
-    KinematicsController(/*sofa::simulation::Node::SPtr groot,
-                         softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                         softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector*/);
+    KinematicsController();
     ~KinematicsController() = default;
-    
-    // sofa::simulation::Node::SPtr getRootNode() {return m_groot;}
-    void applyActuatorsForce(/*const std::vector<Actuator> &actuators*/);
 
+    void applyActuatorsForce();
     void handleEvent(sofa::core::objectmodel::Event *event) override;
 
    protected:
 
-    // sofa::simulation::Node::SPtr m_groot;
-    // softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver;
-
-    // sofa::core::behavior::BaseMechanicalState::SPtr m_TCPTargetState;
-    // sofa::core::behavior::BaseMechanicalState::SPtr m_TCPState;
-    // softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr m_rotationEffector;
-    // RigidCoord m_initTCPTargetPosition;
-    // double m_rotationWeight[3];
-    // std::vector<Actuator> m_actuators;
-
-    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    // models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
     bool m_updateSolutionOnSolveEndEvent{false};
 
 };

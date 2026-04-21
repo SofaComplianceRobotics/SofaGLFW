@@ -62,18 +62,18 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
         // Find the PositionEffector component corresponding to the rotation if any
         sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
         groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);
-        softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes>* rotationEffector{ nullptr };
+        // softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes>* rotationEffector{ nullptr };
 
         for (auto* effector: effectors)
         {
             auto useDirections = effector->d_useDirections.getValue();
             if (useDirections[0] || useDirections[1] || useDirections[2])
                 continue;
-            rotationEffector = effector;
+            // rotationEffector = effector;
             break;
         }
 
-        engine->m_kinematicsDataManager.setInverseProblemSolver(qpsolver);
+        engine->m_kinematicsGUIDataManager.setInverseProblemSolver(qpsolver);
     }
 }
 
@@ -85,7 +85,7 @@ void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::Co
 
     if (engine && qpsolver)
     {
-        engine->m_kinematicsDataManager.setInverseProblemSolver(qpsolver);
+        engine->m_kinematicsGUIDataManager.setInverseProblemSolver(qpsolver);
     }
 }
 
@@ -98,11 +98,11 @@ void addTCP(softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::obje
     {
         if (constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR)
         {
-            engine->m_kinematicsDataManager.addTCP(constraint,
-                                                   getDataFromPyObject(min, "float"),
-                                                   getDataFromPyObject(max, "float"),
-                                                   group,
-                                                   help);
+            engine->m_kinematicsGUIDataManager.addTCP(constraint,
+                                                       getDataFromPyObject(min, "float"),
+                                                       getDataFromPyObject(max, "float"),
+                                                       group,
+                                                       help);
         } else {
             msg_error("[addTCP]") << "Expects a PositionEffector component as the first parameter.";
         }
@@ -118,12 +118,12 @@ void addActuator(std::string label, softrobots::behavior::SoftRobotsBaseConstrai
     {
         if(constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR)
         {
-            engine->m_kinematicsDataManager.addActuator(label,
-                                                        constraint,
-                                                        getDataFromPyObject(min, "float"),
-                                                        getDataFromPyObject(max, "float"),
-                                                        group,
-                                                        help);
+            engine->m_kinematicsGUIDataManager.addActuator(label,
+                                                            constraint,
+                                                            getDataFromPyObject(min, "float"),
+                                                            getDataFromPyObject(max, "float"),
+                                                            group,
+                                                            help);
         } else {
             msg_error("[addTCP]") << "Expects an Actuator component as the first parameter.";
         }
@@ -139,7 +139,7 @@ void addAccessoryComponent(std::string accessoryLabel, std::string componentLabe
     {
         if (constraint && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
         {
-            engine->m_kinematicsDataManager.addAccessoryComponent(accessoryLabel,
+            engine->m_kinematicsGUIDataManager.addAccessoryComponent(accessoryLabel,
                                                                   componentLabel,
                                                                   constraint,
                                                                   getDataFromPyObject(min, "float"),

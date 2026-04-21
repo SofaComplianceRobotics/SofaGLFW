@@ -41,74 +41,24 @@ MoveWindow::MoveWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-    m_kinematicsDataManager = kinematicsGUIDataManager;
+    m_kinematicsGUIDataManager = kinematicsGUIDataManager;
     m_moveType = MoveType::SLIDERS;
+
+    models::guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager.getTCPGUIData();
+
+    double min = TCPGUIData->getMin();
+    double max = TCPGUIData->getMax();
 
     m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
                                 &m_x, &m_z, &m_y,
-                                &m_TCPMinPosition, &m_TCPMaxPosition,
-                                &m_TCPMinPosition, &m_TCPMaxPosition,
-                                &m_TCPMinPosition, &m_TCPMaxPosition);
+                                min, max,
+                                min, max,
+                                min, max);
 }
 
 std::string MoveWindow::getDescription()
 {
     return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
-}
-
-void MoveWindow::clearWindow()
-{
-    // m_kinematicsGUIDataManager = nullptr;
-    m_accessories.clear();
-    // m_actuators.clear();
-}
-
-void MoveWindow::setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription)
-{
-    m_TCPPositionDescription = positionDescription;
-    m_TCPRotationDescription = rotationDescription;
-}
-
-void MoveWindow::setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation)
-{
-    m_TCPMinPosition = minPosition;
-    m_TCPMaxPosition = maxPosition;
-    m_TCPMinOrientation = minOrientation;
-    m_TCPMaxOrientation = maxOrientation;
-}
-
-void MoveWindow::setActuatorsDescriptions(const std::string &description)
-{
-    m_actuatorsDescription = description;
-}
-
-void MoveWindow::setActuatorsLimits(const double &min, const double &max)
-{
-    // if (m_actuators.empty())
-    // {
-    //     FooterStatusBar::getInstance().setTempMessage("Calling setActuatorsLimits() without any actuators set. Won't proceed."
-    //                                                   "To fix this warning you can call setActuators() before calling setActuatorsLimits(). ", FooterStatusBar::MWARNING);
-    // }
-
-    // for (auto &actuator: m_actuators)
-    // {
-    //     actuator.max = max;
-    //     actuator.min = min;
-    // }
-}
-
-void MoveWindow::setActuatorLimits(const sofa::Index &id, const double &min, const double &max)
-{
-    // if (id < m_actuators.size())
-    // {
-    //     m_actuators[id].max = max;
-    //     m_actuators[id].min = min;
-    // }
-    // else
-    // {
-    //     FooterStatusBar::getInstance().setTempMessage("Calling setActuatorLimits() with 'id' greater than the number of actuators. Won't proceed."
-    //                                                   "To fix this warning give a correct 'id' number.", FooterStatusBar::MWARNING);
-    // }
 }
 
 void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
@@ -119,120 +69,126 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         {
             if (enabled())
             {
-                // if (m_kinematicsGUIDataManager != nullptr)
-                // {
-                //     ImGui::Spacing();
+                if (m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP())
+                {
+                    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager.getTCPGUIData();
 
-                //     if(isDrivingSimulation())
-                //         m_kinematicsGUIDataManager->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
+                    ImGui::Spacing();
 
-                //     if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                //     {
-                //         { // Vertical tabs (buttons)
-                //             ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
+                    if(isDrivingSimulation())
+                        TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
-                //             if (showVerticalTab(ICON_FA_SLIDERS, "Sliders", m_moveType == MoveType::SLIDERS))
-                //                 m_moveType = MoveType::SLIDERS;
-                //             if (showVerticalTab(ICON_FA_TABLE_CELLS_LARGE, "Pad", m_moveType == MoveType::PAD))
-                //                 m_moveType = MoveType::PAD;
+                    if (ImGui::CollapsingHeader(TCPGUIData->label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        { // Vertical tabs (buttons)
+                            ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
 
-                //             ImGui::EndChild();
-                //         }
+                            if (showVerticalTab(ICON_FA_SLIDERS, "Sliders", m_moveType == MoveType::SLIDERS))
+                                m_moveType = MoveType::SLIDERS;
+                            if (showVerticalTab(ICON_FA_TABLE_CELLS_LARGE, "Pad", m_moveType == MoveType::PAD))
+                                m_moveType = MoveType::PAD;
 
-                //         ImGui::SameLine();
+                            ImGui::EndChild();
+                        }
 
-                //         { // Method area (sliders or pad)
-                //             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                //             ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
-                //             const auto &initPosition = m_kinematicsGUIDataManager->getTCPTargetInitPosition();
+                        ImGui::SameLine();
 
-                //             if (m_moveType == MoveType::PAD)
-                //             {
-                //                 m_movePad.setBounds("X", m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0]);
-                //                 m_movePad.setBounds("Y", m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1]);
-                //                 m_movePad.setBounds("Z", m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2]);
-                //                 showPad(m_baseGUI);
-                //             }
-                //             else if (m_moveType == MoveType::SLIDERS)
-                //             {
-                //                 ImGui::Indent();
-                //                 showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-                //                 ImGui::Spacing();
-                //                 showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-                //                 ImGui::Spacing();
-                //                 showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
-                //                 ImGui::Unindent();
-                //             }
-                //             ImGui::EndChild();
-                //             ImGui::PopStyleColor();
-                //         }
-                //     }
+                        { // Method area (sliders or pad)
+                            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+                            ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
+                            const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
+                            double min = TCPGUIData->getMin();
+                            double max = TCPGUIData->getMax();
 
-                //     // m_kinematicsGUIDataManager->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+                            if (m_moveType == MoveType::PAD)
+                            {
+                                m_movePad.setBounds("X", min + initPosition[0], max + initPosition[0]);
+                                m_movePad.setBounds("Y", min + initPosition[1], max + initPosition[1]);
+                                m_movePad.setBounds("Z", min + initPosition[2], max + initPosition[2]);
+                                showPad();
+                            }
+                            else if (m_moveType == MoveType::SLIDERS)
+                            {
+                                ImGui::Indent();
+                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                                ImGui::Spacing();
+                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                                ImGui::Spacing();
+                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                                ImGui::Unindent();
+                            }
+                            ImGui::EndChild();
+                            ImGui::PopStyleColor();
+                        }
+                    }
 
-                //     // if (m_kinematicsGUIDataManager->hasRotationEffector() && ImGui::LocalBeginCollapsingHeader(m_TCPRotationDescription.c_str(), ImGuiTreeNodeFlags_AllowOverlap))
-                //     // {
-                //     //     ImGui::SameLine();
+                    TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-                //     //     ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
+                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader("TODO Rotation", ImGuiTreeNodeFlags_AllowOverlap))
+                    {
+                        ImGui::SameLine();
 
-                //     //     bool openOptions = false;
-                //     //     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
-                //     //     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
-                //     //     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
-                //     //     if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-                //     //         openOptions = true;
-                //     //     ImGui::PopStyleColor(3);
+                        ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
 
-                //     //     if (openOptions)
-                //     //     {
-                //     //         ImGui::OpenPopup("##RotationOptions");
-                //     //     }
+                        bool openOptions = false;
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
+                        if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+                            openOptions = true;
+                        ImGui::PopStyleColor(3);
 
-                //     //     if (ImGui::BeginPopup("##RotationOptions"))
-                //     //     {
-                //     //         showOptions();
-                //     //         ImGui::EndPopup();
-                //     //     }
+                        if (openOptions)
+                        {
+                            ImGui::OpenPopup("##RotationOptions");
+                        }
 
-                //     //     if (m_freeRoll)
-                //     //         ImGui::BeginDisabled();
-                //     //     showSliderDouble("R", "##RSlider", "##RInput", &m_rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-                //     //     if (m_freeRoll)
-                //     //         ImGui::EndDisabled();
+                        if (ImGui::BeginPopup("##RotationOptions"))
+                        {
+                            showOptions();
+                            ImGui::EndPopup();
+                        }
 
-                //     //     ImGui::Spacing();
+                        if (m_freeRoll)
+                            ImGui::BeginDisabled();
+                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, -3.14, 3.14, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); //TODO real min max
+                        if (m_freeRoll)
+                            ImGui::EndDisabled();
 
-                //     //     if (m_freePitch)
-                //     //         ImGui::BeginDisabled();
-                //     //     showSliderDouble("P", "##PSlider", "##PInput", &m_ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-                //     //     if (m_freePitch)
-                //     //         ImGui::EndDisabled();
+                        ImGui::Spacing();
 
-                //     //     ImGui::Spacing();
+                        if (m_freePitch)
+                            ImGui::BeginDisabled();
+                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, -3.14, 3.14, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                        if (m_freePitch)
+                            ImGui::EndDisabled();
 
-                //     //     if (m_freeYaw)
-                //     //         ImGui::BeginDisabled();
-                //     //     showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
-                //     //     if (m_freeYaw)
-                //     //         ImGui::EndDisabled();
+                        ImGui::Spacing();
 
-                //     //     ImGui::LocalEndCollapsingHeader();
-                //     // }
+                        if (m_freeYaw)
+                            ImGui::BeginDisabled();
+                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, -3.14, 3.14, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                        if (m_freeYaw)
+                            ImGui::EndDisabled();
 
-                //     // if (isDrivingSimulation())
-                //     // {
-                //     //     sofa::type::Quat<SReal> q = m_kinematicsGUIDataManager->getTCPPosition().getOrientation();
-                //     //     sofa::type::Vec3 rotation = q.toEulerVector();
-                //     //     m_kinematicsGUIDataManager->setTCPTargetPosition(m_x, m_y, m_z,
-                //     //                                                  m_freeRoll? rotation[0]: m_rx,
-                //     //                                                  m_freePitch? rotation[1]: m_ry,
-                //     //                                                  m_freeYaw? rotation[2]: m_rz);
-                //     // }
-                // }
+                        ImGui::LocalEndCollapsingHeader();
+                    }
 
-                // if (!m_actuators.empty())
-                // {
+                    if (isDrivingSimulation())
+                    {
+                        sofa::type::Quat<SReal> q = TCPGUIData->getTCPPosition().getOrientation();
+                        sofa::type::Vec3 rotation = q.toEulerVector();
+                        TCPGUIData->setTCPTargetPosition(m_x, m_y, m_z,
+                                                         m_freeRoll? rotation[0]: m_rx,
+                                                         m_freePitch? rotation[1]: m_ry,
+                                                         m_freeYaw? rotation[2]: m_rz);
+                    }
+                }
+
+                if (m_kinematicsGUIDataManager.hasActuator())
+                {
+                //     const auto& actuatorsGUIData = m_kinematicsGUIDataManager.getActuators();
+
                 //     if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                 //     {
                 //         if (!isEnabledInWorkbench())
@@ -241,48 +197,48 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //             ImGui::BeginDisabled();
                 //         }
 
-                        // int nbActuators = m_actuators.size();
-                        // bool solveInverseProblem = true;
-                        // for (int i=0; i<nbActuators; i++)
-                        // {
-                        //     std::string name = "M" + std::to_string(i);
+                //         int nbActuators = m_actuators.size();
+                //         bool solveInverseProblem = true;
+                //         for (int i=0; i<nbActuators; i++)
+                //         {
+                //             std::string name = "M" + std::to_string(i);
 
-                        //     auto &actuator = m_actuators[i];
+                //             auto &actuator = m_actuators[i];
 
-                        //     if (actuator.min < actuator.max)
-                        //     {
-                        //         auto* typeinfo = actuator.data->getValueTypeInfo();
-                        //         auto* value = actuator.data->getValueVoidPtr();
-                        //         double buffer = typeinfo->getScalarValue(value, 0);
-                        //         bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
-                        //                                            actuator.min, actuator.max,
-                        //                                            ImVec4(0, 0, 0, 0));
-                        //         if (hasChanged)
-                        //         {
-                        //             actuator.data->read(std::to_string(buffer));
-                        //             solveInverseProblem = false;
-                        //         }
-                        //         actuator.value=buffer;
-                        //     }
-                        // }
+                //             if (actuator.min < actuator.max)
+                //             {
+                //                 auto* typeinfo = actuator.data->getValueTypeInfo();
+                //                 auto* value = actuator.data->getValueVoidPtr();
+                //                 double buffer = typeinfo->getScalarValue(value, 0);
+                //                 bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
+                //                                                    actuator.min, actuator.max,
+                //                                                    ImVec4(0, 0, 0, 0));
+                //                 if (hasChanged)
+                //                 {
+                //                     actuator.data->read(std::to_string(buffer));
+                //                     solveInverseProblem = false;
+                //                 }
+                //                 actuator.value=buffer;
+                //             }
+                //         }
 
-                        // if (m_kinematicsGUIDataManager && !solveInverseProblem && isDrivingSimulation())
-                        // {
-                        //     // TODO: don't solve the inverse problem since we'll overwrite the solution
-                        //     m_kinematicsGUIDataManager->applyActuatorsForce(m_actuators);
-                        // }
+                //         if (m_kinematicsGUIDataManager && !solveInverseProblem && isDrivingSimulation())
+                //         {
+                //             // TODO: don't solve the inverse problem since we'll overwrite the solution
+                //             m_kinematicsGUIDataManager->applyActuatorsForce(m_actuators);
+                //         }
 
                 //         if (!isEnabledInWorkbench())
                 //             ImGui::EndDisabled();
 
                 //         ImGui::LocalEndCollapsingHeader();
                 //     }
-                // }
+                }
 
-                // if (!m_accessories.empty())
-                // {
-                //     if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
-                //     {
+                if (m_kinematicsGUIDataManager.hasAccessoryComponent())
+                {
+                    if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
+                    {
                 //         for (auto& accessory: m_accessories)
                 //         {
                 //             std::string name = accessory.description;
@@ -301,9 +257,9 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //                 accessory.data->read(std::to_string(buffer));
                 //             }
                 //         }
-                //         ImGui::LocalEndCollapsingHeader();
-                //     }
-                // }
+                        ImGui::LocalEndCollapsingHeader();
+                    }
+                }
             }
             else
             {
@@ -393,27 +349,27 @@ void MoveWindow::showOptions()
     }
 }
 
-void MoveWindow::showWeightOption(const int &i)
+void MoveWindow::showWeightOption(const int &index)
 {
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    // auto* weight = m_kinematicsGUIDataManager->getRotationWeight();
-    // double w = weight[i];
-    // ImGui::AlignTextToFramePadding();
-    // ImGui::Text("weight");
-    // ImGui::SameLine();
-    // ImGui::PushID(i);
-    // ImGui::LocalInputDouble("##Input ", &w, 0, 0);
-    // ImGui::PopID();
-    // weight[i] = w;
+    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager.getTCPGUIData();
+    double w = TCPGUIData->getWeight(index);
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("weight");
+    ImGui::SameLine();
+    ImGui::PushID(index);
+    ImGui::LocalInputDouble("##Input ", &w, 0, 0);
+    ImGui::PopID();
+    TCPGUIData->setWeight(index, w);
 }
 
-void MoveWindow::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+void MoveWindow::showPad()
 {
-    m_movePad.showPad(baseGUI);
+    m_movePad.showPad(m_baseGUI);
 }
 
 bool MoveWindow::showVerticalTab(const std::string& label, const std::string& tooltip, const bool& active)

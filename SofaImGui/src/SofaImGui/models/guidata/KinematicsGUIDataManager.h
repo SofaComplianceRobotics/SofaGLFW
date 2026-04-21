@@ -70,7 +70,10 @@ public:
     bool hasActuator(){return m_actuatorsGUIData.contains(KinematicsSection::ACTUATOR);}
     bool hasAccessoryComponent(){return m_effectorsGUIData.contains(KinematicsSection::ACCESSORY) || m_actuatorsGUIData.contains(KinematicsSection::ACCESSORY);}
 
-    EffectorGUIData::SPtr getEffectorGUIData() {return m_effectorsGUIData[KinematicsSection::TCP][0];} // Temp: for the moment we handle only one TCP
+    EffectorGUIData::SPtr getTCPGUIData() {return m_effectorsGUIData[KinematicsSection::TCP][0];} // Temp: for the moment we handle only one TCP
+
+    const std::vector<ActuatorGUIData::SPtr>& getActuators() {return m_actuatorsGUIData[KinematicsSection::ACTUATOR];}
+    const std::vector<EffectorGUIData::SPtr>& getTCPs() {return m_effectorsGUIData[KinematicsSection::TCP];}
 
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) {m_baseGUI=baseGUI;}
     sofa::simulation::Node::SPtr getRootNode() {return m_baseGUI->getRootNode();}

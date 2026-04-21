@@ -524,7 +524,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                             for (size_t i=0; i<IOWindow::RigidCoord::total_size; i++)
                                 position[i] = data->getValueTypeInfo()->getScalarValue(data->getValueVoidPtr(), i);
 
-                            m_kinematicsGUIDataManager.getEffectorGUIData()->setTCPTargetPosition(position);
+                            m_kinematicsGUIDataManager.getTCPGUIData()->setTCPTargetPosition(position);
                         }
                         else
                         {

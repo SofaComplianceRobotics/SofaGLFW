@@ -24,46 +24,16 @@
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/simulation/events/SolveConstraintSystemEndEvent.h>
 #include <sofa/simulation/AnimateEndEvent.h>
+#include <sofa/core/ObjectFactory.h>
 
 namespace sofaimgui::models {
 
-KinematicsController::KinematicsController(/*sofa::simulation::Node::SPtr groot,
-                           softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                           sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                           sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                           softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector*/)
-    // : m_groot(groot)
-    // , m_inverseProblemSolver(solver)
-    // , m_TCPTargetState(TCPTargetMechanical)
-    // , m_TCPState(TCPMechanical)
-    // , m_rotationEffector(rotationEffector)
+KinematicsController::KinematicsController()
 {
-    // if (m_TCPTargetState && groot)
-    // {
-    //     f_listening = true;
-    //     m_initTCPTargetPosition = getTCPTargetPosition();
-    //     if (rotationEffector)
-    //     {
-    //         const auto& weight = sofa::helper::getReadAccessor(rotationEffector->d_weight);
-    //         if (weight.size() > 5)
-    //         {
-    //             m_rotationWeight[0] = weight[3];
-    //             m_rotationWeight[1] = weight[4];
-    //             m_rotationWeight[2] = weight[5];
-    //         }
-    //         else if (!weight.empty())
-    //         {
-    //             m_rotationWeight[0] = weight[0];
-    //             m_rotationWeight[1] = weight[0];
-    //             m_rotationWeight[2] = weight[0];
-    //         }
-    //     }
-    // }
 }
 
-void KinematicsController::applyActuatorsForce(/*const std::vector<Actuator> &actuators*/)
+void KinematicsController::applyActuatorsForce()
 {
-    // m_actuators = actuators;
     m_updateSolutionOnSolveEndEvent = true;
 }
 

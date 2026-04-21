@@ -175,4 +175,26 @@ void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePi
         useDirections->getData()->copyValueFrom(duseDirections.getData());
     }
 }
+
+double EffectorGUIData::getWeight(const sofa::Index& index)
+{
+    double w = 0.;
+    auto* typeInfo = weights->getData()->getValueTypeInfo();
+    if (index < typeInfo->size())
+    {
+        typeInfo->getScalarValue(weights.get(), index);
+    }
+
+    return w;
+}
+
+void EffectorGUIData::setWeight(const sofa::Index& index, const double& w)
+{
+    auto* typeInfo = weights->getData()->getValueTypeInfo();
+    if (index < typeInfo->size())
+    {
+        typeInfo->setScalarValue(weights.get(), index, w);
+    }
+}
+
 }

@@ -136,6 +136,11 @@ public:
     }
 
     sofa::core::BaseData* getData() const { return data? data->getData(): nullptr; };
+    sofa::core::BaseData* getMin() const { return min? min->getData(): nullptr; };
+    sofa::core::BaseData* getMax() const { return max? max->getData(): nullptr; };
+
+    double getMin() {return min->getData()->getValueTypeInfo()->getScalarValue(min.get(), 0);}
+    double getMax() {return max->getData()->getValueTypeInfo()->getScalarValue(max.get(), 0);}
 
     void setData(sofa::core::BaseData* newData, bool isOwner=false)
     {

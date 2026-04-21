@@ -38,44 +38,15 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
-    void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
-
-    // void setKinematicsController(models::KinematicsController::SPtr kinematicsController) {m_kinematicsController=kinematicsController;}
-    void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
-
-    void setActuatorsDescriptions(const std::string &description);
-    void setActuatorsLimits(const double &min, const double &max);
-    void setActuatorLimits(const sofa::Size &id, const double &min, const double &max);
-    // void setActuators(std::vector<models::KinematicsController::Actuator> actuators) {m_actuators = actuators;}
-
-    struct Accessory {
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        float min{0};
-        float max{500};
-    };
-
     enum MoveType {
         PAD,
         SLIDERS
     };
     MoveType m_moveType;
 
-    void clearWindow() override;
-
-    void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
-    // bool hasActuators() {return !m_actuators.empty();}
-
    protected:
 
-    models::guidata::KinematicsGUIDataManager m_kinematicsDataManager;
-    std::string m_TCPPositionDescription{"TCP Target Position (mm)"};
-    std::string m_TCPRotationDescription{"TCP Target Rotation (rad)"};
-    double m_TCPMinPosition{-500.};
-    double m_TCPMaxPosition{500.};
-    double m_TCPMinOrientation{-M_PI};
-    double m_TCPMaxOrientation{M_PI};
+    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
 
     double m_x;
     double m_y;
@@ -84,24 +55,19 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     double m_ry;
     double m_rz;
     
-    // std::vector<models::KinematicsController::Actuator> m_actuators;
-    std::string m_actuatorsDescription{"Motors Position (rad)"};
-
     bool m_freeRoll{true};
     bool m_freePitch{true};
     bool m_freeYaw{true};
 
-    std::vector<Accessory> m_accessories;
-
     ImGui::MovePad m_movePad;
 
-    bool enabled() override {return true; /*(m_kinematicsController!=nullptr || !m_actuators.empty());*/}
+    bool enabled() override {return m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager.hasActuator();}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);
     void showOptions();
     void showWeightOption(const int &index);
-    void showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    void showPad();
     bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::MOVE;}
 };

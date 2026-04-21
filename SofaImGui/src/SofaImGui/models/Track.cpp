@@ -27,10 +27,10 @@ namespace sofaimgui::models {
 
 Track::Track(models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager)
 {
-    guidata::EffectorGUIData::SPtr effector = kinematicsGUIDataManager.getEffectorGUIData();
+    guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager.getTCPGUIData();
 
-    m_startmove = std::make_shared<actions::StartMove>(effector->getTCPTargetInitPosition(),
-                                                       effector->getTCPTargetInitPosition(),
+    m_startmove = std::make_shared<actions::StartMove>(TCPGUIData->getTCPTargetInitPosition(),
+                                                       TCPGUIData->getTCPTargetInitPosition(),
                                                        0.5,
                                                        kinematicsGUIDataManager,
                                                        true);
