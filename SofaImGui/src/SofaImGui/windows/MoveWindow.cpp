@@ -43,17 +43,6 @@ MoveWindow::MoveWindow(const std::string& name,
     m_isOpen = isWindowOpen;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
     m_moveType = MoveType::SLIDERS;
-
-    models::guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager.getTCPGUIData();
-
-    double min = TCPGUIData->getMin();
-    double max = TCPGUIData->getMax();
-
-    m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
-                                &m_x, &m_z, &m_y,
-                                min, max,
-                                min, max,
-                                min, max);
 }
 
 std::string MoveWindow::getDescription()
@@ -72,6 +61,20 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 if (m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP())
                 {
                     models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager.getTCPGUIData();
+
+                    static bool firstTime = true;
+                    if (firstTime)
+                    {
+                        firstTime = false;
+                        double min = TCPGUIData->getMin();
+                        double max = TCPGUIData->getMax();
+
+                        m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
+                                                   &m_x, &m_z, &m_y,
+                                                   min, max,
+                                                   min, max,
+                                                   min, max);
+                    }
 
                     ImGui::Spacing();
 

@@ -64,7 +64,7 @@ public:
                                const std::string& group,
                                const std::string& help);
 
-    bool hasInverseProblemSolver(){return m_inverseProblemSolver == nullptr;}
+    bool hasInverseProblemSolver(){return m_inverseProblemSolver != nullptr;}
     bool hasTCP(){return m_effectorsGUIData.contains(KinematicsSection::TCP);}
     bool hasInverseProblemSolverAndTCP(){return hasInverseProblemSolver() && hasTCP();}
     bool hasActuator(){return m_actuatorsGUIData.contains(KinematicsSection::ACTUATOR);}
@@ -80,8 +80,8 @@ public:
 
 protected:
 
-    sofaglfw::SofaGLFWBaseGUI* m_baseGUI;
-    softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver;
+    sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
+    softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver{nullptr};
     std::map<KinematicsSection, std::vector<ActuatorGUIData::SPtr>> m_actuatorsGUIData;
     std::map<KinematicsSection, std::vector<EffectorGUIData::SPtr>> m_effectorsGUIData;
 };

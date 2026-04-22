@@ -82,23 +82,23 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
-        ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
-        static bool firstTime = true;
-        if (firstTime)
-        {
-            firstTime = false;
-            loadAndProcessWindowSettings();
-            ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
-        }
-        ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
-        ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
-        
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
             if (enabled())
             {
+                ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
+                ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
+                static bool firstTime = true;
+                if (firstTime)
+                {
+                    firstTime = false;
+                    loadAndProcessWindowSettings();
+                    ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
+                }
+                ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
+                ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
+
                 if (!isEnabledInWorkbench())
                 {
                     ImGui::BeginDisabled();
