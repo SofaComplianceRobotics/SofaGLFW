@@ -133,6 +133,7 @@ void ViewMenu::showGrid(const bool& show, const float& squareSize, const float& 
                 newGrid->d_size.setValue(gridSize);
                 newGrid->d_thickness.setValue(thickness);
                 newGrid->d_nbSubdiv.setValue(gridSize / squareSize);
+                newGrid->d_nbLineSegments.setValue(6);
                 newGrid->d_color.setValue(color);
                 newGrid->init();
             }
@@ -168,6 +169,7 @@ void ViewMenu::showOriginFrame(const bool& show)
                 newOriginFrame->d_size.setValue(lineSize);
                 newOriginFrame->d_thickness.setValue(2.f);
                 newOriginFrame->d_vanishing.setValue(true);
+                newOriginFrame->d_nbLineSegments.setValue(6);
                 newOriginFrame->init();
             }
             else
