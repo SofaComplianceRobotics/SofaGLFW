@@ -39,7 +39,7 @@
 
 namespace sofaimgui::windows {
 
-IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager kinematicsGUIDataManager)
+IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
@@ -520,7 +520,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                 sofa::core::BaseData* data = guiData->getData();
                 if (data)
                 {
-                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsGUIDataManager.hasTCP() && isDrivingSimulation())
+                    if (label.find("TCPTarget") != std::string::npos && m_kinematicsGUIDataManager->hasTCP() && isDrivingSimulation())
                     {
                         if (data->getValueTypeInfo()->size() == IOWindow::RigidCoord::total_size)
                         {
@@ -528,7 +528,7 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                             for (size_t i=0; i<IOWindow::RigidCoord::total_size; i++)
                                 position[i] = data->getValueTypeInfo()->getScalarValue(data->getValueVoidPtr(), i);
 
-                            m_kinematicsGUIDataManager.getTCPGUIData()->setTCPTargetPosition(position);
+                            m_kinematicsGUIDataManager->getTCPGUIData()->setTCPTargetPosition(position);
                         }
                         else
                         {

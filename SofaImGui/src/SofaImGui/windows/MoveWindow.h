@@ -32,7 +32,7 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MoveWindow : public BaseWindow
 {
    public:
-    MoveWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager);
+    MoveWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~MoveWindow() = default;
 
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
@@ -46,7 +46,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
    protected:
 
-    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
     double m_x;
     double m_y;
@@ -61,7 +61,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     ImGui::MovePad m_movePad;
 
-    bool enabled() override {return m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager.hasActuator();}
+    bool enabled() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

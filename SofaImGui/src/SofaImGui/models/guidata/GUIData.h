@@ -136,11 +136,11 @@ public:
     }
 
     sofa::core::BaseData* getData() const { return data? data->getData(): nullptr; };
-    sofa::core::BaseData* getMin() const { return min? min->getData(): nullptr; };
-    sofa::core::BaseData* getMax() const { return max? max->getData(): nullptr; };
+    sofa::core::BaseData* getDataMin() const { return min? min->getData(): nullptr; };
+    sofa::core::BaseData* getDataMax() const { return max? max->getData(): nullptr; };
 
-    double getMin() {return min->getData()->getValueTypeInfo()->getScalarValue(min.get(), 0);}
-    double getMax() {return max->getData()->getValueTypeInfo()->getScalarValue(max.get(), 0);}
+    double getMin() {return min? min->getData()->getValueTypeInfo()->getScalarValue(min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
+    double getMax() {return max? max->getData()->getValueTypeInfo()->getScalarValue(max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
 
     void setData(sofa::core::BaseData* newData, bool isOwner=false)
     {

@@ -42,7 +42,9 @@ class Track
 
    public:
 
-    Track(models::guidata::KinematicsGUIDataManager& KinematicsGUIDataManager);
+    typedef std::shared_ptr<Track> SPtr;
+
+    Track(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     Track(std::shared_ptr<actions::StartMove> startMove);
     ~Track() = default;
 

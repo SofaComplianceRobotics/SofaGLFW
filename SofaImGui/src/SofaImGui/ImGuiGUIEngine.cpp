@@ -188,7 +188,7 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
 
 void ImGuiGUIEngine::clearGUI()
 {
-    m_kinematicsGUIDataManager.clear();
+    m_kinematicsGUIDataManager->clear();
     for (auto& window : m_windows)
         window.get().clearWindow();
     for (auto& window : m_popupWindows)
@@ -197,7 +197,7 @@ void ImGuiGUIEngine::clearGUI()
 
 void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    m_kinematicsGUIDataManager.setBaseGUI(baseGUI);
+    m_kinematicsGUIDataManager->setBaseGUI(baseGUI);
     for (auto& window : m_windows)
         window.get().setBaseGUI(baseGUI);
     for (auto& window : m_popupWindows)
@@ -567,7 +567,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     {
         auto groot = baseGUI->getRootNode();
         m_animate = groot->animate_.getValue();
-        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP()? 3: 1);
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP()? 3: 1);
 
         // Animate button
         if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
@@ -588,7 +588,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        if(m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP())
+        if(m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
         {
             int dWindow = drivingWindow;
             const char* listTabs[getDrivingWindowCount()];

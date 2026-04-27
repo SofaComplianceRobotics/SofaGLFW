@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 #include <imgui.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/config.h>
 #include <sofa/core/objectmodel/Data.h>
 
@@ -120,6 +121,29 @@ private:
     inline static std::unordered_map<std::string, std::unique_ptr<BaseDataWidget> > factoryMap;
 };
 
+inline bool showSliderDouble(const std::string& label, double* v, const double& min, const double& max)
+{
+    bool hasValueChanged = false;
+    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+    float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+    ImGui::PushItemWidth(sliderWidth);
+    if (ImGui::SliderScalar(("##SettingSlider" + label).c_str() , ImGuiDataType_Double, v, &min, &max, "%0.2f", ImGuiSliderFlags_NoInput))
+        hasValueChanged=true;
+    ImGui::PopItemWidth();
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    double step = max - min;
+
+    if (ImGui::LocalInputDouble(("##SettingInput" + label).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
+        hasValueChanged=true;
+
+    return hasValueChanged;
+}
+
 inline void showWidget(sofa::core::objectmodel::BaseData& data)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
@@ -132,5 +156,32 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
         BaseDataWidget::showWidgetAsText(data);
     }
 }
+
+inline void showWidget(sofa::core::objectmodel::BaseData& data, const sofa::core::objectmodel::BaseData* min, const sofa::core::objectmodel::BaseData* max)
+{
+    auto* widget = DataWidgetFactory::GetWidget(data);
+    if (widget)
+    {
+        if (min == nullptr || max == nullptr)
+            widget->showWidget(data);
+        else
+        {
+            auto typeInfo = data.getValueTypeInfo();
+            double d = typeInfo->getScalarValue(data.getValueVoidPtr(), 0);
+            double dmin = typeInfo->getScalarValue(min->getValueVoidPtr(), 0);
+            double dmax = typeInfo->getScalarValue(max->getValueVoidPtr(), 0);
+            if (showSliderDouble(("##"+data.getName()).c_str(), &d, dmin, dmax))
+            {
+                typeInfo->setScalarValue(data.beginEditVoidPtr(), 0, d);
+                data.endEditVoidPtr();
+            }
+        }
+    }
+    else
+    {
+        BaseDataWidget::showWidgetAsText(data);
+    }
+}
+
 
 }

@@ -35,7 +35,7 @@ namespace sofaimgui::windows {
 
 MoveWindow::MoveWindow(const std::string& name,
                        const bool& isWindowOpen,
-                       models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager)
+                       models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
@@ -59,16 +59,16 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         {
             if (enabled())
             {
-                if (m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP())
+                if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
                 {
-                    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager.getTCPGUIData();
+                    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
 
                     static bool firstTime = true;
                     if (firstTime)
                     {
                         firstTime = false;
-                        double min = TCPGUIData->getMin();
-                        double max = TCPGUIData->getMax();
+                        const double& min = TCPGUIData->getMin();
+                        const double& max = TCPGUIData->getMax();
 
                         m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
                                                    &m_x, &m_z, &m_y,
@@ -101,8 +101,8 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                             ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
                             const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
-                            double min = TCPGUIData->getMin();
-                            double max = TCPGUIData->getMax();
+                            const double& min = TCPGUIData->getMin();
+                            const double& max = TCPGUIData->getMax();
 
                             if (m_moveType == MoveType::PAD)
                             {
@@ -189,7 +189,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     }
                 }
 
-                if (m_kinematicsGUIDataManager.hasActuator())
+                if (m_kinematicsGUIDataManager->hasActuator())
                 {
                 //     const auto& actuatorsGUIData = m_kinematicsGUIDataManager.getActuators();
 
@@ -237,7 +237,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //     }
                 }
 
-                if (m_kinematicsGUIDataManager.hasAccessoryComponent())
+                if (m_kinematicsGUIDataManager->hasAccessoryComponent())
                 {
                     if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
                     {
@@ -357,7 +357,7 @@ void MoveWindow::showWeightOption(const int &index)
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager.getTCPGUIData();
+    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
     double w = TCPGUIData->getWeight(index);
     ImGui::AlignTextToFramePadding();
     ImGui::Text("weight");

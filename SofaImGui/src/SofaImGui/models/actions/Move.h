@@ -45,7 +45,7 @@ class Move : public StartMove
        Move(const RigidCoord& initialPoint,
             const RigidCoord& waypoint,
             const double& duration,
-            guidata::KinematicsGUIDataManager &kinematicsGUIDataManager,
+            guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager,
             const bool& freeInRotation = true,
             Type type = LINE);
 

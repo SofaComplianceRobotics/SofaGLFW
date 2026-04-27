@@ -53,9 +53,8 @@ std::string MyRobotWindow::getDescription()
            "Also provides connection management features.";
 }
 
-void MyRobotWindow::clearWindow()
+void MyRobotWindow::clear()
 {
-    BaseWindow::clearWindow();
 	m_sectionedGUIData.clear();
 }
 
@@ -88,11 +87,11 @@ MyRobotWindow::Connection& MyRobotWindow::getConnection()
 }
 
 models::guidata::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
-                                                        const std::pair<sofa::core::BaseData*, bool>& data,
-                                                        const std::pair<sofa::core::BaseData*, bool>& min,
-                                                        const std::pair<sofa::core::BaseData*, bool>& max,
-                                                        const std::string& group,
-                                                        const std::string& help, Section section)
+                                                    const std::pair<sofa::core::BaseData*, bool>& data,
+                                                    const std::pair<sofa::core::BaseData*, bool>& min,
+                                                    const std::pair<sofa::core::BaseData*, bool>& max,
+                                                    const std::string& group,
+                                                    const std::string& help, Section section)
 {
     auto added = BaseWindow::addData(label, data, min, max, group, help);
 	m_sectionedGUIData[section].insert(added);
@@ -196,9 +195,13 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                     }
                                     ImGui::PushID(i++);
                                     ImGui::AlignTextToFramePadding();
-                                    ImGui::Text("%s", data->label.c_str());
+                                    ImGui::Text("%s:", data->label.c_str());
+                                    if (!data->help.empty())
+                                        ImGui::SetItemTooltip("%s", data->help.c_str());
                                     ImGui::SameLine();
                                     BaseDataWidget::showWidgetAsText(*data->getData());
+                                    if (!data->help.empty())
+                                        ImGui::SetItemTooltip("%s", data->help.c_str());
                                     ImGui::PopID();
                                 }
                             }
@@ -234,8 +237,13 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                     }
                                     ImGui::AlignTextToFramePadding();
                                     ImGui::Text("%s", data->label.c_str());
+                                    if (!data->help.empty())
+                                        ImGui::SetItemTooltip("%s", data->help.c_str());
                                     ImGui::SameLine();
-                                    showWidget(*data->getData());
+
+                                    showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
+                                    if (!data->help.empty())
+                                        ImGui::SetItemTooltip("%s", data->help.c_str());
                                 }
                             }
 

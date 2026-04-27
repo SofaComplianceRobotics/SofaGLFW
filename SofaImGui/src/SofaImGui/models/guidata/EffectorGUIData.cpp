@@ -29,7 +29,7 @@ namespace sofaimgui::models::guidata
 
 void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector)
 {
-    validState = false;
+    validState = true;
 
     if (effector)
     {
@@ -38,23 +38,25 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
         if (auto effectorIndices = effector->findData("indices"))
             indices.getData()->copyValueFrom(effectorIndices->getData());
         else
-            return;
+            validState = false;
 
         if (auto effectorWeights = effector->findData("weight"))
             weights = std::make_shared<OwnedBaseData>(effectorWeights, true);
         else
-            return;
+            validState = false;
 
         if (auto effectorDirection = effector->findData("useDirections"))
             useDirections = std::make_shared<OwnedBaseData>(effectorDirection, true);
         else
-            return;
+            validState = false;
 
         auto effectorGoal = effector->findData("effectorGoal");
         if (effectorGoal)
         {
             if (auto parent = effectorGoal->getParent())
+            {
                 TCPTargetMeca = dynamic_cast<sofa::core::behavior::BaseMechanicalState*>(parent->getOwner());
+            }
             else
             {
                 if (auto context = effector->getContext())
@@ -65,50 +67,51 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
                         {
                             Node::SPtr targetNode = sofa::core::objectmodel::New<Node>(label);
                             guiNode->addChild(targetNode);
-                            int templateSize = effectorGoal->getValueTypeInfo()->size();
+                            // int templateSize = effectorGoal->getValueTypeInfo()->size();
 
-                            if (templateSize == sofa::defaulttype::Rigid3Types::coord_total_size)
-                                TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Rigid3Types>>().get();
-                            // else if (templateSize == sofa::defaulttype::Vec3Types::coord_total_size)
-                            //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec3Types>>().get();
-                            // else if (templateSize == sofa::defaulttype::Vec2Types::coord_total_size)
-                            //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec2Types>>().get();
-                            // else if (templateSize == sofa::defaulttype::Vec1Types::coord_total_size)
-                            //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec1Types>>().get();
+                            // if (templateSize == sofa::defaulttype::Rigid3Types::coord_total_size)
+                            //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Rigid3Types>>().get();
+                            // // else if (templateSize == sofa::defaulttype::Vec3Types::coord_total_size)
+                            // //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec3Types>>().get();
+                            // // else if (templateSize == sofa::defaulttype::Vec2Types::coord_total_size)
+                            // //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec2Types>>().get();
+                            // // else if (templateSize == sofa::defaulttype::Vec1Types::coord_total_size)
+                            // //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec1Types>>().get();
 
-                            if (TCPTargetMeca)
-                            {
-                                targetNode->addObject(TCPTargetMeca);
+                            // if (TCPTargetMeca)
+                            // {
+                            //     targetNode->addObject(TCPTargetMeca);
 
-                                auto position = TCPTargetMeca->findData("position");
-                                if (auto effectorMechanical = context->getMechanicalState())
-                                    position->copyValueFrom(effectorMechanical->findData("position"));
-                                effectorGoal->setParent(position->getLinkPath());
-                                target = std::make_shared<OwnedBaseData>(position, true);
-                                sofa::core::BaseData* positionInit = position->getNewInstance();
-                                positionInit->copyValueFrom(position);
-                                targetInit = std::make_shared<OwnedBaseData>(positionInit, false);
-                            }
-                            else
-                                return;
+                            //     sofa::core::BaseData* position = TCPTargetMeca->findData("position");
+                            //     if (auto effectorMechanical = context->getMechanicalState())
+                            //         position->copyValueFrom(effectorMechanical->findData("position"));
+                            //     effectorGoal->setParent(position->getLinkPath());
+                            //     target = std::make_shared<OwnedBaseData>(position, true);
+                            //     msg_warning("TCPTargetMeca") << (target != nullptr);
+                            //     sofa::core::BaseData* positionInit = position->getNewInstance();
+                            //     positionInit->copyValueFrom(position);
+                            //     targetInit = std::make_shared<OwnedBaseData>(positionInit, false);
+                            // }
+                            // else
+                                validState = false;
                         }
                         else
-                            return;
+                            validState = false;
                     }
                     else
-                        return;
+                        validState = false;
                 }
                 else
-                    return;
+                    validState = false;
             }
         }
         else
-            return;
+            validState = false;
     }
     else
-        return;
+        validState = false;
 
-    validState = true;
+    msg_warning("initFromEffector") << "initialization done " << validState;
 }
 
 
@@ -136,6 +139,10 @@ sofa::defaulttype::RigidCoord<3, double> EffectorGUIData::getTCPTargetPosition()
 void EffectorGUIData::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
 {
     sofa::Data<RigidCoord> dposition;
+
+    msg_warning("getTCPTargetPosition") << validState;
+    msg_warning("getTCPTargetPosition") << (target != nullptr);
+
     dposition.getData()->copyValueFrom(target->getData());
     RigidCoord position = sofa::helper::getReadAccessor(dposition);
     x = position[0];

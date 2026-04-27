@@ -43,9 +43,6 @@ PlottingWindow::PlottingWindow(const std::string& name,
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
-
-    for (size_t i = 0; i < MAX_NB_PLOT; i++)
-        m_data[i] = std::set<sofaimgui::models::guidata::GUIData::SPtr>();
 }
 
 std::string PlottingWindow::getDescription()
@@ -53,7 +50,7 @@ std::string PlottingWindow::getDescription()
     return "Plot data over time.";
 }
 
-void PlottingWindow::clearWindow()
+void PlottingWindow::clear()
 {
     m_data.clear();
     m_buffers.clear();
@@ -95,15 +92,16 @@ void PlottingWindow::exportData()
     }
 }
 
-sofaimgui::models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
-                                                                const std::pair<sofa::core::BaseData*, bool>& data,
-                                                                const std::pair<sofa::core::BaseData*, bool>& min,
-                                                                const std::pair<sofa::core::BaseData*, bool>& max,
-                                                                const std::string& group,
-                                                                const std::string& help)
+models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
+                                                        const std::pair<sofa::core::BaseData*, bool>& data,
+                                                        const std::pair<sofa::core::BaseData*, bool>& min,
+                                                        const std::pair<sofa::core::BaseData*, bool>& max,
+                                                        const std::string& group,
+                                                        const std::string& help)
 {
-    auto newData = BaseWindow::addData(label, data, min, max, group, help);
-	m_data[0].insert(newData);
+    models::guidata::GUIData::SPtr newData = BaseWindow::addData(label, data, min, max, group, help);
+    m_data[0].insert(newData); // For the moment we add all data to the first subplot
+
     return newData;;
 }
 
@@ -241,9 +239,10 @@ void PlottingWindow::showPlots()
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        for (auto& plots : m_data)
+        for (size_t i=0; i< m_nbRows*m_nbCols; i++)
         {
-            if (ImPlot::BeginPlot(("##" +std::to_string(plots.first)).c_str(), ImVec2(-1, 0),
+            const auto& plots = m_data[i];
+            if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
                                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
             {
                 ImPlot::SetupLegend(ImPlotLocation_NorthEast, ImPlotLegendFlags_Sort | ImPlotLegendFlags_Outside);
@@ -252,7 +251,7 @@ void PlottingWindow::showPlots()
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
 
 				size_t k = 0;
-                for (auto& data: plots.second)
+                for (auto& data: plots)
                 {
                     RollingBuffer& buffer = m_buffers[k];
 
@@ -289,7 +288,7 @@ void PlottingWindow::showPlots()
 									break;
 								}
                             }
-							m_data[plots.first].insert(dragedData);
+                            m_data[i].insert(dragedData);
                         }
                     }
                     ImPlot::EndDragDropTarget();
@@ -312,7 +311,7 @@ void PlottingWindow::showPlots()
                 if (ImGui::BeginPopup("##MyPlotContext"))
                 {
                     ImGui::PopStyleColor();
-                    showMenu(plot, plots.first);
+                    showMenu(plot, i);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
                     ImGui::EndPopup();
                 }
@@ -382,7 +381,7 @@ void PlottingWindow::showMenu()
     }
 }
 
-void PlottingWindow::showMenu(ImPlotPlot &plot, const size_t &idSubplot)
+void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
 {
     ImGui::PushID(plot.ID);
     if (ImGui::BeginTable("Columns", 2, ImGuiTableFlags_None))

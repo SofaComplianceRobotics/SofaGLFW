@@ -125,7 +125,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     };
 
     IOWindow(){}
-    IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager kinematicsGUIDataManager);
+    IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~IOWindow();
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
@@ -144,17 +144,17 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
                                                      const std::string& tooltip = "",
                                                      Role role = Role::ALL);
 
-    void clearWindow() override { m_selectableData.clear(); }
-
    protected:
 
-    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
 
     bool m_isReadyToPublish;
     bool m_isPublishing;
     bool m_isListening;
+
+    void clear() override { m_selectableData.clear(); }
 
     /// Sanitize the input string to match ROS requirements for topic and node name (no spaces, no special characters)
     bool sanitizeName(std::string &name);

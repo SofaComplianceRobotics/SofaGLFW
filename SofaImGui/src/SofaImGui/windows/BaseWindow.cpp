@@ -55,6 +55,7 @@ void BaseWindow::clearWindow()
 {
 	m_groupedGUIData.clear();
 	m_GUIData.clear();
+    clear();
 }
 
 bool& BaseWindow::isOpen()

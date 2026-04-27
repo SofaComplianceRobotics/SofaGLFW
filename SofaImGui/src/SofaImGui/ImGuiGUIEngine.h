@@ -95,7 +95,7 @@ public:
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
 
-    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager = models::guidata::KinematicsGUIDataManager();
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager = std::make_shared<models::guidata::KinematicsGUIDataManager>();
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);

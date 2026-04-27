@@ -33,6 +33,8 @@ class SOFAIMGUI_API KinematicsGUIDataManager: GUIDataManager
 {
 public:
 
+    typedef std::shared_ptr<KinematicsGUIDataManager> SPtr;
+
     enum KinematicsSection {
         TCP,
         ACTUATOR,

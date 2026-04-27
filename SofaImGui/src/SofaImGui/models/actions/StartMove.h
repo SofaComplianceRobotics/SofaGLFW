@@ -40,7 +40,7 @@ class StartMove : public Action
     StartMove(const RigidCoord& initialPoint,
               const RigidCoord& waypoint,
               const double& duration,
-              guidata::KinematicsGUIDataManager& kinematicsGUIDataManager,
+              guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager,
               const bool& freeInRotation = true);
 
     virtual ~StartMove();
@@ -72,7 +72,7 @@ class StartMove : public Action
     double m_minSpeed{10};
     double m_maxSpeed; // TODO: set
 
-    guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
 
     bool m_freeInRotation;
 

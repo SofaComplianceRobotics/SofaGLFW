@@ -52,7 +52,7 @@ std::string SceneGraphWindow::getDescription()
     return "Scene graph of the simulation nodes and components.";
 }
 
-void SceneGraphWindow::clearWindow()
+void SceneGraphWindow::clear()
 {
     m_openedComponents.clear();
     m_openedNodes.clear();

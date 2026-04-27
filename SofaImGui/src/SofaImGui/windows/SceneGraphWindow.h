@@ -36,7 +36,6 @@ public:
 
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override;
 
 protected:
 
@@ -69,6 +68,8 @@ protected:
     bool m_showFilteredInfo = false;
 
     inline static const sofa::core::objectmodel::Tag selectedTag = sofa::core::objectmodel::Tag("GUISelected");
+
+    void clear() override;
 
     void showGraph(const ImGuiWindowFlags &windowFlags);
     void showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);

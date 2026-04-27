@@ -39,8 +39,9 @@
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <sofa/component/constraint/lagrangian/solver/ConstraintSolverImpl.h>
 
-
+/// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
@@ -73,7 +74,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
             break;
         }
 
-        engine->m_kinematicsGUIDataManager.setInverseProblemSolver(qpsolver);
+        engine->m_kinematicsGUIDataManager->setInverseProblemSolver(qpsolver);
     }
 }
 
@@ -85,7 +86,7 @@ void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::Co
 
     if (engine && qpsolver)
     {
-        engine->m_kinematicsGUIDataManager.setInverseProblemSolver(qpsolver);
+        engine->m_kinematicsGUIDataManager->setInverseProblemSolver(qpsolver);
     }
 }
 
@@ -98,7 +99,7 @@ void addTCP(softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::obje
     {
         if (constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR)
         {
-            engine->m_kinematicsGUIDataManager.addTCP(constraint,
+            engine->m_kinematicsGUIDataManager->addTCP(constraint,
                                                        getDataFromPyObject(min, "float"),
                                                        getDataFromPyObject(max, "float"),
                                                        group,
@@ -118,7 +119,7 @@ void addActuator(std::string label, softrobots::behavior::SoftRobotsBaseConstrai
     {
         if(constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR)
         {
-            engine->m_kinematicsGUIDataManager.addActuator(label,
+            engine->m_kinematicsGUIDataManager->addActuator(label,
                                                             constraint,
                                                             getDataFromPyObject(min, "float"),
                                                             getDataFromPyObject(max, "float"),
@@ -139,7 +140,7 @@ void addAccessoryComponent(std::string accessoryLabel, std::string componentLabe
     {
         if (constraint && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
         {
-            engine->m_kinematicsGUIDataManager.addAccessoryComponent(accessoryLabel,
+            engine->m_kinematicsGUIDataManager->addAccessoryComponent(accessoryLabel,
                                                                   componentLabel,
                                                                   constraint,
                                                                   getDataFromPyObject(min, "float"),
@@ -177,10 +178,14 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
 PYBIND11_MODULE(ImGui, m)
 {
     // Deprecated
-    m.def("setIPController", &setIPController);
+    m.def("setIPController", &setIPController
+          ,"[Deprecated] Use setInverseProblemSolver instead");
 
-    m.def("setInverseProblemSolver", &setInverseProblemSolver);
-    m.def("addTCP", &addTCP);
+    m.def("setInverseProblemSolver", &setInverseProblemSolver
+          , "Set the inverse problem solver for piloting TCP from the GUI.");
+    m.def("addTCP", &addTCP
+          , "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+          , "Add a TCP to pilot from the Move, Program or IO windows.");
     m.def("addActuator", &addActuator);
     m.def("addAccessoryComponent", &addAccessoryComponent);
 

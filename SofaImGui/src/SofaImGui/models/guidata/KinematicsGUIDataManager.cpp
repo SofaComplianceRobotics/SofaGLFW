@@ -68,7 +68,7 @@ void KinematicsGUIDataManager::addTCP(softrobots::behavior::SoftRobotsBaseConstr
                 if (guiDataPtr && guiDataPtr->validState)
                     m_effectorsGUIData[KinematicsSection::TCP].push_back(guiDataPtr);
                 else
-                    msg_error("[addTCP]") << "Something went wrong. Expects a valid PositionEffector component as the first parameter.";
+                    msg_error("addTCP") << "Something went wrong. Expects a valid PositionEffector component as the first parameter.";
             }
         }
     }
@@ -97,6 +97,8 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
             addGUIData(guiDataPtr);
             m_actuatorsGUIData[KinematicsSection::ACTUATOR].push_back(guiDataPtr);
         }
+        else
+            msg_error("addActuator") << "Something went wrong. Expects a valid Actuator component as the second parameter.";
     }
 }
 

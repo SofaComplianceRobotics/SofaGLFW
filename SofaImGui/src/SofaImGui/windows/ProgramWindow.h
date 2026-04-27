@@ -42,7 +42,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    public:
     ProgramWindow(){}
-    ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager);
+    ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~ProgramWindow() = default;
 
     models::Program m_program; // robot program
@@ -61,7 +61,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    protected:
 
-    models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
     double m_cursorPos = 0;
     ImVec2 m_trackBeginPos = ImVec2(0, 0);
@@ -78,7 +78,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool enabled() override {return m_kinematicsGUIDataManager.hasInverseProblemSolverAndTCP();}
+    bool enabled() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.
@@ -91,11 +91,11 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
                            const sofa::Index& trackIndex,
                             std::shared_ptr<models::Track> track);
     void showActionBlocks(const float& blockHeight,
-                        const sofa::Index& trackIndex,
-                        std::shared_ptr<models::Track> track);
+                            const sofa::Index& trackIndex,
+                            std::shared_ptr<models::Track> track);
     void showModifierBlocks(const float& blockHeight,
-                         const sofa::Index& trackIndex,
-                         std::shared_ptr<models::Track> track);
+                             const sofa::Index& trackIndex,
+                             std::shared_ptr<models::Track> track);
 
     void showBetweenBlocksButtons(const ImVec2 &position, const unsigned int &actionIndex, std::shared_ptr<models::Track> track, const int& trackIndex); /// Add action (plus & swap) buttons
     void showBlockOptionButton(const std::string &menulabel, const std::string &label); /// Menu (add before, add after, delete, etc.).
@@ -105,20 +105,20 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     // Menus
     void addStartMoveBlockMenu(const std::string& menuLabel,
-                       const sofa::Index& trackIndex,
-                       std::shared_ptr<models::Track> track,
-                       std::shared_ptr<models::actions::StartMove> startmove);
+                               const sofa::Index& trackIndex,
+                               std::shared_ptr<models::Track> track,
+                               std::shared_ptr<models::actions::StartMove> startmove);
 
     sofa::Index addModifierBlockMenu(const std::string& menuLabel,
-                             const sofa::Index &modifierIndex,
-                             std::shared_ptr<models::Track> track,
-                             std::shared_ptr<models::modifiers::Modifier> modifier);
+                                     const sofa::Index &modifierIndex,
+                                     std::shared_ptr<models::Track> track,
+                                     std::shared_ptr<models::modifiers::Modifier> modifier);
 
     sofa::Index addActionBlockMenu(const std::string& menuLabel,
-                            const sofa::Index& actionIndex,
-                            const sofa::Index& trackIndex,
-                            std::shared_ptr<models::Track> track,
-                            std::shared_ptr<models::actions::Action> action);
+                                    const sofa::Index& actionIndex,
+                                    const sofa::Index& trackIndex,
+                                    std::shared_ptr<models::Track> track,
+                                    std::shared_ptr<models::actions::Action> action);
 
     bool addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex);
 

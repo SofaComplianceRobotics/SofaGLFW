@@ -47,7 +47,6 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
 		SETTINGS,       // Displayed in Settings section
 	};
 
-    void clearWindow() override;
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
     Connection& getConnection();
@@ -67,6 +66,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     std::map<Section, std::unordered_set<models::guidata::GUIData::SPtr>> m_sectionedGUIData;
 
     bool enabled() override;
+    void clear() override;
 
     bool isInEmptyGroup(const std::string &group);
     bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max, const int nbIndents);

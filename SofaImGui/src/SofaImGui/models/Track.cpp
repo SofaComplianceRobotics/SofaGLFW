@@ -25,9 +25,9 @@
 
 namespace sofaimgui::models {
 
-Track::Track(models::guidata::KinematicsGUIDataManager& kinematicsGUIDataManager)
+Track::Track(guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
-    guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager.getTCPGUIData();
+    guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager->getTCPGUIData();
 
     m_startmove = std::make_shared<actions::StartMove>(TCPGUIData->getTCPTargetInitPosition(),
                                                        TCPGUIData->getTCPTargetInitPosition(),

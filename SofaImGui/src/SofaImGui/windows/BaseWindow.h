@@ -83,15 +83,15 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
+    /// This is called before loading / reloading a simulation.
+    void clearWindow();
+
     /// Implements the drawing of the window
     virtual void showWindow(const ImGuiWindowFlags &windowFlags);
 
     /// Every window must implement this method, give a description of the window
     /// Will be displayed as a tooltip
     virtual std::string getDescription() = 0;
-
-    /// This is called before loading / reloading a simulation.
-    virtual void clearWindow();
 
     /// Get the name of the window
     std::string getName() const;
@@ -120,6 +120,9 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
     virtual bool enabled() {return true;}
+
+    /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
+    virtual void clear() {}
 
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);

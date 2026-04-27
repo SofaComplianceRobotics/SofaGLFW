@@ -52,15 +52,14 @@ void moduleAddPlottingWindow(py::module &m)
     auto m_a = m.def_submodule("PlottingWindow", "");
 
     m_a.def("addData",
-        [engine](const std::string &label, py::object data, std::string help, std::string type)
+        [engine](const std::string &label, py::object data, std::string type)
         {
             if (engine)
             {
-				auto dataConverted = getDataFromPyObject(data, type);
-                engine->m_plottingWindow.addData(label, dataConverted);
+                engine->m_plottingWindow.addData(label, getDataFromPyObject(data, type));
             }
         }
-        , "label"_a, "data"_a, "help"_a = "", "type"_a = "double"
+        , "label"_a, "data"_a, "type"_a = "double"
         ,"Add data to plot, with description."
         );
 }

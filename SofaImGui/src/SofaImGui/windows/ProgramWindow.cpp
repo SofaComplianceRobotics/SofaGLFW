@@ -53,7 +53,7 @@ using sofa::type::Quat;
 
 ProgramWindow::ProgramWindow(const std::string& name,
                              const bool& isWindowOpen,
-                             models::guidata::KinematicsGUIDataManager &kinematicsGUIDataManager)
+                             models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
@@ -878,10 +878,10 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
                 blockEnd += action->getDuration();
                 if ((!reverse && (blockEnd - m_time) > eps) || (reverse && (blockEnd - m_time - dt) > eps))
                 {
-                    RigidCoord position = m_kinematicsGUIDataManager.getTCPGUIData()->getTCPPosition();
+                    RigidCoord position = m_kinematicsGUIDataManager->getTCPGUIData()->getTCPPosition();
                     if (action->apply(position, m_time + dt - blockStart)) // apply the time corresponding to the end of the time step
                     {
-                        m_kinematicsGUIDataManager.getTCPGUIData()->setTCPTargetPosition(position);
+                        m_kinematicsGUIDataManager->getTCPGUIData()->setTCPTargetPosition(position);
                     }
                     break;
                 }
@@ -978,7 +978,7 @@ void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
         ImGui::Separator();
         if (ImGui::MenuItem("Overwrite waypoint"))
         {
-            startmove->setWaypoint(m_kinematicsGUIDataManager.getTCPGUIData()->getTCPTargetPosition());
+            startmove->setWaypoint(m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition());
             track->updateNextMoveInitialPoint(-1, startmove->getWaypoint());
         }
         ImGui::EndPopup();
@@ -1075,7 +1075,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
         {
             if (ImGui::MenuItem("Overwrite waypoint"))
             {
-                move->setWaypoint(m_kinematicsGUIDataManager.getTCPGUIData()->getTCPTargetPosition());
+                move->setWaypoint(m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition());
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
             }
             ImGui::Separator();
@@ -1104,7 +1104,7 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
-                                                            m_kinematicsGUIDataManager.getTCPGUIData()->getTCPTargetPosition(),
+                                                            m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
                                                             m_kinematicsGUIDataManager,
                                                             true,

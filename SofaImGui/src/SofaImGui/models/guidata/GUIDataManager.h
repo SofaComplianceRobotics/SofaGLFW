@@ -31,6 +31,7 @@ namespace sofaimgui::models::guidata {
 class SOFAIMGUI_API GUIDataManager
 {
 public:
+    typedef std::shared_ptr<GUIDataManager> SPtr;
     virtual GUIData::SPtr addData(const std::string& label,
                                                      const std::pair<sofa::core::BaseData*, bool>& data,
                                                      const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
