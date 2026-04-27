@@ -82,7 +82,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     bool enabled() override;
 
     bool isInEmptyGroup(const std::string &group);
-    bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max, const int nbIndents);
+    bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max);
 };
 
 }

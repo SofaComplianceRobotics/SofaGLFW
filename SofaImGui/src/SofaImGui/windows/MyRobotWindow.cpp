@@ -174,7 +174,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                         if(connected)
                             ImGui::BeginDisabled();
 
-                        ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                         const size_t nbPorts = m_connection.ports.size();
                         std::vector<const char*> ports;
                         ports.reserve(nbPorts);
@@ -195,7 +195,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                         ImGui::Text("Status:");
                         ImGui::SameLine();
 
-                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
+                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
                         ImGui::Text((connected)? "Connected": "Disconnected");
                         ImGui::PopStyleColor();
 
@@ -282,7 +282,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                                 for (size_t i=0; i<typeinfo->size(); i++)
                                 {
                                     setting.buffer = typeinfo->getScalarValue(values, i);
-                                    showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max, (isInEmptyGroup(group.description))? 1: 2);
+                                    showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max);
                                     setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
                                     uiValue += std::to_string(setting.buffer) + " ";
                                 }
@@ -310,11 +310,11 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
     }
 }
 
-bool MyRobotWindow::showSliderDouble(const std::string& name, double* v, const double& min, const double& max, const int nbIndents)
+bool MyRobotWindow::showSliderDouble(const std::string& name, double* v, const double& min, const double& max)
 {
     bool hasValueChanged = false;
-    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().ItemSpacing.x * 2;
-    float sliderWidth = ImGui::GetWindowWidth() - inputWidth - ImGui::CalcTextSize(name.c_str()).x - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().IndentSpacing * nbIndents - ImGui::GetStyle().ScrollbarSize;
+    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
+    float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
     ImGui::PushItemWidth(sliderWidth);
