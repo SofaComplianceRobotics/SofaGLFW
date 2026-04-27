@@ -137,7 +137,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         if(connected)
                             ImGui::BeginDisabled();
 
-                        ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4);
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                         const size_t nbPorts = m_connection.ports.size();
                         std::vector<const char*> ports;
                         ports.reserve(nbPorts);
@@ -158,7 +158,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         ImGui::Text("Status:");
                         ImGui::SameLine();
 
-                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); // TODO : color utils
+                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
                         ImGui::Text((connected)? "Connected": "Disconnected");
                         ImGui::PopStyleColor();
 
@@ -266,30 +266,6 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         }
         ImGui::End();
     }
-}
-
-
-bool MyRobotWindow::showSliderDouble(const std::string& name, double* v, const double& min, const double& max, const int nbIndents)
-{
-    bool hasValueChanged = false;
-    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().ItemSpacing.x * 2;
-    float sliderWidth = ImGui::GetWindowWidth() - inputWidth - ImGui::CalcTextSize(name.c_str()).x - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().IndentSpacing * nbIndents - ImGui::GetStyle().ScrollbarSize;
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-    ImGui::PushItemWidth(sliderWidth);
-    if (ImGui::SliderScalar(("##SettingSlider" + name).c_str() , ImGuiDataType_Double, v, &min, &max, "%0.2f", ImGuiSliderFlags_NoInput))
-        hasValueChanged=true;
-    ImGui::PopItemWidth();
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-
-    double step = max - min;
-
-    if (ImGui::LocalInputDouble(("##SettingInput" + name).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
-        hasValueChanged=true;
-
-    return hasValueChanged;
 }
 
 }

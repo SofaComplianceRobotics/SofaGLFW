@@ -172,8 +172,6 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     std::map<Role, std::map<std::string, sofaimgui::models::guidata::GUIData::SPtr>> m_selectableData; // <Role<label, GUIData::SPtr>> Fed by the user from the python bindings API
 
-    float m_itemWidth;
-
 #if SOFAIMGUI_WITH_ROS
     std::shared_ptr<ROSNode> m_rosnode;
 

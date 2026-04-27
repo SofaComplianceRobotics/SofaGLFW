@@ -90,6 +90,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (!ImGui::ItemAdd(totalBB, idPad, &frameBB, 0))
         return false;
 
+
     { // Show sliders
         const ImVec2 buttonSize = ImVec2(GetFrameHeight(), GetFrameHeight());
 

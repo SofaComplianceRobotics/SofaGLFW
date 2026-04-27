@@ -124,7 +124,7 @@ private:
 inline bool showSliderDouble(const std::string& label, double* v, const double& min, const double& max)
 {
     bool hasValueChanged = false;
-    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().ItemSpacing.x * 2;
+    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
     float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
