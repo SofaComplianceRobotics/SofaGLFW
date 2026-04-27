@@ -124,8 +124,8 @@ private:
 inline bool showSliderDouble(const std::string& label, double* v, const double& min, const double& max)
 {
     bool hasValueChanged = false;
-    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
-    float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
+    const float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
+    const float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
     ImGui::PushItemWidth(sliderWidth);
@@ -136,7 +136,7 @@ inline bool showSliderDouble(const std::string& label, double* v, const double& 
 
     ImGui::SameLine();
 
-    double step = max - min;
+    const double step = max - min;
 
     if (ImGui::LocalInputDouble(("##SettingInput" + label).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
         hasValueChanged=true;
@@ -166,10 +166,10 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data, const sofa::core
             widget->showWidget(data);
         else
         {
-            auto typeInfo = data.getValueTypeInfo();
+            auto* typeInfo = data.getValueTypeInfo();
             double d = typeInfo->getScalarValue(data.getValueVoidPtr(), 0);
-            double dmin = typeInfo->getScalarValue(min->getValueVoidPtr(), 0);
-            double dmax = typeInfo->getScalarValue(max->getValueVoidPtr(), 0);
+            const double dmin = typeInfo->getScalarValue(min->getValueVoidPtr(), 0);
+            const double dmax = typeInfo->getScalarValue(max->getValueVoidPtr(), 0);
             if (showSliderDouble(("##"+data.getName()).c_str(), &d, dmin, dmax))
             {
                 typeInfo->setScalarValue(data.beginEditVoidPtr(), 0, d);
