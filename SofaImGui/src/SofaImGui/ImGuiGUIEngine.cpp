@@ -72,6 +72,7 @@
 #include <OpenSans-Regular.h>
 #include <DejaVuSans.h>
 #include <Style.h>
+#include <GUIColors.h>
 
 #include <SofaImGui/Utils.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -645,7 +646,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         { // Workbench
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
             if (ImGui::BeginMenu("Workbench"))
             {
                 bool disableWorkbench = Robot::getInstance().getConnection(); // Disable changing workbench if a robot is connected
@@ -679,7 +680,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         { // Windows
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
             if (ImGui::BeginMenu("Windows"))
             {
                 ImGui::PopStyleColor();
@@ -708,7 +709,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         { // Help
             std::string version = "v" + std::string(SOFA_VERSION_STR);
             static bool isAboutOpen = false;
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
             if (ImGui::BeginMenu("Help"))
             {
                 ImGui::PopStyleColor();
@@ -773,9 +774,9 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                         - 2 * ImGui::GetStyle().ItemSpacing.x;
         ImGui::SetCursorPosX(position);
         ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonText, ImGui::GetColorU32(ImGuiCol_TextDisabled));
         if (ImGui::ButtonEx(m_darkMode? ICON_FA_SUN: ICON_FA_MOON, buttonSize))
         {
@@ -801,7 +802,7 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
     float height = ImGui::GetFrameHeight();
 
-    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.14f, 0.25f, 0.42f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, COLOR_DARK_BLUE);
     if (ImGui::BeginViewportSideBar("##MySecondaryMenuBar", viewport, ImGuiDir_Up, height, window_flags))
     {
         if (ImGui::BeginMenuBar())
@@ -812,7 +813,7 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                 { // Buttons for quick access
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, ImGui::GetStyle().FramePadding.x * .75f);
                     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
-                    ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.f, 0.f, 0.f, 0.f));
+                    ImGui::PushStyleColor(ImGuiCol_BorderShadow, COLOR_TRANSPARENT);
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.36f, 0.36f, 0.36f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
@@ -822,14 +823,12 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                     if (disableWorkbench)
                         ImGui::BeginDisabled();
 
-                    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-
-                    auto addWorkbenchButton = [highlightColorIcon, &buttonSize, this](Workbench w, const std::string& icon, const std::string& tooltip)
+                    auto addWorkbenchButton = [highlightColorIcon, this](Workbench w, const std::string& icon, const std::string& tooltip)
                     {
                         bool highlight = (workbench == w);
                         if (highlight)
                             ImGui::PushStyleColor(ImGuiCol_ButtonText, highlightColorIcon);
-                        if (ImGui::Button(icon.c_str(), buttonSize))
+                        if (ImGui::LocalButton(icon.c_str()))
                             changeWorkbench(w);
                         if (highlight)
                             ImGui::PopStyleColor();
@@ -848,7 +847,7 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                     ImGui::PopStyleVar();
                 }
 
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::BeginDisabled();
                 ImGui::Text("Active Workbench: ");
                 ImGui::EndDisabled();
@@ -876,7 +875,7 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                         else
                             FooterStatusBar::getInstance().setTempMessage("Disconnecting the robot.");
                     }
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                     ImGui::Text(connection? "Robot" : "Simulation");
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("Connection to the robot");
@@ -1016,22 +1015,15 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
 void ImGuiGUIEngine::createGUINode()
 {
-    const auto nodeName = m_baseGUI->getGUINodeName();
+    const std::string nodeName = sofaglfw::SofaGLFWBaseGUI::getGUINodeName();
     sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
     if (root)
     {
         sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
         if (!guinode)
             guinode = root->createChild(nodeName);
-
-        const auto noBBoxTag = sofa::core::objectmodel::Tag("NoBBox");
-        if (!guinode->hasTag(noBBoxTag))
-            guinode->addTag(noBBoxTag);
-
-        const auto& guiTag = m_baseGUI->getGUITag();
-        if (!guinode->hasTag(guiTag))
-            guinode->addTag(guiTag);
-
+        guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
+        guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);
     }
 }

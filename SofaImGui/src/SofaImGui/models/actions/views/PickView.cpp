@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include "IconsFontAwesome6.h"
 #include <SofaImGui/models/actions/Pick.h>
 #include <imgui.h>
@@ -65,7 +66,7 @@ bool Pick::PickView::showBlock(const std::string &label,
         ImGui::PushClipRect(rectMin, rectMax, true);
 
         std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0., 0., 0., 0.));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
         std::string text = pick.m_release? " " ICON_FA_HAND"  ": " " ICON_FA_HAND_BACK_FIST"  ";
         text += pick.getComment();
         if(ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))

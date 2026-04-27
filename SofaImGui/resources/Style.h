@@ -28,6 +28,7 @@ namespace sofaimgui
 {
 
 void setStyle(const std::string& style);
-ImVec4 blendColor(const ImVec4& color1, const ImVec4& color2, const float& w);
+ImVec4 blendColors(const ImVec4& color1, const ImVec4& color2, const float& w);
+ImVec4 blendColors(const ImU32& color1, const ImU32& color2, const float& w);
 
 }

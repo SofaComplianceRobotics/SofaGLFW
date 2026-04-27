@@ -21,6 +21,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <sofa/type/Material.h>
 #include <SofaImGui/windows/BaseWindow.h>
 #include <SofaImGui/Workbench.h>
 #include <imgui.h>
@@ -39,23 +40,39 @@ public:
 
 protected:
 
+    std::set<sofa::core::objectmodel::BaseObject*> m_componentToOpen;
+    std::set<sofa::simulation::Node*> m_nodeToOpen;
+    std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_componentToOpenContextMenu;
+    std::set<std::pair<sofa::simulation::Node*, bool>> m_nodeToOpenContextMenu;
+
     std::set<std::pair<sofa::simulation::Node*, bool>> m_openedNodePopups;
     std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>> m_openedComponentPopups;
     std::set<sofa::simulation::Node*> m_openedNodes;
     std::set<sofa::core::objectmodel::BaseObject*> m_openedComponents;
     std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
 
-    void showGraph(const ImGuiWindowFlags &windowFlags,
-                   std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                   std::set<sofa::simulation::Node *> &nodeToOpen,
-                   std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu,
-                   std::set<std::pair<sofa::simulation::Node *, bool> > &nodeToOpenContextMenu);
-    void showNodeComponents(sofa::simulation::Node* node,
-                            const ImGuiTextFilter &filter,
-                            const bool &showSearch, const bool &showFiltered,
-                            const bool& expandAll, const bool&collapseAll,
-                            std::set<sofa::core::objectmodel::BaseObject*>& componentToOpen,
-                            std::set<std::pair<sofa::core::objectmodel::BaseObject*, bool>>& componentToOpenContextMenu);
+    sofa::type::Material m_highlightMaterial;
+
+    int m_modifyingRow{-1};
+
+    bool m_renaming{false};
+    bool m_renamingTreeOpen{false};
+    sofa::core::objectmodel::Base* m_renamingObject{nullptr};
+
+    bool m_expandAll = false;
+    bool m_collapseAll = false;
+
+    bool m_showSearch = false;
+    bool m_showFiltered = false;
+    bool m_showFilteredWarning = false;
+    bool m_showFilteredError = false;
+    bool m_showFilteredInfo = false;
+
+    inline static const sofa::core::objectmodel::Tag selectedTag = sofa::core::objectmodel::Tag("GUISelected");
+
+    void showGraph(const ImGuiWindowFlags &windowFlags);
+    void showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
+    void showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter &filter);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);
     bool showNodeWindow(sofa::simulation::Node* node, const ImGuiWindowFlags &windowsFlags);
 
@@ -69,8 +86,19 @@ protected:
     void addComponentContextMenu(sofa::core::objectmodel::BaseObject*component);
     void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
-    void getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
+    std::string getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
     void updateSelection(sofa::core::objectmodel::Base::SPtr object);
+
+    void highlightOglModels(sofa::simulation::Node *node);
+    void resetOglModels(sofa::simulation::Node *node);
+
+    bool showTemplate(sofa::core::objectmodel::BaseObject *object, sofa::simulation::Node *node);
+    bool showName(sofa::core::objectmodel::Base *object, const std::string icon, const std::string name, ImGuiTreeNodeFlags objectFlags = ImGuiTreeNodeFlags_None);
+
+    bool showAddNodeButton(sofa::simulation::Node *node);
+
+    bool showRemoveNodeButton(sofa::simulation::Node *parent, sofa::simulation::Node *node);
+    bool showRemoveComponentButton(sofa::simulation::Node *parent, sofa::core::objectmodel::BaseObject *component);
 };
 
 }

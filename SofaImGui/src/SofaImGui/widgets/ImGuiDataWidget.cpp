@@ -25,6 +25,7 @@
 #include <sofa/core/objectmodel/Base.h>
 
 #include <implot.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <sofa/helper/map.h>
 #include <sofa/helper/OptionsGroup.h>
 #include <sofa/helper/SelectableItem.h>
@@ -43,6 +44,25 @@ using namespace sofa;
 void BaseDataWidget::showWidgetAsText(sofa::core::objectmodel::BaseData& data)
 {
     ImGui::TextWrapped("%s", data.getValueString().c_str());
+}
+
+template<>
+void DataWidget<std::string>::showWidget(MyData& data)
+{
+    const std::string initialValue = data.getValue();
+    std::string changeableValue = initialValue;
+    const auto& label = data.getName();
+    const auto id = data.getName() + data.getOwner()->getPathName();
+
+    bool disable = data.getName() == "name";
+    if (disable)
+        ImGui::BeginDisabled();
+
+    if (ImGui::InputText((label + "##" + id).c_str(), &changeableValue))
+        data.setValue(changeableValue);
+
+    if (disable)
+        ImGui::EndDisabled();
 }
 
 template<>
@@ -612,6 +632,8 @@ void DataWidget<sofa::type::BoundingBox>::showWidget(MyData& data)
 /***********************************************************************************************************************
  * Factory
  **********************************************************************************************************************/
+
+const bool dw_string = DataWidgetFactory::Add<std::string>();
 
 const bool dw_bool = DataWidgetFactory::Add<bool>();
 

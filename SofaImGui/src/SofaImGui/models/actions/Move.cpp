@@ -32,6 +32,7 @@ Move::Move(const RigidCoord& initialPoint,
            const bool &freeInRotation,
            Type type):
                         StartMove(initialPoint, waypoint, duration, kinematicsGUIDataManager, freeInRotation),
+                        m_trajectory(sofa::core::objectmodel::New<Trajectory>()),
                         m_type(type),
                         view(*this)
 {
@@ -43,7 +44,10 @@ Move::Move(const RigidCoord& initialPoint,
 Move::~Move()
 {
     if (m_groot)
-        m_groot->removeObject(m_trajectory);
+    {
+        auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
+        guiNode->removeObject(m_trajectory);
+    }
 }
 
 std::shared_ptr<Action> Move::duplicate()
@@ -91,7 +95,8 @@ void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
     {
         m_groot = groot;
         m_trajectory->setPositions(VecCoord{m_initialPoint, m_waypoint});
-        groot->addObject(m_trajectory);
+        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
+        guiNode->addObject(m_trajectory);
     }
 }
 

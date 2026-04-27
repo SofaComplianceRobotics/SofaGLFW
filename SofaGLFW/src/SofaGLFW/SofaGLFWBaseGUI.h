@@ -54,6 +54,7 @@ public:
     bool init(int nbMSAASamples = 0);
     void setErrorCallback() const;
     void setSimulation(sofa::simulation::NodeSPtr groot, const std::string& filename = std::string());
+    void setSelectionSettings();
     void setSimulationCanRun(bool canRun);
     void setSimulationIsRunning(bool running);
     bool simulationIsRunning() const;
@@ -120,9 +121,12 @@ public:
 
     std::string generateFilename(const std::string &prefix, const std::string &extension);
 
-    constexpr static std::string getGUINodeName() {return "GUI";}
-    sofa::core::objectmodel::Tag getGUITag() {return sofa::core::objectmodel::Tag("createdByGUI");}
-
+    static const std::string getGUINodeName() {return "GUI";}
+    static const sofa::core::objectmodel::Tag& getGUITag()
+    {
+        static const auto tag = sofa::core::objectmodel::Tag("createdByGUI");
+        return tag;
+    }
 
 private:
     // GLFW callbacks

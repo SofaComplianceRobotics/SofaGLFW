@@ -25,7 +25,6 @@
 #include <sofa/defaulttype/RigidTypes.h>
 
 #include <sofa/simulation/Node.h>
-#include <SofaImGui/models/Trajectory.h>
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 

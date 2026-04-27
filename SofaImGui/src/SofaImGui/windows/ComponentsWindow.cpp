@@ -57,6 +57,9 @@ void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
+            if (workbench == Workbench::SCENE_EDITOR)
+                showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
+
             static bool firstTime = true;
             if (firstTime)
             {
@@ -139,6 +142,13 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                             m_selectedComponentExamples.push_back(examplePath);
                     }
                 }
+                if(workbench == Workbench::SCENE_EDITOR && ImGui::BeginDragDropSource())
+                {
+                    m_dragedName = name;
+                    ImGui::SetDragDropPayload("_COMPONENT", &m_dragedName, sizeof(m_dragedName));
+                    ImGui::Text("%s", name.c_str());
+                    ImGui::EndDragDropSource();
+                }
             }
         }
     }
@@ -213,9 +223,9 @@ void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedCo
 
     std::map<std::string, std::map<std::string, DataInfo>> allData;
     {
-        const auto tmpNode = sofa::core::objectmodel::New<sofa::simulation::Node>("tmp");
         for (const auto& [templateInstance, creator] : selectedComponent->creatorMap)
         {
+            const auto tmpNode = sofa::core::objectmodel::New<sofa::simulation::Node>("tmp");
             sofa::core::objectmodel::BaseObjectDescription desc;
             const auto object = creator->createInstance(tmpNode.get(), &desc);
             if (object)

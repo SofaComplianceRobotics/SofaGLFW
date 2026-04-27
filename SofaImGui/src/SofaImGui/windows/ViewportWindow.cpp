@@ -22,6 +22,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
 #include <Style.h>
+#include <GUIColors.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
@@ -54,8 +55,6 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
 {
     if (isOpen())
     {
-        auto groot = m_baseGUI->getRootNode().get();
-
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
@@ -74,7 +73,7 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
                 ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
                 ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
                 dl->AddImageRounded(texture, p_min, p_max,
-                                    ImVec2(0, 1), ImVec2(1, 0), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)),
+                                    ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
                                     ImGui::GetStyle().FrameRounding);
 
                 m_isMouseOnViewport = ImGui::IsWindowHovered();
@@ -85,9 +84,8 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
                 }
 
                 addCameraButtons();
-                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // TODO create a stylesheet
                 if(m_baseGUI->isVideoRecording())
-                    addRecordingStatus(red);
+                    addRecordingStatus(ImColor(COLOR_RED));
                 addContextMenu(texture);
             }
             ImGui::EndChild();
@@ -141,7 +139,7 @@ void ViewportWindow::addCameraButtons()
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_TRANSPARENT);
     if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
                                                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
@@ -231,7 +229,7 @@ void ViewportWindow::addCameraButtons()
     {
         ImGui::TextDisabled("  " ICON_FA_VIDEO);
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
         std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
@@ -257,7 +255,7 @@ void ViewportWindow::addCameraButtons()
                     ImGui::EndPopup();
                 }
 
-                if (ImGui::Button(ICON_FA_EYE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_EYE))
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }
@@ -269,7 +267,7 @@ void ViewportWindow::addCameraButtons()
             ImGui::PopStyleColor();
 
             { // Fit all
-                if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_ARROWS_TO_DOT))
                 {
                     camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
@@ -279,7 +277,7 @@ void ViewportWindow::addCameraButtons()
             }
 
             { // Center view
-                if (ImGui::Button(ICON_FA_BULLSEYE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_BULLSEYE))
                 {
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                     camera->d_lookAt.setValue(bbCenter);
@@ -289,7 +287,7 @@ void ViewportWindow::addCameraButtons()
 
             { // Othographic / perspective view
                 bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-                if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
+                if (ImGui::LocalButton((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
                     sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
@@ -298,7 +296,7 @@ void ViewportWindow::addCameraButtons()
             }
 
             { // Orientation gizmo button
-                if (ImGui::Button(ICON_FA_ROTATE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_ROTATE))
                 {
                     orientationGizmoEnabled = !orientationGizmoEnabled;
                     windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
@@ -317,7 +315,7 @@ void ViewportWindow::addCameraButtons()
                 const float scale = camera->getDistance() * 0.002f;
 
                 { // Translate Left/Right
-                    ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
+                    ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
@@ -334,7 +332,7 @@ void ViewportWindow::addCameraButtons()
                 }
 
                 { // Translate Up/Down
-                    ImGui::Button(ICON_FA_ARROWS_UP_DOWN"##TranslateUD", buttonSize);
+                    ImGui::LocalButton(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
@@ -351,7 +349,7 @@ void ViewportWindow::addCameraButtons()
                 }
 
                 { // Zoom
-                    ImGui::Button(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom", buttonSize);
+                    ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
@@ -467,7 +465,6 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
 
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool isItemClicked = false;
 
     if (m_isOpen)
@@ -490,7 +487,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
             if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
+                ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
                 ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
                 if (ImGui::IsItemClicked())
@@ -513,7 +510,6 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 
 bool ViewportWindow::addStepButton()
 {
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool isItemClicked = false;
     
     if (m_isOpen)
@@ -525,7 +521,7 @@ bool ViewportWindow::addStepButton()
             {
                 ImGui::SameLine();
                 ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                if (ImGui::Button(ICON_FA_FORWARD_STEP, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
                     isItemClicked = true;
                 ImGui::PopItemFlag();
                 ImGui::SetItemTooltip("One step of simulation");
@@ -581,7 +577,7 @@ void ViewportWindow::addSimulationTimeAndFPS()
                 auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 auto groot = m_baseGUI->getRootNode();
                 ImGui::Text("Time: %.3f", groot->getTime());
                 ImGui::PopStyleColor();
@@ -596,7 +592,7 @@ void ViewportWindow::addSimulationTimeAndFPS()
                     position -= ImGui::CalcTextSize("100.0 FPS ").x;
                     ImGui::SetCursorPosX(position);
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                     ImGui::Text("%.1f FPS", m_fps);
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
@@ -627,7 +623,7 @@ void ViewportWindow::addRecordingStatus(const ImVec4& red)
                 ImGui::Text("%s", icon.c_str());
                 ImGui::PopStyleColor();
                 ImGui::SameLine(0.f, 0.f);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::Text("%s", text.c_str());
                 ImGui::PopStyleColor();
 

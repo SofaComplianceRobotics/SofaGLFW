@@ -57,6 +57,8 @@ protected:
 
     void saveFile();
 
+    std::string m_dragedName;
+
 };
 
 } // namespace 

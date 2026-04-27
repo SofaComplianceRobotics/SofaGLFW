@@ -62,11 +62,6 @@ namespace sofaglfw
 SofaGLFWBaseGUI::SofaGLFWBaseGUI()
 {
     m_guiEngine = std::make_shared<NullGUIEngine>();
-    m_showSelectedNodeBoundingBox = true;
-    m_showSelectedObjectBoundingBox = false;
-    m_showSelectedObjectPositions = true;
-    m_showSelectedObjectSurfaces = true;
-    m_selectionColor = type::RGBAColor(0.439, 0.588, 0.702, 1.);
 }
 
 SofaGLFWBaseGUI::~SofaGLFWBaseGUI()
@@ -124,6 +119,7 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
     sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
     setScene(groot, filename.c_str());
     load();
+    setSelectionSettings();
 
     if (this->groot)
     {
@@ -131,6 +127,19 @@ void SofaGLFWBaseGUI::setSimulation(sofa::simulation::NodeSPtr groot, const std:
         this->pick->init(this->groot.get());
         m_sofaGLFWMouseManager.setPickHandler(getPickHandler());
     }
+}
+
+void SofaGLFWBaseGUI::setSelectionSettings()
+{
+    m_enableSelectionDraw = true;
+    m_showSelectedNodeBoundingBox = false;
+    m_showSelectedObjectBoundingBox = false;
+    m_showSelectedObjectPositions = true;
+    m_showSelectedObjectSurfaces = true;
+    m_showSelectedObjectVolumes = false;
+    m_showSelectedObjectIndices = false;
+    m_selectionColor = type::RGBAColor(0.439, 0.588, 0.702, 1.);
+    m_visualScaling = 0.2;
 }
 
 void SofaGLFWBaseGUI::setSimulationCanRun(bool canRun)

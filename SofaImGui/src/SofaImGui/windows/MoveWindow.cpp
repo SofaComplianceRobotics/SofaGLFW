@@ -29,6 +29,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
 #include <SofaImGui/Workbench.h>
+#include <GUIColors.h>
 
 namespace sofaimgui::windows {
 
@@ -113,11 +114,11 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             else if (m_moveType == MoveType::SLIDERS)
                             {
                                 ImGui::Indent();
-                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], ImColor(COLOR_RED));
                                 ImGui::Spacing();
-                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], ImColor(COLOR_GREEN));
                                 ImGui::Spacing();
-                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], ImColor(COLOR_BLUE));
                                 ImGui::Unindent();
                             }
                             ImGui::EndChild();
@@ -137,7 +138,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
                         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
-                        if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+                        if (ImGui::LocalButton(ICON_FA_BARS))
                             openOptions = true;
                         ImGui::PopStyleColor(3);
 
@@ -154,7 +155,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freeRoll)
                             ImGui::BeginDisabled();
-                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, -3.14, 3.14, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); //TODO real min max
+                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, -3.14, 3.14, ImColor(COLOR_RED)); //TODO real min max
                         if (m_freeRoll)
                             ImGui::EndDisabled();
 
@@ -162,7 +163,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freePitch)
                             ImGui::BeginDisabled();
-                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, -3.14, 3.14, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, -3.14, 3.14, ImColor(COLOR_GREEN));
                         if (m_freePitch)
                             ImGui::EndDisabled();
 
@@ -170,7 +171,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freeYaw)
                             ImGui::BeginDisabled();
-                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, -3.14, 3.14, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, -3.14, 3.14,ImColor(COLOR_BLUE));
                         if (m_freeYaw)
                             ImGui::EndDisabled();
 
@@ -205,9 +206,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //         for (int i=0; i<nbActuators; i++)
                 //         {
                 //             std::string name = "M" + std::to_string(i);
-
                 //             auto &actuator = m_actuators[i];
-
                 //             if (actuator.min < actuator.max)
                 //             {
                 //                 auto* typeinfo = actuator.data->getValueTypeInfo();
@@ -215,7 +214,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //                 double buffer = typeinfo->getScalarValue(value, 0);
                 //                 bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
                 //                                                    actuator.min, actuator.max,
-                //                                                    ImVec4(0, 0, 0, 0));
+                //                                                    ImColor(COLOR_TRANSPARENT));
                 //                 if (hasChanged)
                 //                 {
                 //                     actuator.data->read(std::to_string(buffer));
@@ -245,7 +244,6 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //         for (auto& accessory: m_accessories)
                 //         {
                 //             std::string name = accessory.description;
-
                 //             auto* typeinfo = accessory.data->getValueTypeInfo();
                 //             auto* value = accessory.data->getValueVoidPtr();
                 //             double buffer = typeinfo->getScalarValue(value, 0);
@@ -253,7 +251,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 //                                                ("##Slider" + name).c_str(),
                 //                                                ("##Input" + name).c_str(),
                 //                                                &buffer, accessory.min, accessory.max,
-                //                                                ImVec4(0, 0, 0, 0));
+                //                                                ImColor(COLOR_TRANSPARENT));
 
                 //             if (hasChanged && isDrivingSimulation())
                 //             {
@@ -382,7 +380,6 @@ bool MoveWindow::showVerticalTab(const std::string& label, const std::string& to
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_TabHovered));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_TabActive));
 
-    const ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool clicked = false;
 
     if (active)
@@ -390,7 +387,7 @@ bool MoveWindow::showVerticalTab(const std::string& label, const std::string& to
         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_TabActive));
     }
 
-    if (ImGui::Button(label.c_str(), buttonSize))
+    if (ImGui::LocalButton(label.c_str()))
         clicked = true;
     ImGui::SetItemTooltip("%s", tooltip.c_str());
 

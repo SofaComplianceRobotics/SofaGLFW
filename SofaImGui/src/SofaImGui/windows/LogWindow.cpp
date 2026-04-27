@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include <GUIColors.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -74,7 +75,7 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             static bool showInfo = true;
 
             bool openOptions = false;
-            if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+            if (ImGui::LocalButton(ICON_FA_BARS))
                 openOptions = true;
 
             if (openOptions)
@@ -90,7 +91,9 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             }
 
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+
+            // Export logs in file
+            if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
             {
                 nfdchar_t *outPath;
                 const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "log.txt");
@@ -115,13 +118,13 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             outputFile << "[" << labelMap[message.type()] << "]";
                             if (const auto* nfo = dynamic_cast<sofa::helper::logging::SofaComponentInfo*>(message.componentInfo().get()))
                             {
-                                outputFile << " " << nfo->name();
+                                outputFile << " [" << nfo->name();
                                 if (nfo->m_component)
                                 {
                                     outputFile << " (" << nfo->m_component->getPathName() << ")";
                                 }
                             }
-                            outputFile << " " << message.messageAsString() << std::endl;
+                            outputFile << "] " << message.messageAsString() << std::endl;
                         }
                         outputFile.close();
                     } else
@@ -133,6 +136,7 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             }
             ImGui::SetItemTooltip("Export Logs");
 
+            // Show logs
             std::size_t nbRows = 0;
             if (ImGui::BeginTable("logTable", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
             {
@@ -162,12 +166,12 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     {
                         switch (t)
                         {
-                            case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
-                            case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
-                            case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
-                            case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
-                            case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
-                            case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
+                            case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                            case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
+                            case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
+                            case sofa::helper::logging::Message::Info       : return ImGui::TextColored(ImGui::GetStyle().Colors[ImGuiCol_TextDisabled], "[INFO]");
+                            case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
+                            case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
                             case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
                             default: return;
                         }
@@ -182,7 +186,7 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     }
 
                     ImGui::TableNextColumn();
-                    ImGui::Text("%s", sender.c_str());
+                    ImGui::TextDisabled("[%s]", sender.c_str());
 
                     if (nfo && ImGui::IsItemHovered() && nfo->m_component)
                     {
@@ -196,13 +200,13 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     float totalHeight = lineCount * ImGui::GetTextLineHeight();
 
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0,0,0,0)); // Transparent background
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
                     ImGui::InputTextMultiline(
-                        ("##msg" + std::to_string(i)).c_str(),
-                        const_cast<char*>(msgStr.c_str()), msgStr.size() + 1,
-                        ImVec2(ImGui::GetContentRegionAvail().x, totalHeight),
-                        ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_NoUndoRedo
-                        );
+                                                ("##msg" + std::to_string(i)).c_str(),
+                                                const_cast<char*>(msgStr.c_str()), msgStr.size() + 1,
+                                                ImVec2(ImGui::GetContentRegionAvail().x, totalHeight),
+                                                ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_NoUndoRedo
+                                                );
                     ImGui::PopStyleColor();
                     ImGui::PopStyleVar();
                 }

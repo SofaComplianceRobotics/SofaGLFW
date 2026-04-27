@@ -1,7 +1,9 @@
+
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/widgets/MovePad.h>
+#include <GUIColors.h>
 
 #include <IconsFontAwesome6.h>
 
@@ -94,7 +96,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         PushStyleColor(ImGuiCol_ButtonText, GetColorU32(ImGuiCol_Text));
         { // PadH
             window->DC.CursorPos = (ImVec2(framePadHBB.Min.x - GetFrameHeight() - style.FramePadding.x , framePadHBB.GetCenter().y - GetFrameHeight()/2));
-            PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
             if (Button(ICON_FA_ARROWS_LEFT_RIGHT"##PadH", buttonSize))
             {
                 m_flippedAxis["PadH"] = !m_flippedAxis["PadH"];
@@ -108,7 +110,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
         { // PadV
             window->DC.CursorPos = (ImVec2(framePadVBB.GetCenter().x - GetFrameHeight()/2, framePadVBB.Min.y - GetFrameHeight() - style.FramePadding.y));
-            PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
             if (Button(ICON_FA_ARROWS_UP_DOWN"##PadV", buttonSize))
             {
                 m_flippedAxis["PadV"] = !m_flippedAxis["PadV"];
@@ -122,7 +124,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
         { // Slider
             window->DC.CursorPos = (ImVec2(frameSliderBB.GetCenter().x - GetFrameHeight()/2, frameSliderBB.Min.y - GetFrameHeight() - style.FramePadding.y));
-            PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
             if (Button(ICON_FA_ARROWS_UP_DOWN"##Slider", buttonSize))
             {
                 m_flippedAxis["Slider"] = !m_flippedAxis["Slider"];
@@ -325,21 +327,24 @@ bool MovePad::show1DPadSlider(char const* label,
     { // Add Button
         window->DC.CursorPos = ((flags & ImGuiSliderFlags_Vertical) == ImGuiSliderFlags_Vertical) ? ImVec2(grabBB.Max.x + 2*style.FramePadding.x, grabBB.GetCenter().y - GetFrameHeight() / 2.0f) : ImVec2(grabBB.GetCenter().x-GetFrameHeight()/2.0f, grabBB.Max.y + 2*style.FramePadding.y);
 
-        PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+        PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+        PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
         PushStyleColor(ImGuiCol_ButtonText, GetColorU32(ImGuiCol_Text));
         ImGui::AlignTextToFramePadding();
-        const ImVec4& color = ImVec4(strcmp(label, "X")==0? 1.0f : 0.0f,
-                                     strcmp(label, "Y")==0? 1.0f : 0.0f,
-                                     strcmp(label, "Z")==0? 1.0f : 0.0f,
-                                     1.0f);
         ImVec2 size(1.0f, ImGui::GetFrameHeight	()/2.);
-        ImGui::GetWindowDrawList()->AddRectFilled(window->DC.CursorPos + ImVec2(0.0f, size.y / 2.),
-            window->DC.CursorPos + ImVec2(0.0f, size.y / 2.) +size,
-            ImGui::GetColorU32(color), ImGuiStyleVar_FrameRounding); // draw colored axis line in before button
 
-        if (ImGui::Button((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str(), ImVec2(GetFrameHeight(), GetFrameHeight())))
+        ImU32 color = COLOR_RED;
+        if (strcmp(label, "Y")==0)
+            color = COLOR_GREEN;
+        if (strcmp(label, "Z")==0)
+            color = COLOR_BLUE;
+
+        ImGui::GetWindowDrawList()->AddRectFilled(window->DC.CursorPos + ImVec2(0.0f, size.y / 2.),
+                                                  window->DC.CursorPos + ImVec2(0.0f, size.y / 2.) + size,
+                                                  color, ImGuiStyleVar_FrameRounding); // draw colored axis line in before button
+
+        if (ImGui::LocalButton((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str()))
         {
             showOtherAxis = true;
         }
