@@ -112,8 +112,6 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
                 ImGui::BeginDisabled();
             }
 
-            m_itemWidth = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 4;
-
             static const char* items[]{
 #if SOFAIMGUI_WITH_ROS
                                        "ROS",
@@ -124,7 +122,7 @@ void IOWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowF
             ImGui::Spacing();
             ImGui::Indent();
             ImGui::Text("Method:");
-            ImGui::PushItemWidth(m_itemWidth);
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::LocalCombo("##ComboMethod", &m_method, items, IM_ARRAYSIZE(items));
             ImGui::PopItemWidth();
             ImGui::Spacing();
@@ -256,7 +254,7 @@ void IOWindow::showROSOutput()
         static bool validNodeName = true;
         static char nodeBuf[30];
 
-        ImGui::PushItemWidth(m_itemWidth);
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
         bool hasNodeNameChanged = ImGui::InputTextWithHint("##NodePublishers", "Enter a node name", nodeBuf, 30, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::PopStyleVar();
@@ -301,7 +299,7 @@ void IOWindow::showROSOutput()
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
 
         bool updateROSData = false;
-        if (ImGui::BeginListBox("##StatePublish", ImVec2(m_itemWidth, 0)))
+        if (ImGui::BeginListBox("##StatePublish", ImVec2(ImGui::GetContentRegionAvail().x, 0)))
         {
             // Simulation data
             for (const auto& [key, value] : m_IOData)
@@ -401,7 +399,7 @@ void IOWindow::showROSInput()
         nodes.push_back(nodelist[i].c_str());
 
     ImGui::Text("Select a node:");
-    ImGui::PushItemWidth(m_itemWidth);
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     ImGui::LocalCombo("##NodeSubscription", &nodeID, nodes.data(), nbNodes);
     ImGui::PopItemWidth();
 
@@ -438,7 +436,7 @@ void IOWindow::showROSInput()
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
 
         bool updateROSData = false;
-        if (ImGui::BeginListBox("##StateSubscription", ImVec2(m_itemWidth, 0)))
+        if (ImGui::BeginListBox("##StateSubscription", ImVec2(ImGui::GetContentRegionAvail().x, 0)))
         {
             // TCP target
             for (const auto& [simStateName, stateValue] : m_IOData)
