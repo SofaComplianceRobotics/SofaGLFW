@@ -94,6 +94,7 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 if (firstTime)
                 {
                     firstTime = false;
+                    m_program = models::Program(m_kinematicsGUIDataManager);
                     loadAndProcessWindowSettings();
                     ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
                 }

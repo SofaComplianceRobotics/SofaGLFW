@@ -122,7 +122,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     bool addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex);
 
-
     sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
 
     void saveProgramDirAndFilename(const std::string& filename);
