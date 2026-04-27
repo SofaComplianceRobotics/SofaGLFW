@@ -23,10 +23,9 @@
 
 #include <string>
 #include <map>
-#include <SofaImGui/models/IPController.h>
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
@@ -49,18 +48,15 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
 
     std::vector<rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr> m_publishers;
     std::map<std::string, sofa::core::BaseData*> m_selectedDataToPublish;
-    std::map<std::string, bool> m_selectedDigitalOutputToPublish;
 
     std::vector<rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr> m_subscriptions;
-    std::map<std::string, std::vector<float>> m_selectedDataToOverwrite;
-    std::map<std::string, bool> m_selectedDigitalInput;
-    std::map<std::string, float> m_selectedUserInput;
+    std::map<std::string, sofa::core::BaseData*> m_selectedDataToOverwrite;
 
-    bool hasSelectedOutput() {return !m_selectedDataToPublish.empty() || !m_selectedDigitalOutputToPublish.empty();}
-    void clearSelectedOutput() {m_selectedDataToPublish.clear(); m_selectedDigitalOutputToPublish.clear();}
+    bool hasSelectedOutput() {return !m_selectedDataToPublish.empty();}
+    void clearSelectedOutput() {m_selectedDataToPublish.clear();}
 
-    bool hasSelectedInput() {return !m_selectedDataToOverwrite.empty() || !m_selectedDigitalInput.empty() || !m_selectedUserInput.empty();}
-    void clearSelectedInput() {m_selectedDataToOverwrite.clear(); m_selectedDigitalInput.clear(); m_selectedUserInput.clear();}
+    bool hasSelectedInput() {return !m_selectedDataToOverwrite.empty();}
+    void clearSelectedInput() {m_selectedDataToOverwrite.clear();}
 
     void createSubscription(const std::string& topicName)
     {
@@ -72,16 +68,10 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
 
     void createTopics()
     {
-        if (!m_selectedDataToPublish.empty() || !m_selectedDigitalOutputToPublish.empty())
+        if (!m_selectedDataToPublish.empty())
         {
-            m_publishers.reserve(m_selectedDataToPublish.size() + m_selectedDigitalOutputToPublish.size());
+            m_publishers.reserve(m_selectedDataToPublish.size());
             for (const auto& [key, value] : m_selectedDataToPublish)
-            {
-                const auto& publisher = create_publisher<std_msgs::msg::Float32MultiArray>(key, 10);
-                m_publishers.push_back(publisher);
-            }
-
-            for (const auto& [key, value] : m_selectedDigitalOutputToPublish)
             {
                 const auto& publisher = create_publisher<std_msgs::msg::Float32MultiArray>(key, 10);
                 m_publishers.push_back(publisher);
@@ -93,21 +83,9 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
     {
         if (hasSelectedInput())
         {
-            m_subscriptions.reserve(m_selectedDataToOverwrite.size()
-                                    + m_selectedDigitalInput.size()
-                                    + m_selectedUserInput.size());
+            m_subscriptions.reserve(m_selectedDataToOverwrite.size());
             for (const auto& [key, value] : m_selectedDataToOverwrite)
-            {
                 createSubscription(key);
-            }
-            for (const auto& [key, value] : m_selectedDigitalInput)
-            {
-                createSubscription(key);
-            }
-            for (const auto& [key, value] : m_selectedUserInput)
-            {
-                createSubscription(key);
-            }
         }
     }
 
@@ -118,14 +96,19 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
         for (auto value: msg->data)
             vector.push_back(value);
 
-        std::map<std::string, std::vector<float>>::iterator it = m_selectedDataToOverwrite.find(topicName);
+        std::map<std::string, sofa::core::BaseData*>::iterator it = m_selectedDataToOverwrite.find(topicName);
         if (it != m_selectedDataToOverwrite.end())
-            it->second = vector;
-
-        std::map<std::string, float>::iterator itu = m_selectedUserInput.find(topicName);
-        if (itu != m_selectedUserInput.end())
-            if (!vector.empty())
-                itu->second = vector[0];
+        {
+            if (it->second)
+            {
+                auto* data = it->second->getData();
+                auto* typeinfo = data->getValueTypeInfo();
+                size_t nbValue = typeinfo->size();
+                if (vector.size() == nbValue)
+                    for (size_t i = 0; i < nbValue; i++)
+                        typeinfo->setScalarValue(data, i, vector[i]);
+            }
+        }
     }
 };
 #endif
@@ -134,45 +117,47 @@ class SOFAIMGUI_API ROSNode: public rclcpp::Node
 class SOFAIMGUI_API IOWindow : public BaseWindow
 {
    public:
+    enum Role
+    {
+		PUBLISH,
+		SUBSCRIBE,
+        ALL
+    };
+
     IOWindow(){}
-    IOWindow(const std::string& name, const bool& isWindowOpen);
+    IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~IOWindow();
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
-    
-    void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
 
-    void setSimulationState(const models::SimulationState &simulationState);
-    void addSubscribableData(const std::string& name, sofa::core::BaseData* data);
-
-    void clearWindow() override {m_IPController=nullptr;}
+    sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = models::guidata::GUIData::DEFAULTGROUP,
+                                                     const std::string& tooltip = "",
+                                                     Role role = Role::ALL);
 
    protected:
-    
-    models::IPController::SPtr m_IPController;
+
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
     std::string m_defaultNodeName = "SofaComplianceRobotics";
     int m_method;
 
     bool m_isReadyToPublish;
     bool m_isPublishing;
-
     bool m_isListening;
 
-    bool m_digitalInput[3];
-    bool m_digitalOutput[3];
+    void clear() override { m_selectableData.clear(); }
 
     /// Sanitize the input string to match ROS requirements for topic and node name (no spaces, no special characters)
     bool sanitizeName(std::string &name);
-
-    /// Update the input/output data map m_IOData (simulation data)
-    /// If selected, sanitize the data name
-    void updateIOData(const bool &doSanitizeName=false);
 
     /// Update ROS output lists with the topics selected from the GUI
     void updateROSOutput();
@@ -185,9 +170,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     std::map<std::string, bool> m_publishListboxItems;
     std::map<std::string, bool> m_subcriptionListboxItems;
 
-    std::map<std::string, sofa::core::BaseData* > m_IOData; // input/output data and name map (simulation data)
-    std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
-    std::map<std::string, sofa::core::BaseData*> m_subscribableData; // user defined input
+    std::map<Role, std::map<std::string, sofaimgui::models::guidata::GUIData::SPtr>> m_selectableData; // <Role<label, GUIData::SPtr>> Fed by the user from the python bindings API
 
 #if SOFAIMGUI_WITH_ROS
     std::shared_ptr<ROSNode> m_rosnode;

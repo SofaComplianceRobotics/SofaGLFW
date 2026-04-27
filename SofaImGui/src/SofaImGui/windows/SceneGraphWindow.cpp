@@ -52,7 +52,7 @@ std::string SceneGraphWindow::getDescription()
     return "Scene graph of the simulation nodes and components.";
 }
 
-void SceneGraphWindow::clearWindow()
+void SceneGraphWindow::clear()
 {
     m_openedComponents.clear();
     m_openedNodes.clear();
@@ -61,14 +61,14 @@ void SceneGraphWindow::clearWindow()
     m_selection.clear();
 }
 
-void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+void SceneGraphWindow::showWindow(const ImGuiWindowFlags& windowFlags)
 {
     m_componentToOpen.clear();
     m_nodeToOpen.clear();
     m_componentToOpenContextMenu.clear();
     m_nodeToOpenContextMenu.clear();
 
-    auto c = baseGUI->m_selectionColor;
+    auto c = m_baseGUI->m_selectionColor;
     m_highlightMaterial.setColor(c.r(), c.g(), c.b(), c.a());
     float s = 0.7;
     m_highlightMaterial.emissive.set(c.r()*s, c.g()*s, c.b()*s, c.a());
@@ -79,9 +79,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     m_highlightMaterial.useDiffuse = true;
 
     if (isOpen())
-    {
-        showGraph(baseGUI, windowFlags);
-    }
+        showGraph(windowFlags);
 
     ImGuiIO& io = ImGui::GetIO();
     const auto height = io.DisplaySize.y*0.66; // Main window size
@@ -268,7 +266,7 @@ std::string SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::Bas
     return "";
 }
 
-void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+void SceneGraphWindow::showGraph(const ImGuiWindowFlags& windowFlags)
 {
     if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
     {
@@ -348,17 +346,17 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableHeadersRow();
 
-            sofa::simulation::Node *groot = baseGUI->getRootNode().get();
+            sofa::simulation::Node *groot = m_baseGUI->getRootNode().get();
 
-            const auto o = baseGUI->m_selectionColor;
+            const auto o = m_baseGUI->m_selectionColor;
             const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, workbench == Workbench::SCENE_EDITOR? ImVec4(0., 0., 0., 0): selectedColorBg);
 
-            showNode(baseGUI, nullptr, groot, filter);
+            showNode(nullptr, groot, filter);
 
             ImGui::PopStyleColor();
 
-            baseGUI->setCurrentSelection(m_selection);
+            m_baseGUI->setCurrentSelection(m_selection);
 
             ImGui::EndTable();
         }
@@ -366,9 +364,9 @@ void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGui
     ImGui::End();
 }
 
-void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
+void SceneGraphWindow::showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
 {
-    const auto o = baseGUI->m_selectionColor;
+    const auto o = m_baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
     const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
@@ -503,14 +501,14 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         ImGui::Indent();
         ImGui::Indent();
 
-        showNodeComponents(baseGUI, node, filter);
+        showNodeComponents(node, filter);
 
         ++treeDepth;
         // Child nodes
         for (const auto child : node->getChildren())
         {
             ImGui::PushID(child->getName().c_str());
-            showNode(baseGUI, node, dynamic_cast<sofa::simulation::Node*>(child), filter);
+            showNode(node, dynamic_cast<sofa::simulation::Node*>(child), filter);
             ImGui::PopID();
         }
         --treeDepth;
@@ -522,9 +520,9 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         ImGui::PopStyleColor();
 }
 
-void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
+void SceneGraphWindow::showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter& filter)
 {
-    const auto o = baseGUI->m_selectionColor;
+    const auto o = m_baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
     const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);

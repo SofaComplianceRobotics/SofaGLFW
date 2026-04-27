@@ -22,7 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/widgets/MovePad.h>
 #include <SofaImGui/DrivingWindow.h>
 #include <imgui.h>
@@ -32,28 +32,11 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MoveWindow : public BaseWindow
 {
    public:
-    MoveWindow(const std::string& name, const bool& isWindowOpen);
+    MoveWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~MoveWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-
-    void setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription);
-    void setIPController(models::IPController::SPtr IPController) {m_IPController=IPController;}
-    void setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation);
-
-    void setActuatorsDescriptions(const std::string &description);
-    void setActuatorsLimits(const double &min, const double &max);
-    void setActuatorLimits(const sofa::Size &id, const double &min, const double &max);
-    void setActuators(std::vector<models::IPController::Actuator> actuators) {m_actuators = actuators;}
-
-    struct Accessory {
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        float min{0};
-        float max{500};
-    };
 
     enum MoveType {
         PAD,
@@ -61,20 +44,9 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     };
     MoveType m_moveType;
 
-    void clearWindow() override;
-
-    void addAccessory(const Accessory &accessory) {m_accessories.push_back(accessory);}
-    bool hasActuators() {return !m_actuators.empty();}
-
    protected:
-    
-    models::IPController::SPtr m_IPController;
-    std::string m_TCPPositionDescription{"TCP Target Position (mm)"};
-    std::string m_TCPRotationDescription{"TCP Target Rotation (rad)"};
-    double m_TCPMinPosition{-500.};
-    double m_TCPMaxPosition{500.};
-    double m_TCPMinOrientation{-M_PI};
-    double m_TCPMaxOrientation{M_PI};
+
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
     double m_x;
     double m_y;
@@ -83,24 +55,19 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     double m_ry;
     double m_rz;
     
-    std::vector<models::IPController::Actuator> m_actuators;
-    std::string m_actuatorsDescription{"Motors Position (rad)"};
-
     bool m_freeRoll{true};
     bool m_freePitch{true};
     bool m_freeYaw{true};
 
-    std::vector<Accessory> m_accessories;
-
     ImGui::MovePad m_movePad;
 
-    bool enabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
+    bool enabled() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);
     void showOptions();
     void showWeightOption(const int &index);
-    void showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    void showPad();
     bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::MOVE;}
 };

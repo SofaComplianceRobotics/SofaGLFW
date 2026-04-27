@@ -21,28 +21,35 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/SimulationState.h>
-#include <imgui.h>
+#include <SofaImGui/config.h>
+#include <sofa/type/Vec.h>
+#include <sofa/defaulttype/RigidTypes.h>
+#include <sofa/component/controller/Controller.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
-namespace sofaimgui::windows {
+namespace sofaimgui::models {
 
-class SOFAIMGUI_API StateWindow : public BaseWindow
+class SOFAIMGUI_API KinematicsController : public sofa::component::controller::Controller
 {
+   typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
+
    public:
-    StateWindow(const std::string& name, const bool& isWindowOpen);
-    ~StateWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-    std::string getDescription() override;
-    void setSimulationState(const models::SimulationState &simulationState);
+    SOFA_CLASS(KinematicsController, sofa::component::controller::Controller);
 
-  protected:
-    bool enabled() override {return !m_simulationStateData.empty();}
+    KinematicsController();
+    ~KinematicsController() = default;
 
-    std::vector<models::SimulationState::StateData> m_simulationStateData;
+    void applyActuatorsForce();
+    void handleEvent(sofa::core::objectmodel::Event *event) override;
+
+   protected:
+
+    // models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
+    bool m_updateSolutionOnSolveEndEvent{false};
+
 };
 
-}
+} // namespace
 
 

@@ -31,36 +31,39 @@
 #include <sofa/gui/common/GUIManager.h>
 
 #include <SofaImGui/ImGuiGUI.h>
+#include <SofaImGui/models/guidata/GUIData.h>
+#include <Module_SofaImGui.h>
 
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
 /// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
 
-void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &description, sofa::core::BaseData* data, const std::string &group)
+void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, const std::string &group, const std::string& help, std::string type = "double")
 {
     if (engine)
     {
-        windows::MyRobotWindow::Information info;
-        info.description = description;
-        info.data = data;
-        engine->m_myRobotWindow.addInformation(info, group);
+        engine->m_myRobotWindow.addData(label,
+                                        getDataFromPyObject(data, type),
+			                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                        group, help, sofaimgui::windows::MyRobotWindow::Section::INFORMATION);
     }
 }
 
-void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &description, sofa::core::BaseData* data, double min, double max, const std::string &group)
+void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, py::object min, py::object max, const std::string &group, const std::string& help, std::string type="double")
 {
     if (engine)
     {
-        windows::MyRobotWindow::Setting setting;
-        setting.description = description;
-        setting.data = data;
-        setting.min = min;
-        setting.max = max;
-        engine->m_myRobotWindow.addSetting(setting, group);
+        engine->m_myRobotWindow.addData(label,
+                                        getDataFromPyObject(data, type),
+                                        getDataFromPyObject(min, type),
+                                        getDataFromPyObject(max, type),
+                                        group, help, sofaimgui::windows::MyRobotWindow::Section::SETTINGS);
     }
 }
 
@@ -82,36 +85,54 @@ void moduleAddMyRobotWindow(py::module &m)
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
+    //************************
+	// MyRobotWindow submodule
+	//************************
     auto m_a = m.def_submodule("MyRobotWindow", "");
+	std::string m_a_name = py::str(m_a.attr("__name__"));
+
     m_a.def("addInformation",
-        [engine](const std::string &description, sofa::core::BaseData* data)
+        [engine, m_a_name](const std::string &description, py::object data)
         {
-        addInformation(engine, description, data);
-        }, "Add an information to the window."
+            msg_deprecated(m_a_name) << "addInformation is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Information.addData instead.";
+            addInformation(engine, description, data, models::guidata::GUIData::DEFAULTGROUP, "");
+        }, "[DEPRECATED] Add an information to the window."
         );
+
     m_a.def("addInformationInGroup",
-        [engine](const std::string &description, sofa::core::BaseData* data, const std::string &group)
+        [engine, m_a_name](const std::string &description, py::object data, const std::string &group)
         {
-            addInformation(engine, description, data, group);
-        }, "Add an information to the window."
+            msg_deprecated(m_a_name) << "addInformationInGroup is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Information.addData instead.";
+            addInformation(engine, description, data, group, "");
+        }, "[DEPRECATED] Add an information to the window."
         );
 
     m_a.def("addSetting",
-        [engine](const std::string &description, sofa::core::BaseData* data, double min, double max)
+        [engine, m_a_name](const std::string &description, py::object data, py::object min, py::object max)
         {
-        addSetting(engine, description, data, min, max);
-        }, "Add a setting to the window."
+            msg_deprecated(m_a_name) << "addSetting is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Settings.addData instead.";
+            if (engine)
+            {
+                addSetting(engine, description, data, min, max, models::guidata::GUIData::DEFAULTGROUP, "");
+            }
+        }, "[DEPRECATED] Add a setting to the window."
         );
+
     m_a.def("addSettingInGroup",
-        [engine](const std::string &description, sofa::core::BaseData* data, double min, double max, const std::string &group)
+        [engine, m_a_name](const std::string &description, py::object data, py::object min, py::object max, const std::string &group)
         {
-            addSetting(engine, description, data, min, max, group);
-        }, "Add a setting to the window."
+            msg_deprecated(m_a_name) << "addSettingInGroup is deprecated and will be removed in future versions.Please use Sofa.ImGui.MyRobotWindow.Settings.addData instead.";
+            if (engine)
+            {
+                addSetting(engine, description, data, min, max, group, "");
+            }
+        }, "[DEPRECATED] Add a setting to the window."
         );
 
     m_a.def("listAvailablePortsCallback",
-        [engine](const py::object &instance, const std::string& callbackName)
+        [engine, m_a_name](const py::object &instance, const std::string& callbackName)
         {
+			msg_deprecated(m_a_name)<< "listAvailablePortsCallback is deprecated and will be removed in future versions. Please use Sofa.ImGui.MyRobotWindow.Connection.registerAvailablePortsCallback instead.";
             if (engine)
             {
                 auto& connection = engine->m_myRobotWindow.getConnection();
@@ -119,8 +140,49 @@ void moduleAddMyRobotWindow(py::module &m)
                     return listAvailablePortsCallback(instance, callbackName);
                 };
             }
-        });
+        }, "[DEPRECATED] Registers the callback to list available ports. This function is called to list the available ports in Sofa.ImGui.MyRobotWindow.updateAvailablePorts.");
+
     m_a.def("getSelectedPort",
+        [engine, m_a_name]() -> std::string
+        {
+            msg_deprecated(m_a_name) << "getSelectedPort is deprecated and will be removed in future versions. Please use Sofa.ImGui.MyRobotWindow.Connection.getSelectedPort instead.";
+            if (engine)
+            {
+                return engine->m_myRobotWindow.getSelectedPort();
+            }
+            return std::string();
+        }, "Get the port selected from the window."
+    );
+    m_a.def("updateAvailablePorts",
+        [engine, m_a_name]()
+        {
+            msg_deprecated(m_a_name) << "updateAvailablePorts is deprecated and will be removed in future versions. Please use Sofa.ImGui.MyRobotWindow.Connection.updateAvailablePorts instead.";
+            if (engine)
+            {
+                engine->m_myRobotWindow.setAvailablePorts(engine->m_myRobotWindow.getConnection().listAvailablePortsCallback());
+            }
+        }, "Update the list of available ports."
+    );
+
+	//*********************
+	// Connection submodule
+	//*********************
+    auto m_a_connection = m_a.def_submodule("Connection", "");
+    std::string m_a_connection_name = py::str(m_a_connection.attr("__name__"));
+
+    m_a_connection.def("registerAvailablePortsCallback",
+        [engine](const py::object& instance, const std::string& callbackName)
+        {
+            if (engine)
+            {
+                auto& connection = engine->m_myRobotWindow.getConnection();
+                connection.listAvailablePortsCallback = [instance, callbackName]() -> std::vector<std::string> {
+                    return listAvailablePortsCallback(instance, callbackName);
+                    };
+            }
+        }, "Registers the callback to list available ports. This function is called to list the available ports in Sofa.ImGui.MyRobotWindow.Connection.updateAvailablePorts.");
+
+    m_a_connection.def("getSelectedPort",
         [engine]() -> std::string
         {
             if (engine)
@@ -130,7 +192,7 @@ void moduleAddMyRobotWindow(py::module &m)
             return std::string();
         }, "Get the port selected from the window."
     );
-    m_a.def("updateAvailablePorts",
+    m_a_connection.def("updateAvailablePorts",
         [engine]()
         {
             if (engine)
@@ -139,6 +201,50 @@ void moduleAddMyRobotWindow(py::module &m)
             }
         }, "Update the list of available ports."
     );
+
+	//**********************
+	// Information submodule
+	//**********************
+
+	auto m_a_information = m_a.def_submodule("Information", "");
+	std::string m_a_information_name = py::str(m_a_information.attr("__name__"));
+
+	m_a_information.def("addData",
+		[engine](const std::string& label, py::object data, std::string group, std::string help)
+		{
+			if (engine)
+			{
+				if (group.empty())
+                    addInformation(engine, label, data, models::guidata::GUIData::DEFAULTGROUP, help);
+                else
+					addInformation(engine, label, data, group, help);
+			}
+		}
+        , "label"_a, "data"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+        ,"Add an information to the window."
+	);
+
+	//*******************
+	// Settings submodule
+	//*******************
+
+	auto m_a_settings = m_a.def_submodule("Settings", "");
+	std::string m_a_settings_name = py::str(m_a_settings.attr("__name__"));
+
+	m_a_settings.def("addData",
+		[engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
+		{
+			if (engine)
+			{
+				if (group.empty())
+                    addSetting(engine, label, data, min, max, models::guidata::GUIData::DEFAULTGROUP, help, type);
+				else
+					addSetting(engine, label, data, min, max, group, help, type);
+			}
+		}
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+		, "Add a setting to the window."
+	);
 
 }
 

@@ -33,10 +33,13 @@
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 
+#include <Module_SofaImGui.h>
+
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
 /// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
@@ -49,17 +52,15 @@ void moduleAddPlottingWindow(py::module &m)
     auto m_a = m.def_submodule("PlottingWindow", "");
 
     m_a.def("addData",
-        [engine](const std::string &description,
-                 sofa::core::objectmodel::BaseData* data)
+        [engine](const std::string &label, py::object data, std::string type)
         {
             if (engine)
             {
-                windows::PlottingWindow::PlottingData plottingData;
-                plottingData.value = data;
-                plottingData.description = description;
-                engine->m_plottingWindow.addData(plottingData);
+                engine->m_plottingWindow.addData(label, getDataFromPyObject(data, type));
             }
-        }, "Add data to plot, with description."
+        }
+        , "label"_a, "data"_a, "type"_a = "double"
+        ,"Add data to plot, with description."
         );
 }
 

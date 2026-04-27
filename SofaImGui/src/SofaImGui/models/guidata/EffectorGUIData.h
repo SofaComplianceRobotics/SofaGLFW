@@ -21,75 +21,64 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/config.h>
-#include <sofa/type/Vec.h>
-#include <sofa/defaulttype/RigidTypes.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/behavior/BaseMechanicalState.h>
-#include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
-#include <sofa/component/controller/Controller.h>
+#include <sofa/defaulttype/RigidCoord.h>
 
-namespace sofaimgui::models {
 
-class SOFAIMGUI_API IPController : public sofa::component::controller::Controller
+namespace sofaimgui::models::guidata
 {
-   typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-   public:
+class EffectorGUIData: public GUIData
+{
+    // Todo: use template to allow different type of effector
+    typedef sofa::defaulttype::Rigid3Types::Coord RigidCoord;
+    typedef sofa::defaulttype::Rigid3Types::Deriv RigidDeriv;
+    typedef sofa::defaulttype::Rigid3Types::VecCoord VecCoord;
+    typedef sofa::defaulttype::Rigid3Types::VecDeriv VecDeriv;
 
-    SOFA_CLASS(IPController, sofa::component::controller::Controller);
+public:
+    typedef std::shared_ptr<EffectorGUIData> SPtr;
 
-    struct Actuator{
-       sofa::core::BaseData* data;
-       size_t indexInProblem;
-       double value;
-       sofa::helper::OptionsGroup valueType{"force", "displacement"};
-       double min{-500};
-       double max{500};
-    };
+    EffectorGUIData(OwnedBaseData::SPtr data,
+                    OwnedBaseData::SPtr min,
+                    OwnedBaseData::SPtr max,
+                    std::string label,
+                    std::string group,
+                    std::string help,
+                    softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector)
+        : GUIData(data, min, max, label, group, help)
+    {
+        initFromEffector(effector);
+    }
 
-    IPController(sofa::simulation::Node::SPtr groot,
-                 softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                 sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                 sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                 softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
-    ~IPController() = default;
-    
-    const RigidCoord& getTCPTargetInitPosition();
+    RigidCoord getTCPTargetInitPosition();
+
     RigidCoord getTCPTargetPosition();
     void getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz);
+
     void setTCPTargetPosition(const RigidCoord& position);
     void setTCPTargetPosition(const double &x, const double &y, const double &z, const double &rx, const double &ry, const double &rz);
 
     RigidCoord getTCPPosition();
-    
-    double* getRotationWeight() {return m_rotationWeight;}
 
-    bool hasRotationEffector() { return m_rotationEffector != nullptr; }
+    bool hasRotation() {return useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;}
     void setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw);
 
-    sofa::simulation::Node::SPtr getRootNode() {return m_groot;}
-    void applyActuatorsForce(const std::vector<Actuator> &actuators);
+    double getWeight(const sofa::Index &index);
+    void setWeight(const sofa::Index &index, const double &w);
 
-    void handleEvent(sofa::core::objectmodel::Event *event) override;
+protected:
 
-   protected:
+    void initFromEffector(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector);
 
-    sofa::simulation::Node::SPtr m_groot;
-    softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_solver;
-    sofa::core::behavior::BaseMechanicalState::SPtr m_TCPTargetState;
-    sofa::core::behavior::BaseMechanicalState::SPtr m_TCPState;
-    softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr m_rotationEffector;
-    RigidCoord m_initTCPTargetPosition;
-    
-    double m_rotationWeight[3];
-    std::vector<Actuator> m_actuators;
-    
-    bool m_updateSolutionOnSolveEndEvent{false};
-
+    sofa::Data<sofa::type::vector<unsigned int>> indices;
+    OwnedBaseData::SPtr target{nullptr};
+    OwnedBaseData::SPtr targetInit{nullptr};
+    OwnedBaseData::SPtr weights{nullptr};
+    OwnedBaseData::SPtr useDirections{nullptr};
 };
 
-} // namespace
+}
 
 

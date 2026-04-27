@@ -57,9 +57,7 @@ void FileMenu::addMenu()
     {
         ImGui::PopStyleColor();
 
-        { // Project
-            saveProject();
-        }
+        saveProject();
 
         ImGui::Separator();
 
@@ -176,8 +174,8 @@ bool FileMenu::addImportExportProgram()
     if (!engine->m_programWindow.isEnabledInWorkbench())
         ImGui::BeginDisabled();
 
-
-    if (ImGui::MenuItem("Import Program...", "Ctrl+Shift+I")){
+    if (ImGui::MenuItem("Import Program...", "Ctrl+Shift+I"))
+    {
         if(engine->m_programWindow.importProgram())
             engine->m_programWindow.setOpen(true);
     }

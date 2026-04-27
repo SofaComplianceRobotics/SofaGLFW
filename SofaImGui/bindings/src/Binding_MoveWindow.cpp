@@ -47,99 +47,99 @@ void moduleAddMoveWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("MoveWindow", "");
-    m_a.def("setTCPDescription",
-        [engine](const std::string &positionDescription, const std::string &rotationDescription)
-        {
-            if (engine)
-            {
-                engine->m_moveWindow.setTCPDescriptions(positionDescription, rotationDescription);
-            }
-        }, "Set the description displayed on the GUI (positionDescription, rotationDescription). Use this to display the right unit."
-        );
+    // m_a.def("setTCPDescription",
+    //     [engine](const std::string &positionDescription, const std::string &rotationDescription)
+    //     {
+    //         if (engine)
+    //         {
+    //             engine->m_moveWindow.setTCPDescriptions(positionDescription, rotationDescription);
+    //         }
+    //     }, "Set the description displayed on the GUI (positionDescription, rotationDescription). Use this to display the right unit."
+    //     );
 
-    m_a.def("setTCPLimits",
-        [engine](const float &minPosition, const float &maxPosition, const double &minOrientation, const double &maxOrientation)
-        {
-            if (engine)
-            {
-                engine->m_moveWindow.setTCPLimits(minPosition, maxPosition, minOrientation, maxOrientation);
-            }
-        }, "Set the sliders limits."
-        );
+    // m_a.def("setTCPLimits",
+    //     [engine](const float &minPosition, const float &maxPosition, const double &minOrientation, const double &maxOrientation)
+    //     {
+    //         if (engine)
+    //         {
+    //             engine->m_moveWindow.setTCPLimits(minPosition, maxPosition, minOrientation, maxOrientation);
+    //         }
+    //     }, "Set the sliders limits."
+    //     );
 
-    m_a.def("setActuatorsDescription",
-        [engine](const std::string &description)
-        {
-            if (engine)
-            {
-                engine->m_moveWindow.setActuatorsDescriptions(description);
-            }
-        }, "Set the description displayed on the GUI. Use this to display the right info and unit."
-        );
+    // m_a.def("setActuatorsDescription",
+    //     [engine](const std::string &description)
+    //     {
+    //         if (engine)
+    //         {
+    //             engine->m_moveWindow.setActuatorsDescriptions(description);
+    //         }
+    //     }, "Set the description displayed on the GUI. Use this to display the right info and unit."
+    //     );
 
-    m_a.def("setActuatorsLimits",
-        [engine](const double &min, const double &max)
-        {
-            if (engine)
-            {
-                engine->m_moveWindow.setActuatorsLimits(min, max);
-            }
-        }, "Set the sliders limits for all the actuators."
-        );
+    // m_a.def("setActuatorsLimits",
+    //     [engine](const double &min, const double &max)
+    //     {
+    //         if (engine)
+    //         {
+    //             engine->m_moveWindow.setActuatorsLimits(min, max);
+    //         }
+    //     }, "Set the sliders limits for all the actuators."
+    //     );
 
-    m_a.def("setActuatorLimits",
-            [engine](const sofa::Index &id, const double &min, const double &max)
-            {
-                if (engine)
-                {
-                    engine->m_moveWindow.setActuatorLimits(id, min, max);
-                }
-            }, "Set the sliders limits for the actuator number 'id'."
-            );
+    // m_a.def("setActuatorLimits",
+    //         [engine](const sofa::Index &id, const double &min, const double &max)
+    //         {
+    //             if (engine)
+    //             {
+    //                 engine->m_moveWindow.setActuatorLimits(id, min, max);
+    //             }
+    //         }, "Set the sliders limits for the actuator number 'id'."
+    //         );
 
-    m_a.def("setActuators",
-        [engine](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
-                 const std::vector<size_t> &indicesInProblem,
-                 const std::string valueType)
-        {
-            if (engine)
-            {
-                sofa::Size nbActuators = std::min(actuatorsData.size(), indicesInProblem.size());
-                std::vector<models::IPController::Actuator> actuators;
-                sofa::Size size = actuators.size();
-                for (size_t i=0; i< nbActuators; i++)
-                {
-                    models::IPController::Actuator actuator = (i<size)? actuators[i]: models::IPController::Actuator();
+    // m_a.def("setActuators",
+    //     [engine](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
+    //              const std::vector<size_t> &indicesInProblem,
+    //              const std::string valueType)
+    //     {
+    //         if (engine)
+    //         {
+    //             sofa::Size nbActuators = std::min(actuatorsData.size(), indicesInProblem.size());
+    //             std::vector<models::KinematicsController::Actuator> actuators;
+    //             sofa::Size size = actuators.size();
+    //             for (size_t i=0; i< nbActuators; i++)
+    //             {
+    //                 models::KinematicsController::Actuator actuator = (i<size)? actuators[i]: models::KinematicsController::Actuator();
 
-                    actuator.data = actuatorsData[i];
-                    actuator.indexInProblem = indicesInProblem[i];
-                    actuator.valueType.setSelectedItem(valueType);
+    //                 actuator.data = actuatorsData[i];
+    //                 actuator.indexInProblem = indicesInProblem[i];
+    //                 actuator.valueType.setSelectedItem(valueType);
 
-                    if (i < size)
-                        actuators[i] = actuator;
-                    else
-                        actuators.push_back(actuator);
-                }
-                engine->m_moveWindow.setActuators(actuators);
-            }
-        }, "Set the actuators."
-        );
+    //                 if (i < size)
+    //                     actuators[i] = actuator;
+    //                 else
+    //                     actuators.push_back(actuator);
+    //             }
+    //             engine->m_moveWindow.setActuators(actuators);
+    //         }
+    //     }, "Set the actuators."
+    //     );
 
-    m_a.def("addAccessory",
-        [engine](const std::string &description, sofa::core::BaseData* data,
-                 const float& min, const float& max)
-        {
-            if (engine)
-            {
-                windows::MoveWindow::Accessory accessory;
-                accessory.description = description;
-                accessory.data = data;
-                accessory.min = min;
-                accessory.max = max;
-                engine->m_moveWindow.addAccessory(accessory);
-            }
-        }, "Add an accessory to the window."
-        );
+    // m_a.def("addAccessory",
+    //     [engine](const std::string &description, sofa::core::BaseData* data,
+    //              const float& min, const float& max)
+    //     {
+    //         if (engine)
+    //         {
+    //             windows::MoveWindow::Accessory accessory;
+    //             accessory.description = description;
+    //             accessory.data = data;
+    //             accessory.min = min;
+    //             accessory.max = max;
+    //             engine->m_moveWindow.addAccessory(accessory);
+    //         }
+    //     }, "Add an accessory to the window."
+    //     );
 
 }
 

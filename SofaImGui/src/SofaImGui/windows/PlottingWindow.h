@@ -65,37 +65,35 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
         }
     };
 
-    struct PlottingData
-    {
-        sofa::core::objectmodel::BaseData* value;
-        std::string description;
-        size_t idSubplot{0};
-    };
-
     PlottingWindow(const std::string& name, const bool& isWindowOpen);
     ~PlottingWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override;
 
-    void addData(const PlottingData data) {m_data.push_back(data);}
+    sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = "",
+                                                     const std::string& help = "") override;
 
    protected:
-    std::vector<PlottingData> m_data;
+    std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
     std::vector<RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
     size_t m_nbRows{1};
     size_t m_nbCols{1};
 
-    bool enabled() override {return !m_data.empty();}
+    bool enabled() override {return !m_GUIData.empty();}
+    void clear() override;
 
     void exportData();
     void showButtons();
     void showPlots();
     void showMenu();
-    void showMenu(ImPlotPlot &plot, const size_t &idSubplot);
+    void showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot);
 };
 
 }

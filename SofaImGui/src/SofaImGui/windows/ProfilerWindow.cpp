@@ -45,10 +45,8 @@ std::string ProfilerWindow::getDescription()
     return "Profiling information about the simulation steps.";
 }
 
-void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ProfilerWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     sofa::helper::AdvancedTimer::setEnabled("Animate", m_isOpen);
     if (isOpen())
     {
@@ -57,7 +55,7 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
             sofa::helper::AdvancedTimer::setInterval("Animate", 1);
             sofa::helper::AdvancedTimer::setOutputType("Animate", "gui");
 
-            auto groot = baseGUI->getRootNode().get();
+            auto groot = m_baseGUI->getRootNode().get();
             if (groot->animate_.getValue() || !isEnabledInWorkbench())
                 ImGui::BeginDisabled();
 

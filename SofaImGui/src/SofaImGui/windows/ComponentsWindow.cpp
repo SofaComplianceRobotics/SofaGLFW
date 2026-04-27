@@ -47,10 +47,8 @@ std::string ComponentsWindow::getDescription()
     return "List and inspect the loaded components.";
 }
 
-void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
-
     if (isOpen())
     {
         // Note for later
@@ -192,7 +190,8 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
         for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
-            ImGui::TextWrapped(examplePath.filename().string().c_str());
+
+            ImGui::TextWrapped("%s", examplePath.filename().string().c_str());
             ImGui::PopStyleColor();
 
             if (ImGui::IsItemClicked())

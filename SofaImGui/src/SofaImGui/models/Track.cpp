@@ -25,20 +25,19 @@
 
 namespace sofaimgui::models {
 
-Track::Track(models::IPController::SPtr IPController)
-    : m_IPController(IPController)
+Track::Track(guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
-    m_startmove = std::make_shared<models::actions::StartMove>(m_IPController->getTCPTargetInitPosition(),
-                                                               m_IPController->getTCPTargetInitPosition(),
-                                                               0.5,
-                                                               m_IPController,
-                                                               true);
+    guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager->getTCPGUIData();
+
+    m_startmove = std::make_shared<actions::StartMove>(TCPGUIData->getTCPTargetInitPosition(),
+                                                       TCPGUIData->getTCPTargetInitPosition(),
+                                                       0.5,
+                                                       kinematicsGUIDataManager,
+                                                       true);
 }
 
-Track::Track(models::IPController::SPtr IPController,
-             std::shared_ptr<actions::StartMove> startMove)
-    : m_IPController(IPController)
-    , m_startmove(startMove)
+Track::Track(std::shared_ptr<actions::StartMove> startMove)
+    : m_startmove(startMove)
 {
 }
 

@@ -35,9 +35,8 @@ BaseWindow::BaseWindow()
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+void BaseWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
     SOFA_UNUSED(windowFlags);
 }
 
@@ -50,6 +49,13 @@ std::string& BaseWindow::getLabel()
 {
     m_labelname = "       " + m_name;
     return m_labelname;
+}
+
+void BaseWindow::clearWindow()
+{
+	m_groupedGUIData.clear();
+	m_GUIData.clear();
+    clear();
 }
 
 bool& BaseWindow::isOpen()
@@ -80,4 +86,5 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::TextWrapped("%s", message);
     ImGui::EndDisabled();
 }
+
 }

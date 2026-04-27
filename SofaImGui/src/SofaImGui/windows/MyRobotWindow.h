@@ -32,7 +32,7 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     MyRobotWindow(const std::string& name, const bool& isWindowOpen);
     ~MyRobotWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     struct Connection{
@@ -41,48 +41,34 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
         std::function<std::vector<std::string>()> listAvailablePortsCallback;
     };
 
-    struct Information{
-        std::string description;
-        sofa::core::BaseData* data;
-    };
+	enum Section {
+        NONE,           // Not displayed
+		INFORMATION,    // Displayed in Information section
+		SETTINGS,       // Displayed in Settings section
+	};
 
-    struct Setting{
-        double buffer;
-        std::string description;
-        sofa::core::BaseData* data;
-        double min;
-        double max;
-    };
-
-    static std::string DEFAULTGROUP;
-
-    struct InformationGroup{
-        std::string description;
-        std::vector<Information> information;
-    };
-
-    struct SettingGroup{
-        std::string description;
-        std::vector<Setting> settings;
-    };
-
-    void clearWindow() override;
     void setAvailablePorts(const std::vector<std::string> &ports);
     std::string getSelectedPort();
     Connection& getConnection();
-    void addInformation(const Information &info, const std::string &group);
-    void addSetting(const Setting &setting, const std::string &group);
+    models::guidata::GUIData::SPtr addData(const std::string& label,
+                                           const std::pair<sofa::core::BaseData*, bool>& data,
+                                           const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                           const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                           const std::string& group = "",
+                                           const std::string& help = "",
+                                           Section section = Section::NONE);
+    void removeGUIData(models::guidata::GUIData::SPtr guiData) override;
+
 
    protected:
 
     Connection m_connection;
-    std::vector<InformationGroup> m_informationGroups;
-    std::vector<SettingGroup> m_settingGroups;
+    std::map<Section, std::unordered_set<models::guidata::GUIData::SPtr>> m_sectionedGUIData;
 
     bool enabled() override;
+    void clear() override;
 
     bool isInEmptyGroup(const std::string &group);
-    bool showSliderDouble(const std::string &name, double* v, const double& min, const double& max);
 };
 
 }

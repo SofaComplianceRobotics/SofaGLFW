@@ -28,7 +28,7 @@
 #include <SofaImGui/DrivingWindow.h>
 #include <SofaImGui/models/Program.h>
 
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
 struct ImDrawList;
@@ -42,35 +42,30 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    public:
     ProgramWindow(){}
-    ProgramWindow(const std::string& name, const bool& isWindowOpen);
+    ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~ProgramWindow() = default;
 
     models::Program m_program; // robot program
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
+    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override {m_IPController=nullptr;}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
 
     void setTime(const double &time) {m_time=time;}
-    void setIPController(models::IPController::SPtr IPController);
-    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
     bool importProgram();
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
    protected:
-    
-    models::IPController::SPtr m_IPController;
+
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
     double m_cursorPos = 0;
     ImVec2 m_trackBeginPos = ImVec2(0, 0);
     double m_time = 0;
-
-    sofaglfw::SofaGLFWBaseGUI * m_baseGUI = nullptr;
 
     bool m_timeBasedDisplay = true;
     bool m_drawTrajectory = true;
@@ -83,7 +78,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool enabled() override {return m_IPController!=nullptr;}
+    bool enabled() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.
@@ -96,11 +91,11 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
                            const sofa::Index& trackIndex,
                             std::shared_ptr<models::Track> track);
     void showActionBlocks(const float& blockHeight,
-                        const sofa::Index& trackIndex,
-                        std::shared_ptr<models::Track> track);
+                            const sofa::Index& trackIndex,
+                            std::shared_ptr<models::Track> track);
     void showModifierBlocks(const float& blockHeight,
-                         const sofa::Index& trackIndex,
-                         std::shared_ptr<models::Track> track);
+                             const sofa::Index& trackIndex,
+                             std::shared_ptr<models::Track> track);
 
     void showBetweenBlocksButtons(const ImVec2 &position, const unsigned int &actionIndex, std::shared_ptr<models::Track> track, const int& trackIndex); /// Add action (plus & swap) buttons
     void showBlockOptionButton(const std::string &menulabel, const std::string &label); /// Menu (add before, add after, delete, etc.).
@@ -110,23 +105,22 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     // Menus
     void addStartMoveBlockMenu(const std::string& menuLabel,
-                       const sofa::Index& trackIndex,
-                       std::shared_ptr<models::Track> track,
-                       std::shared_ptr<models::actions::StartMove> startmove);
+                               const sofa::Index& trackIndex,
+                               std::shared_ptr<models::Track> track,
+                               std::shared_ptr<models::actions::StartMove> startmove);
 
     sofa::Index addModifierBlockMenu(const std::string& menuLabel,
-                             const sofa::Index &modifierIndex,
-                             std::shared_ptr<models::Track> track,
-                             std::shared_ptr<models::modifiers::Modifier> modifier);
+                                     const sofa::Index &modifierIndex,
+                                     std::shared_ptr<models::Track> track,
+                                     std::shared_ptr<models::modifiers::Modifier> modifier);
 
     sofa::Index addActionBlockMenu(const std::string& menuLabel,
-                            const sofa::Index& actionIndex,
-                            const sofa::Index& trackIndex,
-                            std::shared_ptr<models::Track> track,
-                            std::shared_ptr<models::actions::Action> action);
+                                    const sofa::Index& actionIndex,
+                                    const sofa::Index& trackIndex,
+                                    std::shared_ptr<models::Track> track,
+                                    std::shared_ptr<models::actions::Action> action);
 
     bool addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex);
-
 
     sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
 

@@ -22,7 +22,6 @@
 
 #include <imgui.h>
 
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <sofa/gui/common/MouseOperations.h>
 #include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -42,12 +41,11 @@ std::string MouseManagerWindow::getDescription()
     return "Mouse settings, for interaction with the simulation.";
 }
 
-void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void MouseManagerWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    SOFA_UNUSED(baseGUI);
     if (isOpen())
     {
-        if (auto* pickHandler = baseGUI->getPickHandler())
+        if (auto* pickHandler = m_baseGUI->getPickHandler())
         {
             ImGuiIO& io = ImGui::GetIO();
             const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);

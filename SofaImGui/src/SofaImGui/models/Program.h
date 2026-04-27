@@ -29,7 +29,7 @@
 
 #include <sofa/core/objectmodel/DataFileName.h>
 #include <SofaImGui/models/Track.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 #include <SofaImGui/config.h>
 
 namespace sofaimgui::models {
@@ -41,9 +41,9 @@ class SOFAIMGUI_API Program
    public:
 
     Program() = default;
-    Program(models::IPController::SPtr IPController): m_IPController(IPController)
+       Program(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager): m_kinematicsGUIDataManager(kinematicsGUIDataManager)
     {
-        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(IPController);
+        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(kinematicsGUIDataManager);
         addTrack(track);
     }
     ~Program() = default;
@@ -51,10 +51,10 @@ class SOFAIMGUI_API Program
     bool importProgram(const std::string& filename);
     void exportProgram(const std::string &filename);
 
-    const std::vector<std::shared_ptr<Track>>& getTracks() {return m_tracks;}
+    const std::vector<Track::SPtr>& getTracks() {return m_tracks;}
     int getNbTracks() {return m_tracks.size();}
 
-    void addTrack(std::shared_ptr<Track> track) {m_tracks.push_back(track);}
+    void addTrack(Track::SPtr track) {m_tracks.push_back(track);}
     void removeTrack(const sofa::Index &index) {m_tracks.erase(m_tracks.begin() + index);}
     void clearTracks();
 
@@ -64,9 +64,9 @@ class SOFAIMGUI_API Program
     std::string getExtension() {return ".crprog";}
 
    protected:
-    
-    models::IPController::SPtr m_IPController;
-    std::vector<std::shared_ptr<Track>> m_tracks;
+
+    guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
+    std::vector<Track::SPtr> m_tracks;
 
     bool checkExtension(const std::string &filename);
 

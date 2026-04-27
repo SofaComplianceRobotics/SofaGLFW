@@ -13,6 +13,7 @@ set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_ProgramWindow_doc.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_SimulationState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_SimulationState_doc.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Module_SofaImGui.h
 )
 
 set(SOURCE_FILES

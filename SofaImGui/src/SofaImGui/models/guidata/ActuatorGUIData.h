@@ -21,28 +21,35 @@
  ******************************************************************************/
 #pragma once
 
-#include <SofaImGui/menus/ViewMenu.h>
-#include <SofaImGui/windows/BaseWindow.h>
-#include <imgui.h>
-#include <implot.h>
-#include <implot_internal.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 
-namespace sofaimgui::windows {
 
-class SOFAIMGUI_API RecordVideoWindow : public BaseWindow
+namespace sofaimgui::models::guidata
+{
+
+class ActuatorGUIData: public GUIData
 {
 public:
+    typedef std::shared_ptr<ActuatorGUIData> SPtr;
 
-    RecordVideoWindow(const std::string& name, const bool& isWindowOpen);
-    ~RecordVideoWindow() = default;
+    ActuatorGUIData(OwnedBaseData::SPtr data,
+                    OwnedBaseData::SPtr min,
+                    OwnedBaseData::SPtr max,
+                    std::string label,
+                    std::string group,
+                    std::string help,
+                    size_t _indexInProblem,
+                    int _valueType)
+        : GUIData(data, min, max, label, group, help)
+        , indexInProblem(_indexInProblem)
+    {
+        valueType.setSelectedItem(_valueType);
+    }
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
-    std::string getDescription() override;
+    size_t indexInProblem;
+    sofa::helper::OptionsGroup valueType{"force", "displacement"};
 
 protected:
-    void showRecordingMessage();
 };
 
 }
-
-

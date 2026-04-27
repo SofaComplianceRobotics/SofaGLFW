@@ -34,20 +34,16 @@
 namespace sofaimgui::windows {
 
 MoveWindow::MoveWindow(const std::string& name,
-                         const bool& isWindowOpen)
+                       const bool& isWindowOpen,
+                       models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+    m_kinematicsGUIDataManager = kinematicsGUIDataManager;
     m_moveType = MoveType::SLIDERS;
-
-    m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
-                                &m_x, &m_z, &m_y,
-                                &m_TCPMinPosition, &m_TCPMaxPosition,
-                                &m_TCPMinPosition, &m_TCPMaxPosition,
-                                &m_TCPMinPosition, &m_TCPMaxPosition);
 }
 
 std::string MoveWindow::getDescription()
@@ -55,62 +51,7 @@ std::string MoveWindow::getDescription()
     return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
 }
 
-void MoveWindow::clearWindow()
-{
-    m_IPController = nullptr;
-    m_accessories.clear();
-    m_actuators.clear();
-}
-
-void MoveWindow::setTCPDescriptions(const std::string &positionDescription, const std::string &rotationDescription)
-{
-    m_TCPPositionDescription = positionDescription;
-    m_TCPRotationDescription = rotationDescription;
-}
-
-void MoveWindow::setTCPLimits(float minPosition, float maxPosition, double minOrientation, double maxOrientation)
-{
-    m_TCPMinPosition = minPosition;
-    m_TCPMaxPosition = maxPosition;
-    m_TCPMinOrientation = minOrientation;
-    m_TCPMaxOrientation = maxOrientation;
-}
-
-void MoveWindow::setActuatorsDescriptions(const std::string &description)
-{
-    m_actuatorsDescription = description;
-}
-
-void MoveWindow::setActuatorsLimits(const double &min, const double &max)
-{
-    if (m_actuators.empty())
-    {
-        FooterStatusBar::getInstance().setTempMessage("Calling setActuatorsLimits() without any actuators set. Won't proceed."
-                                                      "To fix this warning you can call setActuators() before calling setActuatorsLimits(). ", FooterStatusBar::MWARNING);
-    }
-
-    for (auto &actuator: m_actuators)
-    {
-        actuator.max = max;
-        actuator.min = min;
-    }
-}
-
-void MoveWindow::setActuatorLimits(const sofa::Index &id, const double &min, const double &max)
-{
-    if (id < m_actuators.size())
-    {
-        m_actuators[id].max = max;
-        m_actuators[id].min = min;
-    }
-    else
-    {
-        FooterStatusBar::getInstance().setTempMessage("Calling setActuatorLimits() with 'id' greater than the number of actuators. Won't proceed."
-                                                      "To fix this warning give a correct 'id' number.", FooterStatusBar::MWARNING);
-    }
-}
-
-void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
@@ -118,14 +59,30 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
         {
             if (enabled())
             {
-                if (m_IPController != nullptr)
+                if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
                 {
+                    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
+
+                    static bool firstTime = true;
+                    if (firstTime)
+                    {
+                        firstTime = false;
+                        const double& min = TCPGUIData->getMin();
+                        const double& max = TCPGUIData->getMax();
+
+                        m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
+                                                   &m_x, &m_z, &m_y,
+                                                   min, max,
+                                                   min, max,
+                                                   min, max);
+                    }
+
                     ImGui::Spacing();
 
                     if(isDrivingSimulation())
-                        m_IPController->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
+                        TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
-                    if (ImGui::CollapsingHeader(m_TCPPositionDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    if (ImGui::CollapsingHeader(TCPGUIData->label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         { // Vertical tabs (buttons)
                             ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
@@ -143,23 +100,25 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         { // Method area (sliders or pad)
                             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
                             ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
-                            const auto &initPosition = m_IPController->getTCPTargetInitPosition();
+                            const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
+                            const double& min = TCPGUIData->getMin();
+                            const double& max = TCPGUIData->getMax();
 
                             if (m_moveType == MoveType::PAD)
                             {
-                                m_movePad.setBounds("X", m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0]);
-                                m_movePad.setBounds("Y", m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1]);
-                                m_movePad.setBounds("Z", m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2]);
-                                showPad(baseGUI);
+                                m_movePad.setBounds("X", min + initPosition[0], max + initPosition[0]);
+                                m_movePad.setBounds("Y", min + initPosition[1], max + initPosition[1]);
+                                m_movePad.setBounds("Z", min + initPosition[2], max + initPosition[2]);
+                                showPad();
                             }
                             else if (m_moveType == MoveType::SLIDERS)
                             {
                                 ImGui::Indent();
-                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_TCPMinPosition + initPosition[0], m_TCPMaxPosition + initPosition[0], ImColor(COLOR_RED));
+                                showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], ImColor(COLOR_RED));
                                 ImGui::Spacing();
-                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_TCPMinPosition + initPosition[1], m_TCPMaxPosition + initPosition[1], ImColor(COLOR_GREEN));
+                                showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], ImColor(COLOR_GREEN));
                                 ImGui::Spacing();
-                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_TCPMinPosition + initPosition[2], m_TCPMaxPosition + initPosition[2], ImColor(COLOR_BLUE));
+                                showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], ImColor(COLOR_BLUE));
                                 ImGui::Unindent();
                             }
                             ImGui::EndChild();
@@ -167,9 +126,9 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         }
                     }
 
-                    m_IPController->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+                    TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-                    if (m_IPController->hasRotationEffector() && ImGui::LocalBeginCollapsingHeader(m_TCPRotationDescription.c_str(), ImGuiTreeNodeFlags_AllowOverlap))
+                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader("TODO Rotation", ImGuiTreeNodeFlags_AllowOverlap))
                     {
                         ImGui::SameLine();
 
@@ -196,7 +155,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freeRoll)
                             ImGui::BeginDisabled();
-                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_RED));
+                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, -3.14, 3.14, ImColor(COLOR_RED)); //TODO real min max
                         if (m_freeRoll)
                             ImGui::EndDisabled();
 
@@ -204,7 +163,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freePitch)
                             ImGui::BeginDisabled();
-                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_GREEN));
+                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, -3.14, 3.14, ImColor(COLOR_GREEN));
                         if (m_freePitch)
                             ImGui::EndDisabled();
 
@@ -212,7 +171,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                         if (m_freeYaw)
                             ImGui::BeginDisabled();
-                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, m_TCPMinOrientation, m_TCPMaxOrientation, ImColor(COLOR_BLUE));
+                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, -3.14, 3.14,ImColor(COLOR_BLUE));
                         if (m_freeYaw)
                             ImGui::EndDisabled();
 
@@ -221,83 +180,84 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
 
                     if (isDrivingSimulation())
                     {
-                        sofa::type::Quat<SReal> q = m_IPController->getTCPPosition().getOrientation();
+                        sofa::type::Quat<SReal> q = TCPGUIData->getTCPPosition().getOrientation();
                         sofa::type::Vec3 rotation = q.toEulerVector();
-                        m_IPController->setTCPTargetPosition(m_x, m_y, m_z,
-                                                             m_freeRoll? rotation[0]: m_rx,
-                                                             m_freePitch? rotation[1]: m_ry,
-                                                             m_freeYaw? rotation[2]: m_rz);
+                        TCPGUIData->setTCPTargetPosition(m_x, m_y, m_z,
+                                                         m_freeRoll? rotation[0]: m_rx,
+                                                         m_freePitch? rotation[1]: m_ry,
+                                                         m_freeYaw? rotation[2]: m_rz);
                     }
                 }
 
-                if (!m_actuators.empty())
+                if (m_kinematicsGUIDataManager->hasActuator())
                 {
-                    if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        if (!isEnabledInWorkbench())
-                        {
-                            showInfoMessage("This section is disabled in the active workbench.");
-                            ImGui::BeginDisabled();
-                        }
+                //     const auto& actuatorsGUIData = m_kinematicsGUIDataManager.getActuators();
 
-                        int nbActuators = m_actuators.size();
-                        bool solveInverseProblem = true;
-                        for (int i=0; i<nbActuators; i++)
-                        {
-                            std::string name = "M" + std::to_string(i);
+                //     if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                //     {
+                //         if (!isEnabledInWorkbench())
+                //         {
+                //             showInfoMessage("This section is disabled in the active workbench.");
+                //             ImGui::BeginDisabled();
+                //         }
 
-                            auto &actuator = m_actuators[i];
+                //         int nbActuators = m_actuators.size();
+                //         bool solveInverseProblem = true;
+                //         for (int i=0; i<nbActuators; i++)
+                //         {
+                //             std::string name = "M" + std::to_string(i);
+                //             auto &actuator = m_actuators[i];
+                //             if (actuator.min < actuator.max)
+                //             {
+                //                 auto* typeinfo = actuator.data->getValueTypeInfo();
+                //                 auto* value = actuator.data->getValueVoidPtr();
+                //                 double buffer = typeinfo->getScalarValue(value, 0);
+                //                 bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
+                //                                                    actuator.min, actuator.max,
+                //                                                    ImColor(COLOR_TRANSPARENT));
+                //                 if (hasChanged)
+                //                 {
+                //                     actuator.data->read(std::to_string(buffer));
+                //                     solveInverseProblem = false;
+                //                 }
+                //                 actuator.value=buffer;
+                //             }
+                //         }
 
-                            if (actuator.min < actuator.max)
-                            {
-                                auto* typeinfo = actuator.data->getValueTypeInfo();
-                                auto* value = actuator.data->getValueVoidPtr();
-                                double buffer = typeinfo->getScalarValue(value, 0);
-                                bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
-                                                                   actuator.min, actuator.max,
-                                                                   ImColor(COLOR_TRANSPARENT));
-                                if (hasChanged)
-                                {
-                                    actuator.data->read(std::to_string(buffer));
-                                    solveInverseProblem = false;
-                                }
-                                actuator.value=buffer;
-                            }
-                        }
-                        if (m_IPController && !solveInverseProblem && isDrivingSimulation())
-                        {
-                            // TODO: don't solve the inverse problem since we'll overwrite the solution
-                            m_IPController->applyActuatorsForce(m_actuators);
-                        }
+                //         if (m_kinematicsGUIDataManager && !solveInverseProblem && isDrivingSimulation())
+                //         {
+                //             // TODO: don't solve the inverse problem since we'll overwrite the solution
+                //             m_kinematicsGUIDataManager->applyActuatorsForce(m_actuators);
+                //         }
 
-                        if (!isEnabledInWorkbench())
-                            ImGui::EndDisabled();
+                //         if (!isEnabledInWorkbench())
+                //             ImGui::EndDisabled();
 
-                        ImGui::LocalEndCollapsingHeader();
-                    }
+                //         ImGui::LocalEndCollapsingHeader();
+                //     }
                 }
 
-                if (!m_accessories.empty())
+                if (m_kinematicsGUIDataManager->hasAccessoryComponent())
                 {
                     if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        for (auto& accessory: m_accessories)
-                        {
-                            std::string name = accessory.description;
+                //         for (auto& accessory: m_accessories)
+                //         {
+                //             std::string name = accessory.description;
+                //             auto* typeinfo = accessory.data->getValueTypeInfo();
+                //             auto* value = accessory.data->getValueVoidPtr();
+                //             double buffer = typeinfo->getScalarValue(value, 0);
+                //             bool hasChanged = showSliderDouble(name.c_str(),
+                //                                                ("##Slider" + name).c_str(),
+                //                                                ("##Input" + name).c_str(),
+                //                                                &buffer, accessory.min, accessory.max,
+                //                                                ImColor(COLOR_TRANSPARENT));
 
-                            auto* typeinfo = accessory.data->getValueTypeInfo();
-                            auto* value = accessory.data->getValueVoidPtr();
-                            double buffer = typeinfo->getScalarValue(value, 0);
-                            bool hasChanged = showSliderDouble(name.c_str(),
-                                                               ("##Slider" + name).c_str(),
-                                                               ("##Input" + name).c_str(),
-                                                               &buffer, accessory.min, accessory.max,
-                                                               ImColor(COLOR_TRANSPARENT));
-                            if (hasChanged && isDrivingSimulation())
-                            {
-                                accessory.data->read(std::to_string(buffer));
-                            }
-                        }
+                //             if (hasChanged && isDrivingSimulation())
+                //             {
+                //                 accessory.data->read(std::to_string(buffer));
+                //             }
+                //         }
                         ImGui::LocalEndCollapsingHeader();
                     }
                 }
@@ -390,27 +350,27 @@ void MoveWindow::showOptions()
     }
 }
 
-void MoveWindow::showWeightOption(const int &i)
+void MoveWindow::showWeightOption(const int &index)
 {
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    auto* weight = m_IPController->getRotationWeight();
-    double w = weight[i];
+    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
+    double w = TCPGUIData->getWeight(index);
     ImGui::AlignTextToFramePadding();
     ImGui::Text("weight");
     ImGui::SameLine();
-    ImGui::PushID(i);
+    ImGui::PushID(index);
     ImGui::LocalInputDouble("##Input ", &w, 0, 0);
     ImGui::PopID();
-    weight[i] = w;
+    TCPGUIData->setWeight(index, w);
 }
 
-void MoveWindow::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+void MoveWindow::showPad()
 {
-    m_movePad.showPad(baseGUI);
+    m_movePad.showPad(m_baseGUI);
 }
 
 bool MoveWindow::showVerticalTab(const std::string& label, const std::string& tooltip, const bool& active)

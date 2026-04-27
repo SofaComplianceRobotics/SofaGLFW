@@ -52,13 +52,15 @@ using sofa::type::Vec3;
 using sofa::type::Quat;
 
 ProgramWindow::ProgramWindow(const std::string& name,
-                             const bool& isWindowOpen)
+                             const bool& isWindowOpen,
+                             models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
     m_defaultIsOpen = true;
     m_name = name;
     m_isOpen = isWindowOpen;
+    m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 }
 
 std::string ProgramWindow::getDescription()
@@ -77,32 +79,28 @@ void ProgramWindow::loadAndProcessWindowSettings()
         importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
 
-void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        if (baseGUI)
-            m_baseGUI = baseGUI;
-        else
-            return;
-
-        ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
-        ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
-        static bool firstTime = true;
-        if (firstTime)
-        {
-            firstTime = false;
-            loadAndProcessWindowSettings();
-            ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
-        }
-        ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
-        ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
-        
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
             if (enabled())
             {
+                ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
+                ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
+                static bool firstTime = true;
+                if (firstTime)
+                {
+                    firstTime = false;
+                    m_program = models::Program(m_kinematicsGUIDataManager);
+                    loadAndProcessWindowSettings();
+                    ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
+                }
+                ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
+                ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
+
                 if (!isEnabledInWorkbench())
                 {
                     ImGui::BeginDisabled();
@@ -330,7 +328,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (value_changed)
     {
         ImGui::MarkItemEdited(id);
-        const auto& groot = m_IPController->getRootNode().get();
+        const auto& groot = m_baseGUI->getRootNode().get();
         m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
         groot->setTime(m_time);
         stepProgram();
@@ -881,10 +879,10 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
                 blockEnd += action->getDuration();
                 if ((!reverse && (blockEnd - m_time) > eps) || (reverse && (blockEnd - m_time - dt) > eps))
                 {
-                    RigidCoord position = m_IPController->getTCPPosition();
+                    RigidCoord position = m_kinematicsGUIDataManager->getTCPGUIData()->getTCPPosition();
                     if (action->apply(position, m_time + dt - blockStart)) // apply the time corresponding to the end of the time step
                     {
-                        m_IPController->setTCPTargetPosition(position);
+                        m_kinematicsGUIDataManager->getTCPGUIData()->setTCPTargetPosition(position);
                     }
                     break;
                 }
@@ -966,13 +964,6 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
         groot->setTime(m_time);
 }
 
-void ProgramWindow::setIPController(models::IPController::SPtr IPController)
-{
-    m_IPController = IPController;
-    if (m_IPController)
-        m_program = models::Program(IPController);
-}
-
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
                                         const sofa::Index& trackIndex,
                                         std::shared_ptr<models::Track> track,
@@ -988,7 +979,7 @@ void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
         ImGui::Separator();
         if (ImGui::MenuItem("Overwrite waypoint"))
         {
-            startmove->setWaypoint(m_IPController->getTCPTargetPosition());
+            startmove->setWaypoint(m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition());
             track->updateNextMoveInitialPoint(-1, startmove->getWaypoint());
         }
         ImGui::EndPopup();
@@ -1085,7 +1076,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
         {
             if (ImGui::MenuItem("Overwrite waypoint"))
             {
-                move->setWaypoint(m_IPController->getTCPTargetPosition());
+                move->setWaypoint(m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition());
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
             }
             ImGui::Separator();
@@ -1114,9 +1105,9 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
     if (ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
-                                                            m_IPController->getTCPTargetPosition(),
+                                                            m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
-                                                            m_IPController,
+                                                            m_kinematicsGUIDataManager,
                                                             true,
                                                             models::actions::Move::Type::LINE);
         move->insertInTrack(track, actionIndex);
@@ -1159,7 +1150,7 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
         }
         if (ImGui::MenuItem(("Add track##" + std::to_string(index)).c_str(), nullptr, false, false))
         {
-            m_program.addTrack(std::make_shared<models::Track>(m_IPController));
+            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsGUIDataManager));
         }
         if (ImGui::MenuItem(("Remove track##" + std::to_string(index)).c_str(), nullptr, false, (index>0)? true : false))
         {

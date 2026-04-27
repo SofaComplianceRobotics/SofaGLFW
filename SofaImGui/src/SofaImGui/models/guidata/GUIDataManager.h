@@ -19,27 +19,33 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#pragma once
+#include <SofaImGui/config.h>
 
-#include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/models/guidata/GUIData.h>
 
-namespace sofaimgui::models {
+#include <unordered_set>
 
+namespace sofaimgui::models::guidata {
 
-void SimulationState::clearData()
+class SOFAIMGUI_API GUIDataManager
 {
-    m_stateData.clear();
+public:
+    typedef std::shared_ptr<GUIDataManager> SPtr;
+    virtual GUIData::SPtr addData(const std::string& label,
+                                                     const std::pair<sofa::core::BaseData*, bool>& data,
+                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                                     const std::string& group = GUIData::DEFAULTGROUP,
+                                                     const std::string& help = "");
+    virtual GUIData::SPtr addGUIData(const GUIData::SPtr& data);
+    virtual void removeGUIData(GUIData::SPtr data);
+    void clearGUIData() { m_GUIData.clear(); }
+
+protected:
+
+    std::unordered_set<GUIData::SPtr, GUIDataHash, GUIDataEqual> m_GUIData; /// A set of GUIData to use in the window
+    std::map<std::string, std::vector<GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
+};
+
 }
-
-void SimulationState::addStateData(StateData &data)
-{
-    m_stateData.push_back(data);
-}
-
-const std::vector<SimulationState::StateData>& SimulationState::getStateData() const
-{
-    return m_stateData;
-}
-
-} // namespace
-
-

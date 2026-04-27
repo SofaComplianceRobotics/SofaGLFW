@@ -11,10 +11,10 @@ namespace ImGui
 {
 
 MovePad::MovePad(const char* label, const char* labelPadH, const char* labelPadV, const char* labelSlider,
-    double* valuePadH, double* valuePadV, double* valueSlider,
-    const double* minPadH, const double* maxPadH,
-    const double* minPadV, const double* maxPadV,
-    const double* minSlider, const double* maxSlider)
+                double* valuePadH, double* valuePadV, double* valueSlider,
+                const double& minPadH, const double& maxPadH,
+                const double& minPadV, const double& maxPadV,
+                const double& minSlider, const double& maxSlider)
 {
 
     m_label = label;
@@ -22,13 +22,13 @@ MovePad::MovePad(const char* label, const char* labelPadH, const char* labelPadV
     m_mappedAxis["PadV"] = labelPadV;
     m_mappedAxis["Slider"] = labelSlider;
 
-    m_minValues["PadH"] = *minPadH;
-    m_minValues["PadV"] = *minPadV;
-    m_minValues["Slider"] = *minSlider;
+    m_minValues["PadH"] = minPadH;
+    m_minValues["PadV"] = minPadV;
+    m_minValues["Slider"] = minSlider;
 
-    m_maxValues["PadH"] = *maxPadH;
-    m_maxValues["PadV"] = *maxPadV;
-    m_maxValues["Slider"] = *maxSlider;
+    m_maxValues["PadH"] = maxPadH;
+    m_maxValues["PadV"] = maxPadV;
+    m_maxValues["Slider"] = maxSlider;
 
     m_values["PadH"] = valuePadH;
     m_values["PadV"] = valuePadV;
@@ -89,6 +89,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     ImGui::ItemSize(totalBB, style.FramePadding.y);
     if (!ImGui::ItemAdd(totalBB, idPad, &frameBB, 0))
         return false;
+
 
     { // Show sliders
         const ImVec2 buttonSize = ImVec2(GetFrameHeight(), GetFrameHeight());

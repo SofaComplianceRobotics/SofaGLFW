@@ -36,16 +36,17 @@
 #include <SofaImGui/windows/IOWindow.h>
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/MyRobotWindow.h>
-#include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/windows/MoveWindow.h>
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/windows/ProfilerWindow.h>
+#include <SofaImGui/windows/DataMonitorWindow.h>
 #include <SofaImGui/windows/RecordVideoWindow.h>
 #include <SofaImGui/windows/PluginsWindow.h>
+#include <SofaImGui/windows/MouseManagerWindow.h>
 
-#include <SofaImGui/models/IPController.h>
-#include <SofaImGui/models/SimulationState.h>
+#include <SofaImGui/menus/ViewMenu.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
@@ -84,33 +85,34 @@ public:
 
     void saveProject(const bool& saveAs=false);
 
-    void setIPController(sofa::simulation::Node::SPtr groot,
-                         softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                         sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                         softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
+    // to remove
+    // void setKinematicsController(sofa::simulation::Node::SPtr groot,
+    //                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
+    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
+    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
+    //                              softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
 
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
 
-    models::SimulationState& getSimulationState() {return m_simulationState;}
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager = std::make_shared<models::guidata::KinematicsGUIDataManager>();
 
-    std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
-
-    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
+    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
     windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
-    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false);
-    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true);
+    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false, m_kinematicsGUIDataManager);
+    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true, m_kinematicsGUIDataManager);
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
     windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
-    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true);
+    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true, m_kinematicsGUIDataManager);
+    windows::DataMonitorWindow  m_dataMonitorWindow  = windows::DataMonitorWindow("Data Monitor", false);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
     windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video", false);
+
 
 protected:
 
@@ -127,8 +129,15 @@ protected:
                                                                         m_sceneGraphWindow,
                                                                         m_componentsWindow,
                                                                         m_logWindow,
-                                                                        m_profilerWindow
+                                                                        m_profilerWindow,
+                                                                        m_dataMonitorWindow
                                                                        };
+
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_popupWindows{
+                                                                            m_pluginsWindow,
+                                                                            m_mouseManagerWindow,
+                                                                            m_recordVideoWindow
+                                                                            };
 
     CSimpleIniA iniGUISettings;
 
@@ -136,7 +145,7 @@ protected:
     void changeWorkbench(Workbench wb);
 
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
-    void showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI);
+    void showOptionWindows();
     void showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI);
     void showSecondaryMenuBar();
     void showStatusBar();
@@ -148,11 +157,8 @@ protected:
     void createGUINode();
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
-
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
 
-    models::IPController::SPtr m_IPController;
-    models::SimulationState m_simulationState;
     bool m_animate{false};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};

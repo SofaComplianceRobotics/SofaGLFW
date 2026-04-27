@@ -15,10 +15,10 @@ public:
     ~MovePad() = default;
 
     MovePad(const char* label, const char* labelPadH, const char* labelPadV, const char* labelSlider,
-        double* valuePadH, double* valuePadV, double* valueSlider,
-        const double* minPadH, const double* maxPadH,
-        const double* minPadV, const double* maxPadV,
-        const double* minSlider, const double* maxSlider);
+            double* valuePadH, double* valuePadV, double* valueSlider,
+            const double &minPadH, const double &maxPadH,
+            const double &minPadV, const double &maxPadV,
+            const double &minSlider, const double &maxSlider);
 
     bool showPad(sofaglfw::SofaGLFWBaseGUI *baseGUI);
     void setBounds(const char* axis, const double& min, const double& max) { m_minValues[getMappedAxis(axis)] = min; m_maxValues[getMappedAxis(axis)] = max; }

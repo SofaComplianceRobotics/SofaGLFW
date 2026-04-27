@@ -167,34 +167,41 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
     projectSettings.SaveFile(projectFile.c_str());
 }
 
-void ImGuiGUIEngine::setIPController(sofa::simulation::Node::SPtr groot,
-                                     softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-                                     sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-                                     core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-                                     softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
-{
-    if (m_IPController)
-        groot->removeObject(m_IPController.get());
+// to remove
+// void ImGuiGUIEngine::setKinematicsController(sofa::simulation::Node::SPtr groot,
+//                                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
+//                                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
+//                                              core::behavior::BaseMechanicalState::SPtr TCPMechanical,
+//                                              softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
+// {
+//     if (m_kinematicsController)
+//         groot->removeObject(m_kinematicsController.get());
 
-    m_IPController = sofa::core::objectmodel::New<models::IPController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
-    m_IPController->setName(groot->getNameHelper().resolveName(m_IPController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
+//     m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
+//     m_kinematicsController->setName(groot->getNameHelper().resolveName(m_kinematicsController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
 
-    groot->addObject(m_IPController.get());
-    m_programWindow.setIPController(m_IPController);
-    m_moveWindow.setIPController(m_IPController);
-    m_IOWindow.setIPController(m_IPController);
-}
+//     groot->addObject(m_kinematicsController.get());
+//     m_programWindow.setKinematicsController(m_kinematicsController);
+//     m_moveWindow.setKinematicsController(m_kinematicsController);
+//     m_IOWindow.setKinematicsController(m_kinematicsController);
+// }
 
 void ImGuiGUIEngine::clearGUI()
 {
-    m_IPController = nullptr;
-
-    m_simulationState.clearData();
-
-    for (auto& window : m_windows) 
-    {
+    m_kinematicsGUIDataManager->clear();
+    for (auto& window : m_windows)
         window.get().clearWindow();
-    }
+    for (auto& window : m_popupWindows)
+        window.get().clearWindow();
+}
+
+void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+{
+    m_kinematicsGUIDataManager->setBaseGUI(baseGUI);
+    for (auto& window : m_windows)
+        window.get().setBaseGUI(baseGUI);
+    for (auto& window : m_popupWindows)
+        window.get().setBaseGUI(baseGUI);
 }
 
 void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
@@ -209,11 +216,6 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
         if (size.x > 0 && size.y > 0)
             ImGui::DockBuilderSetNodeSize(id, size);
     }
-}
-
-void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
-{
-    m_programWindow.setBaseGUI(baseGUI);
 }
 
 void ImGuiGUIEngine::init()
@@ -333,8 +335,6 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
-        m_IOWindow.setSimulationState(m_simulationState);
-        m_stateWindow->setSimulationState(m_simulationState);
         enableWindows();
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
@@ -347,15 +347,14 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
     showSecondaryMenuBar();
-    m_pluginsWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
-    m_mouseManagerWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
-    m_recordVideoWindow.showWindow(baseGUI, ImGuiWindowFlags_NoDocking);
+    for (auto& window: m_popupWindows)
+        window.get().showWindow(ImGuiWindowFlags_NoDocking);
 
     FooterStatusBar::getInstance().showFooterStatusBar();
     FooterStatusBar::getInstance().showTempMessageOnStatusBar();
 
     showViewportWindow(baseGUI);
-    showOptionWindows(baseGUI);
+    showOptionWindows();
 
     ImGui::PopStyleVar();
 
@@ -559,17 +558,16 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
-    auto groot = baseGUI->getRootNode();
-    m_viewportWindow.showWindow(baseGUI,
-                                (ImTextureID)m_fbo->getColorTexture(),
+    m_viewportWindow.showWindow((ImTextureID)m_fbo->getColorTexture(),
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
                                 );
 
     // Simulation
     if (workbench != Workbench::SCENE_EDITOR)
     {
+        auto groot = baseGUI->getRootNode();
         m_animate = groot->animate_.getValue();
-        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_IPController? 3: 1);
+        const float shift_x = ImGui::GetFrameHeightWithSpacing() * (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP()? 3: 1);
 
         // Animate button
         if (m_viewportWindow.addAnimateButton(&m_animate, shift_x))
@@ -590,7 +588,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         // Driving Tab combo
-        if(m_IPController)
+        if(m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
         {
             int dWindow = drivingWindow;
             const char* listTabs[getDrivingWindowCount()];
@@ -603,14 +601,14 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     }
 }
 
-void ImGuiGUIEngine::showOptionWindows(sofaglfw::SofaGLFWBaseGUI* baseGUI)
+void ImGuiGUIEngine::showOptionWindows()
 {
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove ;
 
     for (const auto& window : m_windows)
     {
         if (window.get().getName() != m_viewportWindow.getName())
-            window.get().showWindow(baseGUI, windowFlags);
+            window.get().showWindow(windowFlags);
     }
 }
 
@@ -1012,8 +1010,6 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     clearGUI();
     Utils::loadSimulation(m_baseGUI, reload, filename);
     createGUINode();
-    m_IOWindow.setSimulationState(m_simulationState);
-    m_stateWindow->setSimulationState(m_simulationState);
     enableWindows();
 }
 
@@ -1025,9 +1021,7 @@ void ImGuiGUIEngine::createGUINode()
     {
         sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
         if (!guinode)
-        {
             guinode = root->createChild(nodeName);
-        }
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
         guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);

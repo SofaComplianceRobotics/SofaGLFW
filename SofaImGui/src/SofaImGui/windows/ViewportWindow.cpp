@@ -38,8 +38,7 @@
 
 namespace sofaimgui::windows {
 
-ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow)
-    : m_stateWindow(stateWindow)
+ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen)
 {
     m_defaultIsOpen = true;
     m_name = name;
@@ -51,23 +50,17 @@ std::string ViewportWindow::getDescription()
     return "Main viewport rendering window.";
 }
 
-void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                const ImTextureID& texture,
+void ViewportWindow::showWindow(const ImTextureID& texture,
                                 const ImGuiWindowFlags& windowFlags)
 {
     if (isOpen())
     {
-        if (!baseGUI)
-            return;
-
-        auto groot = baseGUI->getRootNode().get();
-
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
             {
                 ImVec2 viewportPos = ImGui::GetWindowPos();
-                baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
+                m_baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
 
                 ImVec2 wsize = ImGui::GetWindowSize();
                 m_windowSize = {wsize.x, wsize.y};
@@ -87,14 +80,13 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addStateWindow(baseGUI, windowFlags);
-                    addSimulationTimeAndFPS(groot);
+                    addSimulationTimeAndFPS();
                 }
 
-                addCameraButtons(baseGUI, groot);
-                if(baseGUI->isVideoRecording())
+                addCameraButtons();
+                if(m_baseGUI->isVideoRecording())
                     addRecordingStatus(ImColor(COLOR_RED));
-                addContextMenu(baseGUI, texture);
+                addContextMenu(texture);
             }
             ImGui::EndChild();
         }
@@ -102,15 +94,9 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
     }
 }
 
-void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                    const ImGuiWindowFlags& windowFlags)
+bool ViewportWindow::checkCamera()
 {
-    ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow(baseGUI, windowFlags);
-}
-
-bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
-{
+    auto groot = m_baseGUI->getRootNode().get();
     if (groot) // Check the groot
     {
         sofa::component::visual::BaseCamera::SPtr camera;
@@ -126,10 +112,12 @@ bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
     return false;
 }
 
-void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
+void ViewportWindow::addCameraButtons()
 {
+    auto groot = m_baseGUI->getRootNode().get();
+
     // If the camera is not correctly initialized don't draw anything
-    if (!checkCamera(groot))
+    if (!checkCamera())
         return;
 
     // Windows settings
@@ -182,17 +170,17 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
                 sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
                 if (axisClicked[0])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
                 else if (axisClicked[1])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
                 else if (axisClicked[2])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
                 else if (axisClicked[3])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
                 else if (axisClicked[4])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
                 else if (axisClicked[5])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
             }
 
             { // Orientation gizmo
@@ -263,7 +251,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
-                    menus::ViewMenu(baseGUI).addShowIn3DViewMenuItems();
+                    menus::ViewMenu(m_baseGUI).addShowIn3DViewMenuItems();
                     ImGui::EndPopup();
                 }
 
@@ -433,13 +421,13 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     if (rotate || translate)
     {
         if (cpos.x < cwpos.x)
-            baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
+            m_baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
         if (cpos.x > cwpos.x + m_windowSize.first)
-            baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
+            m_baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
         if (cpos.y < cwpos.y)
-            baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
+            m_baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
         if (cpos.y > cwpos.y + m_windowSize.second)
-            baseGUI->setMousePos(cpos.x - wpos.x, yshift);
+            m_baseGUI->setMousePos(cpos.x - wpos.x, yshift);
     }
 
     ImGui::PopStyleColor(2);
@@ -448,11 +436,11 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::EndChild();
 }
 
-void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture)
+void ViewportWindow::addContextMenu(const ImTextureID& texture)
 {
     if (ImGui::BeginPopup("##ViewportContextMenu"))
     {
-        menus::ViewMenu viewMenu(baseGUI);
+        menus::ViewMenu viewMenu(m_baseGUI);
         viewMenu.addSaveCameraMenuItem();
         viewMenu.addRestoreCameraMenuItem();
 
@@ -485,7 +473,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
         {
             auto position = ImGui::GetWindowPos();
             position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
-            position.y += ImGui::GetStyle().FramePadding.y;
+            position.y += ImGui::GetStyle().FramePadding.y * 2.;
             ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
 
             // Middle buttons background
@@ -575,7 +563,7 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
     return hasValueChanged;
 }
 
-void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
+void ViewportWindow::addSimulationTimeAndFPS()
 {
     if (m_isOpen)
     {
@@ -590,6 +578,7 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
                 ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
+                auto groot = m_baseGUI->getRootNode();
                 ImGui::Text("Time: %.3f", groot->getTime());
                 ImGui::PopStyleColor();
                 ImGui::SetItemTooltip("Total time simulated");

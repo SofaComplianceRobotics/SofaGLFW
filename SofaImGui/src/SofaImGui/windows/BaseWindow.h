@@ -23,13 +23,13 @@
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <string>
 
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
 #include <imgui.h>
 #include <SimpleIni.h>
-
 
 namespace sofaimgui::windows {
 
@@ -75,21 +75,23 @@ protected:
 
 };
 
-class SOFAIMGUI_API BaseWindow
+class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 {
    public:
     BaseWindow();
     ~BaseWindow() = default;
 
+    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
+
+    /// This is called before loading / reloading a simulation.
+    void clearWindow();
+
     /// Implements the drawing of the window
-    virtual void showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags);
+    virtual void showWindow(const ImGuiWindowFlags &windowFlags);
 
     /// Every window must implement this method, give a description of the window
     /// Will be displayed as a tooltip
     virtual std::string getDescription() = 0;
-
-    /// This is called before loading / reloading a simulation.
-    virtual void clearWindow() {}
 
     /// Get the name of the window
     std::string getName() const;
@@ -109,22 +111,31 @@ class SOFAIMGUI_API BaseWindow
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench();
 
+    using models::guidata::GUIDataManager::addData;
+    using models::guidata::GUIDataManager::addGUIData;
+    using models::guidata::GUIDataManager::removeGUIData;
+
    protected:
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
     virtual bool enabled() {return true;}
 
+    /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
+    virtual void clear() {}
+
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
+
+    using models::guidata::GUIDataManager::m_GUIData;
+    using models::guidata::GUIDataManager::m_groupedGUIData;
+
+    sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
 
     bool m_isOpen{false}; /// The user choice to open the window or not
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
-
 };
-
 }
-
