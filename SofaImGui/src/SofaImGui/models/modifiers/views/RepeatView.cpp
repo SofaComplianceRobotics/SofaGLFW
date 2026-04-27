@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include "IconsFontAwesome6.h"
 #include <SofaImGui/models/modifiers/Repeat.h>
 #include <imgui.h>
@@ -76,7 +77,7 @@ bool Repeat::RepeatView::showBlock(const std::string &label,
         ImGui::PushClipRect(rectMin, rectMax, true);
 
         std::string id = "##comment" + std::to_string(window->DC.CursorPos.x) + std::to_string(window->DC.CursorPos.y);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0., 0., 0., 0.));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
         std::string text = " " ICON_FA_REPEAT"  ";
         text += repeat.getComment();
         if (ImGui::InputText(id.c_str(), text.data(), models::modifiers::Modifier::COMMENTSIZE))

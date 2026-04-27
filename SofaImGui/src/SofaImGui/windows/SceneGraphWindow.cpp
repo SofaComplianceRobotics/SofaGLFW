@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include "imgui_internal.h"
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -230,12 +231,12 @@ void SceneGraphWindow::getComponentIconAlert(sofa::core::objectmodel::BaseObject
                                         sofa::helper::logging::Message::Fatal})!=0)
     {
         icon = ICON_FA_CIRCLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.f, 0.f, 1.f); //red
+        objectColor = ImColor(COLOR_RED);
     }
     else if (object->countLoggedMessages({sofa::helper::logging::Message::Warning})!=0)
     {
         icon = ICON_FA_TRIANGLE_EXCLAMATION;
-        objectColor = ImVec4(1.f, 0.5f, 0.f, 1.f); //orange
+        objectColor = ImColor(COLOR_ORANGE);
     }
     else if (object->countLoggedMessages({sofa::helper::logging::Message::Info,
                                             sofa::helper::logging::Message::Deprecated,
@@ -783,12 +784,12 @@ void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Me
                 {
                     switch (t)
                     {
-                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
-                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
-                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
+                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                     case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
-                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
-                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
+                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
+                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
                     case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
                     default: return;
                     }

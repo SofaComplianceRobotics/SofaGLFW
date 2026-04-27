@@ -22,6 +22,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
 #include <Style.h>
+#include <GUIColors.h>
 #include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
@@ -79,7 +80,7 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
                 ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
                 dl->AddImageRounded(texture, p_min, p_max,
-                                    ImVec2(0, 1), ImVec2(1, 0), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)),
+                                    ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
                                     ImGui::GetStyle().FrameRounding);
 
                 m_isMouseOnViewport = ImGui::IsWindowHovered();
@@ -91,9 +92,8 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
                 }
 
                 addCameraButtons(baseGUI, groot);
-                ImVec4 red = ImVec4(1., 0.3, 0.3, 1.); // TODO create a stylesheet
                 if(baseGUI->isVideoRecording())
-                    addRecordingStatus(red);
+                    addRecordingStatus(ImColor(COLOR_RED));
                 addContextMenu(baseGUI, texture);
             }
             ImGui::EndChild();
@@ -151,7 +151,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_TRANSPARENT);
     if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
                                                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
@@ -241,7 +241,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     {
         ImGui::TextDisabled("  " ICON_FA_VIDEO);
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
         std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
@@ -591,7 +591,7 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                 auto position = ImGui::GetWindowWidth() - ImGui::CalcTextSize("Time: 000.000").x - ImGui::GetStyle().ItemSpacing.x;
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::Text("Time: %.3f", groot->getTime());
                 ImGui::PopStyleColor();
                 ImGui::SetItemTooltip("Total time simulated");
@@ -605,7 +605,7 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                     position -= ImGui::CalcTextSize("100.0 FPS ").x;
                     ImGui::SetCursorPosX(position);
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                     ImGui::Text("%.1f FPS", m_fps);
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
@@ -636,7 +636,7 @@ void ViewportWindow::addRecordingStatus(const ImVec4& red)
                 ImGui::Text("%s", icon.c_str());
                 ImGui::PopStyleColor();
                 ImGui::SameLine(0.f, 0.f);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::Text("%s", text.c_str());
                 ImGui::PopStyleColor();
 

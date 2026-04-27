@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include <SofaImGui/models/actions/StartMove.h>
 #include <imgui_internal.h>
 #include <ProgramStyle.h>
@@ -64,7 +65,7 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
         ImGui::PushClipRect(rectMin, rectMax, true);
 
         std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0., 0., 0., 0.));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
         std::string text = " " ICON_FA_FLAG"  ";
         text += start.getComment();
         if (ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))

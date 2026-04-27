@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "GUIColors.h"
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/Utils.h>
@@ -726,9 +727,9 @@ void ProgramWindow::showBlockOptionButton(const std::string &menulabel,
     window->DC.CursorPos = window->DC.CursorPosPrevLine;
     window->DC.CursorPos.x -= buttonSize.x + ImGui::GetStyle().FramePadding.x;
     window->DC.CursorPos.y += ImGui::GetStyle().FramePadding.y;
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.05f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
     std::string buttonlabel = ICON_FA_BARS;
     buttonlabel += "##" + label;
     if (ImGui::Button(buttonlabel.c_str(), buttonSize))

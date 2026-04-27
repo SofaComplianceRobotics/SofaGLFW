@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
+#include <GUIColors.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -164,12 +165,12 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
                     {
                         switch (t)
                         {
-                            case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImVec4(0.f, 0.5686f, 0.9176f, 1.f), "[SUGGESTION]");
-                            case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImVec4(0.5529f, 0.4314f, 0.3882f, 1.f), "[DEPRECATED]");
-                            case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImVec4(1.f, 0.4275f, 0.f, 1.f), "[WARNING]");
+                            case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                            case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
+                            case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                             case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
-                            case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImVec4(0.8667f, 0.1725f, 0.f, 1.f), "[ERROR]");
-                            case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImVec4(0.8353, 0.f, 0.f, 1.f), "[FATAL]");
+                            case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
+                            case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
                             case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
                             default: return;
                         }
@@ -198,7 +199,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
                     float totalHeight = lineCount * ImGui::GetTextLineHeight();
 
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0,0,0,0)); // Transparent background
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
                     ImGui::InputTextMultiline(
                         ("##msg" + std::to_string(i)).c_str(),
                         const_cast<char*>(msgStr.c_str()), msgStr.size() + 1,
