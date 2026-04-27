@@ -344,7 +344,7 @@ bool MovePad::show1DPadSlider(char const* label,
                                                   window->DC.CursorPos + ImVec2(0.0f, size.y / 2.) + size,
                                                   color, ImGuiStyleVar_FrameRounding); // draw colored axis line in before button
 
-        if (ImGui::Button((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str(), ImVec2(GetFrameHeight(), GetFrameHeight())))
+        if (ImGui::LocalButton((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str()))
         {
             showOtherAxis = true;
         }

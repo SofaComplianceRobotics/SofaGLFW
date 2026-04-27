@@ -267,7 +267,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                     ImGui::EndPopup();
                 }
 
-                if (ImGui::Button(ICON_FA_EYE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_EYE))
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }
@@ -279,7 +279,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             ImGui::PopStyleColor();
 
             { // Fit all
-                if (ImGui::Button(ICON_FA_ARROWS_TO_DOT, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_ARROWS_TO_DOT))
                 {
                     camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
@@ -289,7 +289,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             }
 
             { // Center view
-                if (ImGui::Button(ICON_FA_BULLSEYE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_BULLSEYE))
                 {
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                     camera->d_lookAt.setValue(bbCenter);
@@ -299,7 +299,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
             { // Othographic / perspective view
                 bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-                if (ImGui::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE, buttonSize))
+                if (ImGui::LocalButton((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
                     sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
@@ -308,7 +308,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             }
 
             { // Orientation gizmo button
-                if (ImGui::Button(ICON_FA_ROTATE, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_ROTATE))
                 {
                     orientationGizmoEnabled = !orientationGizmoEnabled;
                     windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
@@ -327,7 +327,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 const float scale = camera->getDistance() * 0.002f;
 
                 { // Translate Left/Right
-                    ImGui::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR", buttonSize);
+                    ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
@@ -344,7 +344,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
 
                 { // Translate Up/Down
-                    ImGui::Button(ICON_FA_ARROWS_UP_DOWN"##TranslateUD", buttonSize);
+                    ImGui::LocalButton(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
@@ -361,7 +361,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
 
                 { // Zoom
-                    ImGui::Button(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom", buttonSize);
+                    ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
@@ -477,7 +477,6 @@ void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
 
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool isItemClicked = false;
 
     if (m_isOpen)
@@ -500,7 +499,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
             if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
             {
-                ImGui::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY, buttonSize);
+                ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
                 ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
                 if (ImGui::IsItemClicked())
@@ -523,7 +522,6 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 
 bool ViewportWindow::addStepButton()
 {
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool isItemClicked = false;
     
     if (m_isOpen)
@@ -535,7 +533,7 @@ bool ViewportWindow::addStepButton()
             {
                 ImGui::SameLine();
                 ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                if (ImGui::Button(ICON_FA_FORWARD_STEP, buttonSize))
+                if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
                     isItemClicked = true;
                 ImGui::PopItemFlag();
                 ImGui::SetItemTooltip("One step of simulation");

@@ -17,8 +17,11 @@ bool LocalInputFloat(const char* label, float* v, float step = 0.0, float step_f
 /// Adds a toggle button widget, which is not present in standard ImGui.
 bool LocalToggleButton(const char* str_id, bool* v);
 
+/// Local redefinition of ImGui::Button. Adds square size.
+bool LocalButton(const char* str_id, const ImVec2 &buttonSize = ImVec2(GetFrameHeight(), GetFrameHeight()));
+
 /// Local redefinition of ImGui::PushButton. Adds a push button that maintains its state.
-void LocalPushButton(const char* str_id, bool *v, const ImVec2 &buttonSize = ImVec2(0, 0));
+void LocalPushButton(const char* str_id, bool *v, const ImVec2 &buttonSize = ImVec2(GetFrameHeight(), GetFrameHeight()));
 
 /// Local redefinition of ImGui::Checkbox. Adjusts padding and border size for a more compact appearance.
 bool LocalCheckBox(const char* label, bool* v);

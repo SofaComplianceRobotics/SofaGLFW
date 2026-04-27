@@ -94,6 +94,12 @@ bool LocalToggleButton(const char* str_id, bool* v)
     return clicked;
 }
 
+bool LocalButton(const char* str_id, const ImVec2 &buttonSize)
+{
+    return ImGui::Button(str_id, buttonSize);
+}
+
+
 void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
 {
     ImVec4 colorActive = ImGui::GetStyle().Colors[ImGuiCol_Button];

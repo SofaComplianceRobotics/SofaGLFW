@@ -825,14 +825,12 @@ void ImGuiGUIEngine::showSecondaryMenuBar()
                     if (disableWorkbench)
                         ImGui::BeginDisabled();
 
-                    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-
-                    auto addWorkbenchButton = [highlightColorIcon, &buttonSize, this](Workbench w, const std::string& icon, const std::string& tooltip)
+                    auto addWorkbenchButton = [highlightColorIcon, this](Workbench w, const std::string& icon, const std::string& tooltip)
                     {
                         bool highlight = (workbench == w);
                         if (highlight)
                             ImGui::PushStyleColor(ImGuiCol_ButtonText, highlightColorIcon);
-                        if (ImGui::Button(icon.c_str(), buttonSize))
+                        if (ImGui::LocalButton(icon.c_str()))
                             changeWorkbench(w);
                         if (highlight)
                             ImGui::PopStyleColor();
@@ -1021,7 +1019,7 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
 void ImGuiGUIEngine::createGUINode()
 {
-    const char* nodeName = m_baseGUI->getGUINodeName();
+    const std::string nodeName = sofaglfw::SofaGLFWBaseGUI::getGUINodeName();
     sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
     if (root)
     {
@@ -1031,7 +1029,7 @@ void ImGuiGUIEngine::createGUINode()
             guinode = root->createChild(nodeName);
         }
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
-        guinode->addTag(m_baseGUI->getGUITag());
+        guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);
     }
 }

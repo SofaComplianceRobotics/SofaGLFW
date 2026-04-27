@@ -176,12 +176,11 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
 
 void ProgramWindow::showProgramButtons()
 {
-    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 4 - ImGui::GetStyle().ItemSpacing.y * 5.5; // Get position for right buttons
+    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::GetFrameHeight() * 4 - ImGui::GetStyle().ItemSpacing.y * 5.5; // Get position for right buttons
     auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
             // Left buttons
-    if (ImGui::Button(ICON_FA_FILE_IMPORT, buttonSize))
+    if (ImGui::LocalButton(ICON_FA_FILE_IMPORT))
     {
         importProgram();
     }
@@ -189,7 +188,7 @@ void ProgramWindow::showProgramButtons()
 
     ImGui::SameLine();
 
-    if (ImGui::Button(ICON_FA_FILE_EXPORT, buttonSize))
+    if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
     {
         exportProgram();
     }
@@ -224,26 +223,26 @@ void ProgramWindow::showProgramButtons()
     ImGui::SameLine();
     ImGui::SetCursorPosX(positionRight); // Set position to right of the header
 
-    ImGui::LocalPushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_timeBasedDisplay, buttonSize);
+    ImGui::LocalPushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_timeBasedDisplay);
     ImGui::SetItemTooltip("Display blocks based on simulation time");
 
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_drawTrajectory, buttonSize);
+    ImGui::LocalPushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_drawTrajectory);
     ImGui::SetItemTooltip("Draw trajectory");
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_REPEAT"##Repeat", &m_repeat, buttonSize);
+    ImGui::LocalPushButton(ICON_FA_REPEAT"##Repeat", &m_repeat);
     ImGui::SetItemTooltip("Repeat program");
     if (m_repeat)
         m_reverse = false;
 
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_reverse, buttonSize);
+    ImGui::LocalPushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_reverse);
     ImGui::SetItemTooltip("Reverse and repeat program");
     if (m_reverse)
         m_repeat = false;
@@ -255,8 +254,6 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return;
-
-    ImVec4 color(0.95f, 0.f, 0.f, 1.0f);
 
     float thicknessRect = 1.0f;
     const float borderSize = ImGui::GetWindowWidth() * 1.f / 8.f;
@@ -339,8 +336,8 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
         stepProgram();
     }
 
-    window->DrawList->AddTriangleFilled(p0Tri, p1Tri, p2Tri, ImGui::GetColorU32(color));
-    window->DrawList->AddRectFilled(p0Rect, p1Rect, ImGui::GetColorU32(color), 1.0f);
+    window->DrawList->AddTriangleFilled(p0Tri, p1Tri, p2Tri, COLOR_RED);
+    window->DrawList->AddRectFilled(p0Rect, p1Rect, COLOR_RED, 1.0f);
 }
 
 void ProgramWindow::showTimeline()

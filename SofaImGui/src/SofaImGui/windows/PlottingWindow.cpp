@@ -134,8 +134,7 @@ void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
 
 void PlottingWindow::showButtons()
 {
-    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - buttonSize.x * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
+    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::GetFrameHeight() * 3 - ImGui::GetStyle().ItemSpacing.y * 4; // Get position for right buttons
     auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
     // Clear button
@@ -151,7 +150,7 @@ void PlottingWindow::showButtons()
     if (!enabled())
         ImGui::BeginDisabled();
 
-    if (ImGui::Button(ICON_FA_FILE_EXPORT, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+    if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
     {
         exportData();
     }
@@ -177,7 +176,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
     ImGui::SetCursorPosX(positionRight); // Set position to right of the header
 
-    if(ImGui::Button("+##plotting", buttonSize))
+    if(ImGui::LocalButton("+##plotting"))
     {
         if (m_nbRows<MAX_NB_PLOT)
             m_nbRows+=1;
@@ -186,7 +185,7 @@ void PlottingWindow::showButtons()
 
     ImGui::SameLine();
 
-    if (ImGui::Button("-##plotting", buttonSize))
+    if (ImGui::LocalButton("-##plotting"))
     {
         if (m_nbRows>1)
             m_nbRows-=1;
@@ -196,7 +195,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
 
     bool openOptions = false;
-    if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+    if (ImGui::LocalButton(ICON_FA_BARS))
         openOptions = true;
 
     if (openOptions)

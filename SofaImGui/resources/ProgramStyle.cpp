@@ -14,7 +14,6 @@ ProgramColors::ProgramColors()
     EmptyTrackBg        = ImVec4(0.86f, 0.86f, 0.86f, 0.2f);
     Text                = ImColor(COLOR_WHITE);
     FrameText           = ImColor(COLOR_BLACK);
-
 }
 
 }

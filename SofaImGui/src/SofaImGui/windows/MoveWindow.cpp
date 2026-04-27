@@ -179,7 +179,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
                         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
                         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
-                        if (ImGui::Button(ICON_FA_BARS, ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+                        if (ImGui::LocalButton(ICON_FA_BARS))
                             openOptions = true;
                         ImGui::PopStyleColor(3);
 
@@ -420,7 +420,6 @@ bool MoveWindow::showVerticalTab(const std::string& label, const std::string& to
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_TabHovered));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_TabActive));
 
-    const ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool clicked = false;
 
     if (active)
@@ -428,7 +427,7 @@ bool MoveWindow::showVerticalTab(const std::string& label, const std::string& to
         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_TabActive));
     }
 
-    if (ImGui::Button(label.c_str(), buttonSize))
+    if (ImGui::LocalButton(label.c_str()))
         clicked = true;
     ImGui::SetItemTooltip("%s", tooltip.c_str());
 

@@ -114,10 +114,12 @@ void RecordVideoWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImG
             {
                 clicked = false;
                 baseGUI->setVideoFilename(filename + ".mp4");
+
                 if (baseGUI->toggleVideoRecording())
                     showRecordingMessage(baseGUI);
                 else
                     FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
+
                 record = baseGUI->isVideoRecording();
             }
 
@@ -142,7 +144,6 @@ void RecordVideoWindow::showRecordingMessage(sofaglfw::SofaGLFWBaseGUI *baseGUI)
 
         FooterStatusBar::getInstance().setTempMessage(message, FooterStatusBar::MINFO, recording ? "" : baseGUI->getVideoFilePath());
     }
-
 }
 } // namespace
 

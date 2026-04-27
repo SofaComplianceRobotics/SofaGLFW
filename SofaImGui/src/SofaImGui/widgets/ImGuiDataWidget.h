@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include <imgui.h>
 #include <SofaImGui/config.h>
 #include <sofa/core/objectmodel/Data.h>
 
@@ -53,6 +54,9 @@ struct DataWidget : BaseDataWidget
 
     void showWidget(sofa::core::objectmodel::BaseData& data) override
     {
+        if (data.isReadOnly())
+            ImGui::BeginDisabled();
+
         if (MyData* d = dynamic_cast<MyData*>(&data))
         {
             showWidget(*d);
@@ -69,6 +73,9 @@ struct DataWidget : BaseDataWidget
                 showWidgetAsText(data);
             }
         }
+
+        if (data.isReadOnly())
+            ImGui::EndDisabled();
     }
 
     void showWidget(MyData& data)
