@@ -90,7 +90,7 @@ void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::Co
     }
 }
 
-void addTCP(softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+void addTCP(std::string label, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
@@ -99,7 +99,8 @@ void addTCP(softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::obje
     {
         if (constraint && constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR)
         {
-            engine->m_kinematicsGUIDataManager->addTCP(constraint,
+            engine->m_kinematicsGUIDataManager->addTCP(label,
+                                                       constraint,
                                                        getDataFromPyObject(min, "float"),
                                                        getDataFromPyObject(max, "float"),
                                                        group,
@@ -184,7 +185,7 @@ PYBIND11_MODULE(ImGui, m)
     m.def("setInverseProblemSolver", &setInverseProblemSolver
           , "Set the inverse problem solver for piloting TCP from the GUI.");
     m.def("addTCP", &addTCP
-          , "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+          , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "Add a TCP to pilot from the Move, Program or IO windows.");
     m.def("addActuator", &addActuator);
     m.def("addAccessoryComponent", &addAccessoryComponent);

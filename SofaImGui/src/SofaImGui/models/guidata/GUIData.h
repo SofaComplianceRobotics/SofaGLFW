@@ -41,16 +41,10 @@ public:
     OwnedBaseData() : sofa::core::objectmodel::DDGNode(), data(nullptr), isOwner(false) {}
     OwnedBaseData(sofa::core::BaseData* data, bool isOwner) : DDGNode(), data(data), isOwner(isOwner)
     {
-        this->data = data;
-        if (this->data)
+        if (data && !isOwner)
         {
-            this->isOwner = isOwner;
-
-            if (!isOwner)
-            {
-                this->data->addOutput(this);
-                this->addInput(this->data);
-            }
+            this->data->addOutput(this);
+            this->addInput(this->data);
         }
     };
     virtual ~OwnedBaseData() {
@@ -87,7 +81,6 @@ public:
     {
         DDGNode::delInput(node);
         data = nullptr;
-
     };
 
     void update() override

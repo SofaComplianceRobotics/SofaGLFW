@@ -48,7 +48,7 @@ public:
 
     void setInverseProblemSolver(softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver);
 
-    void addTCP(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
+    void addTCP(const std::string &label, softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
                 const std::pair<sofa::core::BaseData*, bool>& min,
                 const std::pair<sofa::core::BaseData*, bool>& max,
                 const std::string& group,

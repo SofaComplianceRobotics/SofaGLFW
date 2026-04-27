@@ -37,7 +37,8 @@ void KinematicsGUIDataManager::setInverseProblemSolver(softrobotsinverse::solver
     m_inverseProblemSolver = solver;
 }
 
-void KinematicsGUIDataManager::addTCP(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
+void KinematicsGUIDataManager::addTCP(const std::string &label,
+                                      softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
                                       const std::pair<sofa::core::BaseData*, bool>& min,
                                       const std::pair<sofa::core::BaseData*, bool>& max,
                                       const std::string& group,
@@ -49,12 +50,7 @@ void KinematicsGUIDataManager::addTCP(softrobots::behavior::SoftRobotsBaseConstr
 
         if (context)
         {
-            sofa::core::behavior::BaseMechanicalState* TCPMeca = nullptr;
-
-            // TCP MechanicalObject position
-            TCPMeca = context->getMechanicalState();
-            const int TCPIndex = m_effectorsGUIData.count(KinematicsSection::TCP);
-            const std::string label = "TCP Target " + (TCPIndex>0? std::to_string(TCPIndex): "");
+            sofa::core::behavior::BaseMechanicalState* TCPMeca = context->getMechanicalState();
 
             if (TCPMeca)
             {

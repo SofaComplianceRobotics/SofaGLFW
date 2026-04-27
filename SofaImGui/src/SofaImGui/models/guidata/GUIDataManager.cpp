@@ -34,11 +34,12 @@ GUIData::SPtr GUIDataManager::addData(const std::string& label,
 {
     if(data.first)
     {
-        OwnedBaseData::SPtr newdata = std::make_shared<OwnedBaseData>(data.first, data.second);
-        OwnedBaseData::SPtr newmin = std::make_shared<OwnedBaseData>(min.first, min.second);
-        OwnedBaseData::SPtr newmax = std::make_shared<OwnedBaseData>(max.first, max.second);
-
-        auto guiDataPtr = std::make_shared<GUIData>(newdata, newmin, newmax, label, group, help);
+        auto guiDataPtr = std::make_shared<GUIData>(std::make_shared<OwnedBaseData>(data.first, data.second),
+                                                    std::make_shared<OwnedBaseData>(min.first, min.second),
+                                                    std::make_shared<OwnedBaseData>(max.first, max.second),
+                                                    label,
+                                                    group,
+                                                    help);
 
         return addGUIData(guiDataPtr);
     }

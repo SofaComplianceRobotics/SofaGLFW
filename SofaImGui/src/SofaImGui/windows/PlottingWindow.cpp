@@ -93,15 +93,14 @@ void PlottingWindow::exportData()
 }
 
 models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
-                                                        const std::pair<sofa::core::BaseData*, bool>& data,
-                                                        const std::pair<sofa::core::BaseData*, bool>& min,
-                                                        const std::pair<sofa::core::BaseData*, bool>& max,
-                                                        const std::string& group,
-                                                        const std::string& help)
+                                                       const std::pair<sofa::core::BaseData*, bool>& data,
+                                                       const std::pair<sofa::core::BaseData*, bool>& min,
+                                                       const std::pair<sofa::core::BaseData*, bool>& max,
+                                                       const std::string& group,
+                                                       const std::string& help)
 {
     models::guidata::GUIData::SPtr newData = BaseWindow::addData(label, data, min, max, group, help);
     m_data[0].insert(newData); // For the moment we add all data to the first subplot
-
     return newData;;
 }
 

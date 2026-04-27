@@ -32,8 +32,10 @@ namespace sofaimgui::models::guidata
 class EffectorGUIData: public GUIData
 {
     // Todo: use template to allow different type of effector
-    typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
-    typedef sofa::defaulttype::RigidDeriv<3, double> RigidDeriv;
+    typedef sofa::defaulttype::Rigid3Types::Coord RigidCoord;
+    typedef sofa::defaulttype::Rigid3Types::Deriv RigidDeriv;
+    typedef sofa::defaulttype::Rigid3Types::VecCoord VecCoord;
+    typedef sofa::defaulttype::Rigid3Types::VecDeriv VecDeriv;
 
 public:
     typedef std::shared_ptr<EffectorGUIData> SPtr;
@@ -50,7 +52,7 @@ public:
         initFromEffector(effector);
     }
 
-    const RigidCoord& getTCPTargetInitPosition();
+    RigidCoord getTCPTargetInitPosition();
 
     RigidCoord getTCPTargetPosition();
     void getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz);
