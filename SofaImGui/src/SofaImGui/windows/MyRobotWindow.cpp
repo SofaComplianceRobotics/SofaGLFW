@@ -235,7 +235,8 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                         ImGui::Indent();
                                         firsttime = false;
                                     }
-                                    ImGui::AlignTextToFramePadding();
+                                    if (data->getData()->getValueTypeString()!="bool")
+                                        ImGui::AlignTextToFramePadding();
                                     ImGui::Text("%s", data->label.c_str());
                                     if (!data->help.empty())
                                         ImGui::SetItemTooltip("%s", data->help.c_str());

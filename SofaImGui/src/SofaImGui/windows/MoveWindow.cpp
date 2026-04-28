@@ -191,50 +191,50 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                 if (m_kinematicsGUIDataManager->hasActuator())
                 {
-                //     const auto& actuatorsGUIData = m_kinematicsGUIDataManager.getActuators();
+                    const auto& actuatorsGUIData = m_kinematicsGUIDataManager->getActuators();
 
-                //     if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-                //     {
-                //         if (!isEnabledInWorkbench())
-                //         {
-                //             showInfoMessage("This section is disabled in the active workbench.");
-                //             ImGui::BeginDisabled();
-                //         }
+                    // if (ImGui::LocalBeginCollapsingHeader(m_actuatorsDescription.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    // {
+                    //     if (!isEnabledInWorkbench())
+                    //     {
+                    //         showInfoMessage("This section is disabled in the active workbench.");
+                    //         ImGui::BeginDisabled();
+                    //     }
 
-                //         int nbActuators = m_actuators.size();
-                //         bool solveInverseProblem = true;
-                //         for (int i=0; i<nbActuators; i++)
-                //         {
-                //             std::string name = "M" + std::to_string(i);
-                //             auto &actuator = m_actuators[i];
-                //             if (actuator.min < actuator.max)
-                //             {
-                //                 auto* typeinfo = actuator.data->getValueTypeInfo();
-                //                 auto* value = actuator.data->getValueVoidPtr();
-                //                 double buffer = typeinfo->getScalarValue(value, 0);
-                //                 bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
-                //                                                    actuator.min, actuator.max,
-                //                                                    ImColor(COLOR_TRANSPARENT));
-                //                 if (hasChanged)
-                //                 {
-                //                     actuator.data->read(std::to_string(buffer));
-                //                     solveInverseProblem = false;
-                //                 }
-                //                 actuator.value=buffer;
-                //             }
-                //         }
+                    //     int nbActuators = m_actuators.size();
+                    //     bool solveInverseProblem = true;
+                    //     for (int i=0; i<nbActuators; i++)
+                    //     {
+                    //         std::string name = "M" + std::to_string(i);
+                    //         auto &actuator = m_actuators[i];
+                    //         if (actuator.min < actuator.max)
+                    //         {
+                    //             auto* typeinfo = actuator.data->getValueTypeInfo();
+                    //             auto* value = actuator.data->getValueVoidPtr();
+                    //             double buffer = typeinfo->getScalarValue(value, 0);
+                    //             bool hasChanged = showSliderDouble(name.c_str(), ("##Slider" + name).c_str(), ("##Input" + name).c_str(), &buffer,
+                    //                                                actuator.min, actuator.max,
+                    //                                                ImColor(COLOR_TRANSPARENT));
+                    //             if (hasChanged)
+                    //             {
+                    //                 actuator.data->read(std::to_string(buffer));
+                    //                 solveInverseProblem = false;
+                    //             }
+                    //             actuator.value=buffer;
+                    //         }
+                    //     }
 
-                //         if (m_kinematicsGUIDataManager && !solveInverseProblem && isDrivingSimulation())
-                //         {
-                //             // TODO: don't solve the inverse problem since we'll overwrite the solution
-                //             m_kinematicsGUIDataManager->applyActuatorsForce(m_actuators);
-                //         }
+                    //     if (m_kinematicsGUIDataManager && !solveInverseProblem && isDrivingSimulation())
+                    //     {
+                    //         // TODO: don't solve the inverse problem since we'll overwrite the solution
+                    //         m_kinematicsGUIDataManager->applyActuatorsForce(m_actuators);
+                    //     }
 
-                //         if (!isEnabledInWorkbench())
-                //             ImGui::EndDisabled();
+                    //     if (!isEnabledInWorkbench())
+                    //         ImGui::EndDisabled();
 
-                //         ImGui::LocalEndCollapsingHeader();
-                //     }
+                    //     ImGui::LocalEndCollapsingHeader();
+                    // }
                 }
 
                 if (m_kinematicsGUIDataManager->hasAccessoryComponent())
