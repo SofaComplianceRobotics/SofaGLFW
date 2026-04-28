@@ -191,10 +191,8 @@ void ImGuiGUIEngine::clearGUI()
 
     m_simulationState.clearData();
 
-    for (auto& window : m_windows) 
-    {
+    for (auto& window : m_windows)
         window.get().clearWindow();
-    }
 }
 
 void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)

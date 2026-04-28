@@ -189,8 +189,6 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     std::vector<models::SimulationState::StateData> m_simulationStateData; // user defined output
     std::map<std::string, sofa::core::BaseData*> m_subscribableData; // user defined input
 
-    float m_itemWidth;
-
 #if SOFAIMGUI_WITH_ROS
     std::shared_ptr<ROSNode> m_rosnode;
 

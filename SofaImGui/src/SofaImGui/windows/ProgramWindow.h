@@ -47,7 +47,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override {m_IPController=nullptr;}
+    void clearWindow() override {m_IPController=nullptr; m_program.clearTracks();}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);

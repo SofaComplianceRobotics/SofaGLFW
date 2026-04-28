@@ -121,7 +121,7 @@ public:
 
     std::string generateFilename(const std::string &prefix, const std::string &extension);
 
-    static constexpr std::string getGUINodeName() {return "GUI";}
+    static const std::string getGUINodeName() {return "GUI";}
     static const sofa::core::objectmodel::Tag& getGUITag()
     {
         static const auto tag = sofa::core::objectmodel::Tag("createdByGUI");
