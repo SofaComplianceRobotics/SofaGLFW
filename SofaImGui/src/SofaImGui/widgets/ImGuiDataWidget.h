@@ -134,7 +134,7 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
     {
         BaseDataWidget::showWidgetAsText(data);
     }
-    ImGui::SetItemTooltip("type: %s", data.getData()->getValueTypeString().c_str());
+    ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
 }
