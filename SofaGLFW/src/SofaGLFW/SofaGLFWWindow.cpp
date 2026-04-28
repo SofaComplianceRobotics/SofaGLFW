@@ -91,11 +91,25 @@ void SofaGLFWWindow::draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::
     glLoadIdentity();
     glMultMatrixd(mvMatrix);
 
+    const auto& znear = m_currentCamera->getZNear();
+    const auto& zfar = m_currentCamera->getZFar();
+
     // Update the visual params
-    vparams->zNear() = m_currentCamera->getZNear();
-    vparams->zFar() = m_currentCamera->getZFar();
+    vparams->zNear() = znear;
+    vparams->zFar() = zfar;
     vparams->setProjectionMatrix(projectionMatrix);
     vparams->setModelViewMatrix(mvMatrix);
+
+    // Enable fog for blur effect at clip region
+    glEnable(GL_FOG);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_START, zfar - zfar * 0.3);
+    glFogf(GL_FOG_END, zfar);
+    GLfloat fogColor[4] = { m_backgroundColor.r(),
+                            m_backgroundColor.g(),
+                            m_backgroundColor.b(),
+                            m_backgroundColor.a()};
+    glFogfv(GL_FOG_COLOR, fogColor);
 
     sofa::simulation::node::draw(vparams, groot.get());
 }
@@ -223,14 +237,12 @@ void SofaGLFWWindow::setGridsPlane(sofaglfw::SofaGLFWBaseGUI* baseGUI, const Vis
         sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
         if (groot)
         {
-            auto guiNode = groot->getChild(SofaGLFWBaseGUI::getGUINodeName());
-            if (guiNode)
+            if (auto guiNode = groot->getChild(SofaGLFWBaseGUI::getGUINodeName()))
             {
                 auto squareSizes = GridSquareSize::getSquareSizes();
                 for (const auto& squareSize : squareSizes)
                 {
-                    auto grid = guiNode->get<sofa::component::visual::VisualGrid>(std::string("ViewportGrid" + GridSquareSize::getString(squareSize)));
-                    if (grid)
+                    if (auto grid = guiNode->get<sofa::component::visual::VisualGrid>(std::string("ViewportGrid" + GridSquareSize::getString(squareSize))))
                         grid->d_plane.setValue(plane);
                 }
             }

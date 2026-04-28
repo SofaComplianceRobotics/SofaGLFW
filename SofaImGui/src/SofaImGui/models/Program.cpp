@@ -34,8 +34,11 @@ namespace sofaimgui::models {
 void Program::clearTracks()
 {
     m_tracks.clear();
-    std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_IPController);
-    addTrack(track);
+    if (m_IPController)
+    {
+        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_IPController);
+        addTrack(track);
+    }
 }
 
 bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * root)

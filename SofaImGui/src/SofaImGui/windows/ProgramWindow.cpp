@@ -807,7 +807,6 @@ bool ProgramWindow::importProgram()
 bool ProgramWindow::importProgram(const std::string &filename)
 {
     bool successfulImport = false;
-
     if (sofa::helper::system::FileSystem::exists(filename))
     {
         successfulImport = m_program.importProgram(filename);
