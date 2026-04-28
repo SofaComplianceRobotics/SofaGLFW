@@ -45,9 +45,20 @@ void showLinearSpringWidget(sofa::Data<sofa::component::solidmechanics::spring::
         spring.m2 = m2;
     }
 
-    showScalarWidget("Stiffness", id, spring.ks);
-    showScalarWidget("Damping", id, spring.kd);
-    showScalarWidget("Rest length", id, spring.initpos);
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Stiffness");
+    ImGui::SameLine();
+    showScalarWidget(id, spring.ks);
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Damping");
+    ImGui::SameLine();
+    showScalarWidget(id, spring.kd);
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Rest length");
+    ImGui::SameLine();
+    showScalarWidget(id, spring.initpos);
 }
 
 template<class Real>
@@ -94,14 +105,13 @@ void showLinearSpringWidget(sofa::Data<sofa::type::vector<sofa::component::solid
             }
             ImGui::TableNextColumn();
 
-            showScalarWidget("", "s" + id + std::to_string(counter), spring.ks);
+            showScalarWidget("s" + id + std::to_string(counter), spring.ks);
             ImGui::TableNextColumn();
 
-            showScalarWidget("", "d" + id + std::to_string(counter), spring.kd);
+            showScalarWidget("d" + id + std::to_string(counter), spring.kd);
             ImGui::TableNextColumn();
 
-            showScalarWidget("", "l" + id + std::to_string(counter), spring.initpos);
-
+            showScalarWidget("l" + id + std::to_string(counter), spring.initpos);
 
             ++counter;
         }

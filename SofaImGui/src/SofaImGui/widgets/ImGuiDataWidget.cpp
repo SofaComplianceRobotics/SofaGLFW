@@ -51,14 +51,13 @@ void DataWidget<std::string>::showWidget(MyData& data)
 {
     const std::string initialValue = data.getValue();
     std::string changeableValue = initialValue;
-    const auto& label = data.getName();
     const auto id = data.getName() + data.getOwner()->getPathName();
 
     bool disable = data.getName() == "name";
     if (disable)
         ImGui::BeginDisabled();
 
-    if (ImGui::InputText((label + "##" + id).c_str(), &changeableValue))
+    if (ImGui::InputText(("##" + id).c_str(), &changeableValue))
         data.setValue(changeableValue);
 
     if (disable)
@@ -70,10 +69,9 @@ void DataWidget<bool>::showWidget(MyData& data)
 {
     const bool initialValue = data.getValue();
     bool changeableValue = initialValue;
-    const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
-    ImGui::LocalCheckBox((label + "##" + id).c_str(), &changeableValue);
+    ImGui::LocalCheckBox(("##" + id).c_str(), &changeableValue);
     if (changeableValue != initialValue)
     {
         data.setValue(changeableValue);
@@ -155,7 +153,9 @@ void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
         {
             ImGui::TableNextColumn();
             ImGui::PushID(i);
-            showScalarWidget("", ImGui::TableGetColumnName(i++), v);
+            ImGui::PushItemWidth(-1); // Fit container width
+            showScalarWidget(ImGui::TableGetColumnName(i++), v);
+            ImGui::PopItemWidth();
             ImGui::PopID();
         }
 
@@ -304,6 +304,34 @@ void DataWidget<sofa::type::vector<sofa::defaulttype::RigidCoord<2, float> > >::
 }
 
 /***********************************************************************************************************************
+ * Vectors of RigidDeriv
+ **********************************************************************************************************************/
+
+template<>
+void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, double> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+template<>
+void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, float> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+template<>
+void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, double> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+template<>
+void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, float> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+/***********************************************************************************************************************
  * Topology elements
  **********************************************************************************************************************/
 
@@ -431,9 +459,7 @@ void DataWidget<std::map<std::string, sofa::type::vector<float> > >::showWidget(
 template<>
 void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
 {
-    const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
-
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     const auto& optionsGroup = data.getValue();
     int selectedOption = static_cast<int>(optionsGroup.getSelectedId());
 
@@ -443,7 +469,7 @@ void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
         charArray[i] = optionsGroup[i].c_str();
     }
 
-    if (ImGui::Combo((label + "##" + id).c_str(), &selectedOption, charArray.get(), static_cast<int>(optionsGroup.size())))
+    if (ImGui::Combo(("##" + id).c_str(), &selectedOption, charArray.get(), static_cast<int>(optionsGroup.size())))
     {
         helper::WriteAccessor(data)->setSelectedItem(selectedOption);
     }
@@ -456,9 +482,7 @@ template<>
 void DataWidget<helper::BaseSelectableItem>::showWidget(
     sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
 {
-    const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
-
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     int selectedId = selectableItems->getSelectedId();
 
     sofa::type::vector<std::string> descriptiveItems;
@@ -483,7 +507,7 @@ void DataWidget<helper::BaseSelectableItem>::showWidget(
         charArray[i] = descriptiveItems[i].data();
     }
 
-    if (ImGui::Combo((label + "##" + id).c_str(), &selectedId, charArray.get(),
+    if (ImGui::Combo(("##" + id).c_str(), &selectedId, charArray.get(),
         static_cast<int>(selectableItems->getNumberOfItems())))
     {
         const_cast<helper::BaseSelectableItem*>(selectableItems)->setSelectedId(selectedId);
@@ -499,10 +523,10 @@ template<>
 void DataWidget<type::RGBAColor>::showWidget(MyData& data)
 {
     const auto& colorData = data.getValue();
-    const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
+
     ImVec4 color { colorData.r(), colorData.g(), colorData.b(), colorData.a()};
-    if (ImGui::ColorEdit4((label + "##" + id).c_str(), (float*)&color, ImGuiColorEditFlags_DisplayRGB))
+    if (ImGui::ColorEdit4(("##" + id).c_str(), (float*)&color, ImGuiColorEditFlags_DisplayRGB))
     {
         data.setValue(type::RGBAColor(color.x, color.y, color.z, color.w));
     }
@@ -682,15 +706,21 @@ const bool dw_vector_vec6f = DataWidgetFactory::Add<sofa::type::vector<sofa::typ
 const bool dw_vector_vec8d = DataWidgetFactory::Add<sofa::type::vector<sofa::type::Vec<8, double> > >();
 const bool dw_vector_vec8f = DataWidgetFactory::Add<sofa::type::vector<sofa::type::Vec<8, float> > >();
 
-const bool dw_vector_rigid2d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<2, double> > >();
-const bool dw_vector_rigid2f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<2, float> > >();
+const bool dw_vector_rigidcoord2d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<2, double> > >();
+const bool dw_vector_rigidcoord2f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<2, float> > >();
 
-const bool dw_vector_rigid3d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<3, double> > >();
-const bool dw_vector_rigid3f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<3, float> > >();
+const bool dw_vector_rigidcoord3d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<3, double> > >();
+const bool dw_vector_rigidcoord3f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidCoord<3, float> > >();
+
+const bool dw_vector_rigidderiv2d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, double> > >();
+const bool dw_vector_rigidderiv2f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, float> > >();
+
+const bool dw_vector_rigidderiv3d = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, double> > >();
+const bool dw_vector_rigidderiv3f = DataWidgetFactory::Add<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, float> > >();
 
 const bool dw_vector_edge = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Edge > >();
 const bool dw_vector_hexa = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Hexahedron > >();
-const bool dw_vector_penta = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Pentahedron > >();
+const bool dw_vector_penta = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Prism > >();
 const bool dw_vector_pyramid = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Pyramid > >();
 const bool dw_vector_quad = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Quad > >();
 const bool dw_vector_tetra = DataWidgetFactory::Add<sofa::type::vector<sofa::topology::Tetrahedron > >();

@@ -79,7 +79,9 @@ bool showLine(unsigned int lineNumber, const std::string& tableLabel, type::Vec<
     for (auto& v : vec)
     {
         ImGui::TableNextColumn();
-        showScalarWidget("", tableLabel + ImGui::TableGetColumnName(i++) + std::to_string(v), v);
+        ImGui::PushItemWidth(-1); // Fit container width
+        showScalarWidget(tableLabel + ImGui::TableGetColumnName(i++) + std::to_string(v), v);
+        ImGui::PopItemWidth();
     }
     ImGui::PopID();
     return false;
@@ -89,7 +91,10 @@ template<typename ValueType>
 bool showLine(unsigned int lineNumber, const std::string& tableLabel, ValueType& value)
 {
     ImGui::TableNextColumn();
-    return showScalarWidget("", tableLabel + std::to_string(lineNumber), value);
+    ImGui::PushItemWidth(-1); // Fit container width
+    bool result = showScalarWidget(tableLabel + std::to_string(lineNumber), value);
+    ImGui::PopItemWidth();
+    return result;
 }
 
 template<class T>
@@ -167,13 +172,114 @@ void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<2,
 }
 
 template< sofa::Size N, typename ValueType>
-void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >& data)
+void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<N, ValueType> > >&)
+{
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    for (unsigned int i = 0; i < sofa::defaulttype::RigidDeriv<N, ValueType>::total_size; ++i)
+    {
+        ImGui::TableSetupColumn(std::to_string(i).c_str());
+    }
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, ValueType> > >&)
+{
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("X");
+    ImGui::TableSetupColumn("Y");
+    ImGui::TableSetupColumn("Z");
+
+    ImGui::TableSetupColumn("rX");
+    ImGui::TableSetupColumn("rY");
+    ImGui::TableSetupColumn("rZ");
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, ValueType> > >&)
+{
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("X");
+    ImGui::TableSetupColumn("Y");
+
+    ImGui::TableSetupColumn("w");
+}
+
+template< sofa::Size N, typename ValueType>
+void showRigidLine(sofa::defaulttype::RigidCoord<N, ValueType>& vec, const unsigned int& counter)
+{
+    int j=0;
+    for (auto& v : vec.getCenter())
+    {
+        ImGui::TableNextColumn();
+        ImGui::PushID(j++);
+        ImGui::PushItemWidth(-1); // Fit container width
+        showScalarWidget("pos" + std::to_string(counter), v);
+        ImGui::PopItemWidth();
+        ImGui::PopID();
+    }
+    if constexpr (std::is_scalar_v<std::decay_t<decltype(vec.getOrientation())> >)
+    {
+        ImGui::TableNextColumn();
+        ImGui::Text("%f", vec.getOrientation());
+    }
+    else
+    {
+        for (unsigned int i = 0 ; i < 4; ++i)
+        {
+            ImGui::TableNextColumn();
+            auto& v = vec.getOrientation()[i];
+            ImGui::PushID(i);
+            ImGui::PushItemWidth(-1); // Fit container width
+            showScalarWidget("orien" + std::to_string(counter), v);
+            ImGui::PopItemWidth();
+            ImGui::PopID();
+        }
+    }
+}
+
+
+template< sofa::Size N, typename ValueType>
+void showRigidLine(sofa::defaulttype::RigidDeriv<N, ValueType>& vec, const unsigned int& counter)
+{
+    int j=0;
+    for (auto& v : vec.getVCenter())
+    {
+        ImGui::TableNextColumn();
+        ImGui::PushID(j++);
+        ImGui::PushItemWidth(-1); // Fit container width
+        showScalarWidget("pos" + std::to_string(counter), v);
+        ImGui::PopItemWidth();
+        ImGui::PopID();
+    }
+    if constexpr (std::is_scalar_v<std::decay_t<decltype(vec.getVOrientation())> >)
+    {
+        ImGui::TableNextColumn();
+        ImGui::Text("%f", vec.getVOrientation());
+    }
+    else
+    {
+        for (unsigned int i = 0 ; i < 3; ++i)
+        {
+            ImGui::TableNextColumn();
+            auto& v = vec.getVOrientation()[i];
+            ImGui::PushID(i);
+            ImGui::PushItemWidth(-1); // Fit container width
+            showScalarWidget("orien" + std::to_string(counter), v);
+            ImGui::PopItemWidth();
+            ImGui::PopID();
+        }
+    }
+}
+
+template<typename ValueType>
+void showWidgetT(Data<sofa::type::vector<ValueType> >& data)
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), sofa::defaulttype::RigidCoord<N, ValueType>::total_size + 1, flags, innerWidth))
+
+    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, flags, innerWidth))
     {
         showVecTableHeader(data);
 
@@ -186,31 +292,7 @@ void showWidgetT(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueT
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
             ImGui::Text("%d", counter++);
-            int i=0;
-            for (auto& v : vec.getCenter())
-            {
-                ImGui::TableNextColumn();
-                ImGui::PushID(i++);
-                showScalarWidget("", "pos" + std::to_string(counter), v);
-                ImGui::PopID();
-
-            }
-            if constexpr (std::is_scalar_v<std::decay_t<decltype(vec.getOrientation())> >)
-            {
-                ImGui::TableNextColumn();
-                ImGui::Text("%f", vec.getOrientation());
-            }
-            else
-            {
-                for (unsigned int i = 0 ; i < 4; ++i)
-                {
-                    ImGui::TableNextColumn();
-                    auto& v = vec.getOrientation()[i];
-                    ImGui::PushID(i);
-                    showScalarWidget("", "orien" + std::to_string(counter), v);
-                    ImGui::PopID();
-                }
-            }
+            showRigidLine(vec, counter);
         }
 
         ImGui::EndTable();

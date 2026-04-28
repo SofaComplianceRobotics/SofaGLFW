@@ -27,25 +27,22 @@
 namespace sofaimgui
 {
 
-inline bool showScalarWidget(const std::string& label, const std::string& id, float& value)
+inline bool showScalarWidget(const std::string& id, float& value)
 {
-    bool result = ImGui::LocalInputFloat((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
-    return result;
+    return ImGui::InputFloat(("##" + id).c_str(), &value, 0.0f, 0.0f);
 }
 
-inline bool showScalarWidget(const std::string& label, const std::string& id, double& value)
+inline bool showScalarWidget(const std::string& id, double& value)
 {
-    bool result = ImGui::LocalInputDouble((label + "##" + id).c_str(), &value, 0.0f, 0.0f, "", ImGuiInputTextFlags_None);
-    return result;
+    return ImGui::InputDouble(("##" + id).c_str(), &value, 0.0f, 0.0f);
 }
 
 template<typename Scalar>
 void showScalarWidget(sofa::Data<Scalar>& data)
 {
     Scalar initialValue = data.getValue();
-    const auto& label = data.getName();
-    const auto id = data.getName() + data.getOwner()->getPathName();
-    if (showScalarWidget(label, id, initialValue))
+    const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
+    if (showScalarWidget(id, initialValue))
     {
         data.setValue(initialValue);
     }

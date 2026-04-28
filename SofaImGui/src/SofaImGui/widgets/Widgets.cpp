@@ -167,8 +167,7 @@ bool LocalCheckBoxEx(const char* label, bool* v)
 
     const float square_sz = GetFrameHeight();
     const ImVec2 pos = window->DC.CursorPos;
-    ImVec2 pos2 = ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f),
-                               label_size.y + style.FramePadding.y * 2.0f);
+    ImVec2 pos2 = ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f);
     const ImRect total_bb(pos, ImVec2(pos.x + pos2.x, pos.y + pos2.y));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id))
