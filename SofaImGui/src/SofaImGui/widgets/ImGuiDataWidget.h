@@ -123,6 +123,9 @@ private:
 inline void showWidget(sofa::core::objectmodel::BaseData& data)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
+
+    ImGui::PushItemWidth(-1); // Fit container width
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     if (widget)
     {
         widget->showWidget(data);
@@ -131,6 +134,9 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
     {
         BaseDataWidget::showWidgetAsText(data);
     }
+    ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
+    ImGui::PopStyleVar();
+    ImGui::PopItemWidth();
 }
 
 }
