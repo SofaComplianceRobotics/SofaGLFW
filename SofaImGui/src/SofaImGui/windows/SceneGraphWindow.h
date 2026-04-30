@@ -53,6 +53,8 @@ protected:
     std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
 
     sofa::type::Material m_highlightMaterial;
+    sofa::simulation::Node* m_currentHighlightedNode{nullptr};
+    sofa::simulation::Node* m_previousHighlightedNode{nullptr};
 
     int m_modifyingRow{-1};
 
@@ -68,8 +70,6 @@ protected:
     bool m_showFilteredWarning = false;
     bool m_showFilteredError = false;
     bool m_showFilteredInfo = false;
-
-    inline static const sofa::core::objectmodel::Tag selectedTag = sofa::core::objectmodel::Tag("GUISelected");
 
     void showGraph(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
     void showNode(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
