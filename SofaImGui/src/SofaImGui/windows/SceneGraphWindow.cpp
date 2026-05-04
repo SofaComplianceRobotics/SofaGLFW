@@ -450,14 +450,18 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         }
     }
 
-    if (isNodeSelected && !node->hasTag(selectedTag))
+    if (isNodeSelected && node!=m_currentHighlightedNode)
     {
-        node->addTag(selectedTag);
+        m_currentHighlightedNode = node;
+        if (!m_previousHighlightedNode)
+            m_previousHighlightedNode = m_currentHighlightedNode;
         highlightOglModels(node);
     }
-    else if (!isNodeSelected && node->hasTag(selectedTag))
+    else if (!isNodeSelected && node==m_previousHighlightedNode)
     {
-        node->removeTag(selectedTag);
+        m_previousHighlightedNode = nullptr;
+        if (node==m_currentHighlightedNode)
+            m_currentHighlightedNode = nullptr;
         resetOglModels(node);
     }
 
@@ -1093,7 +1097,7 @@ void SceneGraphWindow::resetOglModels(sofa::simulation::Node *node)
 
         for (const auto child : node->getChildren())
         {
-            if (m_selection.empty() || !child->hasTag(selectedTag))
+            if (m_selection.empty() || !m_selection.contains(child))
                 resetOglModels(dynamic_cast<sofa::simulation::Node*>(child));
         }
     }
