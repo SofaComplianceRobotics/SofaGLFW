@@ -45,8 +45,8 @@ Move::~Move()
 {
     if (m_groot)
     {
-        auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        guiNode->removeObject(m_trajectory);
+        if (auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
+            guiNode->removeObject(m_trajectory);
     }
 }
 
@@ -95,8 +95,8 @@ void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
     {
         m_groot = groot;
         m_trajectory->setPositions(VecCoord{m_initialPoint, m_waypoint});
-        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        guiNode->addObject(m_trajectory);
+        if (auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
+            guiNode->addObject(m_trajectory);
     }
 }
 
