@@ -59,6 +59,7 @@ void SceneGraphWindow::clearWindow()
     m_openedComponentPopups.clear();
     m_openedNodePopups.clear();
     m_selection.clear();
+    m_renamingObject = nullptr;
     m_currentHighlightedNode = nullptr;
     m_previousHighlightedNode = nullptr;
 }
