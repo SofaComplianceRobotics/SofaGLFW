@@ -78,7 +78,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 
 #include <sofa/core/ObjectFactory.h>
-#include <sofa/simulation/graph/DAGNode.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/version.h>
 
 #include <SofaGLFW/init.h>
