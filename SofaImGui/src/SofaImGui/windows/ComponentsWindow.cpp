@@ -23,7 +23,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/ComponentsWindow.h>
 #include <filesystem>
-#include <sofa/simulation/graph/DAGNode.h>
+#include <sofa/simulation/Node.h>
 
 #include <imgui.h>
 #include <nfd.h>
