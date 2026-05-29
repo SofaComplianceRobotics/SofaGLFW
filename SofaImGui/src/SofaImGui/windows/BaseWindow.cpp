@@ -35,6 +35,13 @@ BaseWindow::BaseWindow()
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
+BaseWindow::BaseWindow(std::string name, bool defaultIsOpen)
+    : BaseWindow()
+{
+    m_name = name;
+    m_defaultIsOpen = defaultIsOpen;
+}
+
 void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
 {
     SOFA_UNUSED(baseGUI);

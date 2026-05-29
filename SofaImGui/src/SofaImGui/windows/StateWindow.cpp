@@ -29,10 +29,8 @@ namespace sofaimgui::windows {
 
 StateWindow::StateWindow(const std::string& name,
                          const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
-    m_defaultIsOpen = false;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string StateWindow::getDescription()
@@ -50,7 +48,7 @@ void StateWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWind
     SOFA_UNUSED(baseGUI);
     SOFA_UNUSED(windowFlags);
 
-    if (enabled() && isOpen())
+    if (isEnabled() && isOpen())
     {
         static bool openstate = true;
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.20f, 0.34f, 0.05f));

@@ -33,11 +33,9 @@
 namespace sofaimgui::windows {
 
 ProfilerWindow::ProfilerWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ProfilerWindow::getDescription()

@@ -35,11 +35,9 @@ namespace sofaimgui::windows
 {
 
 ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::SCENE_EDITOR;
-
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ComponentsWindow::getDescription()
