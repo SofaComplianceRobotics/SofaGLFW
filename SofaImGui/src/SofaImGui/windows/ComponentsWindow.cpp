@@ -51,10 +51,6 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
 
     if (isOpen())
     {
-        // Note for later
-        // if not isEnabledInWorkbench()
-        // Disable drag and drop
-
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             if (workbench == Workbench::SCENE_EDITOR)
@@ -105,9 +101,6 @@ void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGu
                 ImGui::PopStyleColor();
             }
             ImGui::EndChild();
-
-            // if (ImGui::Button(ICON_FA_SAVE" "))
-                // saveFile();
         }
         ImGui::End();
     }
