@@ -71,6 +71,7 @@ void setDeepDarkStyle()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text]                   = ImColor(COLOR_WHITE);
+    colors[ImGuiCol_InputTextCursor]        = ImColor(COLOR_WHITE);
     colors[ImGuiCol_WarningText]            = ImVec4(0.92f, 0.95f, 0.83f, 1.00f);
     colors[ImGuiCol_ButtonText]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TabText]                = ImColor(COLOR_WHITE);
@@ -134,6 +135,7 @@ void setLightStyle()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text]                   = ImColor(COLOR_BLACK);
+    colors[ImGuiCol_InputTextCursor]        = ImColor(COLOR_BLACK);
     colors[ImGuiCol_WarningText]            = ImVec4(0.52f, 0.55f, 0.43f, 1.00f);
     colors[ImGuiCol_ButtonText]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TabText]                = ImColor(COLOR_BLACK);
