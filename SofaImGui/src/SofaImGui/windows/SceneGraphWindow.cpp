@@ -111,6 +111,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
             }
             else {
                 toRemove.push_back(popup);
+                m_modifyingRow = -1;
             }
         }
 
@@ -158,6 +159,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
             }
             else {
                 toRemove.push_back(popup);
+                m_modifyingRow = -1;
             }
         }
 
@@ -379,7 +381,7 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
     // Node
     if (node == nullptr) return;
     ImGui::TableNextRow();
-    bool highlightRow = ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex();
+    bool highlightRow = ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex();
 
     if (workbench == Workbench::SCENE_EDITOR && highlightRow)
         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(selectedColorBg));
@@ -484,6 +486,7 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
             m_nodeToOpenContextMenu.insert(std::pair<sofa::simulation::Node*, bool>(node, true));
+            m_modifyingRow = ImGui::TableGetRowIndex();
         }
     }
 
@@ -612,6 +615,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, so
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                 {
                     m_componentToOpenContextMenu.insert(std::pair<sofa::core::objectmodel::BaseObject*, bool>(object, true));
+                    m_modifyingRow = ImGui::TableGetRowIndex();
                 }
             }
 
@@ -979,6 +983,9 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
 {
     if (node)
     {
+        if (node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
+            ImGui::BeginDisabled();
+
         { // Deactivate
             const bool& activated = node->is_activated.getValue();
             if (!isEnabledInWorkbench())
@@ -991,8 +998,6 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
                 ImGui::EndDisabled();
         }
 
-        ImGui::Separator();
-
         addBaseContextMenu(node);
 
         ImGui::Separator();
@@ -1000,6 +1005,9 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
         ImGui::BeginDisabled();
         ImGui::LocalTextLinkOpenURL("Documentation", ""); // No documentation for node
         ImGui::EndDisabled();
+
+        if (node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
+            ImGui::EndDisabled();
     }
 }
 
@@ -1012,8 +1020,6 @@ void SceneGraphWindow::addComponentContextMenu(sofa::core::objectmodel::BaseObje
             ImGui::MenuItem("Deactivate"); // Not possible for component
             ImGui::EndDisabled();
         }
-
-        ImGui::Separator();
 
         addBaseContextMenu(component);
 
@@ -1029,6 +1035,18 @@ void SceneGraphWindow::addBaseContextMenu(sofa::core::objectmodel::Base *object)
     {
         const std::string instantiationFilename = object->getInstanciationSourceFileName();
         const std::string implementationFilename = object->getDefinitionSourceFileName();
+
+        if (workbench != Workbench::SCENE_EDITOR)
+            ImGui::BeginDisabled();
+        if (ImGui::MenuItem("Rename", "F2"))
+        {
+            m_renamingObject = object;
+            m_renaming = true;
+        }
+        if (workbench != Workbench::SCENE_EDITOR)
+            ImGui::EndDisabled();
+
+        ImGui::Separator();
 
         if(ImGui::MenuItem("Copy Linkpath"))
             ImGui::SetClipboardText(object->getPathName().c_str());
@@ -1148,11 +1166,13 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                 {
                     ImGui::SameLine();
                     ImGui::PushItemWidth(ImGui::CalcTextSize(object->getTemplateName().c_str()).x + ImGui::GetFrameHeight() * 2);
+                    static bool comboWasOpen = false;
 
                     std::string currentTemplate = componentTemplatesList[componentTemplateIndex];
                     if (ImGui::BeginCombo("##Template", currentTemplate.c_str(), ImGuiComboFlags_None))
                     {
                         m_modifyingRow = rowIndex;
+                        comboWasOpen = true;
 
                         for (size_t n = 0; n < nbTemplates; n++)
                         {
@@ -1173,7 +1193,11 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                         ImGui::EndCombo();
                     }
                     else
-                        m_modifyingRow = -1;
+                    {
+                        if (comboWasOpen)
+                            m_modifyingRow = -1;
+                    }
+
                     ImGui::PopItemWidth();
                 }
             }
@@ -1197,17 +1221,29 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
                                 ImGuiTreeNodeFlags objectFlags)
 {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().FramePadding.x); // Add padding
+    bool isRenamingAllowed = workbench == Workbench::SCENE_EDITOR && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
+
+    if (isRenamingAllowed && ImGui::IsKeyPressed(ImGuiKey_F2) && m_selection.contains(object))
+    {
+        m_renaming = true;
+        m_renamingObject = object;
+    }
 
     bool open = false;
-    if (workbench == Workbench::SCENE_EDITOR && m_renamingObject == object && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming)) // InputText to rename the object
+    if (isRenamingAllowed &&
+        m_renamingObject == object &&
+        m_renaming) // InputText to rename the object
     {
         std::string newName = object->getName();
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
         ImGui::InputText("##RenamingNode", &newName, ImGuiInputTextFlags_AutoSelectAll);
+        ImGui::PopStyleVar();
         if (!m_renaming)
         {
             ImGui::SetFocusID(ImGui::GetItemID(), ImGui::GetCurrentWindow());
         }
         m_renaming = true;
+        m_modifyingRow = -1;
         open = m_renamingTreeOpen;
 
         if (ImGui::IsKeyPressed(ImGuiKey_Enter)) // Validate renaming
@@ -1226,18 +1262,15 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
             m_renamingTreeOpen = open;
     }
 
-    if (m_renamingObject == object &&
-        (!ImGui::IsItemFocused() || ImGui::IsMouseClicked(ImGuiMouseButton_Right) || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemClicked(ImGuiMouseButton_Left)))
-       ) // Loose focus
+    if (m_modifyingRow != ImGui::TableGetRowIndex()) // Do not check focus if the row is being modified (context menu open etc.)
     {
-        m_renaming = false;
-        m_renamingObject = nullptr;
-    }
-
-    if (m_renamingObject != object && ImGui::IsItemFocused()) // New focus
-    {
-        m_renaming = false;
-        m_renamingObject = object;
+        if (m_renamingObject == object &&
+            (ImGui::IsMouseClicked(ImGuiMouseButton_Right) || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemClicked(ImGuiMouseButton_Left)))
+           ) // Loose focus
+        {
+            m_renaming = false;
+            m_renamingObject = nullptr;
+        }
     }
 
     return open;
