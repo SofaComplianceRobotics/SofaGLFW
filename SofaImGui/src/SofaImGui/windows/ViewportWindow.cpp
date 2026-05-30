@@ -230,8 +230,12 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     // When clicking these buttons, the mouse only moves into the current window area
     // We allow the mouse to cross walls and reapear on the other side
     auto dpos = ImGui::GetIO().MouseDelta;
-    dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
-    dpos.y = std::clamp(int(dpos.y), -20, 20);
+    dpos.x = dpos.x>=m_windowSize.first/2? m_windowSize.first-dpos.x: dpos.x;
+    dpos.y = dpos.y>=m_windowSize.second/2? m_windowSize.second-dpos.y: dpos.y;
+    dpos.x = dpos.x<=-m_windowSize.first/2? -m_windowSize.first-dpos.x: dpos.x;
+    dpos.y = dpos.y<=-m_windowSize.second/2? -m_windowSize.second-dpos.y: dpos.y;
+    dpos.x *= 0.2;
+    dpos.y *= 0.2;
 
     // Buttons
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
@@ -435,7 +439,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         if (cpos.x < cwpos.x)
             baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
         if (cpos.x > cwpos.x + m_windowSize.first)
-            baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
+            baseGUI->setMousePos(xshift, cpos.y - wpos.y);
         if (cpos.y < cwpos.y)
             baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
         if (cpos.y > cwpos.y + m_windowSize.second)
