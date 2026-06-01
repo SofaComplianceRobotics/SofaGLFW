@@ -233,7 +233,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     dpos *= 1e-3;
 
     // Buttons
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool translate = false;
     if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
@@ -246,7 +245,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
-        if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
+        if(ImGui::LocalButton(title.c_str()))
         {
             cameraButtonsCollapsed = !cameraButtonsCollapsed;
             windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
@@ -380,11 +379,11 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         }
     }
 
-    const double &distance = camera->getDistance();
-    const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
     bool rotate = false;
-
     { // Orientation gizmo clicked
+        const double &distance = camera->getDistance();
+        const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
+
         auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
         {
             auto cpos = camera->worldToScreenPoint(axis);
