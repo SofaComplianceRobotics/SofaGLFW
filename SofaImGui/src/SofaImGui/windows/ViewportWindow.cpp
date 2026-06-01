@@ -230,10 +230,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     // When clicking these buttons, the mouse only moves into the current window area
     // We allow the mouse to cross walls and reapear on the other side
     auto dpos = ImGui::GetIO().MouseDelta;
-    dpos.x = dpos.x>=m_windowSize.first/2? m_windowSize.first-dpos.x: dpos.x;
-    dpos.y = dpos.y>=m_windowSize.second/2? m_windowSize.second-dpos.y: dpos.y;
-    dpos.x = dpos.x<=-m_windowSize.first/2? -m_windowSize.first-dpos.x: dpos.x;
-    dpos.y = dpos.y<=-m_windowSize.second/2? -m_windowSize.second-dpos.y: dpos.y;
     // Scale from MouseDelta to camera translation
     dpos.x *= 0.2;
     dpos.y *= 0.2;
@@ -389,21 +385,23 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         }
     }
 
-    const auto& cpos = ImGui::GetIO().MousePos;
-    // When setting the mouse position, the value is relative to the app window top left corner
-    // Thus we need to compute the offsets between this position and the top left corner of the current window (ViewportWindow)
-    const ImVec2 appOffset = cwpos - wpos;
-
     const double &distance = camera->getDistance();
     const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
     bool rotate = false;
 
     { // Orientation gizmo clicked
+        float scale = 1e-3; // Mouse to rotation scale
+        auto getRotationCoef = [dpos, scale](sofa::type::Vec3 cpos) -> float
+        {
+            return (cpos[1]*dpos.x - cpos[0]*dpos.y) / sqrt(cpos[0]*cpos[0] + cpos[1]*cpos[1]) * scale;
+        };
+
         // Rotate X
         if (axisClicked[0])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
+            auto xc = camera->worldToScreenPoint(sofa::type::Vec3(1, 0, 0));
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(getRotationCoef(xc), 0., 0., 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -411,7 +409,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         else if (axisClicked[1])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
+            auto yc = camera->worldToScreenPoint(sofa::type::Vec3(0, 1, 0));
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., getRotationCoef(yc), 0., 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -419,7 +418,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         else if (axisClicked[2])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
+            auto zc = camera->worldToScreenPoint(sofa::type::Vec3(0, 0, 1));
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., getRotationCoef(zc), 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -433,18 +433,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
     }
 
-    // Allow the mouse to cross walls, and reapear on the other side of the current window area
-    if (rotate || translate)
-    {
-        if (cpos.x < cwpos.x)
-            baseGUI->setMousePos(appOffset.x + m_windowSize.first, cpos.y - wpos.y);
-        if (cpos.x > cwpos.x + m_windowSize.first)
-            baseGUI->setMousePos(appOffset.x, cpos.y - wpos.y);
-        if (cpos.y < cwpos.y)
-            baseGUI->setMousePos(cpos.x - wpos.x, appOffset.y + m_windowSize.second);
-        if (cpos.y > cwpos.y + m_windowSize.second)
-            baseGUI->setMousePos(cpos.x - wpos.x, appOffset.y);
-    }
+    // Hides and grabs the cursor, providing virtual and unlimited cursor movement.
+    baseGUI->setDisabledMouse(rotate || translate);
 
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
