@@ -587,6 +587,10 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             }
         }
 
+        // Reload button
+        if (m_viewportWindow.addReloadButton())
+            loadSimulation(true, baseGUI->getFilename());
+
         // Driving Tab combo
         if(m_IPController)
         {

@@ -546,6 +546,30 @@ bool ViewportWindow::addStepButton()
     return isItemClicked;
 }
 
+bool ViewportWindow::addReloadButton()
+{
+    bool isItemClicked = false;
+
+    if (m_isOpen)
+    {
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::SameLine();
+                if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
+                    isItemClicked = true;
+                ImGui::SetItemTooltip("Reload the simulation");
+            }
+            ImGui::EndChild();
+        }
+        ImGui::End();
+    }
+
+    return isItemClicked;
+}
+
 bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes)
 {
     bool hasValueChanged = false;
