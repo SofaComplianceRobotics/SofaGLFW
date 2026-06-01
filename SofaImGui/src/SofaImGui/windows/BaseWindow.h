@@ -112,7 +112,7 @@ class SOFAIMGUI_API BaseWindow
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool isEnabled() {return true;}
+    virtual bool isEnabledByState() {return true;}
 
    protected:
 

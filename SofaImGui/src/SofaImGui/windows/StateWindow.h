@@ -38,7 +38,7 @@ class SOFAIMGUI_API StateWindow : public BaseWindow
     void setSimulationState(const models::SimulationState &simulationState);
 
   protected:
-    bool isEnabled() override {return !m_simulationStateData.empty();}
+    bool isEnabledByState() override {return !m_simulationStateData.empty();}
 
     std::vector<models::SimulationState::StateData> m_simulationStateData;
 };

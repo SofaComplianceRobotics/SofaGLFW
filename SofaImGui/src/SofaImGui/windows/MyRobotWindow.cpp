@@ -137,7 +137,7 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
     }
 }
 
-bool MyRobotWindow::isEnabled()
+bool MyRobotWindow::isEnabledByState()
 {
     return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
 }
@@ -150,7 +150,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (isEnabled())
+            if (isEnabledByState())
             {
                 ImGui::Spacing();
 

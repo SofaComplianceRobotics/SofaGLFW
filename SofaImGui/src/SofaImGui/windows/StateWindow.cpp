@@ -48,7 +48,7 @@ void StateWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWind
     SOFA_UNUSED(baseGUI);
     SOFA_UNUSED(windowFlags);
 
-    if (isEnabled() && isOpen())
+    if (isEnabledByState() && isOpen())
     {
         static bool openstate = true;
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.10f, 0.20f, 0.34f, 0.05f));

@@ -94,7 +94,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     ImGui::MovePad m_movePad;
 
-    bool isEnabled() override {return (m_IPController!=nullptr || !m_actuators.empty());}
+    bool isEnabledByState() override {return (m_IPController!=nullptr || !m_actuators.empty());}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);

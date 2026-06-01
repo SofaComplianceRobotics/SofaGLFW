@@ -114,7 +114,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (isEnabled())
+            if (isEnabledByState())
             {
                 if (m_IPController != nullptr)
                 {

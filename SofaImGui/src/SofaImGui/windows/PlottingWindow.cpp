@@ -113,7 +113,7 @@ void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
-            if (!isEnabledInWorkbench() || !isEnabled())
+            if (!isEnabledInWorkbench() || !isEnabledByState())
                 showInfoMessage("This window is used to plot data over time. It currently has no data registered or is disabled in the active workbench.");
 
             if (!isEnabledInWorkbench())
@@ -144,7 +144,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
 
     // Export csv button
-    if (!isEnabled())
+    if (!isEnabledByState())
         ImGui::BeginDisabled();
 
     if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
@@ -152,7 +152,7 @@ void PlottingWindow::showButtons()
         exportData();
     }
 
-    if (!isEnabled())
+    if (!isEnabledByState())
     {
         ImGui::SetItemTooltip("No values to export");
         ImGui::EndDisabled();

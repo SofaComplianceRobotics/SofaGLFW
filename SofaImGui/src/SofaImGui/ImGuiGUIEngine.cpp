@@ -1067,7 +1067,7 @@ void ImGuiGUIEngine::enableWindows()
 
         w.setOpen(windowsSettings.getSetting(settingName.c_str(),
                                              "open",
-                                             w.getDefaultIsOpen() && w.isEnabledInWorkbench() && w.isEnabled()));
+                                             w.getDefaultIsOpen() && w.isEnabledInWorkbench() && w.isEnabledByState()));
     }
     initDockSpace(true);
 }

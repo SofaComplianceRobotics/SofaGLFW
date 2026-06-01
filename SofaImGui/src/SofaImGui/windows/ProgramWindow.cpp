@@ -98,7 +98,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
-            if (isEnabled())
+            if (isEnabledByState())
             {
                 if (!isEnabledInWorkbench())
                 {
