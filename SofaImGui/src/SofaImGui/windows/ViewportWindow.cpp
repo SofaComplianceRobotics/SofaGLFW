@@ -234,6 +234,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     dpos.y = dpos.y>=m_windowSize.second/2? m_windowSize.second-dpos.y: dpos.y;
     dpos.x = dpos.x<=-m_windowSize.first/2? -m_windowSize.first-dpos.x: dpos.x;
     dpos.y = dpos.y<=-m_windowSize.second/2? -m_windowSize.second-dpos.y: dpos.y;
+    // Scale from MouseDelta to camera translation
     dpos.x *= 0.2;
     dpos.y *= 0.2;
 
@@ -389,10 +390,9 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     }
 
     const auto& cpos = ImGui::GetIO().MousePos;
-    // When setting the mouse position, the value is relative to the window top left corner
-    // Thus we need to compute the shifts between this position and the top left corner of the current window area
-    const float xshift = (cwpos.x - wpos.x);
-    const float yshift = (cwpos.y - wpos.y);
+    // When setting the mouse position, the value is relative to the app window top left corner
+    // Thus we need to compute the offsets between this position and the top left corner of the current window (ViewportWindow)
+    const ImVec2 appOffset = cwpos - wpos;
 
     const double &distance = camera->getDistance();
     const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
@@ -437,13 +437,13 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     if (rotate || translate)
     {
         if (cpos.x < cwpos.x)
-            baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
+            baseGUI->setMousePos(appOffset.x + m_windowSize.first, cpos.y - wpos.y);
         if (cpos.x > cwpos.x + m_windowSize.first)
-            baseGUI->setMousePos(xshift, cpos.y - wpos.y);
+            baseGUI->setMousePos(appOffset.x, cpos.y - wpos.y);
         if (cpos.y < cwpos.y)
-            baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
+            baseGUI->setMousePos(cpos.x - wpos.x, appOffset.y + m_windowSize.second);
         if (cpos.y > cwpos.y + m_windowSize.second)
-            baseGUI->setMousePos(cpos.x - wpos.x, yshift);
+            baseGUI->setMousePos(cpos.x - wpos.x, appOffset.y);
     }
 
     ImGui::PopStyleColor(2);
