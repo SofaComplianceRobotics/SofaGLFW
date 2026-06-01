@@ -382,7 +382,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     bool rotate = false;
     { // Orientation gizmo clicked
         const double &distance = camera->getDistance();
-        const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
+        const sofa::type::Vec3 &lookAt = camera->getLookAt();
 
         auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
         {
