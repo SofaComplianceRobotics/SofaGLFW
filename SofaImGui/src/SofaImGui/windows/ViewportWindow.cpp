@@ -386,8 +386,13 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
         auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
         {
-            auto cpos = camera->worldToScreenPoint(axis);
-            return (cpos[1]*dpos.x - cpos[0]*dpos.y) / sqrt(cpos[0]*cpos[0] + cpos[1]*cpos[1]);
+            auto spos = camera->worldToScreenPoint(axis);
+            if(sqrt(spos[0]*spos[0] + spos[1]*spos[1]) < 1e-10)
+            {
+                spos[0] = abs(dpos.y)>abs(dpos.x)? -1: 0;
+                spos[1] = abs(dpos.y)>abs(dpos.x)? 0: 1;
+            }
+            return (spos[1]*dpos.x - spos[0]*dpos.y) / sqrt(spos[0]*spos[0] + spos[1]*spos[1]);
         };
 
         // Rotate X
@@ -395,6 +400,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(getRotationCoef(sofa::type::Vec3(1., 0., 0.)), 0., 0., 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -403,6 +409,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., getRotationCoef(sofa::type::Vec3(0., 1., 0.)), 0., 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -411,6 +418,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., getRotationCoef(sofa::type::Vec3(0., 0., 1.)), 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
