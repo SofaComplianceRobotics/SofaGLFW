@@ -386,13 +386,18 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
         auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
         {
-            auto spos = camera->worldToScreenPoint(axis);
-            if(sqrt(spos[0]*spos[0] + spos[1]*spos[1]) < 1e-10)
+            auto sorigin = camera->worldToScreenPoint(sofa::type::Vec3(0, 0, 0));
+            auto saxis = camera->worldToScreenPoint(axis);
+
+            ImVec2 spos(-(saxis[1]-sorigin[1]), (saxis[0]-sorigin[0])); // orthogonal axis in image coord
+
+
+            if(sqrt(spos.x*spos.x + spos.y*spos.y) < 1e-10)
             {
-                spos[0] = abs(dpos.y)>abs(dpos.x)? -1: 0;
-                spos[1] = abs(dpos.y)>abs(dpos.x)? 0: 1;
+                spos.x = abs(dpos.y)>abs(dpos.x)? 1: 0;
+                spos.y = abs(dpos.y)>abs(dpos.x)? 0: 1;
             }
-            return (spos[1]*dpos.x - spos[0]*dpos.y) / sqrt(spos[0]*spos[0] + spos[1]*spos[1]);
+            return (spos.x*dpos.x + spos.y*dpos.y) / sqrt(spos.x*spos.x + spos.y*spos.y);
         };
 
         // Rotate X
