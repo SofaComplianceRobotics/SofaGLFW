@@ -138,7 +138,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     // Positions and sizes
     static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
-    const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
     auto position = ImGui::GetWindowPos();
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
@@ -230,9 +229,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     // When clicking these buttons, the mouse only moves into the current window area
     // We allow the mouse to cross walls and reapear on the other side
     auto dpos = ImGui::GetIO().MouseDelta;
-    // Scale from MouseDelta to camera translation
-    dpos.x *= 0.2;
-    dpos.y *= 0.2;
+    // Scale from camera pixel to world displacement
+    dpos *= 1e-3;
 
     // Buttons
     ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
@@ -324,9 +322,6 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             ImGui::PopStyleColor();
 
             { // Axis related
-                // Compute scale based on distance. The further the camera, the faster the translation.
-                const float scale = camera->getDistance() * 0.002f;
-
                 { // Translate Left/Right
                     ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
@@ -334,7 +329,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= - dpos.x * scale;
+                        t *= - dpos.x * camera->getDistance(); // Compute scale based on distance. The further the camera, the faster the translation.
                         camera->translate(t);
                         camera->translateLookAt(t);
                         translate = true;
@@ -351,7 +346,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= dpos.y * scale;
+                        t *= dpos.y * camera->getDistance(); // Compute scale based on distance. The further the camera, the faster the translation.
                         camera->translate(t);
                         camera->translateLookAt(t);
                         translate = true;
@@ -368,8 +363,8 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        const auto& mousedelta = dpos.x;
-                        t *= mousedelta * scale;
+                        const auto& mousedelta = dpos.x * camera->getDistance();
+                        t *= mousedelta;
                         camera->translate(t);
                         translate = true;
 
@@ -390,18 +385,17 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     bool rotate = false;
 
     { // Orientation gizmo clicked
-        float scale = 1e-3; // Mouse to rotation scale
-        auto getRotationCoef = [dpos, scale](sofa::type::Vec3 cpos) -> float
+        auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
         {
-            return (cpos[1]*dpos.x - cpos[0]*dpos.y) / sqrt(cpos[0]*cpos[0] + cpos[1]*cpos[1]) * scale;
+            auto cpos = camera->worldToScreenPoint(axis);
+            return (cpos[1]*dpos.x - cpos[0]*dpos.y) / sqrt(cpos[0]*cpos[0] + cpos[1]*cpos[1]);
         };
 
         // Rotate X
         if (axisClicked[0])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            auto xc = camera->worldToScreenPoint(sofa::type::Vec3(1, 0, 0));
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(getRotationCoef(xc), 0., 0., 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(getRotationCoef(sofa::type::Vec3(1., 0., 0.)), 0., 0., 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -409,8 +403,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         else if (axisClicked[1])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            auto yc = camera->worldToScreenPoint(sofa::type::Vec3(0, 1, 0));
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., getRotationCoef(yc), 0., 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., getRotationCoef(sofa::type::Vec3(0., 1., 0.)), 0., 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -418,19 +411,18 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         else if (axisClicked[2])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            auto zc = camera->worldToScreenPoint(sofa::type::Vec3(0, 0, 1));
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., getRotationCoef(zc), 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., getRotationCoef(sofa::type::Vec3(0., 0., 1.)), 1.);
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
-    }
 
-    if (rotate)
-    {
-        // TODO: This should be done in rotateCameraAroundPoint()
-        auto orientation = camera->getOrientation();
-        orientation.normalize();
-        camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
+        if (rotate)
+        {
+            // TODO: This should be done in rotateCameraAroundPoint()
+            auto orientation = camera->getOrientation();
+            orientation.normalize();
+            camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0., 0., -distance)), orientation);
+        }
     }
 
     // Hides and grabs the cursor, providing virtual and unlimited cursor movement.
