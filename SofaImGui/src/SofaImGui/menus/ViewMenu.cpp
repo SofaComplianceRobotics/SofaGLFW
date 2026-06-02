@@ -161,7 +161,7 @@ void ViewMenu::showOriginFrame(const bool& show)
                 auto bboxSize = bbox.maxBBox() - bbox.minBBox();
                 auto lineSize = floor(*std::max_element(bboxSize.begin(), bboxSize.end()) * 10);
                 auto newOriginFrame = sofa::core::objectmodel::New<sofa::component::visual::LineAxis>();
-                guiNode->addObject(newOriginFrame);
+                guiNode->addObject(newOriginFrame, sofa::core::objectmodel::TypeOfInsertion::AtBegin);
                 newOriginFrame->setName("ViewportOriginFrame");
                 newOriginFrame->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
                 newOriginFrame->d_enable.setValue(show);
