@@ -36,7 +36,10 @@
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 
+
 namespace sofaimgui::windows {
+
+const static int NOT_MODIFYING_ROW = -1;
 
 SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindowOpen)
     : BaseWindow(name, isWindowOpen)
@@ -108,7 +111,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
             }
             else {
                 toRemove.push_back(popup);
-                m_modifyingRow = -1;
+                m_modifyingRow = NOT_MODIFYING_ROW;
             }
         }
 
@@ -156,7 +159,7 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
             }
             else {
                 toRemove.push_back(popup);
-                m_modifyingRow = -1;
+                m_modifyingRow = NOT_MODIFYING_ROW;
             }
         }
 
@@ -1181,7 +1184,7 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                                 sofa::core::objectmodel::BaseObjectDescription desc;
                                 desc.setName(componentClassName);
                                 creator->createInstance(node, &desc);
-                                m_modifyingRow = -1;
+                                m_modifyingRow = NOT_MODIFYING_ROW;
                             }
                         }
 
@@ -1190,7 +1193,7 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                     else
                     {
                         if (comboWasOpen)
-                            m_modifyingRow = -1;
+                            m_modifyingRow = NOT_MODIFYING_ROW;
                     }
 
                     ImGui::PopItemWidth();
@@ -1238,7 +1241,7 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
             ImGui::SetFocusID(ImGui::GetItemID(), ImGui::GetCurrentWindow());
         }
         m_renaming = true;
-        m_modifyingRow = -1;
+        m_modifyingRow = NOT_MODIFYING_ROW;
         open = m_renamingTreeOpen;
 
         if (ImGui::IsKeyPressed(ImGuiKey_Enter)) // Validate renaming
