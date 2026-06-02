@@ -221,6 +221,17 @@ void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_programWindow.setBaseGUI(baseGUI);
 }
 
+void ImGuiGUIEngine::setupIOConfig()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.IniFilename = nullptr; // prevent imgui from exporting imgui.ini file
+
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+}
+
 void ImGuiGUIEngine::init()
 {
     IMGUI_CHECKVERSION();
@@ -228,12 +239,7 @@ void ImGuiGUIEngine::init()
     ImPlot::CreateContext();
     NFD_Init();
 
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    io.IniFilename = nullptr; // prevent imgui from exporting imgui.ini file
-
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    setupIOConfig();
 
     iniGUISettings.SetUnicode();
     if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getSettingsIniFile()))

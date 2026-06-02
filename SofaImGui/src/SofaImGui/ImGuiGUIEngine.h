@@ -133,6 +133,7 @@ protected:
     CSimpleIniA iniGUISettings;
 
     void initDockSpace(const bool& firstTime);
+    void setupIOConfig();
     void changeWorkbench(Workbench wb);
 
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);

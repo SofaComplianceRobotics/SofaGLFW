@@ -410,18 +410,16 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
 
     const auto& nodeName = node->getName();
     const bool& isDeactivated = !node->is_activated.getValue();
-    const bool isNodeSelected = m_selection.contains(node);
-    const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && (m_showSearch || m_showFiltered);
+    const bool isNodeSelected = m_selection.contains(node) && !m_renaming;
+    const bool isNodeHighlighted = !filter.Filters.empty() && filter.PassFilter(nodeName.c_str()) && (m_showSearch || m_showFiltered) && !m_renaming;
 
     if (isDeactivated)
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-    if (!m_renaming)
-    {
-        if (isNodeSelected)
-            ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
-        if (isNodeHighlighted)
-            ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
-    }
+
+    if (isNodeSelected)
+        ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
+    if (isNodeHighlighted)
+        ImGui::PushStyleColor(ImGuiCol_Text, filteredColor);
 
     std::string nodeIcon = ICON_FA_SITEMAP " ";
 
@@ -487,8 +485,7 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         }
     }
 
-    if (!m_renaming)
-        ImGui::PopStyleColor(isNodeHighlighted + isNodeSelected);
+    ImGui::PopStyleColor(isNodeHighlighted + isNodeSelected);
 
     ImGui::TableNextColumn();
     ImGui::TextDisabled("Node"); // Class Name
@@ -587,12 +584,13 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, so
 
             ImGui::PushID(i++);
 
-            if (!(m_renaming && object == m_renamingObject))
+            bool changeColor = !(m_renaming && object == m_renamingObject);
+            if (changeColor)
                 ImGui::PushStyleColor(ImGuiCol_Text, isObjectSelected? selectedColor: objectColor);
             if (workbench == Workbench::SCENE_EDITOR && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()) && highlightRow)
                 ImGui::AlignTextToFramePadding();
             const bool objectOpen = showName(object, std::string(icon + " "), "", objectFlags);
-            if (!(m_renaming && object == m_renamingObject))
+            if (changeColor)
                 ImGui::PopStyleColor();
 
             ImGui::PopID();
@@ -1262,8 +1260,11 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
     if (m_modifyingRow != ImGui::TableGetRowIndex()) // Do not check focus if the row is being modified (context menu open etc.)
     {
         if (m_renamingObject == object &&
-            (ImGui::IsMouseClicked(ImGuiMouseButton_Right) || (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemClicked(ImGuiMouseButton_Left)))
-           ) // Loose focus
+            (ImGui::IsKeyPressed(ImGuiKey_Escape) ||
+             ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||
+             (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            )
+           ) // Loose focus. We need to implement it ourselves for the contextual menu case
         {
             m_renaming = false;
             m_renamingObject = nullptr;

@@ -121,15 +121,10 @@ void setDeepDarkStyle()
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
     colors[ImGuiCol_TabHovered]             = ImVec4(0.14f, 0.25f, 0.42f, 0.75f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+    colors[ImGuiCol_NavCursor]              = ImColor(COLOR_TRANSPARENT);
 
     setStyleVars();
 }
-
-// Our palette
-// ImVec4(0.09f, 0.17f, 0.33f, 1.00f) darkest blue
-// ImVec4(0.14f, 0.25f, 0.42f, 1.00f) dark blue
-// ImVec4(0.22f, 0.45f, 0.56f, 1.00f) light blue
-// ImVec4(0.49f, 0.78f, 0.72f, 1.00f) light blue green
 
 void setLightStyle()
 {
@@ -182,6 +177,7 @@ void setLightStyle()
     colors[ImGuiCol_TableHeaderBg]          = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBg]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.96f, 0.96f, 0.96f, 0.50f);
+    colors[ImGuiCol_NavCursor]              = ImColor(COLOR_TRANSPARENT);
 
     setStyleVars();
 }
