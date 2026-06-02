@@ -44,8 +44,14 @@
 namespace sofaimgui::windows {
 
 LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+    : BaseWindow(name, isWindowOpen), m_messages(sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages())
 {
+    FooterStatusBar::getInstance().setLogStatusCallback(
+        [this]() {
+            this->setOpen(true);
+            ImGui::SetWindowFocus(this->getLabel().c_str());
+        }
+    );
 }
 
 std::string LogWindow::getDescription()
@@ -62,11 +68,10 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             unsigned int i {};
-            const auto& messages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
-            const int digits = [&messages]()
+            const int digits = [this]()
             {
                 int d = 0;
-                auto s = messages.size();
+                auto s = this->m_messages.size();
                 while (s != 0) { s /= 10; d++; }
                 return d;
             }();
@@ -104,7 +109,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
 
                     if (outputFile.is_open())
                     {
-                        for (const auto& message : messages)
+                        for (const auto& message : m_messages)
                         {
                             static std::unordered_map<sofa::helper::logging::Message::Type, std::string> labelMap {
                                     {sofa::helper::logging::Message::Advice, "SUGGESTION"},
@@ -144,7 +149,7 @@ void LogWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindow
                 ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("sender", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("message", ImGuiTableColumnFlags_WidthStretch);
-                for (const auto& message : messages)
+                for (const auto& message : m_messages)
                 {
                     if (!showInfo && message.type() == sofa::helper::logging::Message::Info)
                     {

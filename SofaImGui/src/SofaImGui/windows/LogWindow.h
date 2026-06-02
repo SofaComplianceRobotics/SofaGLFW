@@ -42,5 +42,8 @@ namespace sofaimgui::windows
 
         void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
         std::string getDescription() override;
+
+    private:
+        const std::vector<sofa::helper::logging::Message>& m_messages;
     };
 }
