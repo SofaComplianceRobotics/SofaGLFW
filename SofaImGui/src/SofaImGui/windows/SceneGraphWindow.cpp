@@ -1221,10 +1221,12 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().FramePadding.x); // Add padding
     bool isRenamingAllowed = workbench == Workbench::SCENE_EDITOR && !object->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
 
-    if (isRenamingAllowed && ImGui::IsKeyPressed(ImGuiKey_F2) && m_selection.contains(object))
+    static bool focusOnRenamingInputText = false;
+    if (isRenamingAllowed && (ImGui::IsKeyPressed(ImGuiKey_F2) || m_renaming) && m_selection.contains(object))
     {
         m_renaming = true;
         m_renamingObject = object;
+        focusOnRenamingInputText = true;
     }
 
     bool open = false;
@@ -1234,12 +1236,13 @@ bool SceneGraphWindow::showName(sofa::core::objectmodel::Base *object,
     {
         std::string newName = object->getName();
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+        if (focusOnRenamingInputText) // TODO: this should be a flag in InputText
+        {
+            ImGui::SetKeyboardFocusHere(0); // Set keyboard focus on next item (renaming InputText)
+            focusOnRenamingInputText = false;
+        }
         ImGui::InputText("##RenamingNode", &newName, ImGuiInputTextFlags_AutoSelectAll);
         ImGui::PopStyleVar();
-        if (!m_renaming)
-        {
-            ImGui::SetFocusID(ImGui::GetItemID(), ImGui::GetCurrentWindow());
-        }
         m_renaming = true;
         m_modifyingRow = NOT_MODIFYING_ROW;
         open = m_renamingTreeOpen;
