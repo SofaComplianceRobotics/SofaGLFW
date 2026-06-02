@@ -52,6 +52,8 @@ protected:
     std::string m_fileToOpen;
     std::string m_fileToOpenPopUpLabel{"Open##FiletoTopen"};
 
+    std::string m_name = "##FooterStatusBar";
+
 };
 
 }

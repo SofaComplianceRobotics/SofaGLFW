@@ -41,11 +41,11 @@ FooterStatusBar &FooterStatusBar::getInstance()
 void FooterStatusBar::showFooterStatusBar()
 {
     ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoNavFocus;
     float height = ImGui::GetFrameHeight();
 
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetColorU32(ImGuiCol_Header));
-    if (ImGui::BeginViewportSideBar("##FooterStatusBar", viewport, ImGuiDir_Down, height, window_flags))
+    if (ImGui::BeginViewportSideBar(m_name.c_str(), viewport, ImGuiDir_Down, height, window_flags))
     {
         if (ImGui::BeginMenuBar())
         {
@@ -68,7 +68,7 @@ void FooterStatusBar::showTempMessageOnStatusBar()
     static float infoRefreshTime = 0.;
     float messageLifeSpan = m_tempMessagePath.empty()? m_tempMessageLifeSpan: m_tempMessageLifeSpan*2.;
 
-    if (ImGui::Begin("##FooterStatusBar"))
+    if (ImGui::Begin(m_name.c_str()))
     {
         if (ImGui::BeginMenuBar())
         {
