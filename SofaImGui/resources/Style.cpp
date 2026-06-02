@@ -45,7 +45,7 @@ void setStyleVars()
     style.PopupBorderSize                   = 2;
     style.FrameBorderSize                   = 0;
     style.TabBorderSize                     = 0;
-    style.DockingSeparatorSize              = 2;
+    style.DockingSeparatorSize              = 5;
 
     style.WindowRounding                    = 14;
     style.ChildRounding                     = 14;
@@ -106,8 +106,8 @@ void setDeepDarkStyle()
     colors[ImGuiCol_Separator]              = ImVec4(0.34f, 0.34f, 0.34f, 0.55f);
     colors[ImGuiCol_SeparatorActive]        = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_SeparatorHovered]       = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-    colors[ImGuiCol_ResizeGrip]             = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
-    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_TRANSPARENT);
+    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
     colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.48f, 0.48f, 0.48f, 1.00f);
     colors[ImGuiCol_Tab]                    = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
     colors[ImGuiCol_TabUnfocused]           = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
@@ -168,9 +168,9 @@ void setLightStyle()
     colors[ImGuiCol_Header]                 = ImColor(COLOR_GREY);
     colors[ImGuiCol_HeaderActive]           = ImColor(COLOR_GREY);
     colors[ImGuiCol_HeaderHovered]          = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
-    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_DARK_GREY);
-    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_TRANSPARENT);
+    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
     colors[ImGuiCol_Tab]                    = ImColor(COLOR_GREY);
     colors[ImGuiCol_TabUnfocused]           = ImColor(COLOR_GREY);
