@@ -44,10 +44,8 @@
 namespace sofaimgui::windows {
 
 LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
-    m_defaultIsOpen = false;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string LogWindow::getDescription()

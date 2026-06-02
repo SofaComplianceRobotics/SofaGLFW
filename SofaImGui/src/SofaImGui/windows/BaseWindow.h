@@ -79,6 +79,7 @@ class SOFAIMGUI_API BaseWindow
 {
    public:
     BaseWindow();
+    BaseWindow(std::string name, bool defaultIsOpen);
     ~BaseWindow() = default;
 
     /// Implements the drawing of the window
@@ -109,19 +110,19 @@ class SOFAIMGUI_API BaseWindow
     /// Returns true if the window is enabled in the current workbench
     bool isEnabledInWorkbench();
 
-   protected:
-
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool enabled() {return true;}
+    virtual bool isEnabledByState() {return true;}
+
+   protected:
 
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
 
     bool m_isOpen{false}; /// The user choice to open the window or not
+    bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
-    bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
 
 };

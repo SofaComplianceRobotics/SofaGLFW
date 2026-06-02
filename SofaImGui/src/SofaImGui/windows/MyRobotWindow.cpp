@@ -38,13 +38,10 @@ namespace sofaimgui::windows {
 std::string MyRobotWindow::DEFAULTGROUP = "empty";
 
 MyRobotWindow::MyRobotWindow(const std::string& name,
-                         const bool& isWindowOpen)
+                             const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string MyRobotWindow::getDescription()
@@ -140,7 +137,7 @@ void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
     }
 }
 
-bool MyRobotWindow::enabled()
+bool MyRobotWindow::isEnabledByState()
 {
     return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
 }
@@ -153,7 +150,7 @@ void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 ImGui::Spacing();
 

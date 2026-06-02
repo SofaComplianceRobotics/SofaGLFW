@@ -35,12 +35,10 @@ namespace sofaimgui::windows {
 
 MoveWindow::MoveWindow(const std::string& name,
                          const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
 
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
     m_moveType = MoveType::SLIDERS;
 
     m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
@@ -116,7 +114,7 @@ void MoveWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindo
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 if (m_IPController != nullptr)
                 {

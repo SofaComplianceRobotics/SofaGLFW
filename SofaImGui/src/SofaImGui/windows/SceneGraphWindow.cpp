@@ -39,12 +39,9 @@
 namespace sofaimgui::windows {
 
 SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
-
-    m_defaultIsOpen = false;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string SceneGraphWindow::getDescription()
@@ -560,7 +557,7 @@ void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, so
         if (!onlySpecial || (isObjectFiltered && !filter.Filters.empty()))
             isObjectFiltered = (filter.PassFilter(objectName.c_str()) || filter.PassFilter(objectClassName.c_str()));
 
-        const bool isObjectHighlighted = (!filter.Filters.empty() || onlySpecial) && isObjectFiltered && (m_showSearch || m_showFiltered);
+        const bool isObjectHighlighted = (!filter.Filters.empty() || (onlySpecial && m_showFiltered)) && isObjectFiltered && (m_showSearch || m_showFiltered);
         const bool isObjectHidden = (!filter.Filters.empty() || onlySpecial) && !isObjectFiltered && m_showFiltered;
 
         if (!isObjectHidden)

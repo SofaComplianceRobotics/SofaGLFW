@@ -108,6 +108,7 @@ public:
 
     void moveRayPickInteractor(int eventX, int eventY) override ;
     void setMousePos(int xpos, int ypos);
+    void setDisabledMouse(bool constraint);
 
     bool initRecorder(int width, int height,
                       unsigned int framerate=60, unsigned int bitrate=2000000,

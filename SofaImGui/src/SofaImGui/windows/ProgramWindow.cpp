@@ -53,12 +53,9 @@ using sofa::type::Quat;
 
 ProgramWindow::ProgramWindow(const std::string& name,
                              const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ProgramWindow::getDescription()
@@ -101,7 +98,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 if (!isEnabledInWorkbench())
                 {
