@@ -19,13 +19,15 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+
 #include "GUIColors.h"
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/widgets/Widgets.h>
-#include <imgui_internal.h>
-#include <sofa/helper/system/FileSystem.h>
-#include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <imgui_internal.h>
+
+#include <sofa/helper/logging/Messaging.h>
+#include <sofa/helper/system/FileSystem.h>
 #include <sofa/version.h>
 
 #include <filesystem>
@@ -52,12 +54,15 @@ void FooterStatusBar::showFooterStatusBar()
             // Display the software version in the right of the status bar
             std::string version = "SOFA v" + std::string(SOFA_VERSION_STR);
             float length = ImGui::CalcTextSize(version.c_str()).x;
-            float right = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - length - 2 * ImGui::GetStyle().ItemSpacing.x;
-            ImGui::SetCursorPosX(right); // Set the position to the middle of the bar
+            float right = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - length - 2 * ImGui::GetStyle().ItemSpacing.x; // Set the position to the right of the bar
+            ImGui::SetCursorPosX(right);
             ImGui::TextDisabled("%s", version.c_str());
 
             ImGui::EndMenuBar();
         }
+
+        showLogStatus();
+
         ImGui::End();
     }
     ImGui::PopStyleColor();
@@ -215,6 +220,76 @@ void FooterStatusBar::setTempMessage(const std::string &message, const MessageTy
         break;
     }
     }
+}
+
+void FooterStatusBar::showLogStatus()
+{
+    // update log status if logs have changed
+    if (m_previousMessagesCount < m_messages.size())
+    {
+        auto higherStatus = std::max_element(m_messages.begin() + m_previousMessagesCount,
+                                            m_messages.end(),
+                                            [](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
+        if(higherStatus->type() > m_logStatus)
+            m_logStatus = higherStatus->type();
+    }
+
+    // show button if needed
+    if (m_logStatus >= sofa::helper::logging::Message::Type::Deprecated)
+    {
+        if (ImGui::Begin("##FooterStatusBar"))
+        {
+            if (ImGui::BeginMenuBar())
+            {
+                const char* icon;
+                ImColor color;
+                if (m_logStatus >= sofa::helper::logging::Message::Type::Error) 
+                {
+                    icon = ICON_FA_CIRCLE_EXCLAMATION;
+                    color = ImColor(COLOR_RED);
+                }
+                else if (m_logStatus >= sofa::helper::logging::Message::Type::Warning) 
+                {
+                    icon = ICON_FA_TRIANGLE_EXCLAMATION;
+                    color = ImColor(COLOR_ORANGE);
+                }
+                else 
+                {
+                    icon = ICON_FA_CIRCLE_INFO;
+                    color = ImColor(COLOR_BLUE);
+                }
+                
+                float left = ImGui::GetStyle().ItemSpacing.x; // Set the position to the right of the bar
+                ImGui::SetCursorPosX(left);
+
+                ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
+                ImGui::PushStyleColor(ImGuiCol_ButtonText, color.Value);
+
+                if (ImGui::Button(icon))
+                {
+                    m_logStatusCallback();
+                }
+                ImGui::SetItemTooltip("Open Log");
+
+                ImGui::SameLine(0,0);
+                ImGui::TextDisabled("Check Logs");
+
+                ImGui::PopStyleColor(4);
+
+                ImGui::EndMenuBar();
+            }
+            ImGui::End();
+        }
+    }
+
+    m_previousMessagesCount = m_messages.size();
+}
+
+void FooterStatusBar::setLogStatusCallback(std::function<void()> f)
+{
+    m_logStatusCallback = f;
 }
 
 }
