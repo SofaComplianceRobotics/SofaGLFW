@@ -37,12 +37,9 @@ namespace sofaimgui::windows {
 
 PlottingWindow::PlottingWindow(const std::string& name,
                                const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string PlottingWindow::getDescription()
@@ -116,7 +113,7 @@ void PlottingWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
         {
-            if (!isEnabledInWorkbench() || !enabled())
+            if (!isEnabledInWorkbench() || !isEnabledByState())
                 showInfoMessage("This window is used to plot data over time. It currently has no data registered or is disabled in the active workbench.");
 
             if (!isEnabledInWorkbench())
@@ -147,7 +144,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
 
     // Export csv button
-    if (!enabled())
+    if (!isEnabledByState())
         ImGui::BeginDisabled();
 
     if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
@@ -155,7 +152,7 @@ void PlottingWindow::showButtons()
         exportData();
     }
 
-    if (!enabled())
+    if (!isEnabledByState())
     {
         ImGui::SetItemTooltip("No values to export");
         ImGui::EndDisabled();
