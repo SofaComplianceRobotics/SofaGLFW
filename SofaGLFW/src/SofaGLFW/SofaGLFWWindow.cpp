@@ -171,6 +171,8 @@ void SofaGLFWWindow::resetSimulationView(sofaglfw::SofaGLFWBaseGUI *baseGUI)
                     msg_error("GUI") << "Could not import camera parameters from " << viewFileName << ".";
                 }
             }
+            // TODO: lookAt should be correctly initialized in BaseCamera
+            camera->d_lookAt.setValue(camera->getLookAtFromOrientation(camera->getPosition(), camera->getDistance(), camera->getOrientation()));
         }
     }
 }
