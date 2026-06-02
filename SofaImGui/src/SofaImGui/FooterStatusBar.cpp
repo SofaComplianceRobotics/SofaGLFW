@@ -227,9 +227,9 @@ void FooterStatusBar::showLogStatus()
     // update log status if logs have changed
     if (m_previousMessagesCount < m_messages.size())
     {
-        auto higherStatus = std::max_element(m_messages.begin() + m_previousMessagesCount, 
-                                                m_messages.end(), 
-                                                [this](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
+        auto higherStatus = std::max_element(m_messages.begin() + m_previousMessagesCount,
+                                            m_messages.end(),
+                                            [](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
         if(higherStatus->type() > m_logStatus)
             m_logStatus = higherStatus->type();
     }
@@ -267,12 +267,14 @@ void FooterStatusBar::showLogStatus()
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
                 ImGui::PushStyleColor(ImGuiCol_ButtonText, color.Value);
 
-                if (ImGui::LocalButton(icon))
+                if (ImGui::Button(icon))
                 {
-                    m_logStatusOnClick();
+                    m_logStatusCallback();
                 }
+                ImGui::SetItemTooltip("Open Log");
 
-                ImGui::SetItemTooltip("Check the logs");
+                ImGui::SameLine(0,0);
+                ImGui::TextDisabled("Check Logs");
 
                 ImGui::PopStyleColor(4);
 
@@ -287,7 +289,7 @@ void FooterStatusBar::showLogStatus()
 
 void FooterStatusBar::setLogStatusCallback(std::function<void()> f)
 {
-    m_logStatusOnClick = f;
+    m_logStatusCallback = f;
 }
 
 }
