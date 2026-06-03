@@ -107,7 +107,7 @@ void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiW
                 ImGui::InputInt("##FrameInput", &m_selectedFrame);
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
-                m_selectedFrame = std::clamp(m_selectedFrame, 0, int(allRecords.size()) - 1);
+                m_selectedFrame = std::clamp(m_selectedFrame, 0, std::max(0, int(allRecords.size()) - 1));
                 ImGui::SameLine();
                 ImGui::TextDisabled("(duration in ms: %0.2f)", m_selectedFrameDuration);
 
