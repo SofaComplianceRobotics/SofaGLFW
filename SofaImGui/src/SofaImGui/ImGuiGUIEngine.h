@@ -97,7 +97,7 @@ public:
 
     std::shared_ptr<windows::StateWindow> m_stateWindow = std::make_shared<windows::StateWindow>("State", false);
 
-    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true, m_stateWindow);
+    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", true);
     windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", true);
     windows::LogWindow          m_logWindow          = windows::LogWindow("Log", true);

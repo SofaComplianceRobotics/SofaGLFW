@@ -32,7 +32,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 {
    public:
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow);
+    ViewportWindow(const std::string& name, const bool& isWindowOpen);
     ~ViewportWindow() = default;
 
     void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
@@ -51,7 +51,6 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
    protected:
 
-    std::shared_ptr<StateWindow> m_stateWindow;
     float m_fps{0.f};
 
     bool m_isMouseOnViewport{false};
@@ -59,7 +58,6 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     double m_maxPanelItemWidth{0.0};
 
-    void addStateWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags);
     void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
     void addRecordingStatus(const ImVec4 &red);
     bool checkCamera(sofa::simulation::Node* groot);
