@@ -634,6 +634,8 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
     if (ImGui::BeginMainMenuBar())
     {
+        ImGui::GetCurrentWindow()->Flags |= ImGuiWindowFlags_NoNavFocus;
+
         { // File menu
             menus::FileMenu fileMenu = menus::FileMenu(baseGUI);
             fileMenu.addMenu();
@@ -817,7 +819,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 void ImGuiGUIEngine::showSecondaryMenuBar()
 {
     ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoNavFocus;
     float height = ImGui::GetFrameHeight();
 
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, COLOR_DARK_BLUE);

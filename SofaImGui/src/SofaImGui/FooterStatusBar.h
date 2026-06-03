@@ -56,10 +56,12 @@ protected:
     std::string m_fileToOpen;
     std::string m_fileToOpenPopUpLabel{"Open##FiletoTopen"};
 
-    const std::vector<sofa::helper::logging::Message>& m_messages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
+    std::string m_name = "##FooterStatusBar";
+
+    const std::vector<sofa::helper::logging::Message>& m_logMessages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
     sofa::helper::logging::Message::Type m_logStatus = sofa::helper::logging::Message::Type::Info;
     std::function<void()> m_logStatusCallback = nullptr;
-    size_t m_previousMessagesCount = 0;
+    size_t m_previousLogMessagesCount = 0;
 
 };
 

@@ -38,9 +38,8 @@
 
 namespace sofaimgui::windows {
 
-ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen, std::shared_ptr<StateWindow> stateWindow)
+ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen)
     : BaseWindow(name, isWindowOpen)
-    , m_stateWindow(stateWindow)
 {
 }
 
@@ -85,7 +84,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
 
                 if (workbench != Workbench::SCENE_EDITOR)
                 {
-                    addStateWindow(baseGUI, windowFlags);
                     addSimulationTimeAndFPS(groot);
                 }
 
@@ -98,13 +96,6 @@ void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
         }
         ImGui::End();
     }
-}
-
-void ViewportWindow::addStateWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                    const ImGuiWindowFlags& windowFlags)
-{
-    ImGui::SetNextWindowPos(ImGui::GetWindowPos());  // attach the state window to top left of the viewport window
-    m_stateWindow->showWindow(baseGUI, windowFlags);
 }
 
 bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
@@ -481,35 +472,38 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            auto position = ImGui::GetWindowPos();
-            position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
-            position.y += ImGui::GetStyle().FramePadding.y;
-            ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
-
-            // Middle buttons background
-            // Clip down
-            auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-            color.w = 0.6f;
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
-
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
-                ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
+                auto position = ImGui::GetWindowPos();
+                position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
+                position.y += ImGui::GetStyle().FramePadding.y;
+                ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
 
-                if (ImGui::IsItemClicked())
+                // Middle buttons background
+                // Clip down
+                auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+                color.w = 0.6f;
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
+
+                if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
                 {
-                    *animate = !*animate;
-                    isItemClicked = true;
+                    ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
+                    ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
+
+                    if (ImGui::IsItemClicked())
+                    {
+                        *animate = !*animate;
+                        isItemClicked = true;
+                    }
                 }
+                ImGui::EndChild();
+
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar();
             }
-
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-
             ImGui::EndChild();
         }
         ImGui::End();
@@ -526,15 +520,18 @@ bool ViewportWindow::addStepButton()
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::SameLine();
-                ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
-                    isItemClicked = true;
-                ImGui::PopItemFlag();
-                ImGui::SetItemTooltip("One step of simulation");
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
+                    if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
+                        isItemClicked = true;
+                    ImGui::PopItemFlag();
+                    ImGui::SetItemTooltip("One step of simulation");
+                }
+                ImGui::EndChild();
             }
             ImGui::EndChild();
         }
@@ -552,13 +549,16 @@ bool ViewportWindow::addReloadButton()
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::SameLine();
-                if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
-                    isItemClicked = true;
-                ImGui::SetItemTooltip("Reload the simulation");
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
+                        isItemClicked = true;
+                    ImGui::SetItemTooltip("Reload the simulation");
+                }
+                ImGui::EndChild();
             }
             ImGui::EndChild();
         }
@@ -576,18 +576,21 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(m_maxPanelItemWidth);
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
-                ImGui::PopStyleColor(3);
-                ImGui::PopItemWidth();
-                ImGui::SetItemTooltip("Choose a window to drive the TCP target");
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(m_maxPanelItemWidth);
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+                    ImGui::PopStyleColor(3);
+                    ImGui::PopItemWidth();
+                    ImGui::SetItemTooltip("Choose a window to drive the TCP target");
+                }
+                ImGui::EndChild();
             }
             ImGui::EndChild();
         }
@@ -630,9 +633,8 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
                 }
-
-                ImGui::EndChild();
             }
+            ImGui::EndChild();
         }
         ImGui::End();
     }
@@ -659,9 +661,8 @@ void ViewportWindow::addRecordingStatus(const ImVec4& red)
                 ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::Text("%s", text.c_str());
                 ImGui::PopStyleColor();
-
-                ImGui::EndChild();
             }
+            ImGui::EndChild();
         }
         ImGui::End();
     }
