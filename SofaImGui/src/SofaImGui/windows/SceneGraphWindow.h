@@ -87,7 +87,7 @@ protected:
     void addComponentContextMenu(sofa::core::objectmodel::BaseObject*component);
     void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
-    std::string getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
+    std::string getObjectIconAlert(sofa::core::Base *object, ImVec4& objectColor, std::string& icon);
     void updateSelection(sofa::core::objectmodel::Base::SPtr object);
 
     void highlightOglModels(sofa::simulation::Node *node);
