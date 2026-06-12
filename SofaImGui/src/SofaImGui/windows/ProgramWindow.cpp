@@ -132,11 +132,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                     }
 
                     int nbCollaspedTracks = showTracks();
-
-                    if (m_timeBasedDisplay)
-                        showCursorMarker(nbCollaspedTracks);
-                    else // Keep the space the cursor marker would have taken, empty
-                        ImGui::NewLine();
+                    showCursorMarker(nbCollaspedTracks);
 
                     ImGui::PopStyleVar();
                 }
@@ -163,8 +159,7 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
             else
             {
                 showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
-                               "The scene is missing elements for this window to work properly. "
-                               );
+                                "The scene is missing elements for this window to work properly.");
             }
         }
         ImGui::End();
@@ -897,6 +892,11 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         if (m_program.isEmpty())
             return;
 
+        // Always start from the cursor's position and clamp time to the program's duration
+        m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
+        m_time = std::clamp(m_time, 0., m_program.getDuration());
+        groot->setTime(m_time);
+
         double eps = 1e-5;
         static bool reverse = false;
         double dt = reverse? -groot->getDt(): groot->getDt();
@@ -947,10 +947,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             }
         }
 
-        m_time = groot->getTime(); // time at the beginning of the time step
-
         stepProgram(dt, reverse);
-
         m_time += dt; // for cursor display
     } // isDrivingSimulation
 }
