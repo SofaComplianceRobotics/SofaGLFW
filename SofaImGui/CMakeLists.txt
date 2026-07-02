@@ -46,7 +46,9 @@ else()
     FetchContent_MakeAvailable(nfd)
     set_property(TARGET nfd  PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_target_properties(nfd PROPERTIES LINKER_LANGUAGE CXX)
-    add_library(nfd::nfd ALIAS nfd) # introduced in nfd >= v1.2.1
+endif()
+if(TARGET nfd AND NOT TARGET nfd::nfd)
+  add_library(nfd::nfd ALIAS nfd) # introduced in nfd >= v1.2.1
 endif()
 
 
@@ -237,8 +239,6 @@ add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_HEADE
 )
 target_include_directories(${PROJECT_NAME} PRIVATE ${QPOASES_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>")
-target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D ${CMAKE_DL_LIBS})
-target_link_libraries(${PROJECT_NAME} PRIVATE nfd)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D Sofa.Component.Playback SoftRobots SoftRobots.Inverse ${CMAKE_DL_LIBS})
 set_target_properties(nfd PROPERTIES LINKER_LANGUAGE CXX)
