@@ -115,8 +115,8 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                 static float minSize = ImGui::GetFrameHeight() * 1.5;
                 ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
                 ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
                 if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
                 {
                     ImGui::PopStyleColor();
@@ -132,7 +132,9 @@ void ProgramWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWi
                     }
 
                     int nbCollaspedTracks = showTracks();
-                    showCursorMarker(nbCollaspedTracks);
+
+                    if (m_timeBasedDisplay)
+                        showCursorMarker(nbCollaspedTracks);
 
                     ImGui::PopStyleVar();
                 }
@@ -195,9 +197,7 @@ void ProgramWindow::showProgramButtons()
 
     if (ImGui::Button("Restart"))
     {
-        auto groot = m_baseGUI->getRootNode().get();
-        groot->setTime(0.);
-        m_time = 0.f;
+        setTime(0);
 
         for (const auto& track: m_program.getTracks())
         {
@@ -322,9 +322,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (value_changed)
     {
         ImGui::MarkItemEdited(id);
-        const auto& groot = m_IPController->getRootNode().get();
-        m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
-        groot->setTime(m_time);
+        setTime(m_cursorPos / ProgramSizes().TimelineOneSecondSize);
         stepProgram();
     }
 
@@ -893,9 +891,9 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             return;
 
         // Always start from the cursor's position and clamp time to the program's duration
-        m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
-        m_time = std::clamp(m_time, 0., m_program.getDuration());
-        groot->setTime(m_time);
+        double time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
+        time = std::clamp(time, 0., m_program.getDuration());
+        setTime(time);
 
         double eps = 1e-5;
         static bool reverse = false;
@@ -907,8 +905,9 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             const auto& modifiers = track->getModifiers();
             for (const auto& modifier: modifiers)
             {
-                modifier->modify(m_time);
-                groot->setTime(m_time);
+                double time = m_time;
+                modifier->modify(time);
+                setTime(time);
             }
         }
 
@@ -916,7 +915,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         {
             if (m_repeat) // start from beginning
             {
-                groot->setTime(0.);
+                setTime(0.);
 
                 for (const auto& track: m_program.getTracks())
                 {
@@ -932,8 +931,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             }
             else // nothing to do, exit
             {
-                groot->setTime(programDuration);
-                m_time = programDuration;
+                setTime(programDuration);
                 return;
             }
         }
@@ -957,6 +955,12 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
     SOFA_UNUSED(groot);
     if (isDrivingSimulation())
         groot->setTime(m_time);
+}
+
+void ProgramWindow::setTime(const double &time)
+{
+    m_time = time;
+    m_baseGUI->getRootNode().get()->setTime(m_time);
 }
 
 void ProgramWindow::setIPController(models::IPController::SPtr IPController)

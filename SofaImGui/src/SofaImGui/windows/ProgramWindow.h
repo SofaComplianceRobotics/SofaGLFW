@@ -52,7 +52,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
 
-    void setTime(const double &time) {m_time=time;}
     void setIPController(models::IPController::SPtr IPController);
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
@@ -134,6 +133,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void loadAndProcessWindowSettings();
 
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
+    void setTime(const double &time);
 
 };
 
