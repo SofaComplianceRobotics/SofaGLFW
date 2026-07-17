@@ -89,6 +89,16 @@ void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Ind
     Action::deleteFromTrack(track, actionIndex);
 }
 
+void Move::swapWith(std::shared_ptr<actions::Action> action)
+{
+    auto move = std::dynamic_pointer_cast<Move>(action);
+    if(move)
+    {
+        move->setInitialPoint(this->getInitialPoint());
+        this->setInitialPoint(move->getWaypoint());
+    }
+}
+
 void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
 {
     if (groot)

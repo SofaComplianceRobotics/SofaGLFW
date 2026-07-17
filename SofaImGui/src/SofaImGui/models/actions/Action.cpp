@@ -51,6 +51,11 @@ void Action::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::I
         dmsg_error("Track") << "actionIndex";
 }
 
+void Action::swapWith(std::shared_ptr<Action> action)
+{
+    SOFA_UNUSED(action);
+}
+
 } // namespace
 
 

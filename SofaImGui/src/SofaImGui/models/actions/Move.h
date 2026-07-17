@@ -67,6 +67,7 @@ class Move : public StartMove
     void pushToTrack(std::shared_ptr<models::Track> track) override;
     void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
     void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+    void swapWith(std::shared_ptr<Action> action) override;
 
    protected:
 
