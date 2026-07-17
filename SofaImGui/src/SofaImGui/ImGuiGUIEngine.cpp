@@ -305,6 +305,8 @@ void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_REGULAR_400_compressed_data, FA_REGULAR_400_compressed_size, 12 * yscale, &configFA);
         io.Fonts->AddFontFromMemoryCompressedTTF(FA_SOLID_900_compressed_data, FA_SOLID_900_compressed_size, 12 * yscale, &configFA);
         io.Fonts->AddFontFromMemoryCompressedTTF(DejaVuSans_compressed_data, DejaVuSans_compressed_size, 12 * yscale, &configDejaVu);
+    
+        io.ConfigDebugHighlightIdConflicts = false;
     }
 
     glGenBuffers(s_NB_PBOS, m_pbos);
