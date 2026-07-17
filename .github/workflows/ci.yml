@@ -5,10 +5,8 @@ on:
   pull_request:
   push:
     branches: 
-      - robotics
-  schedule:
-    - cron: '0 3 * * *' # nightly job at midnight UTC
-
+      - robotics-v26.06.01
+      
 jobs:
   build-and-test:
     name: Run on ${{ matrix.os }} with SOFA ${{ matrix.sofa_branch }}
