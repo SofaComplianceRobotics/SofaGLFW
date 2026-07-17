@@ -89,7 +89,10 @@ void Track::swapActions(const sofa::Index& actionIndex1, const sofa::Index& acti
 {
     sofa::Size nbActions = m_actions.size();
     if (actionIndex1 <= nbActions - 1 && actionIndex2 <= nbActions - 1)
+    {
         iter_swap(m_actions.begin() + actionIndex1, m_actions.begin() + actionIndex2);
+        m_actions[actionIndex1]->swapWith(m_actions[actionIndex2]);
+    }
 }
 
 } // namespace
