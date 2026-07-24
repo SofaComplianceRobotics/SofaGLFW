@@ -217,6 +217,7 @@ jobs:
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             brew update 
             brew install tinyxml2
+            brew install boost@1.85
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
             mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
