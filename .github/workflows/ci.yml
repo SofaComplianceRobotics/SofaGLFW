@@ -218,7 +218,15 @@ jobs:
             export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
             brew update 
             brew install tinyxml2
-            brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/276299761e7ea545f84f8b0b184dcb3ac48b5daf/Formula/b/boost.rb
+            brew tap-new $USER/oldformulae
+            TAP="$(brew --repository $USER/oldformulae)"
+            mkdir -p "$TAP/Formula"
+            curl -L \
+              https://raw.githubusercontent.com/Homebrew/homebrew-core/276299761e7ea545f84f8b0b184dcb3ac48b5daf/Formula/b/boost.rb \
+              -o "$TAP/Formula/boost.rb"
+            sed -i '' '/no_autobump!/d' \
+              "$(brew --repository $USER/oldformulae)/Formula/boost.rb"
+            brew install $USER/oldformulae/boost
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
             TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
             mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
