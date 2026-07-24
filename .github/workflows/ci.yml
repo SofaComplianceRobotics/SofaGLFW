@@ -216,6 +216,7 @@ jobs:
             sudo apt-get -qq install libtinyxml2-dev
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+            brew uninstall boost
             brew update 
             brew install tinyxml2
             brew tap-new $USER/oldformulae
