@@ -58,7 +58,6 @@ GUIData::SPtr GUIDataManager::addGUIData(const GUIData::SPtr& guidata)
     auto inserted = m_GUIData.insert(guidata);
     if (inserted.second) // Check if the insertion was successful
     {
-
         m_groupedGUIData[guidata.get()->group].push_back(*inserted.first);
         return *inserted.first;
     }
@@ -74,6 +73,8 @@ void GUIDataManager::removeGUIData(GUIData::SPtr data)
         auto it = std::find(group.begin(), group.end(), data);
         if(it != group.end())
             group.erase(it);
+        if(group.empty())
+            m_groupedGUIData.erase(data->group);
     }
 }
 

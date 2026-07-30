@@ -33,11 +33,11 @@ class SOFAIMGUI_API GUIDataManager
 public:
     typedef std::shared_ptr<GUIDataManager> SPtr;
     virtual GUIData::SPtr addData(const std::string& label,
-                                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::string& group = GUIData::DEFAULTGROUP,
-                                                     const std::string& help = "");
+                                 const std::pair<sofa::core::BaseData*, bool>& data,
+                                 const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                 const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                                 const std::string& group = GUIData::DEFAULTGROUP,
+                                 const std::string& help = "");
     virtual GUIData::SPtr addGUIData(const GUIData::SPtr& data);
     virtual void removeGUIData(GUIData::SPtr data);
     void clearGUIData() { m_GUIData.clear(); }
