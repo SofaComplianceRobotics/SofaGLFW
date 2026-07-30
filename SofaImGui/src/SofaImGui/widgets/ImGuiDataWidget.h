@@ -160,7 +160,7 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
     }
     if(ImGui::BeginDragDropSource())
     {
-        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data));
+        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data), 0, false);
         ImGui::Text("%s", data.m_name.c_str());
         ImGui::EndDragDropSource();
     }

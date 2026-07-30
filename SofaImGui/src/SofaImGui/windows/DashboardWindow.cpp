@@ -48,8 +48,12 @@ namespace sofaimgui::windows {
         {
             if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
             {
-                dropGUIData();
+                showInfoMessage("Drag and drop data to this window (eg. from component or node window).");
                 showGUIData();
+
+                // Fill the available window space with an invisible item defining a area to drop data
+                ImGui::Dummy(ImGui::GetContentRegionAvail());
+                dropGUIData();
             }
             ImGui::End();
         }

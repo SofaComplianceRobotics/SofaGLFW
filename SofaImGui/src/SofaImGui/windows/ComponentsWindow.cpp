@@ -135,7 +135,7 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                 }
                 if(workbench == Workbench::SCENE_EDITOR && ImGui::BeginDragDropSource())
                 {
-                    ImGui::SetDragDropPayload("_COMPONENT", &name, sizeof(name));
+                    ImGui::SetDragDropPayload("_COMPONENT", &component->className, sizeof(name));
                     ImGui::Text("%s", name.c_str());
                     ImGui::EndDragDropSource();
                 }
