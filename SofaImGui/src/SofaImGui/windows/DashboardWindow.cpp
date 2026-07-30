@@ -120,7 +120,7 @@ namespace sofaimgui::windows {
 
     void DashboardWindow::addContextMenu(models::guidata::GUIData::SPtr data)
     {
-        if (ImGui::MenuItem("Delete"))
+        if (ImGui::MenuItem("Remove"))
             removeGUIData(data);
     }
 
