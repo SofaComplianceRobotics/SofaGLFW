@@ -20,7 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include <SofaImGui/windows/DataMonitorWindow.h>
+#include <SofaImGui/windows/DashboardWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <imgui_internal.h>
@@ -28,7 +28,7 @@
 
 namespace sofaimgui::windows {
 
-    DataMonitorWindow::DataMonitorWindow(const std::string& name,
+    DashboardWindow::DashboardWindow(const std::string& name,
         const bool& isWindowOpen)
     {
         m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
@@ -37,61 +37,91 @@ namespace sofaimgui::windows {
         m_isOpen = isWindowOpen;
     }
 
-    std::string DataMonitorWindow::getDescription()
+    std::string DashboardWindow::getDescription()
     {
         return "Simulation data viewer.";
     }
 
-
-    void DataMonitorWindow::showWindow(const ImGuiWindowFlags& windowFlags)
+    void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
     {
-        SOFA_UNUSED(windowFlags);
-
         if (isOpen())
         {
-            ImGuiIO& io = ImGui::GetIO();
-            const auto height = io.DisplaySize.y * 0.66; // Main window size
-            const ImVec2 defaultSize = ImVec2(height * 0.66, height);
+            if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+            {
+                dropGUIData();
+                showGUIData();
+            }
+            ImGui::End();
+        }
+    }
 
-            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
-
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2);
-            if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoDocking))
+    void DashboardWindow::showGUIData()
+    {
+        ImGui::Spacing();
+        int k = 0;
+        for (auto& itGroup : m_groupedGUIData)
+        {
+            ImGui::PushID(k++);
+            std::string groupName = itGroup.first;
+            if (ImGui::CollapsingHeader(groupName.empty()? "Misc": groupName.c_str())) // Group title
             {
                 ImGui::Indent();
-                ImGui::Spacing();
-                int k = 0;
-                for (auto& itGroup : m_groupedGUIData)
+                int i = 0;
+                for (models::guidata::GUIData::SPtr data : itGroup.second)
                 {
-                    ImGui::PushID(k++);
-                    bool firsttime = true;
-
-                    int i = 0;
-                    for (auto& data : itGroup.second)
+                    if (data)
                     {
-                        if (firsttime)
-                        {
-                            ImGui::TextDisabled("%s     ", data->group.c_str()); // Group title
-                            ImGui::Indent();
-                            firsttime = false;
-                        }
-
                         ImGui::PushID(i++);
                         {
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("%s ", data->label.c_str()); // Value description
+
+                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                                ImGui::OpenPopup("##GUIDataContextMenu");
+
+                            if (ImGui::BeginPopup("##GUIDataContextMenu"))
+                            {
+                                addContextMenu(data);
+                                ImGui::EndPopup();
+                            }
+
                             ImGui::SameLine();
-                            BaseDataWidget::showWidgetAsText(*data->getData());
+                            showWidget(*data->getData());
                         }
                         ImGui::PopID();
                     }
-                    if (!firsttime)
-                        ImGui::Unindent();
-                    ImGui::PopID();
                 }
+                ImGui::Unindent();
             }
-            ImGui::End();
-            ImGui::PopStyleVar();
+            ImGui::PopID();
         }
     }
+
+    void DashboardWindow::dropGUIData()
+    {
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
+            {
+                sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+                if (data)
+                {
+                    addData(data->getName(),
+                            std::pair<sofa::core::BaseData*, bool>(data, false),
+                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                            data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
+                            data->getHelp());
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+
+    void DashboardWindow::addContextMenu(models::guidata::GUIData::SPtr data)
+    {
+        if (ImGui::MenuItem("Delete"))
+            removeGUIData(data);
+    }
+
 } // namespace sofaimgui::windows

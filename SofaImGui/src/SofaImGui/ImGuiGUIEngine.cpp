@@ -534,6 +534,7 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
         setDockSizeFromFile(dock_id_down);
 
         ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right); // interactions with MoveWindow
+        ImGui::DockBuilderDockWindow(m_dashboardWindow.getLabel().c_str(), dock_id_right); // interactions with SceneGraphWindow
         ImGui::DockBuilderDockWindow(m_componentsWindow.getLabel().c_str(), dock_id_right); // interactions with SceneGraphWindow
 
         ImGui::DockBuilderDockWindow(m_IOWindow.getLabel().c_str(), dock_id_right_up);

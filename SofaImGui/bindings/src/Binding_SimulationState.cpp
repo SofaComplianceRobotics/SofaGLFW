@@ -46,7 +46,7 @@ void addData(std::shared_ptr<ImGuiGUIEngine> engine, const std::string& label, p
 {
     if (engine)
     {
-        engine->m_dataMonitorWindow.addData(label,
+        engine->m_dashboardWindow.addData(label,
                                             getDataFromPyObject(data, type),
                                             getDataFromPyObject(min, type),
                                             getDataFromPyObject(max, type),

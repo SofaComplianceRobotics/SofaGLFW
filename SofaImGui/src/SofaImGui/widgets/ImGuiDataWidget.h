@@ -158,6 +158,12 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
     {
         BaseDataWidget::showWidgetAsText(data);
     }
+    if(ImGui::BeginDragDropSource())
+    {
+        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data));
+        ImGui::Text("%s", data.m_name.c_str());
+        ImGui::EndDragDropSource();
+    }
     ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();

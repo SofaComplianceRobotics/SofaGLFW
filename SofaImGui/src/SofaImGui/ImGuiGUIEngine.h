@@ -40,7 +40,7 @@
 #include <SofaImGui/windows/PlottingWindow.h>
 #include <SofaImGui/windows/ProgramWindow.h>
 #include <SofaImGui/windows/ProfilerWindow.h>
-#include <SofaImGui/windows/DataMonitorWindow.h>
+#include <SofaImGui/windows/DashboardWindow.h>
 #include <SofaImGui/windows/RecordVideoWindow.h>
 #include <SofaImGui/windows/PluginsWindow.h>
 #include <SofaImGui/windows/MouseManagerWindow.h>
@@ -107,7 +107,7 @@ public:
     windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
     windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
     windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true, m_kinematicsGUIDataManager);
-    windows::DataMonitorWindow  m_dataMonitorWindow  = windows::DataMonitorWindow("Data Monitor", false);
+    windows::DashboardWindow    m_dashboardWindow    = windows::DashboardWindow("Dashboard", false);
 
     windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
     windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
@@ -130,7 +130,7 @@ protected:
                                                                         m_componentsWindow,
                                                                         m_logWindow,
                                                                         m_profilerWindow,
-                                                                        m_dataMonitorWindow
+                                                                        m_dashboardWindow
                                                                        };
 
     std::vector<std::reference_wrapper<windows::BaseWindow>> m_popupWindows{
