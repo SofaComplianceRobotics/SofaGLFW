@@ -90,7 +90,12 @@ void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::Co
     }
 }
 
-void addTCP(std::string label, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+void addTCP(std::string label,
+            softrobots::behavior::SoftRobotsBaseConstraint *constraint,
+            py::object min,
+            py::object max,
+            const std::string &group,
+            const std::string& help)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
@@ -111,7 +116,12 @@ void addTCP(std::string label, softrobots::behavior::SoftRobotsBaseConstraint *c
     }
 }
 
-void addActuator(std::string label, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+void addActuator(std::string label,
+                 softrobots::behavior::SoftRobotsBaseConstraint *constraint,
+                 py::object min,
+                 py::object max,
+                 const std::string &group,
+                 const std::string& help)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
@@ -132,7 +142,13 @@ void addActuator(std::string label, softrobots::behavior::SoftRobotsBaseConstrai
     }
 }
 
-void addAccessoryComponent(std::string accessoryLabel, std::string componentLabel, softrobots::behavior::SoftRobotsBaseConstraint *constraint, py::object min, py::object max, const std::string &group, const std::string& help)
+void addAccessoryComponent(std::string accessoryLabel,
+                           std::string componentLabel,
+                           softrobots::behavior::SoftRobotsBaseConstraint *constraint,
+                           py::object min,
+                           py::object max,
+                           const std::string &group,
+                           const std::string& help)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;

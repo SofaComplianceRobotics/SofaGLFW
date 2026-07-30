@@ -56,9 +56,6 @@ protected:
     void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
 
     void saveFile();
-
-    std::string m_dragedName;
-
 };
 
 } // namespace 

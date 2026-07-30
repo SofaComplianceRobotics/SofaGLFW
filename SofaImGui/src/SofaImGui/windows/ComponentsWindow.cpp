@@ -119,7 +119,7 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
         static std::map<std::string, bool> isSelected;
         for (const auto& component : components)
         {
-            const auto& name = component->className;
+            auto name = component->className;
             if (filter.PassFilter(name.c_str()))
             {
                 if (ImGui::Selectable(name.c_str(), selectedComponent == component))
@@ -135,8 +135,7 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                 }
                 if(workbench == Workbench::SCENE_EDITOR && ImGui::BeginDragDropSource())
                 {
-                    m_dragedName = name;
-                    ImGui::SetDragDropPayload("_COMPONENT", &m_dragedName, sizeof(m_dragedName));
+                    ImGui::SetDragDropPayload("_COMPONENT", &name, sizeof(name));
                     ImGui::Text("%s", name.c_str());
                     ImGui::EndDragDropSource();
                 }
