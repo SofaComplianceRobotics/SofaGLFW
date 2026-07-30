@@ -39,7 +39,8 @@ protected:
     void showGUIData();
     void dropGUIData();
 
-    void addContextMenu(models::guidata::GUIData::SPtr data);
+    void addDataContextMenu(models::guidata::GUIData::SPtr data);
+    void addDashbordContextMenu();
 };
 
 }

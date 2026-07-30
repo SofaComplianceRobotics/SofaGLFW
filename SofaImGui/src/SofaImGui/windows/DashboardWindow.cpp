@@ -54,6 +54,15 @@ namespace sofaimgui::windows {
                 // Fill the available window space with an invisible item defining a area to drop data
                 ImGui::Dummy(ImGui::GetContentRegionAvail());
                 dropGUIData();
+
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                    ImGui::OpenPopup("##DashboardContextMenu");
+
+                if (ImGui::BeginPopup("##DashboardContextMenu"))
+                {
+                    addDashbordContextMenu();
+                    ImGui::EndPopup();
+                }
             }
             ImGui::End();
         }
@@ -85,7 +94,7 @@ namespace sofaimgui::windows {
 
                             if (ImGui::BeginPopup("##GUIDataContextMenu"))
                             {
-                                addContextMenu(data);
+                                addDataContextMenu(data);
                                 ImGui::EndPopup();
                             }
 
@@ -122,10 +131,23 @@ namespace sofaimgui::windows {
         }
     }
 
-    void DashboardWindow::addContextMenu(models::guidata::GUIData::SPtr data)
+    void DashboardWindow::addDataContextMenu(models::guidata::GUIData::SPtr data)
     {
         if (ImGui::MenuItem("Remove"))
             removeGUIData(data);
+    }
+
+    void DashboardWindow::addDashbordContextMenu()
+    {
+        bool disable = m_GUIData.empty();
+        if (disable)
+            ImGui::BeginDisabled();
+
+        if (ImGui::MenuItem("Clear Dashboard"))
+            clearWindow();
+
+        if (disable)
+            ImGui::EndDisabled();
     }
 
 } // namespace sofaimgui::windows
