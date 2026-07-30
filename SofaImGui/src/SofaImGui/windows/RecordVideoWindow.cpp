@@ -37,10 +37,8 @@ namespace sofaimgui::windows {
 
 RecordVideoWindow::RecordVideoWindow(const std::string& name,
                                      const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
-    m_defaultIsOpen = false;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string RecordVideoWindow::getDescription()
@@ -52,11 +50,9 @@ void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        ImGui::SetNextWindowSize(ImVec2(0., 0.), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(0., 0.));
         if (ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags))
         {
-            // float rightPosition = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::GetFrameHeightWithSpacing()*2.;
-
             static bool record = false;
             ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
@@ -67,12 +63,26 @@ void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Output file");
             ImGui::SameLine();
+
             static std::string filename = m_baseGUI->generateFilename("video", "");
-            ImGui::InputText("##OutputFile", &filename);
+            static bool generatedFilename = true;
+            if (ImGui::InputText("##OutputFile", &filename))
+                generatedFilename = false;
             if (filename.empty())
                 filename = m_baseGUI->generateFilename("video", "");
             ImGui::SameLine();
             ImGui::TextDisabled(".mp4");
+            ImGui::SameLine();
+            if (generatedFilename)
+                ImGui::BeginDisabled();
+            if(ImGui::LocalButton(ICON_FA_ROTATE))
+            {
+                generatedFilename = true;
+                filename = m_baseGUI->generateFilename("video", "");
+            }
+            if (generatedFilename)
+                ImGui::EndDisabled();
+            ImGui::SetItemTooltip("Generate filename");
 
             // Interval time
             ImGui::AlignTextToFramePadding();
@@ -99,12 +109,14 @@ void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
 
-            // ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area
             static bool clicked = false;
             if (ImGui::Button(record? ICON_FA_STOP " Stop": ICON_DVS_CIRCLE_FULL" Record"))
             {
                 clicked = true;
                 record = !record;
+
+                if (generatedFilename)
+                    filename = m_baseGUI->generateFilename("video", "");
             }
             ImGui::SetItemTooltip(record? "Stop recording": "Start recording");
 

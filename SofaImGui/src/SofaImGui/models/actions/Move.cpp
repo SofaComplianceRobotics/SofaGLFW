@@ -45,8 +45,8 @@ Move::~Move()
 {
     if (m_groot)
     {
-        auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        guiNode->removeObject(m_trajectory);
+        if (auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
+            guiNode->removeObject(m_trajectory);
     }
 }
 
@@ -89,14 +89,24 @@ void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Ind
     Action::deleteFromTrack(track, actionIndex);
 }
 
+void Move::swapWith(std::shared_ptr<actions::Action> action)
+{
+    auto move = std::dynamic_pointer_cast<Move>(action);
+    if(move)
+    {
+        move->setInitialPoint(this->getInitialPoint());
+        this->setInitialPoint(move->getWaypoint());
+    }
+}
+
 void Move::addTrajectoryComponent(sofa::simulation::Node::SPtr groot)
 {
     if (groot)
     {
         m_groot = groot;
         m_trajectory->setPositions(VecCoord{m_initialPoint, m_waypoint});
-        auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
-        guiNode->addObject(m_trajectory);
+        if (auto guiNode = groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
+            guiNode->addObject(m_trajectory);
     }
 }
 

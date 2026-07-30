@@ -45,7 +45,7 @@ void setStyleVars()
     style.PopupBorderSize                   = 2;
     style.FrameBorderSize                   = 0;
     style.TabBorderSize                     = 0;
-    style.DockingSeparatorSize              = 2;
+    style.DockingSeparatorSize              = 5;
 
     style.WindowRounding                    = 14;
     style.ChildRounding                     = 14;
@@ -71,6 +71,7 @@ void setDeepDarkStyle()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text]                   = ImColor(COLOR_WHITE);
+    colors[ImGuiCol_InputTextCursor]        = colors[ImGuiCol_Text];
     colors[ImGuiCol_WarningText]            = ImVec4(0.92f, 0.95f, 0.83f, 1.00f);
     colors[ImGuiCol_ButtonText]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TabText]                = ImColor(COLOR_WHITE);
@@ -105,8 +106,8 @@ void setDeepDarkStyle()
     colors[ImGuiCol_Separator]              = ImVec4(0.34f, 0.34f, 0.34f, 0.55f);
     colors[ImGuiCol_SeparatorActive]        = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
     colors[ImGuiCol_SeparatorHovered]       = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-    colors[ImGuiCol_ResizeGrip]             = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
-    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_TRANSPARENT);
+    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
     colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.48f, 0.48f, 0.48f, 1.00f);
     colors[ImGuiCol_Tab]                    = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
     colors[ImGuiCol_TabUnfocused]           = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
@@ -120,20 +121,18 @@ void setDeepDarkStyle()
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
     colors[ImGuiCol_TabHovered]             = ImVec4(0.14f, 0.25f, 0.42f, 0.75f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+    colors[ImGuiCol_NavCursor]              = ImColor(COLOR_TRANSPARENT);
+
+    colors[ImGuiCol_NavWindowingHighlight]  = ImColor(COLOR_WHITE); // Highlight window border color when using Ctrl+Tab
 
     setStyleVars();
 }
-
-// Our palette
-// ImVec4(0.09f, 0.17f, 0.33f, 1.00f) darkest blue
-// ImVec4(0.14f, 0.25f, 0.42f, 1.00f) dark blue
-// ImVec4(0.22f, 0.45f, 0.56f, 1.00f) light blue
-// ImVec4(0.49f, 0.78f, 0.72f, 1.00f) light blue green
 
 void setLightStyle()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text]                   = ImColor(COLOR_BLACK);
+    colors[ImGuiCol_InputTextCursor]        = colors[ImGuiCol_Text];
     colors[ImGuiCol_WarningText]            = ImVec4(0.52f, 0.55f, 0.43f, 1.00f);
     colors[ImGuiCol_ButtonText]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TabText]                = ImColor(COLOR_BLACK);
@@ -166,9 +165,9 @@ void setLightStyle()
     colors[ImGuiCol_Header]                 = ImColor(COLOR_GREY);
     colors[ImGuiCol_HeaderActive]           = ImColor(COLOR_GREY);
     colors[ImGuiCol_HeaderHovered]          = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
-    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_DARK_GREY);
-    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImColor(COLOR_TRANSPARENT);
+    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
     colors[ImGuiCol_Tab]                    = ImColor(COLOR_GREY);
     colors[ImGuiCol_TabUnfocused]           = ImColor(COLOR_GREY);
@@ -180,6 +179,10 @@ void setLightStyle()
     colors[ImGuiCol_TableHeaderBg]          = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBg]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.96f, 0.96f, 0.96f, 0.50f);
+    colors[ImGuiCol_NavCursor]              = ImColor(COLOR_TRANSPARENT);
+
+    colors[ImGuiCol_NavWindowingHighlight]  = ImColor(COLOR_BLACK); // Highlight window border color when using Ctrl+Tab
+    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.56f, 0.56f, 0.56f, 0.50f); // Darken/colorize entire screen behind the Ctrl+Tab window list, when active
 
     setStyleVars();
 }

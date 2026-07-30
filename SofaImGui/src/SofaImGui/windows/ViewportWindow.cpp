@@ -39,10 +39,8 @@
 namespace sofaimgui::windows {
 
 ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ViewportWindow::getDescription()
@@ -57,7 +55,7 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar);
+            ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             {
                 ImVec2 viewportPos = ImGui::GetWindowPos();
                 m_baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
@@ -126,7 +124,6 @@ void ViewportWindow::addCameraButtons()
     // Positions and sizes
     static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
-    const auto& cwpos = ImGui::GetCurrentWindow()->Pos;
     auto position = ImGui::GetWindowPos();
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
 
@@ -210,7 +207,9 @@ void ViewportWindow::addCameraButtons()
     auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
     color.w = 0.6f;
     ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x, ImGui::GetWindowContentRegionMin().y),
-                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x, ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y), true);
+                        ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
+                               ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y),
+                        true);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
@@ -218,11 +217,10 @@ void ViewportWindow::addCameraButtons()
     // When clicking these buttons, the mouse only moves into the current window area
     // We allow the mouse to cross walls and reapear on the other side
     auto dpos = ImGui::GetIO().MouseDelta;
-    dpos.x = std::clamp(int(dpos.x), -20, 20); // Clamp the mouse delta, set the maximum speed
-    dpos.y = std::clamp(int(dpos.y), -20, 20);
+    // Scale from camera pixel to world displacement
+    dpos *= 1e-3;
 
     // Buttons
-    ImVec2 buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
     bool translate = false;
     if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
@@ -235,7 +233,7 @@ void ViewportWindow::addCameraButtons()
         std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
-        if(ImGui::Button(title.c_str(), ImVec2(buttonSize.x, buttonSize.y)))
+        if(ImGui::LocalButton(title.c_str()))
         {
             cameraButtonsCollapsed = !cameraButtonsCollapsed;
             windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
@@ -311,9 +309,6 @@ void ViewportWindow::addCameraButtons()
             ImGui::PopStyleColor();
 
             { // Axis related
-                // Compute scale based on distance. The further the camera, the faster the translation.
-                const float scale = camera->getDistance() * 0.002f;
-
                 { // Translate Left/Right
                     ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
@@ -321,7 +316,7 @@ void ViewportWindow::addCameraButtons()
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= - dpos.x * scale;
+                        t *= - dpos.x * camera->getDistance(); // Compute scale based on distance. The further the camera, the faster the translation.
                         camera->translate(t);
                         camera->translateLookAt(t);
                         translate = true;
@@ -338,7 +333,7 @@ void ViewportWindow::addCameraButtons()
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        t *= dpos.y * scale;
+                        t *= dpos.y * camera->getDistance(); // Compute scale based on distance. The further the camera, the faster the translation.
                         camera->translate(t);
                         camera->translateLookAt(t);
                         translate = true;
@@ -355,8 +350,8 @@ void ViewportWindow::addCameraButtons()
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
                         t = camera->cameraToWorldTransform(t);
                         t.normalize();
-                        const auto& mousedelta = dpos.x;
-                        t *= mousedelta * scale;
+                        const auto& mousedelta = dpos.x * camera->getDistance();
+                        t *= mousedelta;
                         camera->translate(t);
                         translate = true;
 
@@ -372,22 +367,33 @@ void ViewportWindow::addCameraButtons()
         }
     }
 
-    const auto& cpos = ImGui::GetIO().MousePos;
-    // When setting the mouse position, the value is relative to the window top left corner
-    // Thus we need to compute the shifts between this position and the top left corner of the current window area
-    const float xshift = (cwpos.x - wpos.x);
-    const float yshift = (cwpos.y - wpos.y);
-
-    const double &distance = camera->getDistance();
-    const sofa::type::Vec3 &lookAt = camera->getLookAtFromOrientation(camera->getPosition(), distance, camera->getOrientation()); // TODO: This should be initialize in BaseCamera
     bool rotate = false;
-
     { // Orientation gizmo clicked
+        const double &distance = camera->getDistance();
+        const sofa::type::Vec3 &lookAt = camera->getLookAt();
+
+        auto getRotationCoef = [dpos, camera](sofa::type::Vec3 axis) -> float
+        {
+            auto sorigin = camera->worldToScreenPoint(sofa::type::Vec3(0, 0, 0));
+            auto saxis = camera->worldToScreenPoint(axis);
+
+            ImVec2 spos(-(saxis[1]-sorigin[1]), (saxis[0]-sorigin[0])); // orthogonal axis in image coord
+
+
+            if(sqrt(spos.x*spos.x + spos.y*spos.y) < 1e-10)
+            {
+                spos.x = abs(dpos.y)>abs(dpos.x)? 1: 0;
+                spos.y = abs(dpos.y)>abs(dpos.x)? 0: 1;
+            }
+            return (spos.x*dpos.x + spos.y*dpos.y) / sqrt(spos.x*spos.x + spos.y*spos.y);
+        };
+
         // Rotate X
         if (axisClicked[0])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0.001 * dpos.x, 0., 0., 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(getRotationCoef(sofa::type::Vec3(1., 0., 0.)), 0., 0., 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -395,7 +401,8 @@ void ViewportWindow::addCameraButtons()
         else if (axisClicked[1])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0.001 * dpos.x, 0., 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., getRotationCoef(sofa::type::Vec3(0., 1., 0.)), 0., 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
@@ -403,32 +410,23 @@ void ViewportWindow::addCameraButtons()
         else if (axisClicked[2])
         {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., 0.001 * dpos.x, 1.);
+            sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>(0., 0., getRotationCoef(sofa::type::Vec3(0., 0., 1.)), 1.);
+            q.normalize();
             camera->rotateCameraAroundPoint(q, lookAt);
             rotate = true;
         }
+
+        if (rotate)
+        {
+            // TODO: This should be done in rotateCameraAroundPoint()
+            auto orientation = camera->getOrientation();
+            orientation.normalize();
+            camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0., 0., -distance)), orientation);
+        }
     }
 
-    if (rotate)
-    {
-        // TODO: This should be done in rotateCameraAroundPoint()
-        auto orientation = camera->getOrientation();
-        orientation.normalize();
-        camera->setView(lookAt - orientation.rotate(sofa::type::Vec3(0,0,-distance)), orientation);
-    }
-
-    // Allow the mouse to cross walls, and reapear on the other side of the current window area
-    if (rotate || translate)
-    {
-        if (cpos.x < cwpos.x)
-            m_baseGUI->setMousePos(xshift + m_windowSize.first, cpos.y - wpos.y);
-        if (cpos.x > cwpos.x + m_windowSize.first)
-            m_baseGUI->setMousePos(xshift + buttonSize.x / 2., cpos.y - wpos.y);
-        if (cpos.y < cwpos.y)
-            m_baseGUI->setMousePos(cpos.x - wpos.x, yshift + m_windowSize.second);
-        if (cpos.y > cwpos.y + m_windowSize.second)
-            m_baseGUI->setMousePos(cpos.x - wpos.x, yshift);
-    }
+    // Hides and grabs the cursor, providing virtual and unlimited cursor movement.
+    m_baseGUI->setDisabledMouse(rotate || translate);
 
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
@@ -471,35 +469,38 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            auto position = ImGui::GetWindowPos();
-            position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
-            position.y += ImGui::GetStyle().FramePadding.y * 2.;
-            ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
-
-            // Middle buttons background
-            // Clip down
-            auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-            color.w = 0.6f;
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
-
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
-                ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
+                auto position = ImGui::GetWindowPos();
+                position.x += ImGui::GetWindowWidth() * 0.5f - shift_x;
+                position.y += ImGui::GetStyle().FramePadding.y;
+                ImGui::SetNextWindowPos(position);  // attach the button window to top middle of the viewport window
 
-                if (ImGui::IsItemClicked())
+                // Middle buttons background
+                // Clip down
+                auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
+                color.w = 0.6f;
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
+
+                if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                                                                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
                 {
-                    *animate = !*animate;
-                    isItemClicked = true;
+                    ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
+                    ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
+
+                    if (ImGui::IsItemClicked())
+                    {
+                        *animate = !*animate;
+                        isItemClicked = true;
+                    }
                 }
+                ImGui::EndChild();
+
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar();
             }
-
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar();
-
             ImGui::EndChild();
         }
         ImGui::End();
@@ -516,15 +517,45 @@ bool ViewportWindow::addStepButton()
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::SameLine();
-                ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
-                    isItemClicked = true;
-                ImGui::PopItemFlag();
-                ImGui::SetItemTooltip("One step of simulation");
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
+                    if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
+                        isItemClicked = true;
+                    ImGui::PopItemFlag();
+                    ImGui::SetItemTooltip("One step of simulation");
+                }
+                ImGui::EndChild();
+            }
+            ImGui::EndChild();
+        }
+        ImGui::End();
+    }
+
+    return isItemClicked;
+}
+
+bool ViewportWindow::addReloadButton()
+{
+    bool isItemClicked = false;
+
+    if (m_isOpen)
+    {
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        {
+            if (ImGui::BeginChild("Render"))
+            {
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
+                        isItemClicked = true;
+                    ImGui::SetItemTooltip("Reload the simulation");
+                }
+                ImGui::EndChild();
             }
             ImGui::EndChild();
         }
@@ -542,18 +573,21 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
         {
-            if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
-                                                                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
+            if (ImGui::BeginChild("Render"))
             {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(m_maxPanelItemWidth);
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
-                ImGui::PopStyleColor(3);
-                ImGui::PopItemWidth();
-                ImGui::SetItemTooltip("Choose a window to drive the TCP target");
+                if (ImGui::Begin("ViewportChildMiddleButtons"))
+                {
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(m_maxPanelItemWidth);
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
+                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+                    ImGui::PopStyleColor(3);
+                    ImGui::PopItemWidth();
+                    ImGui::SetItemTooltip("Choose a window to drive the TCP target");
+                }
+                ImGui::EndChild();
             }
             ImGui::EndChild();
         }
@@ -597,9 +631,8 @@ void ViewportWindow::addSimulationTimeAndFPS()
                     ImGui::PopStyleColor();
                     ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
                 }
-
-                ImGui::EndChild();
             }
+            ImGui::EndChild();
         }
         ImGui::End();
     }
@@ -626,9 +659,8 @@ void ViewportWindow::addRecordingStatus(const ImVec4& red)
                 ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                 ImGui::Text("%s", text.c_str());
                 ImGui::PopStyleColor();
-
-                ImGui::EndChild();
             }
+            ImGui::EndChild();
         }
         ImGui::End();
     }

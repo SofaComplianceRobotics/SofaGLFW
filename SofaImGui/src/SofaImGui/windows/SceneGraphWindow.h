@@ -51,6 +51,8 @@ protected:
     std::set<sofa::core::objectmodel::Base::SPtr> m_selection;
 
     sofa::type::Material m_highlightMaterial;
+    sofa::simulation::Node* m_currentHighlightedNode{nullptr};
+    sofa::simulation::Node* m_previousHighlightedNode{nullptr};
 
     int m_modifyingRow{-1};
 
@@ -66,8 +68,6 @@ protected:
     bool m_showFilteredWarning = false;
     bool m_showFilteredError = false;
     bool m_showFilteredInfo = false;
-
-    inline static const sofa::core::objectmodel::Tag selectedTag = sofa::core::objectmodel::Tag("GUISelected");
 
     void clear() override;
 
@@ -87,7 +87,7 @@ protected:
     void addComponentContextMenu(sofa::core::objectmodel::BaseObject*component);
     void addBaseContextMenu(sofa::core::objectmodel::Base *object);
 
-    std::string getComponentIconAlert(sofa::core::objectmodel::BaseObject* object, ImVec4& objectColor, std::string& icon);
+    std::string getObjectIconAlert(sofa::core::Base *object, ImVec4& objectColor, std::string& icon);
     void updateSelection(sofa::core::objectmodel::Base::SPtr object);
 
     void highlightOglModels(sofa::simulation::Node *node);

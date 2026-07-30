@@ -79,6 +79,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 {
    public:
     BaseWindow();
+    BaseWindow(std::string name, bool defaultIsOpen);
     ~BaseWindow() = default;
 
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
@@ -115,11 +116,11 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     using models::guidata::GUIDataManager::addGUIData;
     using models::guidata::GUIDataManager::removeGUIData;
 
-   protected:
-
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
-    virtual bool enabled() {return true;}
+    virtual bool isEnabledByState() {return true;}
+
+   protected:
 
     /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
     virtual void clear() {}
@@ -133,9 +134,9 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
 
     bool m_isOpen{false}; /// The user choice to open the window or not
+    bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window
-    bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     int m_workbenches;
 };
 }

@@ -54,12 +54,9 @@ using sofa::type::Quat;
 ProgramWindow::ProgramWindow(const std::string& name,
                              const bool& isWindowOpen,
                              models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 }
 
@@ -86,7 +83,7 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
                 ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
@@ -116,8 +113,8 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 static float minSize = ImGui::GetFrameHeight() * 1.5;
                 ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
                 ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
 
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
                 if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
                 {
                     ImGui::PopStyleColor();
@@ -136,8 +133,6 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     if (m_timeBasedDisplay)
                         showCursorMarker(nbCollaspedTracks);
-                    else // Keep the space the cursor marker would have taken, empty
-                        ImGui::NewLine();
 
                     ImGui::PopStyleVar();
                 }
@@ -164,8 +159,7 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             else
             {
                 showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
-                               "The scene is missing elements for this window to work properly. "
-                               );
+                                "The scene is missing elements for this window to work properly.");
             }
         }
         ImGui::End();
@@ -201,9 +195,7 @@ void ProgramWindow::showProgramButtons()
 
     if (ImGui::Button("Restart"))
     {
-        auto groot = m_baseGUI->getRootNode().get();
-        groot->setTime(0.);
-        m_time = 0.f;
+        setTime(0);
 
         for (const auto& track: m_program.getTracks())
         {
@@ -328,9 +320,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     if (value_changed)
     {
         ImGui::MarkItemEdited(id);
-        const auto& groot = m_baseGUI->getRootNode().get();
-        m_time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
-        groot->setTime(m_time);
+        setTime(m_cursorPos / ProgramSizes().TimelineOneSecondSize);
         stepProgram();
     }
 
@@ -805,7 +795,6 @@ bool ProgramWindow::importProgram()
 bool ProgramWindow::importProgram(const std::string &filename)
 {
     bool successfulImport = false;
-
     if (sofa::helper::system::FileSystem::exists(filename))
     {
         successfulImport = m_program.importProgram(filename);
@@ -899,6 +888,11 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         if (m_program.isEmpty())
             return;
 
+        // Always start from the cursor's position and clamp time to the program's duration
+        double time = m_cursorPos / ProgramSizes().TimelineOneSecondSize;
+        time = std::clamp(time, 0., m_program.getDuration());
+        setTime(time);
+
         double eps = 1e-5;
         static bool reverse = false;
         double dt = reverse? -groot->getDt(): groot->getDt();
@@ -909,8 +903,9 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             const auto& modifiers = track->getModifiers();
             for (const auto& modifier: modifiers)
             {
-                modifier->modify(m_time);
-                groot->setTime(m_time);
+                double time = m_time;
+                modifier->modify(time);
+                setTime(time);
             }
         }
 
@@ -918,7 +913,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         {
             if (m_repeat) // start from beginning
             {
-                groot->setTime(0.);
+                setTime(0.);
 
                 for (const auto& track: m_program.getTracks())
                 {
@@ -934,8 +929,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             }
             else // nothing to do, exit
             {
-                groot->setTime(programDuration);
-                m_time = programDuration;
+                setTime(programDuration);
                 return;
             }
         }
@@ -949,10 +943,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
             }
         }
 
-        m_time = groot->getTime(); // time at the beginning of the time step
-
         stepProgram(dt, reverse);
-
         m_time += dt; // for cursor display
     } // isDrivingSimulation
 }
@@ -962,6 +953,12 @@ void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
     SOFA_UNUSED(groot);
     if (isDrivingSimulation())
         groot->setTime(m_time);
+}
+
+void ProgramWindow::setTime(const double &time)
+{
+    m_time = time;
+    m_baseGUI->getRootNode().get()->setTime(m_time);
 }
 
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,

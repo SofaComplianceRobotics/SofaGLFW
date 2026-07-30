@@ -23,7 +23,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/ComponentsWindow.h>
 #include <filesystem>
-#include <sofa/simulation/graph/DAGNode.h>
+#include <sofa/simulation/Node.h>
 
 #include <imgui.h>
 #include <nfd.h>
@@ -35,11 +35,9 @@ namespace sofaimgui::windows
 {
 
 ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::SCENE_EDITOR;
-
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ComponentsWindow::getDescription()
@@ -51,10 +49,6 @@ void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        // Note for later
-        // if not isEnabledInWorkbench()
-        // Disable drag and drop
-
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             if (workbench == Workbench::SCENE_EDITOR)
@@ -105,9 +99,6 @@ void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 ImGui::PopStyleColor();
             }
             ImGui::EndChild();
-
-            // if (ImGui::Button(ICON_FA_SAVE" "))
-                // saveFile();
         }
         ImGui::End();
     }

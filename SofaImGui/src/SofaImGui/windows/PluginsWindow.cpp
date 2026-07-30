@@ -34,10 +34,8 @@ namespace sofaimgui::windows {
 
 PluginsWindow::PluginsWindow(const std::string& name,
                              const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
-    m_defaultIsOpen = false;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string PluginsWindow::getDescription()

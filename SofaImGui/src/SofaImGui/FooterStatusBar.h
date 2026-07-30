@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SofaImGui/config.h>
+#include <sofa/helper/logging/LoggingMessageHandler.h>
 #include <imgui.h>
 #include <string>
 
@@ -38,6 +39,9 @@ public:
     void showTempMessageOnStatusBar(); /// Show temporary info message in the middle of the status bar.
     void setTempMessage(const std::string &message, const MessageType &type=MessageType::MINFO, const std::string &path=""); /// Set the temporary info message
 
+    void showLogStatus();
+    void setLogStatusCallback(std::function<void()>);
+
 protected:
 
     void showPath();
@@ -51,6 +55,13 @@ protected:
 
     std::string m_fileToOpen;
     std::string m_fileToOpenPopUpLabel{"Open##FiletoTopen"};
+
+    std::string m_name = "##FooterStatusBar";
+
+    const std::vector<sofa::helper::logging::Message>& m_logMessages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
+    sofa::helper::logging::Message::Type m_logStatus = sofa::helper::logging::Message::Type::Info;
+    std::function<void()> m_logStatusCallback = nullptr;
+    size_t m_previousLogMessagesCount = 0;
 
 };
 

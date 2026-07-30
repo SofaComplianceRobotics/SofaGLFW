@@ -47,7 +47,7 @@ namespace sofaimgui::windows {
     {
         SOFA_UNUSED(windowFlags);
 
-        if (enabled() && isOpen())
+        if (isOpen())
         {
             ImGuiIO& io = ImGui::GetIO();
             const auto height = io.DisplaySize.y * 0.66; // Main window size

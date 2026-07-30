@@ -98,9 +98,9 @@ public:
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager = std::make_shared<models::guidata::KinematicsGUIDataManager>();
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
-    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", false);
-    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", false);
-    windows::LogWindow          m_logWindow          = windows::LogWindow("Log", false);
+    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", true);
+    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", true);
+    windows::LogWindow          m_logWindow          = windows::LogWindow("Log", true);
     windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false, m_kinematicsGUIDataManager);
     windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true, m_kinematicsGUIDataManager);
     windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
@@ -142,6 +142,7 @@ protected:
     CSimpleIniA iniGUISettings;
 
     void initDockSpace(const bool& firstTime);
+    void setupIOConfig();
     void changeWorkbench(Workbench wb);
 
     void showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI);
@@ -154,7 +155,7 @@ protected:
     void saveSettings();
     void loadSimulation(const bool& reload, const std::string &filename);
     void enableWindows();
-    void createGUINode();
+    void createGUINode(Node::SPtr guiNode = nullptr);
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);

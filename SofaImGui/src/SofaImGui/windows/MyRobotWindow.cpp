@@ -38,13 +38,10 @@
 namespace sofaimgui::windows {
 
 MyRobotWindow::MyRobotWindow(const std::string& name,
-                         const bool& isWindowOpen)
+                             const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string MyRobotWindow::getDescription()
@@ -105,7 +102,7 @@ void MyRobotWindow::removeGUIData(models::guidata::GUIData::SPtr guiData)
 	m_sectionedGUIData[Section::SETTINGS].erase(guiData);
 }
 
-bool MyRobotWindow::enabled()
+bool MyRobotWindow::isEnabledByState()
 {
     return (m_connection.listAvailablePortsCallback || !m_groupedGUIData.empty() || !m_GUIData.empty());
 }
@@ -116,7 +113,7 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 ImGui::Spacing();
 

@@ -33,11 +33,9 @@
 namespace sofaimgui::windows {
 
 ProfilerWindow::ProfilerWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_name = name;
-    m_isOpen = isWindowOpen;
 }
 
 std::string ProfilerWindow::getDescription()
@@ -107,7 +105,7 @@ void ProfilerWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 ImGui::InputInt("##FrameInput", &m_selectedFrame);
                 ImGui::PopStyleVar();
                 ImGui::PopItemWidth();
-                m_selectedFrame = std::clamp(m_selectedFrame, 0, int(allRecords.size()) - 1);
+                m_selectedFrame = std::clamp(m_selectedFrame, 0, std::max(0, int(allRecords.size()) - 1));
                 ImGui::SameLine();
                 ImGui::TextDisabled("(duration in ms: %0.2f)", m_selectedFrameDuration);
 

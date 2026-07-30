@@ -780,6 +780,10 @@ void SofaGLFWBaseGUI::setMousePos(int xpos, int ypos) {
     }
 }
 
+void SofaGLFWBaseGUI::setDisabledMouse(bool disabled) {
+    glfwSetInputMode(m_firstWindow, GLFW_CURSOR, disabled? GLFW_CURSOR_DISABLED: GLFW_CURSOR_NORMAL);
+}
+
 void SofaGLFWBaseGUI::window_pos_callback(GLFWwindow* window, int xpos, int ypos)
 {
     SofaGLFWBaseGUI* gui = static_cast<SofaGLFWBaseGUI*>(glfwGetWindowUserPointer(window));

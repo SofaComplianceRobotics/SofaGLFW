@@ -36,12 +36,9 @@ namespace sofaimgui::windows {
 MoveWindow::MoveWindow(const std::string& name,
                        const bool& isWindowOpen,
                        models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
+    : BaseWindow(name, isWindowOpen)
 {
     m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-
-    m_defaultIsOpen = true;
-    m_name = name;
-    m_isOpen = isWindowOpen;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
     m_moveType = MoveType::SLIDERS;
 }
@@ -57,7 +54,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     {
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (enabled())
+            if (isEnabledByState())
             {
                 if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
                 {

@@ -45,15 +45,15 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~ProgramWindow() = default;
 
-    models::Program m_program; // robot program
 
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
+    void clear() override {m_program.clearTracks();}
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
 
-    void setTime(const double &time) {m_time=time;}
+    void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
     bool importProgram();
     bool importProgram(const std::string& filename);
@@ -61,6 +61,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    protected:
 
+    models::Program m_program; // robot program
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
     double m_cursorPos = 0;
@@ -78,7 +79,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool enabled() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
+    bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.
@@ -128,6 +129,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void loadAndProcessWindowSettings();
 
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
+    void setTime(const double &time);
 
 };
 

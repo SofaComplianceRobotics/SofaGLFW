@@ -78,7 +78,7 @@
 #include <SofaImGui/widgets/Widgets.h>
 
 #include <sofa/core/ObjectFactory.h>
-#include <sofa/simulation/graph/DAGNode.h>
+#include <sofa/simulation/Node.h>
 #include <sofa/version.h>
 
 #include <SofaGLFW/init.h>
@@ -140,9 +140,15 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
     // Save windows settings in project file
     for (const auto& window : m_windows)
     {
-        const auto& windowName = window.get().getName();
-        windowSettings.setSetting(windowName.c_str(), "open", window.get().isOpen());
-        auto imguiWindow = ImGui::FindWindowByName(window.get().getLabel().c_str());
+        auto& w = window.get();
+        const auto& windowName = w.getName();
+
+        std::string settingName = (getWorkbenchName(workbench));
+        settingName += ".";
+        settingName += windowName;
+
+        windowSettings.setSetting(settingName.c_str(), "open", w.isOpen());
+        auto imguiWindow = ImGui::FindWindowByName(w.getLabel().c_str());
         if (imguiWindow)
             windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId));
     }
@@ -156,8 +162,9 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
             auto dock = ImGui::DockContextFindNodeByID(g, dockID);
             if (dock)
             {
-                windowSettings.setSetting(std::to_string(dockID).c_str(), "width", double(dock->Size[0]));
-                windowSettings.setSetting(std::to_string(dockID).c_str(), "height", double(dock->Size[1]));
+                std::string settingName = std::to_string(dockID) + getWorkbenchName(workbench);
+                windowSettings.setSetting(settingName.c_str(), "width", double(dock->Size[0]));
+                windowSettings.setSetting(settingName.c_str(), "height", double(dock->Size[1]));
             }
         }
     }
@@ -208,14 +215,25 @@ void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
 {
     if (ImGui::DockBuilderGetNode(id))
     {
-        const auto dockLabel = std::to_string(id);
         auto& windowsSettings = windows::WindowsSettings::getInstance();
-        auto size = ImVec2(windowsSettings.getSetting(dockLabel.c_str(), "width", 0.),
-                           windowsSettings.getSetting(dockLabel.c_str(), "height", 0.));
+        std::string settingName = std::to_string(id) + getWorkbenchName(workbench);
+        auto size = ImVec2(windowsSettings.getSetting(settingName.c_str(), "width", 0.),
+                           windowsSettings.getSetting(settingName.c_str(), "height", 0.));
 
         if (size.x > 0 && size.y > 0)
             ImGui::DockBuilderSetNodeSize(id, size);
     }
+}
+
+void ImGuiGUIEngine::setupIOConfig()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    io.IniFilename = nullptr; // prevent imgui from exporting imgui.ini file
+
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 }
 
 void ImGuiGUIEngine::init()
@@ -225,12 +243,7 @@ void ImGuiGUIEngine::init()
     ImPlot::CreateContext();
     NFD_Init();
 
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    io.IniFilename = nullptr; // prevent imgui from exporting imgui.ini file
-
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    setupIOConfig();
 
     iniGUISettings.SetUnicode();
     if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getSettingsIniFile()))
@@ -547,6 +560,7 @@ void ImGuiGUIEngine::changeWorkbench(Workbench wb)
 {
     workbench = wb;
     m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
+    enableWindows();
 }
 
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -587,6 +601,10 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             }
         }
 
+        // Reload button
+        if (m_viewportWindow.addReloadButton())
+            loadSimulation(true, baseGUI->getFilename());
+
         // Driving Tab combo
         if(m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
         {
@@ -616,6 +634,8 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
     if (ImGui::BeginMainMenuBar())
     {
+        ImGui::GetCurrentWindow()->Flags |= ImGuiWindowFlags_NoNavFocus;
+
         { // File menu
             menus::FileMenu fileMenu = menus::FileMenu(baseGUI);
             fileMenu.addMenu();
@@ -799,7 +819,7 @@ void ImGuiGUIEngine::showMainMenuBar(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 void ImGuiGUIEngine::showSecondaryMenuBar()
 {
     ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)ImGui::GetMainViewport();
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoNavFocus;
     float height = ImGui::GetFrameHeight();
 
     ImGui::PushStyleColor(ImGuiCol_MenuBarBg, COLOR_DARK_BLUE);
@@ -1008,19 +1028,27 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
 void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filename)
 {
     clearGUI();
+
+    sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
+
+    // When we reload the simulation, keep the GUI node
+    sofa::simulation::Node::SPtr guiNode = root->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName());
+    if (guiNode)
+        root->removeChild(guiNode);
+
     Utils::loadSimulation(m_baseGUI, reload, filename);
-    createGUINode();
+    createGUINode(guiNode);
     enableWindows();
 }
 
-void ImGuiGUIEngine::createGUINode()
+void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)
 {
     const std::string nodeName = sofaglfw::SofaGLFWBaseGUI::getGUINodeName();
-    sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
-    if (root)
+    if (sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode())
     {
-        sofa::simulation::Node::SPtr guinode = root->getChild(nodeName);
-        if (!guinode)
+        if (guinode && guinode->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
+            root->addChild(guinode);
+        else
             guinode = root->createChild(nodeName);
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
         guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
@@ -1042,7 +1070,14 @@ void ImGuiGUIEngine::enableWindows()
     // Enable the windows based on file
     for (const auto& window : m_windows)
     {
-        window.get().setOpen(windowsSettings.getSetting(window.get().getName().c_str(), "open", window.get().getDefaultIsOpen()));
+        auto& w = window.get();
+        std::string settingName = (getWorkbenchName(workbench));
+        settingName += ".";
+        settingName += w.getName();
+
+        w.setOpen(windowsSettings.getSetting(settingName.c_str(),
+                                             "open",
+                                             w.getDefaultIsOpen() && w.isEnabledInWorkbench() && w.isEnabledByState()));
     }
     initDockSpace(true);
 }

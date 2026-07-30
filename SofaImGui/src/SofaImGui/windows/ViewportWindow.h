@@ -40,6 +40,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     void addCameraButtons();
     bool addAnimateButton(bool *animate, const float &shift_x);
     bool addStepButton();
+    bool addReloadButton();
     bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
 
     std::pair<float, float> m_windowSize{0., 0.};
@@ -48,8 +49,6 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     bool isFocusOnViewport() {return m_isFocusOnViewport;}
 
    protected:
-
-    menus::ViewMenu m_viewmenu = menus::ViewMenu(nullptr);
 
     float m_fps{0.f};
 
