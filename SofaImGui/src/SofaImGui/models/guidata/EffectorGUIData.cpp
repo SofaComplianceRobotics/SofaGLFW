@@ -57,45 +57,8 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
             }
             else
             {
-                if (auto context = effector->getContext())
-                {
-                    if (auto groot = dynamic_cast<Node*>(context->getRootContext()))
-                    {
-                        Node::SPtr targetNode = sofa::core::objectmodel::New<Node>(label+"Target");
-                        groot->addChild(targetNode);
-                        int templateSize = effectorGoal->getValueTypeInfo()->size();
-
-                        if (templateSize == sofa::defaulttype::Rigid3Types::coord_total_size)
-                            TCPTargetBaseMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Rigid3Types>>().get();
-                        // else if (templateSize == sofa::defaulttype::Vec3Types::coord_total_size)
-                        //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec3Types>>().get();
-                        // else if (templateSize == sofa::defaulttype::Vec2Types::coord_total_size)
-                        //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec2Types>>().get();
-                        // else if (templateSize == sofa::defaulttype::Vec1Types::coord_total_size)
-                        //     TCPTargetMeca = sofa::core::objectmodel::New<sofa::component::statecontainer::MechanicalObject<sofa::defaulttype::Vec1Types>>().get();
-
-                        if (TCPTargetBaseMeca)
-                        {
-                            auto dshowObject = TCPTargetBaseMeca->findData("showObject")->getData();
-                            dshowObject->getValueTypeInfo()->setIntegerValue(dshowObject->beginEditVoidPtr(), 0, 1);
-                            dshowObject->endEditVoidPtr();
-
-                            TCPTargetBaseMeca->setName(TCPTargetBaseMeca->getClassName());
-                            targetNode->addObject(TCPTargetBaseMeca);
-
-                            sofa::core::BaseData* position = TCPTargetBaseMeca->findData("position");
-                            if (auto effectorMechanical = context->getMechanicalState())
-                                position->copyValueFrom(effectorMechanical->findData("position"));
-                            effectorGoal->setParent(position->getLinkPath());
-                        }
-                        else
-                            validState = false;
-                    }
-                    else
-                        validState = false;
-                }
-                else
-                    validState = false;
+                msg_warning("GUI") << "Effector should have an effectorGoal";
+                validState = false;
             }
 
             if (validState)
