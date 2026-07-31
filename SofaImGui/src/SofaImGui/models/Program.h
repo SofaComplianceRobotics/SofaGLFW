@@ -41,7 +41,7 @@ class SOFAIMGUI_API Program
    public:
 
     Program() = default;
-       Program(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager): m_kinematicsGUIDataManager(kinematicsGUIDataManager)
+    Program(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager): m_kinematicsGUIDataManager(kinematicsGUIDataManager)
     {
         std::shared_ptr<models::Track> track = std::make_shared<models::Track>(kinematicsGUIDataManager);
         addTrack(track);

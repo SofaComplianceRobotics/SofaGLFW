@@ -48,7 +48,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clear() override {m_program.clearTracks();}
+    void clear() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
