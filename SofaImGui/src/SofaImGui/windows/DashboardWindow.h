@@ -41,7 +41,7 @@ protected:
     bool m_collapseAll{false};
     bool m_showHelp{true};
 
-    void showWarningNoOwner();
+    void showWidget(models::guidata::GUIData::SPtr data, bool showName);
     void showOptionButtons();
     void showGUIData();
     void dropGUIData();

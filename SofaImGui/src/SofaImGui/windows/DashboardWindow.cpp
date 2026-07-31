@@ -96,8 +96,6 @@ namespace sofaimgui::windows {
                         if (m_expandAll)
                             ImGui::SetNextItemOpen(true);
 
-                        bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
-                        bool unindent = false;
                         if (m_showHelp)
                         {
                             if (ImGui::CollapsingHeader(data->label.c_str()))
@@ -107,37 +105,15 @@ namespace sofaimgui::windows {
                                 ImGui::TextWrapped("%s", data->help.c_str());
                                 ImGui::EndDisabled();
 
-                                ImGui::AlignTextToFramePadding();
-                                if (noOwner)
-                                    showWarningNoOwner();
-                                unindent = true;
+                                showWidget(data, false);
+                                ImGui::Unindent();
                             }
                         }
                         else
                         {
-                            ImGui::AlignTextToFramePadding();
-                            if (noOwner)
-                                showWarningNoOwner();
-                            ImGui::Text("%s ", data->label.c_str()); // Value description
-                            ImGui::SetItemTooltip("%s", data->help.c_str());
-                            ImGui::SameLine();
+                            showWidget(data, true);
                         }
-
-                        showWidget(*data->getData());
-
-                        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                            ImGui::OpenPopup("##GUIDataContextMenu");
-
-                        if (ImGui::BeginPopup("##GUIDataContextMenu"))
-                        {
-                            addDataContextMenu(data);
-                            ImGui::EndPopup();
-                        }
-
                         ImGui::PopID();
-
-                        if (unindent)
-                            ImGui::Unindent();
                     }
                 }
                 ImGui::Unindent();
@@ -146,11 +122,34 @@ namespace sofaimgui::windows {
         }
     }
 
-    void DashboardWindow::showWarningNoOwner()
+    void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showToolTip)
     {
-        ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
-        ImGui::SetItemTooltip("Data has no owner");
-        ImGui::SameLine();
+        bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+        ImGui::AlignTextToFramePadding();
+        if (noOwner)
+        {
+            ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
+            ImGui::SetItemTooltip("Data has no owner");
+            ImGui::SameLine();
+        }
+
+        if (showToolTip)
+        {
+            ImGui::Text("%s ", data->label.c_str()); // Value description
+            ImGui::SetItemTooltip("%s", data->help.c_str());
+            ImGui::SameLine();
+        }
+
+        sofaimgui::showWidget(*data->getData());
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+            ImGui::OpenPopup("##GUIDataContextMenu");
+
+        if (ImGui::BeginPopup("##GUIDataContextMenu"))
+        {
+            addDataContextMenu(data);
+            ImGui::EndPopup();
+        }
     }
 
     void DashboardWindow::showOptionButtons()
