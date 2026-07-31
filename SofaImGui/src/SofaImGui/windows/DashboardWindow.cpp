@@ -53,7 +53,8 @@ namespace sofaimgui::windows {
                 showGUIData();
 
                 // Fill the available window space with an invisible item defining a area to drop data
-                ImGui::Dummy(ImGui::GetContentRegionAvail());
+                ImVec2 dropRegion = ImGui::GetContentRegionAvail();
+                ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetWindowSize().x / 2, dropRegion.y)));
                 dropGUIData();
 
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -86,9 +87,15 @@ namespace sofaimgui::windows {
                     if (data)
                     {
                         ImGui::PushID(i++);
+                        if (ImGui::CollapsingHeader(data->getData()->getName().c_str()))
                         {
-                            ImGui::AlignTextToFramePadding();
                             bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+
+                            ImGui::BeginDisabled();
+                            ImGui::TextWrapped("%s", data->getData()->getHelp().c_str());
+                            ImGui::EndDisabled();
+
+                            ImGui::AlignTextToFramePadding();
 
                             if (noOwner)
                             {
@@ -96,8 +103,6 @@ namespace sofaimgui::windows {
                                 ImGui::SetItemTooltip("Data has no owner");
                                 ImGui::SameLine();
                             }
-
-                            ImGui::Text("%s ", data->label.c_str()); // Value description
 
                             if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                                 ImGui::OpenPopup("##GUIDataContextMenu");
@@ -108,11 +113,8 @@ namespace sofaimgui::windows {
                                 ImGui::EndPopup();
                             }
 
-                            ImGui::SameLine();
-
                             if (noOwner)
                                 ImGui::BeginDisabled();
-                            ImGui::TextDisabled("%s", data->getData()->getHelp().c_str());
                             showWidget(*data->getData());
                             if (noOwner)
                                 ImGui::EndDisabled();
