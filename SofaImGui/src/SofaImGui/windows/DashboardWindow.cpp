@@ -112,6 +112,7 @@ namespace sofaimgui::windows {
 
                             if (noOwner)
                                 ImGui::BeginDisabled();
+                            ImGui::TextDisabled("%s", data->getData()->getHelp().c_str());
                             showWidget(*data->getData());
                             if (noOwner)
                                 ImGui::EndDisabled();

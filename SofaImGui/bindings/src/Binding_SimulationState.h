@@ -25,7 +25,7 @@
 
 namespace sofaimgui::python3 {
 
-void moduleAddDataMonitor(pybind11::module &m);
+void moduleAddSimulationState(pybind11::module &m);
 
 } /// namespace 
 

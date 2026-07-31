@@ -24,6 +24,7 @@
 
 #include <SofaPython3/Sofa/Core/Binding_Base.h>
 #include <Binding_SimulationState.h>
+#include <Binding_DashboardWindow.h>
 
 #include <SofaPython3/PythonFactory.h>
 #include <SofaPython3/PythonEnvironment.h>
@@ -42,19 +43,7 @@ using namespace pybind11::literals;
 namespace sofaimgui::python3
 {
 
-void addData(std::shared_ptr<ImGuiGUIEngine> engine, const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
-{
-    if (engine)
-    {
-        engine->m_dashboardWindow.addData(label,
-                                            getDataFromPyObject(data, type),
-                                            getDataFromPyObject(min, type),
-                                            getDataFromPyObject(max, type),
-                                            group, help);
-    }
-}
-
-void moduleAddDataMonitor(py::module &m)
+void moduleAddSimulationState(py::module &m)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
@@ -66,11 +55,13 @@ void moduleAddDataMonitor(py::module &m)
     m_a.def("addData",
         [engine, m_a_name](std::string group, std::string description, py::object data)
         {
-			msg_deprecated(m_a_name) << "SimulationState is deprecated and will be removed in a future release. Please use Sofa.ImGui.DataMonitor instead.";
+            SOFA_UNUSED(group);
+            SOFA_UNUSED(description);
+            SOFA_UNUSED(data);
+
+            msg_deprecated(m_a_name) << "SimulationState is deprecated and will be removed in a future release. Please use Sofa.ImGui.Dashboard instead.";
             if (engine)
             {
-				addData(engine, description, data, py::none(), py::none(), group, "", "double");
-
 				// TODO Remove this when SimulationState is removed
                 // models::SimulationState::StateData stateData;
                 // stateData.group = group;
@@ -83,20 +74,6 @@ void moduleAddDataMonitor(py::module &m)
         "[DEPRECATED] Add a data to the SimulationState"
         );
 
-    // DataMonitor Submodule
-    auto m_b = m.def_submodule("DataMonitorWindow", "");
-
-    m_b.def("addData",
-        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
-        {
-            if (engine)
-            {
-				addData(engine, label, data, min, max, group, help, type);
-            }
-        }
-        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
-        , "Add a setting to the window."
-    );
 }
 
 }
