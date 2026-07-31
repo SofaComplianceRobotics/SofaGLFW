@@ -49,6 +49,7 @@ namespace sofaimgui::windows {
         {
             if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
             {
+                showOptionButtons();
                 showInfoMessage("Drag and drop data to this window (eg. from component or node window).");
                 showGUIData();
 
@@ -78,6 +79,11 @@ namespace sofaimgui::windows {
         {
             ImGui::PushID(k++);
             std::string groupName = itGroup.first;
+
+            if (m_expandAll)
+                ImGui::SetNextItemOpen(true);
+            if (m_collapseAll)
+                ImGui::SetNextItemOpen(false);
             if (ImGui::CollapsingHeader(groupName.empty()? "Misc": groupName.c_str())) // Group title
             {
                 ImGui::Indent();
@@ -87,45 +93,90 @@ namespace sofaimgui::windows {
                     if (data)
                     {
                         ImGui::PushID(i++);
-                        if (ImGui::CollapsingHeader(data->getData()->getName().c_str()))
+                        if (m_expandAll)
+                            ImGui::SetNextItemOpen(true);
+
+                        bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+                        bool unindent = false;
+                        if (m_showHelp)
                         {
-                            bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
-
-                            ImGui::BeginDisabled();
-                            ImGui::TextWrapped("%s", data->getData()->getHelp().c_str());
-                            ImGui::EndDisabled();
-
-                            ImGui::AlignTextToFramePadding();
-
-                            if (noOwner)
+                            if (ImGui::CollapsingHeader(data->label.c_str()))
                             {
-                                ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
-                                ImGui::SetItemTooltip("Data has no owner");
-                                ImGui::SameLine();
-                            }
-
-                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                                ImGui::OpenPopup("##GUIDataContextMenu");
-
-                            if (ImGui::BeginPopup("##GUIDataContextMenu"))
-                            {
-                                addDataContextMenu(data);
-                                ImGui::EndPopup();
-                            }
-
-                            if (noOwner)
+                                ImGui::Indent();
                                 ImGui::BeginDisabled();
-                            showWidget(*data->getData());
-                            if (noOwner)
+                                ImGui::TextWrapped("%s", data->help.c_str());
                                 ImGui::EndDisabled();
+
+                                ImGui::AlignTextToFramePadding();
+                                if (noOwner)
+                                    showWarningNoOwner();
+                                unindent = true;
+                            }
                         }
+                        else
+                        {
+                            ImGui::AlignTextToFramePadding();
+                            if (noOwner)
+                                showWarningNoOwner();
+                            ImGui::Text("%s ", data->label.c_str()); // Value description
+                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                            ImGui::SameLine();
+                        }
+
+                        showWidget(*data->getData());
+
+                        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                            ImGui::OpenPopup("##GUIDataContextMenu");
+
+                        if (ImGui::BeginPopup("##GUIDataContextMenu"))
+                        {
+                            addDataContextMenu(data);
+                            ImGui::EndPopup();
+                        }
+
                         ImGui::PopID();
+
+                        if (unindent)
+                            ImGui::Unindent();
                     }
                 }
                 ImGui::Unindent();
             }
             ImGui::PopID();
         }
+    }
+
+    void DashboardWindow::showWarningNoOwner()
+    {
+        ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
+        ImGui::SetItemTooltip("Data has no owner");
+        ImGui::SameLine();
+    }
+
+    void DashboardWindow::showOptionButtons()
+    {
+        m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
+        ImGui::SetItemTooltip("Expand all");
+        ImGui::SameLine();
+
+        m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
+        ImGui::SetItemTooltip("Collapse all");
+        ImGui::SameLine();
+
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
+
+        if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            clearWindow();
+        ImGui::SetItemTooltip("Clear Dashboard");
+        ImGui::SameLine();
+
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
+
+        if (ImGui::LocalButton(ICON_FA_CIRCLE_QUESTION))
+            m_showHelp = !m_showHelp;
+        ImGui::SetItemTooltip("Show/Hide help");
     }
 
     void DashboardWindow::dropGUIData()

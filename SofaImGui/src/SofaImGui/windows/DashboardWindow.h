@@ -36,6 +36,13 @@ public:
     std::string getDescription() override;
 
 protected:
+
+    bool m_expandAll{true};
+    bool m_collapseAll{false};
+    bool m_showHelp{true};
+
+    void showWarningNoOwner();
+    void showOptionButtons();
     void showGUIData();
     void dropGUIData();
 
