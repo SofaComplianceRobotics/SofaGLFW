@@ -29,187 +29,184 @@
 
 namespace sofaimgui::windows {
 
-    DashboardWindow::DashboardWindow(const std::string& name,
-        const bool& isWindowOpen)
-    {
-        m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-        m_defaultIsOpen = false;
-        m_name = name;
-        m_isOpen = isWindowOpen;
-    }
+DashboardWindow::DashboardWindow(const std::string& name, const bool& isWindowOpen)
+    : BaseWindow(name, isWindowOpen)
+{
+    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+}
 
-    std::string DashboardWindow::getDescription()
-    {
-        return "Simulation data viewer.";
-    }
+std::string DashboardWindow::getDescription()
+{
+    return "Simulation data viewer.";
+}
 
-    void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
+void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
+{
+    if (isOpen())
     {
-        if (isOpen())
+        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
-            if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
-            {
-                showOptionButtons();
-                showInfoMessage("Drag and drop data to this window (eg. from component or node window).");
-                showGUIData();
+            showOptionButtons();
+            showInfoMessage("Drag and drop data to this window (eg. from component or node window).");
+            showGUIData();
 
-                // Fill the available window space with an invisible item defining a area to drop data
-                ImVec2 dropRegion = ImGui::GetContentRegionAvail();
-                ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetWindowSize().x / 2, dropRegion.y)));
-                dropGUIData();
+            // Fill the available window space with an invisible item defining a area to drop data
+            ImVec2 dropRegion = ImGui::GetContentRegionAvail();
+            ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetWindowSize().x / 2, dropRegion.y)));
+            dropGUIData();
 
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                    ImGui::OpenPopup("##DashboardContextMenu");
-
-                if (ImGui::BeginPopup("##DashboardContextMenu"))
-                {
-                    addDashbordContextMenu();
-                    ImGui::EndPopup();
-                }
-            }
-            ImGui::End();
-        }
-    }
-
-    void DashboardWindow::showGUIData()
-    {
-        ImGui::Spacing();
-        int k = 0;
-        for (auto& itGroup : m_groupedGUIData)
-        {
-            ImGui::PushID(k++);
-            std::string groupName = itGroup.first;
-
-            if (m_expandAll)
-                ImGui::SetNextItemOpen(true);
-            if (m_collapseAll)
-                ImGui::SetNextItemOpen(false);
-
-            if (ImGui::CollapsingHeader(groupName.empty()? "Misc": groupName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) // Group title
-            {
-                ImGui::Indent();
-                int i = 0;
-                for (models::guidata::GUIData::SPtr data : itGroup.second)
-                {
-                    if (data)
-                    {
-                        ImGui::PushID(i++);
-                        if (m_expandAll)
-                            ImGui::SetNextItemOpen(true);
-
-                        if (m_showHelp)
-                        {
-                            if (ImGui::CollapsingHeader(data->label.c_str()))
-                            {
-                                ImGui::Indent();
-                                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                                ImGui::TextWrapped("%s", data->help.c_str());
-                                ImGui::PopStyleColor();
-                                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                                    ImGui::OpenPopup("##GUIDataContextMenu");
-
-                                showWidget(data, false);
-                                ImGui::Unindent();
-                            }
-                        }
-                        else
-                        {
-                            showWidget(data, true);
-                        }
-                        if (ImGui::BeginPopup("##GUIDataContextMenu"))
-                        {
-                            addDataContextMenu(data);
-                            ImGui::EndPopup();
-                        }
-                        ImGui::PopID();
-                    }
-                }
-                ImGui::Unindent();
-            }
-            ImGui::PopID();
-        }
-    }
-
-    void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showName)
-    {
-        bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
-        ImGui::AlignTextToFramePadding();
-        if (noOwner)
-        {
-            ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
-            ImGui::SetItemTooltip("Data has no owner");
-            ImGui::SameLine();
-        }
-
-        if (showName)
-        {
-            ImGui::Text("%s ", data->label.c_str()); // Value description
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                ImGui::OpenPopup("##GUIDataContextMenu");
-            ImGui::SetItemTooltip("%s", data->help.c_str());
-            ImGui::SameLine();
-        }
+                ImGui::OpenPopup("##DashboardContextMenu");
 
-        sofaimgui::showWidget(*data->getData());
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-            ImGui::OpenPopup("##GUIDataContextMenu");
-    }
-
-    void DashboardWindow::showOptionButtons()
-    {
-        m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
-        ImGui::SetItemTooltip("Expand all");
-        ImGui::SameLine();
-
-        m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
-        ImGui::SetItemTooltip("Collapse all");
-        ImGui::SameLine();
-
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
-            clearWindow();
-        ImGui::SetItemTooltip("Clear Dashboard");
-        ImGui::SameLine();
-
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        if (ImGui::LocalButton(ICON_FA_CIRCLE_QUESTION))
-            m_showHelp = !m_showHelp;
-        ImGui::SetItemTooltip("Show/Hide help");
-    }
-
-    void DashboardWindow::dropGUIData()
-    {
-        if (ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
+            if (ImGui::BeginPopup("##DashboardContextMenu"))
             {
-                sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+                addDashbordContextMenu();
+                ImGui::EndPopup();
+            }
+        }
+        ImGui::End();
+    }
+}
+
+void DashboardWindow::showGUIData()
+{
+    ImGui::Spacing();
+    int k = 0;
+    for (auto& itGroup : m_groupedGUIData)
+    {
+        ImGui::PushID(k++);
+        std::string groupName = itGroup.first;
+
+        if (m_expandAll)
+            ImGui::SetNextItemOpen(true);
+        if (m_collapseAll)
+            ImGui::SetNextItemOpen(false);
+
+        if (ImGui::CollapsingHeader(groupName.empty()? "Misc": groupName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) // Group title
+        {
+            ImGui::Indent();
+            int i = 0;
+            for (models::guidata::GUIData::SPtr data : itGroup.second)
+            {
                 if (data)
                 {
-                    addData(data->getName(),
-                            std::pair<sofa::core::BaseData*, bool>(data, false),
-                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                            std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                            data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
-                            data->getHelp());
+                    ImGui::PushID(i++);
+                    if (m_expandAll)
+                        ImGui::SetNextItemOpen(true);
+
+                    if (m_showHelp)
+                    {
+                        if (ImGui::CollapsingHeader(data->label.c_str()))
+                        {
+                            ImGui::Indent();
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                            ImGui::TextWrapped("%s", data->help.c_str());
+                            ImGui::PopStyleColor();
+                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                                ImGui::OpenPopup("##GUIDataContextMenu");
+
+                            showWidget(data, false);
+                            ImGui::Unindent();
+                        }
+                    }
+                    else
+                    {
+                        showWidget(data, true);
+                    }
+                    if (ImGui::BeginPopup("##GUIDataContextMenu"))
+                    {
+                        addDataContextMenu(data);
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
                 }
             }
-            ImGui::EndDragDropTarget();
+            ImGui::Unindent();
         }
+        ImGui::PopID();
     }
+}
 
-    void DashboardWindow::addDataContextMenu(models::guidata::GUIData::SPtr data)
+void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showName)
+{
+    bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+    ImGui::AlignTextToFramePadding();
+    if (noOwner)
     {
-        if (ImGui::MenuItem("Remove"))
-            removeGUIData(data);
+        ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
+        ImGui::SetItemTooltip("Data has no owner");
+        ImGui::SameLine();
     }
 
-    void DashboardWindow::addDashbordContextMenu()
+    if (showName)
+    {
+        ImGui::Text("%s ", data->label.c_str()); // Value description
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+            ImGui::OpenPopup("##GUIDataContextMenu");
+        ImGui::SetItemTooltip("%s", data->help.c_str());
+        ImGui::SameLine();
+    }
+
+    sofaimgui::showWidget(*data->getData());
+
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+        ImGui::OpenPopup("##GUIDataContextMenu");
+}
+
+void DashboardWindow::showOptionButtons()
+{
+    m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
+    ImGui::SetItemTooltip("Expand all");
+    ImGui::SameLine();
+
+    m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
+    ImGui::SetItemTooltip("Collapse all");
+    ImGui::SameLine();
+
+    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine();
+
+    if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+        clearWindow();
+    ImGui::SetItemTooltip("Clear Dashboard");
+    ImGui::SameLine();
+
+    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine();
+
+    if (ImGui::LocalButton(ICON_FA_CIRCLE_QUESTION))
+        m_showHelp = !m_showHelp;
+    ImGui::SetItemTooltip("Show/Hide help");
+}
+
+void DashboardWindow::dropGUIData()
+{
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
+        {
+            sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+            if (data)
+            {
+                addData(data->getName(),
+                        std::pair<sofa::core::BaseData*, bool>(data, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
+                        data->getHelp());
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+}
+
+void DashboardWindow::addDataContextMenu(models::guidata::GUIData::SPtr data)
+{
+    if (ImGui::MenuItem("Remove"))
+        removeGUIData(data);
+}
+
+void DashboardWindow::addDashbordContextMenu()
     {
         bool disable = m_GUIData.empty();
         if (disable)
