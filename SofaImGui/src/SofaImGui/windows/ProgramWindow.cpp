@@ -65,6 +65,12 @@ std::string ProgramWindow::getDescription()
     return "Create robot programs.";
 }
 
+void ProgramWindow::clear()
+{
+    if (isEnabledByState())
+        m_program.clearTracks();
+}
+
 void ProgramWindow::loadAndProcessWindowSettings()
 {
     auto& windowsSettings = WindowsSettings::getInstance();
