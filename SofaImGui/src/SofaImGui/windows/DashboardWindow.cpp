@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "IconsFontAwesome6.h"
 #include <SofaImGui/windows/DashboardWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
@@ -87,6 +88,15 @@ namespace sofaimgui::windows {
                         ImGui::PushID(i++);
                         {
                             ImGui::AlignTextToFramePadding();
+                            bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+
+                            if (noOwner)
+                            {
+                                ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
+                                ImGui::SetItemTooltip("Data has no owner");
+                                ImGui::SameLine();
+                            }
+
                             ImGui::Text("%s ", data->label.c_str()); // Value description
 
                             if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -99,7 +109,12 @@ namespace sofaimgui::windows {
                             }
 
                             ImGui::SameLine();
+
+                            if (noOwner)
+                                ImGui::BeginDisabled();
                             showWidget(*data->getData());
+                            if (noOwner)
+                                ImGui::EndDisabled();
                         }
                         ImGui::PopID();
                     }
