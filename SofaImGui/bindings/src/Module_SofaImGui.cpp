@@ -51,6 +51,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
                      sofa::simulation::Node &TCPNode,
                      sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
 {
+    SOFA_UNUSED(TCPNode);
     msg_deprecated("SofaImGui.setIPController") << "This method is deprecated, use setInverseProblemSolver, addTCP, and addActuator instead.";
 
     ImGuiGUI* gui = ImGuiGUI::getGUI();
@@ -112,7 +113,7 @@ void addTCP(std::string label,
                                                        group,
                                                        help);
         } else {
-            msg_error("[addTCP]") << "Expects a PositionEffector component as the first parameter.";
+            msg_error("[addTCP]") << "Expects a PositionEffector component as the second argument.";
         }
     }
 }
@@ -138,7 +139,7 @@ void addActuator(std::string label,
                                                             group,
                                                             help);
         } else {
-            msg_error("[addTCP]") << "Expects an Actuator component as the first parameter.";
+            msg_error("[addTCP]") << "Expects an Actuator component as the second argument.";
         }
     }
 }
@@ -159,16 +160,16 @@ void addAccessoryComponent(std::string accessoryLabel,
         if (constraint && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
         {
             engine->m_kinematicsGUIDataManager->addAccessoryComponent(accessoryLabel,
-                                                                  componentLabel,
-                                                                  constraint,
-                                                                  getDataFromPyObject(min, "float"),
-                                                                  getDataFromPyObject(max, "float"),
-                                                                  group,
-                                                                  help);
+                                                                      componentLabel,
+                                                                      constraint,
+                                                                      getDataFromPyObject(min, "float"),
+                                                                      getDataFromPyObject(max, "float"),
+                                                                      group,
+                                                                      help);
         }
         else
         {
-            msg_error("[addTCP]") << "Expects either a PositionEffector of Actuator component as the third parameter.";
+            msg_error("[addTCP]") << "Expects either a PositionEffector or Actuator component as the third argument.";
         }
     }
 }

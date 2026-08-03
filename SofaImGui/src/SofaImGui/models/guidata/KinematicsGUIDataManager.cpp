@@ -64,8 +64,10 @@ void KinematicsGUIDataManager::addTCP(const std::string &label,
                 if (guiDataPtr && guiDataPtr->validState)
                     m_effectorsGUIData[KinematicsSection::TCP].push_back(guiDataPtr);
                 else
-                    msg_error("addTCP") << "Something went wrong. Expects a valid PositionEffector component as the first parameter.";
+                    msg_error("addTCP") << "Something went wrong. Expects a valid PositionEffector component as the second argument.";
             }
+            else
+                msg_error("addTCP") << "Something went wrong. No MechanicalObject found in the context.";
         }
     }
 }

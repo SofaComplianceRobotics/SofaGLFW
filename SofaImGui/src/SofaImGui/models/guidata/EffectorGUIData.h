@@ -71,8 +71,9 @@ public:
 protected:
 
     void initFromEffector(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector);
+    sofa::Index getEffectorIndex(const sofa::Index& index);
 
-    sofa::Data<sofa::type::vector<unsigned int>> indices;
+    OwnedBaseData::SPtr indices{nullptr};
     OwnedBaseData::SPtr target{nullptr};
     OwnedBaseData::SPtr targetInit{nullptr};
     OwnedBaseData::SPtr weights{nullptr};

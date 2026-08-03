@@ -34,7 +34,7 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetBaseMeca = nullptr;
 
         if (auto effectorIndices = effector->findData("indices"))
-            indices.getData()->copyValueFrom(effectorIndices->getData());
+            indices = std::make_shared<OwnedBaseData>(effectorIndices, false);
         else
             validState = false;
 
@@ -57,7 +57,7 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
             }
             else
             {
-                msg_warning("GUI") << "Effector should have an effectorGoal";
+                msg_error("GUI") << "Effector should have an effectorGoal";
                 validState = false;
             }
 
@@ -77,33 +77,40 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
         validState = false;
 }
 
+sofa::Index EffectorGUIData::getEffectorIndex(const sofa::Index& index)
+{
+    auto* typeInfo = indices->getData()->getValueTypeInfo();
+    if (index < typeInfo->size())
+        return typeInfo->getIntegerValue(indices->getData()->getValueVoidPtr(), index);
+    return 0;
+}
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPPosition()
 {
     sofa::Data<VecCoord> dposition;
     dposition.getData()->copyValueFrom(data->getData());
-    return dposition.getValue()[0];
+    return dposition.getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetInitPosition()
 {
     sofa::Data<VecCoord> dposition;
     dposition.getData()->copyValueFrom(targetInit->getData());
-    return dposition.getValue()[0];
+    return dposition.getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetPosition()
 {
     sofa::Data<VecCoord> dposition;
     dposition.getData()->copyValueFrom(target->getData());
-    return dposition.getValue()[0];
+    return dposition.getValue()[getEffectorIndex(0)];
 }
 
 void EffectorGUIData::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
 {
     sofa::Data<VecCoord> dposition;
     dposition.getData()->copyValueFrom(target->getData());
-    RigidCoord position = sofa::helper::getReadAccessor(dposition)[0];
+    RigidCoord position = sofa::helper::getReadAccessor(dposition)[getEffectorIndex(0)];
     x = position[0];
     y = position[1];
     z = position[2];
