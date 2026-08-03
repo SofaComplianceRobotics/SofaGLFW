@@ -144,7 +144,8 @@ inline bool showSliderDouble(const std::string& label, double* v, const double& 
     return hasValueChanged;
 }
 
-inline void showWidget(sofa::core::objectmodel::BaseData& data)
+
+inline void internalShowWidget(sofa::core::objectmodel::BaseData& data)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
 
@@ -158,18 +159,15 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data)
     {
         BaseDataWidget::showWidgetAsText(data);
     }
-    if(ImGui::BeginDragDropSource())
-    {
-        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data), 0, false);
-        ImGui::Text("%s", data.m_name.c_str());
-        ImGui::EndDragDropSource();
-    }
     ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
 }
 
-inline void showWidget(sofa::core::objectmodel::BaseData& data, const sofa::core::objectmodel::BaseData* min, const sofa::core::objectmodel::BaseData* max)
+
+inline void internalShowWidget(sofa::core::objectmodel::BaseData& data,
+                               const sofa::core::objectmodel::BaseData* min,
+                               const sofa::core::objectmodel::BaseData* max)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
     if (widget)
@@ -195,5 +193,22 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data, const sofa::core
     }
 }
 
+
+inline void showWidget(sofa::core::objectmodel::BaseData& data,
+                       const sofa::core::objectmodel::BaseData* min=nullptr,
+                       const sofa::core::objectmodel::BaseData* max=nullptr)
+{
+    if (min == nullptr || max == nullptr)
+        internalShowWidget(data);
+    else
+        internalShowWidget(data, min, max);
+
+    if(ImGui::BeginDragDropSource())
+    {
+        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data), 0, false);
+        ImGui::Text("%s", data.m_name.c_str());
+        ImGui::EndDragDropSource();
+    }
+}
 
 }
