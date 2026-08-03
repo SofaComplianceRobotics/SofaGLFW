@@ -166,7 +166,7 @@ void DashboardWindow::showOptionButtons()
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+    if (ImGui::LocalButton(ICON_FA_BROOM))
         clearWindow();
     ImGui::SetItemTooltip("Clear Dashboard");
     ImGui::SameLine();
