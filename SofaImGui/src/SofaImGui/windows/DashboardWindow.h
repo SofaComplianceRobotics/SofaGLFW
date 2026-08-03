@@ -39,9 +39,8 @@ protected:
 
     bool m_expandAll{false};
     bool m_collapseAll{false};
-    bool m_showHelp{false};
 
-    void showWidget(models::guidata::GUIData::SPtr data, bool showName);
+    void showWidget(models::guidata::GUIData::SPtr data);
     void showOptionButtons();
     void showGUIData();
     void dropGUIData();

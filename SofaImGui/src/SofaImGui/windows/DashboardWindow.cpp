@@ -47,7 +47,7 @@ void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
         if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
         {
             showOptionButtons();
-            showInfoMessage("Drag and drop data to this window (eg. from component or node window).");
+            showInfoMessage("Drag and drop data to this window (e.g. from component or node window).");
             showGUIData();
 
             // Fill the available window space with an invisible item defining a area to drop data
@@ -94,25 +94,8 @@ void DashboardWindow::showGUIData()
                     if (m_expandAll)
                         ImGui::SetNextItemOpen(true);
 
-                    if (m_showHelp)
-                    {
-                        if (ImGui::CollapsingHeader(data->label.c_str()))
-                        {
-                            ImGui::Indent();
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                            ImGui::TextWrapped("%s", data->help.c_str());
-                            ImGui::PopStyleColor();
-                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                                ImGui::OpenPopup("##GUIDataContextMenu");
+                    showWidget(data);
 
-                            showWidget(data, false);
-                            ImGui::Unindent();
-                        }
-                    }
-                    else
-                    {
-                        showWidget(data, true);
-                    }
                     if (ImGui::BeginPopup("##GUIDataContextMenu"))
                     {
                         addDataContextMenu(data);
@@ -127,7 +110,7 @@ void DashboardWindow::showGUIData()
     }
 }
 
-void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showName)
+void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 {
     bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
     ImGui::AlignTextToFramePadding();
@@ -138,14 +121,11 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showN
         ImGui::SameLine();
     }
 
-    if (showName)
-    {
-        ImGui::Text("%s ", data->label.c_str()); // Value description
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-            ImGui::OpenPopup("##GUIDataContextMenu");
-        ImGui::SetItemTooltip("%s", data->help.c_str());
-        ImGui::SameLine();
-    }
+    ImGui::Text("%s ", data->label.c_str()); // Value description
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+        ImGui::OpenPopup("##GUIDataContextMenu");
+    ImGui::SetItemTooltip("%s", data->help.c_str());
+    ImGui::SameLine();
 
     sofaimgui::showWidget(*data->getData());
 
@@ -169,14 +149,6 @@ void DashboardWindow::showOptionButtons()
     if (ImGui::LocalButton(ICON_FA_BROOM))
         clearWindow();
     ImGui::SetItemTooltip("Clear Dashboard");
-    ImGui::SameLine();
-
-    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine();
-
-    if (ImGui::LocalButton(ICON_FA_CIRCLE_QUESTION))
-        m_showHelp = !m_showHelp;
-    ImGui::SetItemTooltip("Show/Hide help");
 }
 
 void DashboardWindow::dropGUIData()
