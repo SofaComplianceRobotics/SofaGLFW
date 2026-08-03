@@ -52,7 +52,7 @@ void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
 
             // Fill the available window space with an invisible item defining a area to drop data
             ImVec2 dropRegion = ImGui::GetContentRegionAvail();
-            ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetWindowSize().x / 2, dropRegion.y)));
+            ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
             dropGUIData();
 
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
