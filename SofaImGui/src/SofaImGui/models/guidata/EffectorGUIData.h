@@ -46,8 +46,12 @@ public:
                     std::string label,
                     std::string group,
                     std::string help,
-                    softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector)
+                    softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector,
+                    double minRotation = -2*std::numbers::pi,
+                    double maxRotation = 2*std::numbers::pi)
         : GUIData(data, min, max, label, group, help)
+        , minRotation(minRotation)
+        , maxRotation(maxRotation)
     {
         initFromEffector(effector);
     }
@@ -68,11 +72,16 @@ public:
     double getWeight(const sofa::Index &index);
     void setWeight(const sofa::Index &index, const double &w);
 
+    double getMinRotation() {return minRotation;}
+    double getMaxRotation() {return maxRotation;}
+
 protected:
 
     void initFromEffector(softrobots::behavior::SoftRobotsBaseConstraint::SPtr effector);
     sofa::Index getEffectorIndex(const sofa::Index& index);
 
+    double minRotation;
+    double maxRotation;
     OwnedBaseData::SPtr indices{nullptr};
     OwnedBaseData::SPtr target{nullptr};
     OwnedBaseData::SPtr targetInit{nullptr};

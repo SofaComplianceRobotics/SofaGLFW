@@ -79,38 +79,34 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
 
 sofa::Index EffectorGUIData::getEffectorIndex(const sofa::Index& index)
 {
-    auto* typeInfo = indices->getData()->getValueTypeInfo();
-    if (index < typeInfo->size())
-        return typeInfo->getIntegerValue(indices->getData()->getValueVoidPtr(), index);
+    auto dindices = static_cast<sofa::Data<sofa::type::vector<sofa::Index>>*>(indices->getData());
+    if (dindices->getValue().size() >= index)
+        return dindices->getValue()[index];
     return 0;
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPPosition()
 {
-    sofa::Data<VecCoord> dposition;
-    dposition.getData()->copyValueFrom(data->getData());
-    return dposition.getValue()[getEffectorIndex(0)];
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(data->getData());
+    return dposition->getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetInitPosition()
 {
-    sofa::Data<VecCoord> dposition;
-    dposition.getData()->copyValueFrom(targetInit->getData());
-    return dposition.getValue()[getEffectorIndex(0)];
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(targetInit->getData());
+    return dposition->getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetPosition()
 {
-    sofa::Data<VecCoord> dposition;
-    dposition.getData()->copyValueFrom(target->getData());
-    return dposition.getValue()[getEffectorIndex(0)];
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(target->getData());
+    return dposition->getValue()[getEffectorIndex(0)];
 }
 
 void EffectorGUIData::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
 {
-    sofa::Data<VecCoord> dposition;
-    dposition.getData()->copyValueFrom(target->getData());
-    RigidCoord position = sofa::helper::getReadAccessor(dposition)[getEffectorIndex(0)];
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(target->getData());
+    RigidCoord position = sofa::helper::getReadAccessor(*dposition)[getEffectorIndex(0)];
     x = position[0];
     y = position[1];
     z = position[2];
@@ -141,37 +137,25 @@ void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePi
 {
     if(hasRotation())
     {
-        sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>> duseDirections;
-        duseDirections.getData()->copyValueFrom(useDirections->getData());
-        auto d = sofa::helper::getWriteAccessor(duseDirections);
-        d[3] = freeRoll;
-        d[4] = freePitch;
-        d[5] = freeYaw;
-        useDirections->getData()->copyValueFrom(duseDirections.getData());
+        auto duseDirections = static_cast<sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>>*>(useDirections->getData());
+        auto d = sofa::helper::getWriteAccessor(*duseDirections);
+        d[3] = !freeRoll;
+        d[4] = !freePitch;
+        d[5] = !freeYaw;
     }
 }
 
 double EffectorGUIData::getWeight(const sofa::Index& index)
 {
-    double w = 0.;
-    auto* typeInfo = weights->getData()->getValueTypeInfo();
-    if (index < typeInfo->size())
-    {
-        typeInfo->getScalarValue(weights->getData()->getValueVoidPtr(), index);
-    }
-
-    return w;
+    auto dWeights = static_cast<sofa::Data<sofa::type::vector<double>>*>(weights->getData());
+    return dWeights->getValue()[index];
 }
 
 void EffectorGUIData::setWeight(const sofa::Index& index, const double& w)
 {
-    auto dweights = weights->getData();
-    auto* typeInfo = dweights->getValueTypeInfo();
-    if (index < typeInfo->size())
-    {
-        typeInfo->setScalarValue(dweights->beginEditVoidPtr(), index, w);
-        dweights->endEditVoidPtr();
-    }
+    auto dWeights = static_cast<sofa::Data<sofa::type::vector<double>>*>(weights->getData());
+    auto _weights = sofa::helper::getWriteAccessor(*dWeights);
+    _weights[index] = w;
 }
 
 }

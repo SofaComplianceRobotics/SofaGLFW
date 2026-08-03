@@ -42,7 +42,9 @@ void KinematicsGUIDataManager::addTCP(const std::string &label,
                                       const std::pair<sofa::core::BaseData*, bool>& min,
                                       const std::pair<sofa::core::BaseData*, bool>& max,
                                       const std::string& group,
-                                      const std::string& help)
+                                      const std::string& help,
+                                      const double& minRotation,
+                                      const double& maxRotation)
 {
     if (effector)
     {
@@ -60,7 +62,9 @@ void KinematicsGUIDataManager::addTCP(const std::string &label,
                                                                                      label,
                                                                                      group,
                                                                                      help,
-                                                                                     effector);
+                                                                                     effector,
+                                                                                     minRotation,
+                                                                                     maxRotation);
                 if (guiDataPtr && guiDataPtr->validState)
                     m_effectorsGUIData[KinematicsSection::TCP].push_back(guiDataPtr);
                 else

@@ -96,8 +96,10 @@ void addTCP(std::string label,
             softrobots::behavior::SoftRobotsBaseConstraint *constraint,
             py::object min,
             py::object max,
-            const std::string &group,
-            const std::string& help)
+            const std::string& group,
+            const std::string& help,
+            const double& minRotation,
+            const double& maxRotation)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
@@ -111,7 +113,9 @@ void addTCP(std::string label,
                                                        getDataFromPyObject(min, "float"),
                                                        getDataFromPyObject(max, "float"),
                                                        group,
-                                                       help);
+                                                       help,
+                                                       minRotation,
+                                                       maxRotation);
         } else {
             msg_error("[addTCP]") << "Expects a PositionEffector component as the second argument.";
         }
@@ -139,7 +143,7 @@ void addActuator(std::string label,
                                                             group,
                                                             help);
         } else {
-            msg_error("[addTCP]") << "Expects an Actuator component as the second argument.";
+            msg_error("[addActuator]") << "Expects an Actuator component as the second argument.";
         }
     }
 }
@@ -169,7 +173,7 @@ void addAccessoryComponent(std::string accessoryLabel,
         }
         else
         {
-            msg_error("[addTCP]") << "Expects either a PositionEffector or Actuator component as the third argument.";
+            msg_error("[addAccessoryComponent]") << "Expects either a PositionEffector or Actuator component as the third argument.";
         }
     }
 }
@@ -204,6 +208,7 @@ PYBIND11_MODULE(ImGui, m)
           , "Set the inverse problem solver for piloting TCP from the GUI.");
     m.def("addTCP", &addTCP
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+          , "minRotation"_a = - 2 * std::numbers::pi, "minRotation"_a = 2 * std::numbers::pi
           , "Add a TCP to pilot from the Move, Program or IO windows.");
     m.def("addActuator", &addActuator);
     m.def("addAccessoryComponent", &addAccessoryComponent);

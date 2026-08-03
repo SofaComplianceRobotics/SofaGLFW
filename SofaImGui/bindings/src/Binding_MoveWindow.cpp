@@ -53,7 +53,7 @@ void moduleAddMoveWindow(py::module &m)
             {
             SOFA_UNUSED(positionDescription);
             SOFA_UNUSED(rotationDescription);
-            msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addTCP() instead";
+            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addTCP() instead";
             }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead"
             );
 
@@ -64,7 +64,7 @@ void moduleAddMoveWindow(py::module &m)
             SOFA_UNUSED(maxPosition);
             SOFA_UNUSED(minOrientation);
             SOFA_UNUSED(maxOrientation);
-            msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addTCP() instead";
+            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addTCP() instead";
             }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead"
             );
 
@@ -72,7 +72,7 @@ void moduleAddMoveWindow(py::module &m)
         [m_a_name](const std::string &description)
         {
         SOFA_UNUSED(description);
-        msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addActuator() instead";
+        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
         }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
         );
 
@@ -81,7 +81,7 @@ void moduleAddMoveWindow(py::module &m)
         {
         SOFA_UNUSED(min);
         SOFA_UNUSED(max);
-        msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addActuator() instead";
+        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
         }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
         );
 
@@ -91,7 +91,7 @@ void moduleAddMoveWindow(py::module &m)
             SOFA_UNUSED(id);
             SOFA_UNUSED(min);
             SOFA_UNUSED(max);
-            msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addActuator() instead";
+            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
             }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
             );
 
@@ -103,7 +103,7 @@ void moduleAddMoveWindow(py::module &m)
             SOFA_UNUSED(actuatorsData);
             SOFA_UNUSED(indicesInProblem);
             SOFA_UNUSED(valueType);
-            msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addActuator() instead";
+            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
             }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
             );
 
@@ -115,7 +115,7 @@ void moduleAddMoveWindow(py::module &m)
         SOFA_UNUSED(data);
         SOFA_UNUSED(min);
         SOFA_UNUSED(max);
-        msg_error(m_a_name) << "[DEPRECATED] Use Sofa.ImGui.addAccessory() instead";
+        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addAccessory() instead";
         }, "[DEPRECATED] Use Sofa.ImGui.addAccessory() instead"
         );
 }

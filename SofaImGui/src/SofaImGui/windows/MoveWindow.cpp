@@ -79,7 +79,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     if(isDrivingSimulation())
                         TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
-                    if (ImGui::CollapsingHeader(TCPGUIData->label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    if (ImGui::CollapsingHeader((TCPGUIData->label + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         { // Vertical tabs (buttons)
                             ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
@@ -125,7 +125,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader("TODO Rotation", ImGuiTreeNodeFlags_AllowOverlap))
+                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader((TCPGUIData->label + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
                     {
                         ImGui::SameLine();
 
@@ -152,7 +152,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freeRoll)
                             ImGui::BeginDisabled();
-                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, -3.14, 3.14, ImColor(COLOR_RED)); //TODO real min max
+                        showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_RED));
                         if (m_freeRoll)
                             ImGui::EndDisabled();
 
@@ -160,7 +160,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freePitch)
                             ImGui::BeginDisabled();
-                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, -3.14, 3.14, ImColor(COLOR_GREEN));
+                        showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_GREEN));
                         if (m_freePitch)
                             ImGui::EndDisabled();
 
@@ -168,7 +168,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                         if (m_freeYaw)
                             ImGui::BeginDisabled();
-                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, -3.14, 3.14,ImColor(COLOR_BLUE));
+                        showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_BLUE));
                         if (m_freeYaw)
                             ImGui::EndDisabled();
 
@@ -321,7 +321,7 @@ void MoveWindow::showOptions()
         if (m_freeRoll)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
-        showWeightOption(0);
+        showWeightOption(3);
         if (m_freeRoll)
             ImGui::EndDisabled();
 
@@ -330,7 +330,7 @@ void MoveWindow::showOptions()
         if (m_freePitch)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
-        showWeightOption(1);
+        showWeightOption(4);
         if (m_freePitch)
             ImGui::EndDisabled();
 
@@ -339,7 +339,7 @@ void MoveWindow::showOptions()
         if (m_freeYaw)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
-        showWeightOption(2);
+        showWeightOption(5);
         if (m_freeYaw)
             ImGui::EndDisabled();
 
@@ -360,9 +360,9 @@ void MoveWindow::showWeightOption(const int &index)
     ImGui::Text("weight");
     ImGui::SameLine();
     ImGui::PushID(index);
-    ImGui::LocalInputDouble("##Input ", &w, 0, 0);
+    if (ImGui::LocalInputDouble("##Input ", &w))
+        TCPGUIData->setWeight(index, w);
     ImGui::PopID();
-    TCPGUIData->setWeight(index, w);
 }
 
 void MoveWindow::showPad()

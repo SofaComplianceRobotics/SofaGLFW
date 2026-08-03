@@ -25,11 +25,11 @@ bool LocalInputDouble(const char* label, double* v, double step, double step_fas
     ImGui::PushItemWidth(inputWidth);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     const char* format = (abs(*v)!=0. && (log10f(abs(*v))>3 || log10f(abs(*v))<-2))? "%0.2e": "%0.2f";
-    bool result =  ImGui::InputDouble(label, v, step, step_fast, format, flags);
+    bool value_changed =  ImGui::InputDouble(label, v, step, step_fast, format, flags);
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
 
-    return result;
+    return value_changed;
 }
 
 bool LocalInputFloat(const char* label, float* v, float step, float step_fast, const char*, ImGuiInputTextFlags flags)

@@ -52,7 +52,9 @@ public:
                 const std::pair<sofa::core::BaseData*, bool>& min,
                 const std::pair<sofa::core::BaseData*, bool>& max,
                 const std::string& group,
-                const std::string& help);
+                const std::string& help,
+                const double& minRotation,
+                const double& maxRotation);
     void addActuator(const std::string &label, softrobots::behavior::SoftRobotsBaseConstraint::SPtr actuator,
                      const std::pair<sofa::core::BaseData*, bool>& min,
                      const std::pair<sofa::core::BaseData*, bool>& max,
