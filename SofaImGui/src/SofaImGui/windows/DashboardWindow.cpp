@@ -134,7 +134,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data, bool showN
     if (noOwner)
     {
         ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
-        ImGui::SetItemTooltip("Data has no owner");
+        ImGui::SetItemTooltip("Data is not used in the simulation");
         ImGui::SameLine();
     }
 
