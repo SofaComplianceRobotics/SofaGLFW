@@ -91,8 +91,6 @@ void DashboardWindow::showGUIData()
                 if (data)
                 {
                     ImGui::PushID(i++);
-                    if (m_expandAll)
-                        ImGui::SetNextItemOpen(true);
 
                     showWidget(data);
 
