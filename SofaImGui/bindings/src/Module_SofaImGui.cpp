@@ -24,6 +24,7 @@
 #include <pybind11/cast.h>
 
 #include <SofaImGui/init.h>
+#include <Binding_DashboardWindow.h>
 #include <Binding_IOWindow.h>
 #include <Binding_MoveWindow.h>
 #include <Binding_MyRobotWindow.h>
@@ -209,12 +210,13 @@ PYBIND11_MODULE(ImGui, m)
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
 
+    moduleAddDashboardWindow(m);
     moduleAddIOWindow(m);
     moduleAddMoveWindow(m);
     moduleAddMyRobotWindow(m);
     moduleAddPlottingWindow(m);
     moduleAddProgramWindow(m);
-    moduleAddDataMonitor(m);
+    moduleAddSimulationState(m);
 }
 
 std::pair<sofa::core::BaseData*, bool> getDataFromPyObject(py::object& obj, std::string type)

@@ -23,7 +23,6 @@
 #include <pybind11/cast.h>
 
 #include <SofaPython3/Sofa/Core/Binding_Base.h>
-#include <Binding_SimulationState.h>
 #include <Binding_DashboardWindow.h>
 
 #include <SofaPython3/PythonFactory.h>
@@ -33,6 +32,7 @@
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <Module_SofaImGui.h>
+#include <SofaImGui/windows/DashboardWindow.h>
 
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
@@ -42,38 +42,53 @@ using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
+    void addData(std::shared_ptr<ImGuiGUIEngine> engine,
+                const std::string& label,
+                py::object data,
+                py::object min, py::object max,
+                const std::string& group,
+                const std::string& help,
+                std::string type)
+	{
+		if (engine)
+		{
+            auto p_data = getDataFromPyObject(data, type);
+            std::string p_group = group;
+            std::string p_help = help;
+            if (p_data.first && !p_data.second)
+            {
+                if (group == models::guidata::GUIData::DEFAULTGROUP)
+                    p_group = p_data.first->getOwner()->getPathName();
+                if (help.empty())
+                    p_help = p_data.first->getHelp();
+            }
+            engine->m_dashboardWindow.addData(label,
+                                              getDataFromPyObject(data, type),
+                                              getDataFromPyObject(min, type),
+                                              getDataFromPyObject(max, type),
+                                              p_group,
+                                              p_help);
+		}
+	}
 
-void moduleAddSimulationState(py::module &m)
+void moduleAddDashboardWindow(py::module &m)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
-	// [DEPRECATED] SimulationState submodule
-    auto m_a = m.def_submodule("SimulationState", "");
-    std::string m_a_name = py::str(m_a.attr("__name__"));
+    auto m_a = m.def_submodule("DashboardWindow", "");
 
     m_a.def("addData",
-        [engine, m_a_name](std::string group, std::string description, py::object data)
+        [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
         {
-            SOFA_UNUSED(group);
-            SOFA_UNUSED(description);
-            SOFA_UNUSED(data);
-
-            msg_deprecated(m_a_name) << "SimulationState is deprecated and will be removed in a future release. Please use Sofa.ImGui.Dashboard instead.";
             if (engine)
             {
-				// TODO Remove this when SimulationState is removed
-                // models::SimulationState::StateData stateData;
-                // stateData.group = group;
-                // stateData.description = description;
-                // stateData.data = getDataFromPyObject(data, "double").first;
-                // engine->getSimulationState().addStateData(stateData);
-
+                addData(engine, label, data, min, max, group, help, type);
             }
-        },
-        "[DEPRECATED] Add a data to the SimulationState"
-        );
-
+        }
+        , "label"_a, "data"_a, "min"_a = py::none(), "max"_a = py::none(), "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = "", "type"_a = "double"
+        , "Add a data to the DashboardWindow."
+    );
 }
 
 }

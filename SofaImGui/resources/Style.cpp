@@ -33,6 +33,7 @@ void setStyleVars()
     style.WindowPadding                     = ImVec2(10.00f, 10.00f);
     style.FramePadding                      = ImVec2(10.00f, 10.00f);
     style.CellPadding                       = ImVec2(6.00f, 6.00f);
+    style.DragDropTargetPadding             = 6.00f;
 
     style.ItemSpacing                       = ImVec2(16.00f, 16.00f);
     style.ItemInnerSpacing                  = ImVec2(12.00f, 12.00f);
@@ -53,6 +54,7 @@ void setStyleVars()
     style.PopupRounding                     = 8;
     style.ScrollbarRounding                 = 8;
     style.GrabRounding                      = 8;
+    style.DragDropTargetRounding            = 14;
     style.TabRounding                       = 14;
     style.TabBarBorderSize                  = 1;
 

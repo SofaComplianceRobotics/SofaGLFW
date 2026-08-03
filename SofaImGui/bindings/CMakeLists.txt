@@ -1,6 +1,8 @@
 project(SofaImGuiBindings)
 
 set(HEADER_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_DashboardWindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_DashboardWindow_doc.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_IOWindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_IOWindow_doc.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_MoveWindow.h
@@ -17,6 +19,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_DashboardWindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_IOWindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_MoveWindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Binding_MyRobotWindow.cpp

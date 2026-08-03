@@ -26,14 +26,26 @@
 
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API DataMonitorWindow : public BaseWindow
+class SOFAIMGUI_API DashboardWindow : public BaseWindow
 {
-  public:
-    DataMonitorWindow(const std::string& name, const bool& isWindowOpen);
-    ~DataMonitorWindow() = default;
+public:
+    DashboardWindow(const std::string& name, const bool& isWindowOpen);
+    ~DashboardWindow() = default;
 
     void showWindow(const ImGuiWindowFlags& windowFlags) override;
     std::string getDescription() override;
+
+protected:
+
+    bool m_expandAll{false};
+    bool m_collapseAll{false};
+
+    void showWidget(models::guidata::GUIData::SPtr data);
+    void showOptionButtons();
+    void showGUIData();
+    void dropGUIData();
+
+    void addDashbordContextMenu();
 };
 
 }

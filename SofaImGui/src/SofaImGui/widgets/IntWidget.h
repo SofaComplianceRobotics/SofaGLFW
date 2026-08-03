@@ -43,8 +43,6 @@ template<typename Int>
 void showIntWidget(sofa::Data<Int>& data)
 {
     Int initialValue = data.getValue();
-    ImGui::PushItemWidth(-1); // Fit container width
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     if (showIntWidget(id, initialValue))
     {
