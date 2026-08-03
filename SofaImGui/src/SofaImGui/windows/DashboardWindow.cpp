@@ -85,23 +85,29 @@ void DashboardWindow::showGUIData()
         if (ImGui::CollapsingHeader(groupName.empty()? "Misc": groupName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) // Group title
         {
             ImGui::Indent();
-            int i = 0;
-            for (models::guidata::GUIData::SPtr data : itGroup.second)
+
+            if (ImGui::BeginTable("GUIDataTable", 4, ImGuiTableFlags_NoBordersInBody))
             {
-                if (data)
+                static ImGuiTableColumnFlags flags = ImGuiTableColumnFlags_NoHide;
+                ImGui::TableSetupColumn("##Message", flags | ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("##Name", flags | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("##Data", flags | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("##Remove", flags | ImGuiTableColumnFlags_WidthFixed);
+
+                int i = 0;
+                for (models::guidata::GUIData::SPtr data : itGroup.second)
                 {
-                    ImGui::PushID(i++);
-
-                    showWidget(data);
-
-                    if (ImGui::BeginPopup("##GUIDataContextMenu"))
+                    if (data)
                     {
-                        addDataContextMenu(data);
-                        ImGui::EndPopup();
+                        ImGui::PushID(i++);
+                        showWidget(data);
+                        ImGui::PopID();
                     }
-                    ImGui::PopID();
                 }
+
+                ImGui::EndTable();
             }
+
             ImGui::Unindent();
         }
         ImGui::PopID();
@@ -111,24 +117,51 @@ void DashboardWindow::showGUIData()
 void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 {
     bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+
+    ImGui::TableNextColumn();
     ImGui::AlignTextToFramePadding();
-    if (noOwner)
+
+    // Warning message
     {
-        ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
-        ImGui::SetItemTooltip("Data is not used in the simulation");
-        ImGui::SameLine();
+        if (noOwner)
+        {
+            ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
+            ImGui::SetItemTooltip("Data is not used in the simulation");
+        }
+        else
+            ImGui::Dummy(ImGui::CalcTextSize(ICON_FA_TRIANGLE_EXCLAMATION));
     }
 
-    ImGui::Text("%s ", data->label.c_str()); // Value description
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-        ImGui::OpenPopup("##GUIDataContextMenu");
-    ImGui::SetItemTooltip("%s", data->help.c_str());
-    ImGui::SameLine();
+    ImGui::TableNextColumn();
 
-    sofaimgui::showWidget(*data->getData());
+    // Data name
+    {
+        ImGui::Text("%s ", data->label.c_str()); // Value description
+        ImGui::SetItemTooltip("%s", data->help.c_str());
+    }
 
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-        ImGui::OpenPopup("##GUIDataContextMenu");
+    ImGui::TableNextColumn();
+
+    // Data widget
+    {
+        sofaimgui::showWidget(*data->getData());
+    }
+
+    ImGui::TableNextColumn();
+
+    // Remove button
+    {
+        if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex())
+        {
+            if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+                removeGUIData(data);
+            ImGui::SetItemTooltip("Remove from Drashboard");
+        }
+        else
+            ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
+    }
+
+    ImGui::TableNextRow();
 }
 
 void DashboardWindow::showOptionButtons()
@@ -168,12 +201,6 @@ void DashboardWindow::dropGUIData()
         }
         ImGui::EndDragDropTarget();
     }
-}
-
-void DashboardWindow::addDataContextMenu(models::guidata::GUIData::SPtr data)
-{
-    if (ImGui::MenuItem("Remove"))
-        removeGUIData(data);
 }
 
 void DashboardWindow::addDashbordContextMenu()

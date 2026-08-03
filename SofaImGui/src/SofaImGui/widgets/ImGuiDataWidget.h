@@ -144,8 +144,9 @@ inline bool showSliderDouble(const std::string& label, double* v, const double& 
     return hasValueChanged;
 }
 
-
-inline void internalShowWidget(sofa::core::objectmodel::BaseData& data)
+inline void showWidget(sofa::core::objectmodel::BaseData& data,
+                       const sofa::core::objectmodel::BaseData* min=nullptr,
+                       const sofa::core::objectmodel::BaseData* max=nullptr)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
 
@@ -153,27 +154,11 @@ inline void internalShowWidget(sofa::core::objectmodel::BaseData& data)
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     if (widget)
     {
-        widget->showWidget(data);
-    }
-    else
-    {
-        BaseDataWidget::showWidgetAsText(data);
-    }
-    ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
-    ImGui::PopStyleVar();
-    ImGui::PopItemWidth();
-}
-
-
-inline void internalShowWidget(sofa::core::objectmodel::BaseData& data,
-                               const sofa::core::objectmodel::BaseData* min,
-                               const sofa::core::objectmodel::BaseData* max)
-{
-    auto* widget = DataWidgetFactory::GetWidget(data);
-    if (widget)
-    {
         if (min == nullptr || max == nullptr)
+        {
             widget->showWidget(data);
+            ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
+        }
         else
         {
             auto* typeInfo = data.getValueTypeInfo();
@@ -190,18 +175,10 @@ inline void internalShowWidget(sofa::core::objectmodel::BaseData& data,
     else
     {
         BaseDataWidget::showWidgetAsText(data);
+        ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
     }
-}
-
-
-inline void showWidget(sofa::core::objectmodel::BaseData& data,
-                       const sofa::core::objectmodel::BaseData* min=nullptr,
-                       const sofa::core::objectmodel::BaseData* max=nullptr)
-{
-    if (min == nullptr || max == nullptr)
-        internalShowWidget(data);
-    else
-        internalShowWidget(data, min, max);
+    ImGui::PopStyleVar();
+    ImGui::PopItemWidth();
 
     if(ImGui::BeginDragDropSource())
     {

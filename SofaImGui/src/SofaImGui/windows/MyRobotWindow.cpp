@@ -257,9 +257,9 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             else
             {
                 showInfoMessage("This window is used to display the robot's information and settings. "
-                               "It also provides connection management features. However, no information or settings"
-                               " have been registered for display, nor is there any connection management available."
-                               );
+                                "It also provides connection management features. However, no information or settings"
+                                " have been registered for display, nor is there any connection management available."
+                                );
             }
         }
         ImGui::End();
