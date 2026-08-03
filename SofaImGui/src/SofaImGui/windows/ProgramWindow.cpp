@@ -951,6 +951,8 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 
         stepProgram(dt, reverse);
         m_time += dt; // for cursor display
+        m_cursorPos = m_time * ProgramSizes().TimelineOneSecondSize; // update the cursor position
+
     } // isDrivingSimulation
 }
 
