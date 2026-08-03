@@ -77,7 +77,6 @@ void moduleAddDashboardWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("DashboardWindow", "");
-    std::string m_a_name = py::str(m_a.attr("__name__"));
 
     m_a.def("addData",
         [engine](const std::string& label, py::object data, py::object min, py::object max, std::string group, std::string help, std::string type)
