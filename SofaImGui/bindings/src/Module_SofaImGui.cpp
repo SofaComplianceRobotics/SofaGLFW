@@ -161,7 +161,9 @@ void addAccessoryComponent(std::string accessoryLabel,
 
     if (engine)
     {
-        if (constraint && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
+        if (constraint
+            && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR
+                || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
         {
             engine->m_kinematicsGUIDataManager->addAccessoryComponent(accessoryLabel,
                                                                       componentLabel,
@@ -173,7 +175,7 @@ void addAccessoryComponent(std::string accessoryLabel,
         }
         else
         {
-            msg_error("[addAccessoryComponent]") << "Expects either a PositionEffector or Actuator component as the third argument.";
+            msg_error("[addAccessoryComponent]") << "Expects either an Effector or Actuator component as the third argument.";
         }
     }
 }
@@ -213,7 +215,9 @@ PYBIND11_MODULE(ImGui, m)
     m.def("addActuator", &addActuator
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "Add an actuator to pilot from the Move, Program or IO windows.");
-    m.def("addAccessoryComponent", &addAccessoryComponent);
+    m.def("addAccessoryComponent", &addAccessoryComponent
+          , "accessoryLabel"_a, "componentLabel"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+          , "Add an accessory component to the Move, Program or IO windows.");
 
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);

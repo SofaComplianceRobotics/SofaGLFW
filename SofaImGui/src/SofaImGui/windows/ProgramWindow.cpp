@@ -71,6 +71,17 @@ void ProgramWindow::clear()
         m_program.clearTracks();
 }
 
+void ProgramWindow::onEndInit()
+{
+    m_program = models::Program(m_kinematicsGUIDataManager);
+
+    if (m_program.isValid())
+    {
+        if (!m_programFilename.empty())
+            m_program.importProgram(m_programFilename);
+    }
+}
+
 void ProgramWindow::loadAndProcessWindowSettings()
 {
     auto& windowsSettings = WindowsSettings::getInstance();
@@ -97,7 +108,6 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 if (firstTime)
                 {
                     firstTime = false;
-                    m_program = models::Program(m_kinematicsGUIDataManager);
                     loadAndProcessWindowSettings();
                     ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
                 }

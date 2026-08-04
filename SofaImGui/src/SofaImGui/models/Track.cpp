@@ -29,11 +29,18 @@ Track::Track(guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
 {
     guidata::EffectorGUIData::SPtr TCPGUIData = kinematicsGUIDataManager->getTCPGUIData();
 
-    m_startmove = std::make_shared<actions::StartMove>(TCPGUIData->getTCPTargetInitPosition(),
-                                                       TCPGUIData->getTCPTargetInitPosition(),
-                                                       0.5,
-                                                       kinematicsGUIDataManager,
-                                                       true);
+    if (TCPGUIData && TCPGUIData->isValid())
+        m_startmove = std::make_shared<actions::StartMove>(TCPGUIData->getTCPTargetInitPosition(),
+                                                           TCPGUIData->getTCPTargetInitPosition(),
+                                                           0.5,
+                                                           kinematicsGUIDataManager,
+                                                           true);
+    else
+        m_startmove = std::make_shared<actions::StartMove>(sofa::defaulttype::Rigid3Types::Coord(),
+                                                           sofa::defaulttype::Rigid3Types::Coord(),
+                                                           0.5,
+                                                           kinematicsGUIDataManager,
+                                                           true);
 }
 
 Track::Track(std::shared_ptr<actions::StartMove> startMove)

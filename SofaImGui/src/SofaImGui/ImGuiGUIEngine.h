@@ -128,7 +128,7 @@ protected:
                                                                         m_dashboardWindow
                                                                        };
 
-    std::vector<std::reference_wrapper<windows::BaseWindow>> m_popupWindows{
+    std::vector<std::reference_wrapper<windows::BaseWindow>> m_modalWindows{
                                                                             m_pluginsWindow,
                                                                             m_mouseManagerWindow,
                                                                             m_recordVideoWindow
@@ -154,6 +154,7 @@ protected:
     void clearGUI();
     void setDockSizeFromFile(const ImGuiID& id);
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
+    void notifyWindowsEndInit();
 
     bool m_animate{false};
     bool m_darkMode{false};

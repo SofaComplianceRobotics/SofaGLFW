@@ -179,7 +179,7 @@ void ImGuiGUIEngine::clearGUI()
     m_kinematicsGUIDataManager->clear();
     for (auto& window : m_windows)
         window.get().clearWindow();
-    for (auto& window : m_popupWindows)
+    for (auto& window : m_modalWindows)
         window.get().clearWindow();
 }
 
@@ -188,8 +188,16 @@ void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_kinematicsGUIDataManager->setBaseGUI(baseGUI);
     for (auto& window : m_windows)
         window.get().setBaseGUI(baseGUI);
-    for (auto& window : m_popupWindows)
+    for (auto& window : m_modalWindows)
         window.get().setBaseGUI(baseGUI);
+}
+
+void ImGuiGUIEngine::notifyWindowsEndInit()
+{
+    for (auto& window : m_windows)
+        window.get().onEndInit();
+    for (auto& window : m_modalWindows)
+        window.get().onEndInit();
 }
 
 void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
@@ -332,6 +340,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         enableWindows();
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
+        notifyWindowsEndInit();
     }
     else
     {
@@ -341,7 +350,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     m_baseGUI->setSimulationCanRun(workbench != Workbench::SCENE_EDITOR);
     showMainMenuBar(baseGUI);
     showSecondaryMenuBar();
-    for (auto& window: m_popupWindows)
+    for (auto& window: m_modalWindows)
         window.get().showWindow(ImGuiWindowFlags_NoDocking);
 
     FooterStatusBar::getInstance().showFooterStatusBar();

@@ -77,7 +77,7 @@ public:
     bool hasActuator();
     bool hasAccessory();
 
-    EffectorGUIData::SPtr getTCPGUIData(const sofa::Index& index=0) {return m_effectorsGUIData[KinematicsSection::TCP][index];} // Temp: for the moment we handle only one TCP
+    EffectorGUIData::SPtr getTCPGUIData(const sofa::Index& index=0); // Temp: for the moment we handle only one TCP
 
     softrobotsinverse::solver::QPInverseProblemSolver::SPtr getInverseProblemSolver() {return m_inverseProblemSolver;}
     const std::vector<EffectorGUIData::SPtr>& getTCPs() {return m_effectorsGUIData[KinematicsSection::TCP];}

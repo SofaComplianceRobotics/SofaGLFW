@@ -63,7 +63,7 @@ bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * roo
 
 bool Program::importProgram(const std::string &filename)
 {
-    if (checkExtension(filename))
+    if (checkExtension(filename) && isValid())
     {
         // Temporarily set the numeric formatting locale to ensure that
         // floating-point values are interpreted correctly by tinyXML. (I.e. the
@@ -402,6 +402,12 @@ bool Program::isEmpty()
 
     return true;
 }
+
+bool Program::isValid()
+{
+    return !m_tracks.empty() && m_tracks[0] && m_tracks[0]->getStartMove();
+}
+
 
 } // namespace
 

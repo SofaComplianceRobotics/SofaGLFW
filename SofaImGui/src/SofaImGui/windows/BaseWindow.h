@@ -94,6 +94,9 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// Will be displayed as a tooltip
     virtual std::string getDescription() = 0;
 
+    /// Implementation on end init
+    virtual void onEndInit(){}
+
     /// Get the name of the window
     std::string getName() const;
 

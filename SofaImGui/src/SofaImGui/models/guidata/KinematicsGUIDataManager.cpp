@@ -161,5 +161,16 @@ bool KinematicsGUIDataManager::hasAccessory()
     return m_effectorsGUIData.contains(KinematicsSection::ACCESSORY) || m_actuatorsGUIData.contains(KinematicsSection::ACCESSORY);
 }
 
+EffectorGUIData::SPtr KinematicsGUIDataManager::getTCPGUIData(const sofa::Index& index)
+{
+    if (!hasTCP())
+        return nullptr;
+
+    auto TCPsGUIData = m_effectorsGUIData[KinematicsSection::TCP];
+    if (TCPsGUIData.size() > index)
+        return m_effectorsGUIData[KinematicsSection::TCP][index];
+
+    return nullptr;
+}
 
 }

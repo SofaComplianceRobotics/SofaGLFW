@@ -49,6 +49,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
     void clear() override;
+    void onEndInit() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);
@@ -58,6 +59,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     bool importProgram();
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
+
+    void setProgramFilename(std::string filename) {m_programFilename=filename;}
 
    protected:
 
@@ -79,7 +82,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     std::string m_info;
     bool m_refreshInfo = false;
 
-    bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
+    bool isEnabledByState() override {return m_program.isValid() && m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 
     void showProgramButtons(); /// The buttons of the program window (import, export, restart, repeat, etc.).
     void showCursorMarker(const int &nbCollaspedTracks); /// The red cursor marker.
