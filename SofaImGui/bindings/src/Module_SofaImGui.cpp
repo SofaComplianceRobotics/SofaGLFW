@@ -210,7 +210,9 @@ PYBIND11_MODULE(ImGui, m)
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "minRotation"_a = - 2 * std::numbers::pi, "minRotation"_a = 2 * std::numbers::pi
           , "Add a TCP to pilot from the Move, Program or IO windows.");
-    m.def("addActuator", &addActuator);
+    m.def("addActuator", &addActuator
+          , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
+          , "Add an actuator to pilot from the Move, Program or IO windows.");
     m.def("addAccessoryComponent", &addAccessoryComponent);
 
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);

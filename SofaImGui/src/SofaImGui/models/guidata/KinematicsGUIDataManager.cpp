@@ -71,9 +71,13 @@ void KinematicsGUIDataManager::addTCP(const std::string &label,
                     msg_error("addTCP") << "Something went wrong. Expects a valid PositionEffector component as the second argument.";
             }
             else
-                msg_error("addTCP") << "Something went wrong. No MechanicalObject found in the context.";
+                msg_error("addTCP") << "No MechanicalObject found in the context.";
         }
+        else
+            msg_error("addTCP") << "The PositionEffector has no context.";
     }
+    else
+        msg_error("addTCP") << "Expects a PositionEffector component as the second argument.";
 }
 
 void KinematicsGUIDataManager::addActuator(const std::string &label,
@@ -85,23 +89,25 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
 {
     if (actuator)
     {
-        auto guiDataPtr = std::make_shared<ActuatorGUIData>(std::make_shared<OwnedBaseData>(sofa::Data<float>().getData(), true),
+        auto guiDataPtr = std::make_shared<ActuatorGUIData>(std::make_shared<OwnedBaseData>(actuator->getDelta().getData(), false),
                                                             std::make_shared<OwnedBaseData>(min.first, min.second),
                                                             std::make_shared<OwnedBaseData>(max.first, max.second),
                                                             label,
                                                             group,
                                                             help,
-                                                            actuator->d_constraintIndex.getValue(),
+                                                            std::make_shared<OwnedBaseData>(actuator->d_constraintIndex.getData(), false),
+                                                            actuator->getNbLines(),
                                                             1);
 
         if (guiDataPtr && guiDataPtr->validState)
         {
-            addGUIData(guiDataPtr);
             m_actuatorsGUIData[KinematicsSection::ACTUATOR].push_back(guiDataPtr);
         }
         else
             msg_error("addActuator") << "Something went wrong. Expects a valid Actuator component as the second parameter.";
     }
+    else
+        msg_error("addActuator") << "Expects an Actuator component as the second parameter.";
 }
 
 void KinematicsGUIDataManager::addAccessoryComponent(const std::string &accessoryLabel,
@@ -126,5 +132,34 @@ void KinematicsGUIDataManager::addAccessoryComponent(const std::string &accessor
     //     }
     // }
 }
+
+bool KinematicsGUIDataManager::hasInverseProblemSolver()
+{
+    if (m_inverseProblemSolver == nullptr)
+        return false;
+
+    return m_inverseProblemSolver->getContext() != sofa::core::objectmodel::BaseContext::getDefault();
+}
+
+bool KinematicsGUIDataManager::hasTCP()
+{
+    return m_effectorsGUIData.contains(KinematicsSection::TCP);
+}
+
+bool KinematicsGUIDataManager::hasInverseProblemSolverAndTCP()
+{
+    return hasInverseProblemSolver() && hasTCP();
+}
+
+bool KinematicsGUIDataManager::hasActuator()
+{
+    return m_actuatorsGUIData.contains(KinematicsSection::ACTUATOR);
+}
+
+bool KinematicsGUIDataManager::hasAccessory()
+{
+    return m_effectorsGUIData.contains(KinematicsSection::ACCESSORY) || m_actuatorsGUIData.contains(KinematicsSection::ACCESSORY);
+}
+
 
 }

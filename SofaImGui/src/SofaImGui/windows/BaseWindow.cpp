@@ -60,8 +60,7 @@ std::string& BaseWindow::getLabel()
 
 void BaseWindow::clearWindow()
 {
-	m_groupedGUIData.clear();
-	m_GUIData.clear();
+    clearGUIData();
     clear();
 }
 

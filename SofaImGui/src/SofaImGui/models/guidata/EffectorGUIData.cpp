@@ -79,10 +79,7 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
 
 sofa::Index EffectorGUIData::getEffectorIndex(const sofa::Index& index)
 {
-    auto dindices = static_cast<sofa::Data<sofa::type::vector<sofa::Index>>*>(indices->getData());
-    if (dindices->getValue().size() >= index)
-        return dindices->getValue()[index];
-    return 0;
+    return indices->getData()->getValueTypeInfo()->getIntegerValue(indices->getData()->getValueVoidPtr(), index);
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPPosition()
@@ -133,6 +130,11 @@ void EffectorGUIData::setTCPTargetPosition(const double &x, const double &y, con
     target->getData()->copyValueFrom(vposition.getData());
 }
 
+bool EffectorGUIData::hasRotation()
+{
+    return useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;
+}
+
 void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw)
 {
     if(hasRotation())
@@ -147,15 +149,13 @@ void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePi
 
 double EffectorGUIData::getWeight(const sofa::Index& index)
 {
-    auto dWeights = static_cast<sofa::Data<sofa::type::vector<double>>*>(weights->getData());
-    return dWeights->getValue()[index];
+    return weights->getData()->getValueTypeInfo()->getScalarValue(weights->getData()->getValueVoidPtr(), index);
 }
 
 void EffectorGUIData::setWeight(const sofa::Index& index, const double& w)
 {
-    auto dWeights = static_cast<sofa::Data<sofa::type::vector<double>>*>(weights->getData());
-    auto _weights = sofa::helper::getWriteAccessor(*dWeights);
-    _weights[index] = w;
+    weights->getData()->getValueTypeInfo()->setScalarValue(weights->getData()->beginEditVoidPtr(), index, w);
+    weights->getData()->endEditVoidPtr();
 }
 
 }

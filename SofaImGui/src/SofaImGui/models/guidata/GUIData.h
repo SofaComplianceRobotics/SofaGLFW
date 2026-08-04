@@ -75,11 +75,11 @@ public:
     };
 
     bool getIsOwner() const { return isOwner; }
-    void setIsOwner(bool owner) { isOwner = owner; }
 
     void doDelInput(sofa::core::objectmodel::DDGNode* node) override
     {
-        DDGNode::delInput(node);
+        if (node)
+            DDGNode::delInput(node);
         data = nullptr;
     };
 
@@ -88,7 +88,8 @@ public:
         cleanDirty();
         for (DDGNode* input : inputs)
         {
-            input->updateIfDirty();
+            if (input)
+                input->updateIfDirty();
         }
     }
 

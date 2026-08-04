@@ -38,18 +38,28 @@ public:
                     std::string label,
                     std::string group,
                     std::string help,
-                    size_t _indexInProblem,
+                    OwnedBaseData::SPtr _indexInProblem,
+                    sofa::Size _size,
                     int _valueType)
         : GUIData(data, min, max, label, group, help)
+        , size(_size)
         , indexInProblem(_indexInProblem)
     {
         valueType.setSelectedItem(_valueType);
+
     }
 
-    size_t indexInProblem;
-    sofa::helper::OptionsGroup valueType{"force", "displacement"};
+    sofa::Size size;
+    sofa::helper::OptionsGroup valueType{"lambda", "delta"};
+
+    double getValue(const sofa::Index &index);
+    void setValue(const sofa::Index &index, const double& value);
+
+    sofa::Index getIndexInProblem();
 
 protected:
+
+    OwnedBaseData::SPtr indexInProblem;
 };
 
 }

@@ -46,7 +46,11 @@ Move::~Move()
     if (m_groot)
     {
         if (auto guiNode = m_groot->getChild(sofaglfw::SofaGLFWBaseGUI::getGUINodeName()))
+        {
+            m_trajectory->cleanup();
             guiNode->removeObject(m_trajectory);
+            m_trajectory->reset();
+        }
     }
 }
 

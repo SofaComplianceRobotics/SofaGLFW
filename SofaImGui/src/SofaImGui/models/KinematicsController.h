@@ -37,17 +37,14 @@ class SOFAIMGUI_API KinematicsController : public sofa::component::controller::C
 
     SOFA_CLASS(KinematicsController, sofa::component::controller::Controller);
 
-    KinematicsController();
+    KinematicsController(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~KinematicsController() = default;
 
-    void applyActuatorsForce();
     void handleEvent(sofa::core::objectmodel::Event *event) override;
 
    protected:
 
-    // models::guidata::KinematicsGUIDataManager m_kinematicsGUIDataManager;
-    bool m_updateSolutionOnSolveEndEvent{false};
-
+    models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
 };
 
 } // namespace

@@ -47,8 +47,11 @@ GUIData::SPtr GUIDataManager::addData(const std::string& label,
     return nullptr;
 }
 
-GUIData::SPtr GUIDataManager::addGUIData(const GUIData::SPtr& guidata)
+GUIData::SPtr GUIDataManager::addGUIData(GUIData::SPtr guidata)
 {
+    if (guidata.get() == nullptr)
+        return nullptr;
+
     // Check if already in the set
     if (m_GUIData.find(guidata) != m_GUIData.end())
     {

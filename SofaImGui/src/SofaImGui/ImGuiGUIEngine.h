@@ -47,6 +47,7 @@
 
 #include <SofaImGui/menus/ViewMenu.h>
 #include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
+#include <SofaImGui/models/KinematicsController.h>
 
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
@@ -85,17 +86,11 @@ public:
 
     void saveProject(const bool& saveAs=false);
 
-    // to remove
-    // void setKinematicsController(sofa::simulation::Node::SPtr groot,
-    //                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-    //                              sofa::core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-    //                              softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3Types>::SPtr rotationEffector);
-
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
 
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager = std::make_shared<models::guidata::KinematicsGUIDataManager>();
+    models::KinematicsController::SPtr m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(m_kinematicsGUIDataManager); // TODO: remove when QPInverseProblemSolver can solve direct problem
 
     windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
     windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", true);

@@ -1218,7 +1218,9 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                             if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
                             {
                                 auto componentClassName = object->getName();
+                                object->cleanup();
                                 node->removeObject(object);
+                                object->reset();
                                 removed = true;
 
                                 auto creator = entry.creatorMap.find(componentTemplatesList[n])->second;
@@ -1375,7 +1377,9 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
 
             if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
+                component->cleanup();
                 parent->removeObject(component);
+                component->reset();
                 clicked = true;
             }
             ImGui::SetItemTooltip("Delete Component");

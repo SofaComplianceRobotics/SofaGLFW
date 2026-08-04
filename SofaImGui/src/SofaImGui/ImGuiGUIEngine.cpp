@@ -174,25 +174,6 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
     projectSettings.SaveFile(projectFile.c_str());
 }
 
-// to remove
-// void ImGuiGUIEngine::setKinematicsController(sofa::simulation::Node::SPtr groot,
-//                                              softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver,
-//                                              sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetMechanical,
-//                                              core::behavior::BaseMechanicalState::SPtr TCPMechanical,
-//                                              softrobotsinverse::constraint::PositionEffector<defaulttype::Rigid3Types>::SPtr rotationEffector)
-// {
-//     if (m_kinematicsController)
-//         groot->removeObject(m_kinematicsController.get());
-
-//     m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(groot, solver, TCPTargetMechanical, TCPMechanical, rotationEffector);
-//     m_kinematicsController->setName(groot->getNameHelper().resolveName(m_kinematicsController->getClassName(), sofa::core::ComponentNameHelper::Convention::python));
-
-//     groot->addObject(m_kinematicsController.get());
-//     m_programWindow.setKinematicsController(m_kinematicsController);
-//     m_moveWindow.setKinematicsController(m_kinematicsController);
-//     m_IOWindow.setKinematicsController(m_kinematicsController);
-// }
-
 void ImGuiGUIEngine::clearGUI()
 {
     m_kinematicsGUIDataManager->clear();
@@ -1038,6 +1019,7 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
         root->removeChild(guiNode);
 
     Utils::loadSimulation(m_baseGUI, reload, filename);
+
     createGUINode(guiNode);
     enableWindows();
 }
@@ -1054,6 +1036,8 @@ void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)
         guinode->addTag(sofa::core::objectmodel::Tag("NoBBox"));
         guinode->addTag(sofaglfw::SofaGLFWBaseGUI::getGUITag());
         guinode->f_bbox.setParent(&root->f_bbox);
+        if (m_kinematicsController && !guinode->getObject(m_kinematicsController->getName()))
+            guinode->addObject(m_kinematicsController);
     }
 }
 
