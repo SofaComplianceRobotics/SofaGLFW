@@ -29,17 +29,26 @@ namespace sofaimgui::models::guidata
 
 double ActuatorGUIData::getValue(const sofa::Index &index)
 {
+    if (!isValid())
+        return 0.;
+
     return data->getData()->getValueTypeInfo()->getScalarValue(data->getData()->getValueVoidPtr(), index);
 }
 
 void ActuatorGUIData::setValue(const sofa::Index& index, const double &value)
 {
-    data->getData()->getValueTypeInfo()->setScalarValue(data->getData()->beginEditVoidPtr(), index, value);
-    data->getData()->endEditVoidPtr();
+    if (isValid())
+    {
+        data->getData()->getValueTypeInfo()->setScalarValue(data->getData()->beginEditVoidPtr(), index, value);
+        data->getData()->endEditVoidPtr();
+    }
 }
 
 sofa::Index ActuatorGUIData::getIndexInProblem()
 {
+    if (!OwnedBaseData::isDataValid(indexInProblem))
+        return 0;
+
     return indexInProblem->getData()->getValueTypeInfo()->getIntegerValue(indexInProblem->getData()->getValueVoidPtr(), 0);
 }
 

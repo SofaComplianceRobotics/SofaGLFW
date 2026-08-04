@@ -475,7 +475,8 @@ void IOWindow::updateROSOutput()
     {
         if(m_publishListboxItems[key])
         {
-            m_rosnode->m_selectedDataToPublish["/" + key] = guiData->getData();
+            if (guiData && guiData->isValid())
+                m_rosnode->m_selectedDataToPublish["/" + key] = guiData->getData();
         }
     }
 }
@@ -487,7 +488,7 @@ void IOWindow::updateROSInput()
     // User defined input
     for (const auto &[label, guiData] : m_selectableData[Role::SUBSCRIBE])
     {
-        if (guiData)
+        if (guiData && guiData->isValid())
         {
             std::string dataLabel = label;
             if (dataLabel.find("TCP") != std::string::npos) //TCP target
@@ -523,7 +524,9 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                             for (size_t i=0; i<IOWindow::RigidCoord::total_size; i++)
                                 position[i] = data->getValueTypeInfo()->getScalarValue(data->getValueVoidPtr(), i);
 
-                            m_kinematicsGUIDataManager->getTCPGUIData()->setTCPTargetPosition(position);
+                            auto TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
+                            if (TCPGUIData)
+                                TCPGUIData->setTCPTargetPosition(position);
                         }
                         else
                         {
@@ -533,7 +536,9 @@ void IOWindow::animateBeginEventROS(sofa::simulation::Node *groot)
                     }
                     else
                     {
-                        m_selectableData[Role::SUBSCRIBE][label]->getData()->copyValueFrom(data);
+                        auto selectableData = m_selectableData[Role::SUBSCRIBE][label];
+                        if (selectableData && selectableData->isValid())
+                            selectableData->getData()->copyValueFrom(data);
                     }
                 }
             }
@@ -550,18 +555,21 @@ void IOWindow::animateEndEventROS(sofa::simulation::Node *groot)
         for (const auto& publisher : m_rosnode->m_publishers)
         {
             // Copy the data to publish
-            auto message = std_msgs::msg::Float32MultiArray();
             const auto& data = m_rosnode->m_selectedDataToPublish[publisher->get_topic_name()];
-            auto* typeinfo = data->getValueTypeInfo();
-            auto* values = data->getValueVoidPtr();
-            size_t nbValue = typeinfo->size();
-            std::vector<float> vector(nbValue);
+            if (data)
+            {
+                auto message = std_msgs::msg::Float32MultiArray();
+                auto* typeinfo = data->getValueTypeInfo();
+                auto* values = data->getValueVoidPtr();
+                size_t nbValue = typeinfo->size();
+                std::vector<float> vector(nbValue);
 
-            for (size_t i=0; i<nbValue; i++) // Values
-                vector[i]=typeinfo->getScalarValue(values, i);
+                for (size_t i=0; i<nbValue; i++) // Values
+                    vector[i]=typeinfo->getScalarValue(values, i);
 
-            message.data.insert(message.data.end(), vector.begin(), vector.end());
-            publisher->publish(message);
+                message.data.insert(message.data.end(), vector.begin(), vector.end());
+                publisher->publish(message);
+            }
         }
     }
 }

@@ -76,11 +76,14 @@ void PlottingWindow::exportData()
 				size_t i = 0;
 				for (auto& it : m_GUIData)
 				{
-                    outputFile << it->label<< ",";
-                    auto buffer = m_buffers[i];
-                    for (const auto& d : buffer.data)
-                        outputFile << d.y << ",";
-                    outputFile << "\n";
+                    if (it && it->isValid())
+                    {
+                        outputFile << it->label<< ",";
+                        auto buffer = m_buffers[i];
+                        for (const auto& d : buffer.data)
+                            outputFile << d.y << ",";
+                        outputFile << "\n";
+                    }
                     i++;
                 }
                 outputFile.close();
@@ -115,11 +118,14 @@ void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
         for (size_t k=0; k<nbData; k++)
         {
 			auto& data = *std::next(m_GUIData.begin(), k);
-            const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
-            float value = typeInfo->getScalarValue(data->getData()->getValueVoidPtr(), 0);
-            float time = groot->getTime();
-            RollingBuffer& buffer = m_buffers[k];
-            buffer.addPoint(time, value);
+            if (data && data->isValid())
+            {
+                const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
+                float value = typeInfo->getScalarValue(data->getData()->getValueVoidPtr(), 0);
+                float time = groot->getTime();
+                RollingBuffer& buffer = m_buffers[k];
+                buffer.addPoint(time, value);
+            }
         }
     }
     
@@ -396,15 +402,18 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
             for (size_t i=0; i<nbData; i++)
             {
 				auto& data = *std::next(m_GUIData.begin(), i);
-                auto& buffer = m_buffers[i];
-                if (m_data[idSubplot].contains(data))
+                if (data && data->isValid())
                 {
-                    for (auto& point: buffer.data)
+                    auto& buffer = m_buffers[i];
+                    if (m_data[idSubplot].contains(data))
                     {
-                        point.y /= buffer.ratio;
-                        point.y *= ratio;
+                        for (auto& point: buffer.data)
+                        {
+                            point.y /= buffer.ratio;
+                            point.y *= ratio;
+                        }
+                        buffer.ratio = ratio;
                     }
-                    buffer.ratio = ratio;
                 }
             }
             m_ratio[idSubplot] = ratio;

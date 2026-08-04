@@ -184,22 +184,25 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             {
 								if(m_sectionedGUIData[Section::INFORMATION].contains(data))
                                 {
-                                    if (!isInEmptyGroup(data->group) && firsttime)
+                                    if (data && data->isValid())
                                     {
-                                        ImGui::TextDisabled("%s", data->group.c_str());
-                                        ImGui::Indent();
-									    firsttime = false;
+                                        if (!isInEmptyGroup(data->group) && firsttime)
+                                        {
+                                            ImGui::TextDisabled("%s", data->group.c_str());
+                                            ImGui::Indent();
+                                            firsttime = false;
+                                        }
+                                        ImGui::PushID(i++);
+                                        ImGui::AlignTextToFramePadding();
+                                        ImGui::Text("%s:", data->label.c_str());
+                                        if (!data->help.empty())
+                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        ImGui::SameLine();
+                                        BaseDataWidget::showWidgetAsText(*data->getData());
+                                        if (!data->help.empty())
+                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        ImGui::PopID();
                                     }
-                                    ImGui::PushID(i++);
-                                    ImGui::AlignTextToFramePadding();
-                                    ImGui::Text("%s:", data->label.c_str());
-                                    if (!data->help.empty())
-                                        ImGui::SetItemTooltip("%s", data->help.c_str());
-                                    ImGui::SameLine();
-                                    BaseDataWidget::showWidgetAsText(*data->getData());
-                                    if (!data->help.empty())
-                                        ImGui::SetItemTooltip("%s", data->help.c_str());
-                                    ImGui::PopID();
                                 }
                             }
 
@@ -226,22 +229,25 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                             {
                                 if (m_sectionedGUIData[Section::SETTINGS].contains(data))
                                 {
-                                    if (!isInEmptyGroup(data->group) && firsttime)
+                                    if (data && data->isValid())
                                     {
-                                        ImGui::TextDisabled("%s", data->group.c_str());
-                                        ImGui::Indent();
-                                        firsttime = false;
-                                    }
-                                    if (data->getData()->getValueTypeString()!="bool")
-                                        ImGui::AlignTextToFramePadding();
-                                    ImGui::Text("%s", data->label.c_str());
-                                    if (!data->help.empty())
-                                        ImGui::SetItemTooltip("%s", data->help.c_str());
-                                    ImGui::SameLine();
+                                        if (!isInEmptyGroup(data->group) && firsttime)
+                                        {
+                                            ImGui::TextDisabled("%s", data->group.c_str());
+                                            ImGui::Indent();
+                                            firsttime = false;
+                                        }
+                                        if (data->getData()->getValueTypeString()!="bool")
+                                            ImGui::AlignTextToFramePadding();
+                                        ImGui::Text("%s", data->label.c_str());
+                                        if (!data->help.empty())
+                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        ImGui::SameLine();
 
-                                    showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
-                                    if (!data->help.empty())
-                                        ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
+                                        if (!data->help.empty())
+                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                    }
                                 }
                             }
 

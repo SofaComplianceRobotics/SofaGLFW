@@ -78,9 +78,8 @@ public:
 
     void doDelInput(sofa::core::objectmodel::DDGNode* node) override
     {
-        if (node)
-            DDGNode::delInput(node);
         data = nullptr;
+        DDGNode::doDelInput(node);
     };
 
     void update() override
@@ -91,6 +90,16 @@ public:
             if (input)
                 input->updateIfDirty();
         }
+    }
+
+    bool isValid()
+    {
+        return data != nullptr && data->getData() != nullptr && data->getData()->getValueTypeInfo() != nullptr && data->getData()->getValueVoidPtr() != nullptr;
+    }
+
+    bool static isDataValid(OwnedBaseData::SPtr data)
+    {
+        return data != nullptr && data->getData() != nullptr && data->getData()->getValueTypeInfo() != nullptr && data->getData()->getValueVoidPtr() != nullptr;
     }
 
 };
@@ -133,8 +142,8 @@ public:
     sofa::core::BaseData* getDataMin() const { return min? min->getData(): nullptr; };
     sofa::core::BaseData* getDataMax() const { return max? max->getData(): nullptr; };
 
-    double getMin() {return min? min->getData()->getValueTypeInfo()->getScalarValue(min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
-    double getMax() {return max? max->getData()->getValueTypeInfo()->getScalarValue(max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
+    double getMin() {return (min && min->isValid())? min->getData()->getValueTypeInfo()->getScalarValue(min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
+    double getMax() {return (max && max->isValid())? max->getData()->getValueTypeInfo()->getScalarValue(max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
 
     void setData(sofa::core::BaseData* newData, bool isOwner=false)
     {
@@ -142,6 +151,16 @@ public:
             data->setData(newData, isOwner);
         else
             data = std::make_shared<OwnedBaseData>(newData, isOwner);
+    }
+
+    bool isValid()
+    {
+        return OwnedBaseData::isDataValid(data);
+    }
+
+    bool static isDataValid(GUIData* data)
+    {
+        return data != nullptr && data->isValid();
     }
 };
 

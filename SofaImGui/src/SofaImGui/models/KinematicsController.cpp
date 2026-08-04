@@ -62,7 +62,7 @@ void KinematicsController::handleEvent(sofa::core::objectmodel::Event *event)
         const auto& problem = m_kinematicsGUIDataManager->getInverseProblemSolver()->getConstraintProblem();
         softrobotsinverse::solver::module::QPInverseProblem* inverseProblem = dynamic_cast<softrobotsinverse::solver::module::QPInverseProblem*>(problem);
 
-        if (inverseProblem)
+        if (problem && inverseProblem)
         {
             auto& lambda = problem->f;
             auto& w = problem->W;
@@ -71,53 +71,62 @@ void KinematicsController::handleEvent(sofa::core::objectmodel::Event *event)
             softrobotsinverse::solver::module::QPInverseProblem::QPConstraintLists* qpCLists = inverseProblem->getQPConstraintLists();
             softrobotsinverse::solver::module::QPInverseProblemImpl::QPSystem* qpSystem = inverseProblem->getQPSystem();
 
-            const size_t nbActuatorRows = qpCLists->actuatorRowIds.size();
-            const size_t nbEffectorRows = qpCLists->effectorRowIds.size();
-            const size_t nbSensorRows   = qpCLists->sensorRowIds.size();
-            const size_t nbContactRows  = qpCLists->contactRowIds.size();
-            const size_t nbEqualityRows = qpCLists->equalityRowIds.size();
-            const size_t nbRows = nbEffectorRows + nbActuatorRows + nbContactRows + nbSensorRows + nbEqualityRows;
-            qpSystem->delta.resize(nbRows);
-
-            auto actuatorsGUIData = m_kinematicsGUIDataManager->getActuators();
-
-            // TODO solve the direct kinematics. And handle contacts.
-            // Add a direct solver to the QPInverseProblemSolver
-            std::vector<double> d(actuatorsGUIData.size());
-            for (auto actuator: actuatorsGUIData)
-                lambda[actuator->getIndexInProblem()] = 0;
-
-            for (size_t i=0; i<10; i++)
+            if (qpSystem)
             {
-                int j=0;
-                for (auto a1: actuatorsGUIData)
+                const size_t nbActuatorRows = qpCLists->actuatorRowIds.size();
+                const size_t nbEffectorRows = qpCLists->effectorRowIds.size();
+                const size_t nbSensorRows   = qpCLists->sensorRowIds.size();
+                const size_t nbContactRows  = qpCLists->contactRowIds.size();
+                const size_t nbEqualityRows = qpCLists->equalityRowIds.size();
+                const size_t nbRows = nbEffectorRows + nbActuatorRows + nbContactRows + nbSensorRows + nbEqualityRows;
+                qpSystem->delta.resize(nbRows);
+
+                auto actuatorsGUIData = m_kinematicsGUIDataManager->getActuators();
+
+                // TODO solve the direct kinematics. And handle contacts.
+                // Add a direct solver to the QPInverseProblemSolver
+                std::vector<double> d(actuatorsGUIData.size());
+                for (auto actuator: actuatorsGUIData)
                 {
-                    if (a1->valueType.getSelectedId() == 0)
+                    if (actuator && actuator->isValid())
+                        lambda[actuator->getIndexInProblem()] = 0;
+                }
+
+                for (size_t i=0; i<10; i++)
+                {
+                    int j=0;
+                    for (auto a1: actuatorsGUIData)
                     {
-                        lambda[a1->getIndexInProblem()] = a1->getValue(0);
-                    }
-                    else
-                    {
-                        d[j] = dfree[a1->getIndexInProblem()];
-                        for(auto a2: actuatorsGUIData)
+                        if (a1 && a1->isValid())
                         {
-                            d[j] += w[a1->getIndexInProblem()][a2->getIndexInProblem()] * lambda[a2->getIndexInProblem()];
+                            if (a1->valueType.getSelectedId() == 0)
+                            {
+                                lambda[a1->getIndexInProblem()] = a1->getValue(0);
+                            }
+                            else
+                            {
+                                d[j] = dfree[a1->getIndexInProblem()];
+                                for(auto a2: actuatorsGUIData)
+                                {
+                                    if (a2 && a2->isValid())
+                                        d[j] += w[a1->getIndexInProblem()][a2->getIndexInProblem()] * lambda[a2->getIndexInProblem()];
+                                }
+                                lambda[a1->getIndexInProblem()] -= (d[j]-a1->getValue(0)) / w[a1->getIndexInProblem()][a1->getIndexInProblem()];
+                                j++;
+                            }
                         }
-                        lambda[a1->getIndexInProblem()] -= (d[j]-a1->getValue(0)) / w[a1->getIndexInProblem()][a1->getIndexInProblem()];
-                        j++;
                     }
                 }
+
+                for(size_t i=0; i<nbRows; i++)
+                {
+                    qpSystem->delta[i] = dfree[i];
+                    for(size_t j=0; j<nbRows; j++)
+                        qpSystem->delta[i] += lambda[j]*w[i][j];
+                }
+
+                inverseProblem->sendResults();
             }
-
-
-            for(size_t i=0; i<nbRows; i++)
-            {
-                qpSystem->delta[i] = dfree[i];
-                for(size_t j=0; j<nbRows; j++)
-                    qpSystem->delta[i] += lambda[j]*w[i][j];
-            }
-
-            inverseProblem->sendResults();
         }
     }
 
