@@ -133,9 +133,9 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
 
                         bool openOptions = false;
-                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_Header));
-                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header));
-                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header));
+                        ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
                         if (ImGui::LocalButton(ICON_FA_BARS))
                             openOptions = true;
                         ImGui::PopStyleColor(3);
