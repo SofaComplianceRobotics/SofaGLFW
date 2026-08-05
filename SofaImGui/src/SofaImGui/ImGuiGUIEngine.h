@@ -84,6 +84,8 @@ public:
 
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
+    void loadSimulation(const bool& reload, const std::string &filename) override;
+
     void saveProject(const bool& saveAs=false);
 
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
@@ -148,7 +150,6 @@ protected:
     void applyDarkMode(const bool &darkMode, sofaglfw::SofaGLFWBaseGUI* baseGUI=nullptr);
 
     void saveSettings();
-    void loadSimulation(const bool& reload, const std::string &filename);
     void enableWindows();
     void createGUINode(Node::SPtr guiNode = nullptr);
     void clearGUI();

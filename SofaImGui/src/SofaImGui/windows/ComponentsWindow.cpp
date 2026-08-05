@@ -22,13 +22,17 @@
 
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/ComponentsWindow.h>
-#include <filesystem>
+#include <SofaImGui/FooterStatusBar.h>
+
 #include <sofa/simulation/Node.h>
+#include <sofa/helper/system/FileSystem.h>
 
 #include <imgui.h>
 #include <nfd.h>
 #include <IconsFontAwesome5.h>
+
 #include <fstream>
+#include <filesystem>
 
 
 namespace sofaimgui::windows
@@ -177,24 +181,28 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
     {
         ImGui::TextDisabled("Examples:");
         ImGui::Indent();
+
+        static std::filesystem::path selectedExamplePath;
         for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
 
             ImGui::TextWrapped("%s", examplePath.filename().string().c_str());
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+            {
+                selectedExamplePath = examplePath;
+                ImGui::OpenPopup("##ExampleContextMenu");
+            }
+
             ImGui::PopStyleColor();
-
-            if (ImGui::IsItemClicked())
-                ImGui::SetClipboardText(examplePath.string().c_str());
-
-            static float copiedMessageDuration = 0;
-            if (ImGui::IsItemClicked() || copiedMessageDuration > 0)
-                copiedMessageDuration += ImGui::GetIO().DeltaTime;
-            if (copiedMessageDuration > 3)
-                copiedMessageDuration = 0;
-
-            ImGui::SetItemTooltip((copiedMessageDuration > 0)? "Copied!": "Click to copy the file path");
         }
+
+        if (ImGui::BeginPopup("##ExampleContextMenu"))
+        {
+            showExampleContextMenu(selectedExamplePath);
+            ImGui::EndPopup();
+        }
+
         ImGui::Unindent();
     }
 
@@ -265,6 +273,19 @@ void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedCo
         }
         ImGui::Unindent();
     }
+}
+
+void ComponentsWindow::showExampleContextMenu(const std::filesystem::path &examplePath)
+{
+    if (ImGui::MenuItem("Copy Path"))
+        ImGui::SetClipboardText(examplePath.string().c_str());
+
+    if (ImGui::MenuItem("Open File"))
+        if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(examplePath))
+            FooterStatusBar::getInstance().setTempMessage("Opening file : " + examplePath.string());
+
+    if (ImGui::MenuItem("Load File"))
+        m_baseGUI->getGUIEngine()->loadSimulation(false, examplePath.string());
 }
 
 void ComponentsWindow::saveFile()

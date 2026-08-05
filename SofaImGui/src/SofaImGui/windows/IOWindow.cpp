@@ -137,12 +137,12 @@ void IOWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 }
 
 models::guidata::GUIData::SPtr IOWindow::addData(const std::string& label,
-                                                    const std::pair<sofa::core::BaseData*, bool>& data,
-                                                    const std::pair<sofa::core::BaseData*, bool>& min,
-                                                    const std::pair<sofa::core::BaseData*, bool>& max,
-                                                    const std::string& group,
-                                                    const std::string& tooltip,
-                                                    Role role)
+                                                 const std::pair<sofa::core::BaseData*, bool>& data,
+                                                 const std::pair<sofa::core::BaseData*, bool>& min,
+                                                 const std::pair<sofa::core::BaseData*, bool>& max,
+                                                 const std::string& group,
+                                                 const std::string& tooltip,
+                                                 Role role)
 {
     auto newdData = BaseWindow::addData(label, data, min, max, group, tooltip);
 	if (role == Role::ALL)

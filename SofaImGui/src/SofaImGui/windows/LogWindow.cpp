@@ -94,14 +94,8 @@ void LogWindow::showButtons()
 
 void LogWindow::showSettingsButton()
 {
-    bool openOptions = false;
     if (ImGui::LocalButton(ICON_FA_BARS))
-        openOptions = true;
-
-    if (openOptions)
-    {
         ImGui::OpenPopup("##LogSettings");
-    }
 
     if (ImGui::BeginPopup("##LogSettings"))
     {
