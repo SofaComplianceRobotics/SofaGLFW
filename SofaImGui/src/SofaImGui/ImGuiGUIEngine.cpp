@@ -1031,6 +1031,7 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
     createGUINode(guiNode);
     enableWindows();
+    notifyWindowsEndInit();
 }
 
 void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)

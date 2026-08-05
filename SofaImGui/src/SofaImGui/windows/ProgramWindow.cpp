@@ -73,12 +73,15 @@ void ProgramWindow::clear()
 
 void ProgramWindow::onEndInit()
 {
-    m_program = models::Program(m_kinematicsGUIDataManager);
-
-    if (m_program.isValid())
+    if (m_program.isEmpty())
     {
-        if (!m_programFilename.empty())
-            m_program.importProgram(m_programFilename);
+        m_program = models::Program(m_kinematicsGUIDataManager);
+
+        if (m_program.isValid())
+        {
+            if (!m_programFilename.empty())
+                m_program.importProgram(m_programFilename);
+        }
     }
 }
 

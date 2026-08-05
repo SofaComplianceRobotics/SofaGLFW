@@ -132,6 +132,7 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
 
     void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
+    void onEndInit() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);

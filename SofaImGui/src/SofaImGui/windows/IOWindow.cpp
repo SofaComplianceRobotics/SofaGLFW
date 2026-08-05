@@ -63,6 +63,30 @@ std::string IOWindow::getDescription()
     return "Input / output operations of data.";
 }
 
+void IOWindow::onEndInit()
+{
+    if (auto effector = m_kinematicsGUIDataManager->getTCPGUIData())
+    {
+        m_selectableData[Role::PUBLISH][effector->getLabel()] = effector;
+        m_selectableData[Role::SUBSCRIBE][effector->getLabel()] = effector;
+    }
+
+    for (auto actuator : m_kinematicsGUIDataManager->getActuators())
+        if (actuator && actuator->isValid())
+        {
+            m_selectableData[Role::PUBLISH][actuator->getLabel()] = actuator;
+            m_selectableData[Role::SUBSCRIBE][actuator->getLabel()] = actuator;
+        }
+
+    for (const auto& [group, accessories] : m_kinematicsGUIDataManager->getAccessories())
+        for (auto accessory: accessories)
+            if (accessory && accessory->isValid())
+            {
+                m_selectableData[Role::PUBLISH][accessory->getLabel()] = accessory;
+                m_selectableData[Role::SUBSCRIBE][accessory->getLabel()] = accessory;
+            }
+}
+
 bool IOWindow::sanitizeName(std::string &name)
 {
     const std::string input = name;
