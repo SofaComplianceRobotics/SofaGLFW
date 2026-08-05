@@ -136,8 +136,8 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 
     // Data name
     {
-        ImGui::Text("%s ", data->label.c_str()); // Value description
-        ImGui::SetItemTooltip("%s", data->help.c_str());
+        ImGui::Text("%s ", data->getLabel().c_str()); // Value description
+        ImGui::SetItemTooltip("%s", data->getHelp().c_str());
     }
 
     ImGui::TableNextColumn();
@@ -204,16 +204,16 @@ void DashboardWindow::dropGUIData()
 }
 
 void DashboardWindow::addDashbordContextMenu()
-    {
-        bool disable = m_GUIData.empty();
-        if (disable)
-            ImGui::BeginDisabled();
+{
+    bool disable = m_GUIData.empty();
+    if (disable)
+        ImGui::BeginDisabled();
 
-        if (ImGui::MenuItem("Clear Dashboard"))
-            clearWindow();
+    if (ImGui::MenuItem("Clear Dashboard"))
+        clearWindow();
 
-        if (disable)
-            ImGui::EndDisabled();
-    }
+    if (disable)
+        ImGui::EndDisabled();
+}
 
 } // namespace sofaimgui::windows

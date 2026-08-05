@@ -112,50 +112,54 @@ public:
 class SOFAIMGUI_API GUIData
 {
 protected:
-    OwnedBaseData::SPtr data;
-    OwnedBaseData::SPtr min;
-    OwnedBaseData::SPtr max;
+    OwnedBaseData::SPtr m_data;
+    OwnedBaseData::SPtr m_min;
+    OwnedBaseData::SPtr m_max;
+    std::string m_label;
+    std::string m_group;
+    std::string m_help;
+    bool m_validState;
+
 public:
     typedef std::shared_ptr<GUIData> SPtr;
     constexpr static std::string DEFAULTGROUP = "";
-    std::string label;
-    std::string group;
-    std::string help;
-    bool validState;
 
     virtual ~GUIData() {};
 
-    GUIData() : data(nullptr), min(nullptr), max(nullptr) {}
+    GUIData() : m_data(nullptr), m_min(nullptr), m_max(nullptr) {}
 
     GUIData(OwnedBaseData::SPtr data, OwnedBaseData::SPtr min, OwnedBaseData::SPtr max, std::string label, std::string group, std::string help)
     {
-        this->data = data;
-        this->min = min;
-        this->max = max;
-        this->label = label;
-        this->group = group;
-        this->help = help;
-        this->validState = true;
+        this->m_data = data;
+        this->m_min = min;
+        this->m_max = max;
+        this->m_label = label;
+        this->m_group = group;
+        this->m_help = help;
+        this->m_validState = true;
     }
 
-    sofa::core::BaseData* getData() const { return data? data->getData(): nullptr; };
-    sofa::core::BaseData* getDataMin() const { return min? min->getData(): nullptr; };
-    sofa::core::BaseData* getDataMax() const { return max? max->getData(): nullptr; };
+    sofa::core::BaseData* getData() const { return m_data? m_data->getData(): nullptr; };
+    sofa::core::BaseData* getDataMin() const { return m_min? m_min->getData(): nullptr; };
+    sofa::core::BaseData* getDataMax() const { return m_max? m_max->getData(): nullptr; };
+    const std::string& getLabel() {return m_label;}
+    const std::string& getGroup() {return m_group;}
+    const std::string& getHelp() {return m_help;}
 
-    double getMin() {return (min && min->isValid())? min->getData()->getValueTypeInfo()->getScalarValue(min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
-    double getMax() {return (max && max->isValid())? max->getData()->getValueTypeInfo()->getScalarValue(max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
+    double getMin() {return (m_min && m_min->isValid())? m_min->getData()->getValueTypeInfo()->getScalarValue(m_min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
+    double getMax() {return (m_max && m_max->isValid())? m_max->getData()->getValueTypeInfo()->getScalarValue(m_max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
 
     void setData(sofa::core::BaseData* newData, bool isOwner=false)
     {
-        if (data)
-            data->setData(newData, isOwner);
+        if (m_data)
+            m_data->setData(newData, isOwner);
         else
-            data = std::make_shared<OwnedBaseData>(newData, isOwner);
+            m_data = std::make_shared<OwnedBaseData>(newData, isOwner);
     }
 
     bool isValid()
     {
-        return OwnedBaseData::isDataValid(data);
+        return m_validState && OwnedBaseData::isDataValid(m_data);
     }
 
     bool static isDataValid(GUIData* data)

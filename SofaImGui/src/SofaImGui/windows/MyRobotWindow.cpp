@@ -186,21 +186,21 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                 {
                                     if (data && data->isValid())
                                     {
-                                        if (!isInEmptyGroup(data->group) && firsttime)
+                                        if (!isInEmptyGroup(data->getGroup()) && firsttime)
                                         {
-                                            ImGui::TextDisabled("%s", data->group.c_str());
+                                            ImGui::TextDisabled("%s", data->getGroup().c_str());
                                             ImGui::Indent();
                                             firsttime = false;
                                         }
                                         ImGui::PushID(i++);
                                         ImGui::AlignTextToFramePadding();
-                                        ImGui::Text("%s:", data->label.c_str());
-                                        if (!data->help.empty())
-                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        ImGui::Text("%s:", data->getLabel().c_str());
+                                        if (!data->getHelp().empty())
+                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                         ImGui::SameLine();
                                         BaseDataWidget::showWidgetAsText(*data->getData());
-                                        if (!data->help.empty())
-                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        if (!data->getHelp().empty())
+                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                         ImGui::PopID();
                                     }
                                 }
@@ -231,22 +231,22 @@ void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                                 {
                                     if (data && data->isValid())
                                     {
-                                        if (!isInEmptyGroup(data->group) && firsttime)
+                                        if (!isInEmptyGroup(data->getGroup()) && firsttime)
                                         {
-                                            ImGui::TextDisabled("%s", data->group.c_str());
+                                            ImGui::TextDisabled("%s", data->getGroup().c_str());
                                             ImGui::Indent();
                                             firsttime = false;
                                         }
                                         if (data->getData()->getValueTypeString()!="bool")
                                             ImGui::AlignTextToFramePadding();
-                                        ImGui::Text("%s", data->label.c_str());
-                                        if (!data->help.empty())
-                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        ImGui::Text("%s", data->getLabel().c_str());
+                                        if (!data->getHelp().empty())
+                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                         ImGui::SameLine();
 
                                         showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
-                                        if (!data->help.empty())
-                                            ImGui::SetItemTooltip("%s", data->help.c_str());
+                                        if (!data->getHelp().empty())
+                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                     }
                                 }
                             }

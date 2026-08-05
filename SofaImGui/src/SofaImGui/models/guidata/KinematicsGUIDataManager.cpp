@@ -30,6 +30,7 @@ void KinematicsGUIDataManager::clear()
     m_inverseProblemSolver = nullptr;
     m_effectorsGUIData.clear();
     m_actuatorsGUIData.clear();
+    m_accessoriesFeatureGUIData.clear();
 }
 
 void KinematicsGUIDataManager::setInverseProblemSolver(softrobotsinverse::solver::QPInverseProblemSolver::SPtr solver)
@@ -65,8 +66,8 @@ void KinematicsGUIDataManager::addTCP(const std::string &label,
                                                                                      effector,
                                                                                      minRotation,
                                                                                      maxRotation);
-                if (guiDataPtr && guiDataPtr->validState)
-                    m_effectorsGUIData[KinematicsSection::TCP].push_back(guiDataPtr);
+                if (guiDataPtr && guiDataPtr->isValid())
+                    m_effectorsGUIData.push_back(guiDataPtr);
                 else
                     msg_error("addTCP") << "Something went wrong. Expects a valid PositionEffector component as the second argument.";
             }
@@ -99,9 +100,9 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
                                                             actuator->getNbLines(),
                                                             1);
 
-        if (guiDataPtr && guiDataPtr->validState)
+        if (guiDataPtr && guiDataPtr->isValid())
         {
-            m_actuatorsGUIData[KinematicsSection::ACTUATOR].push_back(guiDataPtr);
+            m_actuatorsGUIData.push_back(guiDataPtr);
         }
         else
             msg_error("addActuator") << "Something went wrong. Expects a valid Actuator component as the second parameter.";
@@ -110,27 +111,23 @@ void KinematicsGUIDataManager::addActuator(const std::string &label,
         msg_error("addActuator") << "Expects an Actuator component as the second parameter.";
 }
 
-void KinematicsGUIDataManager::addAccessoryComponent(const std::string &accessoryLabel,
-                                                     const std::string &componentLabel,
-                                                     softrobots::behavior::SoftRobotsBaseConstraint::SPtr constraint,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min,
-                                                     const std::pair<sofa::core::BaseData*, bool>& max,
-                                                     const std::string& group,
-                                                     const std::string& help)
+void KinematicsGUIDataManager::addAccessoryFeature(const std::string &accessoryLabel,
+                                                   const std::string &featureLabel,
+                                                   const std::pair<sofa::core::BaseData*, bool>& data,
+                                                   const std::pair<sofa::core::BaseData*, bool>& min,
+                                                   const std::pair<sofa::core::BaseData*, bool>& max)
 {
-    // if (constraint)
-    // {
-    //     if (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR)
-    //     {
-    //         auto added = addData(accessoryLabel, data, min, max, group, help);
-    //         m_actuatorsGUIData[KinematicsSection::ACCESSORY].insert(added);
-    //     }
-    //     else if (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR)
-    //     {
-    //         auto added = addData(accessoryLabel, data, min, max, group, help);
-    //         m_effectorsGUIData[KinematicsSection::ACCESSORY].insert(added);
-    //     }
-    // }
+    auto guiDataPtr = std::make_shared<AccessoryFeatureGUIData>(std::make_shared<OwnedBaseData>(data.first, data.second),
+                                                                std::make_shared<OwnedBaseData>(min.first, min.second),
+                                                                std::make_shared<OwnedBaseData>(max.first, max.second),
+                                                                accessoryLabel,
+                                                                featureLabel);
+    if (guiDataPtr && guiDataPtr->isValid())
+    {
+        m_accessoriesFeatureGUIData[accessoryLabel].push_back(guiDataPtr);
+    }
+    else
+        msg_error("addAccessoryFeature") << "Something went wrong. Expects a valid data as the third parameter.";
 }
 
 bool KinematicsGUIDataManager::hasInverseProblemSolver()
@@ -143,7 +140,7 @@ bool KinematicsGUIDataManager::hasInverseProblemSolver()
 
 bool KinematicsGUIDataManager::hasTCP()
 {
-    return m_effectorsGUIData.contains(KinematicsSection::TCP);
+    return !m_effectorsGUIData.empty();
 }
 
 bool KinematicsGUIDataManager::hasInverseProblemSolverAndTCP()
@@ -153,12 +150,12 @@ bool KinematicsGUIDataManager::hasInverseProblemSolverAndTCP()
 
 bool KinematicsGUIDataManager::hasActuator()
 {
-    return m_actuatorsGUIData.contains(KinematicsSection::ACTUATOR);
+    return !m_actuatorsGUIData.empty();
 }
 
 bool KinematicsGUIDataManager::hasAccessory()
 {
-    return m_effectorsGUIData.contains(KinematicsSection::ACCESSORY) || m_actuatorsGUIData.contains(KinematicsSection::ACCESSORY);
+    return !m_accessoriesFeatureGUIData.empty();
 }
 
 EffectorGUIData::SPtr KinematicsGUIDataManager::getTCPGUIData(const sofa::Index& index)
@@ -166,9 +163,8 @@ EffectorGUIData::SPtr KinematicsGUIDataManager::getTCPGUIData(const sofa::Index&
     if (!hasTCP())
         return nullptr;
 
-    auto TCPsGUIData = m_effectorsGUIData[KinematicsSection::TCP];
-    if (TCPsGUIData.size() > index)
-        return m_effectorsGUIData[KinematicsSection::TCP][index];
+    if (m_effectorsGUIData.size() > index)
+        return m_effectorsGUIData[index];
 
     return nullptr;
 }

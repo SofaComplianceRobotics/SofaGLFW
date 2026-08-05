@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "SofaImGui/widgets/ImGuiDataWidget.h"
 #include <sofa/type/Quat.h>
 
 #include <imgui_internal.h>
@@ -79,7 +80,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                     if(isDrivingSimulation())
                         TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
-                    if (ImGui::CollapsingHeader((TCPGUIData->label + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    if (ImGui::CollapsingHeader((TCPGUIData->getLabel() + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
                         { // Vertical tabs (buttons)
                             ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
@@ -125,7 +126,7 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 
                     TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader((TCPGUIData->label + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
+                    if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
                     {
                         ImGui::SameLine();
 
@@ -195,14 +196,14 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                         bool solveInverseProblem = true;
                         for (auto actuatorGUIData: actuatorsGUIData)
                         {
-                            std::string name = actuatorGUIData->label;
+                            std::string name = actuatorGUIData->getLabel();
                             if (actuatorGUIData->getMin() < actuatorGUIData->getMax())
                             {
-                                for (sofa::Index index=0; index<actuatorGUIData->size; index++)
+                                for (sofa::Index index=0; index<actuatorGUIData->getSize(); index++)
                                 {
                                     double value = actuatorGUIData->getValue(index);
 
-                                    if (actuatorGUIData->size > 1)
+                                    if (actuatorGUIData->getSize() > 1)
                                         name += std::to_string(index);
 
                                     if (showSliderDouble(name.c_str(),
@@ -233,23 +234,26 @@ void MoveWindow::showWindow(const ImGuiWindowFlags &windowFlags)
                 {
                     if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                //         for (auto& accessory: m_accessories)
-                //         {
-                //             std::string name = accessory.description;
-                //             auto* typeinfo = accessory.data->getValueTypeInfo();
-                //             auto* value = accessory.data->getValueVoidPtr();
-                //             double buffer = typeinfo->getScalarValue(value, 0);
-                //             bool hasChanged = showSliderDouble(name.c_str(),
-                //                                                ("##Slider" + name).c_str(),
-                //                                                ("##Input" + name).c_str(),
-                //                                                &buffer, accessory.min, accessory.max,
-                //                                                ImColor(COLOR_TRANSPARENT));
+                        const auto& accessoriesGUIData = m_kinematicsGUIDataManager->getAccessories();
 
-                //             if (hasChanged && isDrivingSimulation())
-                //             {
-                //                 accessory.data->read(std::to_string(buffer));
-                //             }
-                //         }
+                        for (auto [group, accessories]: accessoriesGUIData)
+                        {
+                            ImGui::TextDisabled("%s", group.c_str());
+                            ImGui::Indent();
+
+                            for (auto accessory: accessories)
+                            {
+                                if (accessory && accessory->isValid())
+                                {
+                                    ImGui::AlignTextToFramePadding();
+                                    ImGui::Text("%s", accessory->getFeatureLabel().c_str());
+                                    ImGui::SameLine();
+                                    showWidget(*accessory->getData(), accessory->getDataMin(), accessory->getDataMax());
+                                }
+                            }
+
+                            ImGui::Unindent();
+                        }
                         ImGui::LocalEndCollapsingHeader();
                     }
                 }

@@ -43,7 +43,7 @@ using namespace pybind11::literals;
 namespace sofaimgui::python3
 {
 
-void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, const std::string &group, const std::string& help, std::string type = "double")
+void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, const std::string &group, const std::string& help, const std::string& type = "double")
 {
     if (engine)
     {
@@ -55,7 +55,7 @@ void addInformation(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &l
     }
 }
 
-void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, py::object min, py::object max, const std::string &group, const std::string& help, std::string type="double")
+void addSetting(std::shared_ptr<ImGuiGUIEngine> engine, const std::string &label, py::object data, py::object min, py::object max, const std::string &group, const std::string& help, const std::string& type="double")
 {
     if (engine)
     {

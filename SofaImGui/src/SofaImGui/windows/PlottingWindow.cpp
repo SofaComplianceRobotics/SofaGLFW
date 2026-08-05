@@ -78,7 +78,7 @@ void PlottingWindow::exportData()
 				{
                     if (it && it->isValid())
                     {
-                        outputFile << it->label<< ",";
+                        outputFile << it->getLabel()<< ",";
                         auto buffer = m_buffers[i];
                         for (const auto& d : buffer.data)
                             outputFile << d.y << ",";
@@ -259,18 +259,18 @@ void PlottingWindow::showPlots()
 
                     ImPlotSpec spec;
                     spec.Stride = 2 * sizeof(float);
-                    ImPlot::PlotLine(data->label.c_str(),
+                    ImPlot::PlotLine(data->getLabel().c_str(),
                                      &buffer.data[0].x,
                                      &buffer.data[0].y,
                                      buffer.data.size(),
                                      spec);
 
-                    if (ImPlot::BeginDragDropSourceItem(data->label.c_str())) {
+                    if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
                         dragedData = data;
                         ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
                         ImPlot::ItemIcon(ImPlot::GetLastItemColor());
                         ImGui::SameLine();
-                        ImGui::TextUnformatted(data->label.c_str());
+                        ImGui::TextUnformatted(data->getLabel().c_str());
                         ImPlot::EndDragDropSource();
                     }
                     k++;

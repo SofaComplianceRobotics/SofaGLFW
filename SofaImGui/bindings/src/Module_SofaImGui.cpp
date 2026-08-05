@@ -148,34 +148,29 @@ void addActuator(std::string label,
     }
 }
 
-void addAccessoryComponent(std::string accessoryLabel,
-                           std::string componentLabel,
-                           softrobots::behavior::SoftRobotsBaseConstraint *constraint,
-                           py::object min,
-                           py::object max,
-                           const std::string &group,
-                           const std::string& help)
+void addAccessoryFeature(std::string accessoryLabel,
+                         std::string featureLabel,
+                         py::object data,
+                         py::object min,
+                         py::object max,
+                         std::string type)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     if (engine)
     {
-        if (constraint
-            && (constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::ACTUATOR
-                || constraint->m_constraintType == softrobots::behavior::SoftRobotsBaseConstraint::EFFECTOR))
+        if (data)
         {
-            engine->m_kinematicsGUIDataManager->addAccessoryComponent(accessoryLabel,
-                                                                      componentLabel,
-                                                                      constraint,
-                                                                      getDataFromPyObject(min, "float"),
-                                                                      getDataFromPyObject(max, "float"),
-                                                                      group,
-                                                                      help);
+            engine->m_kinematicsGUIDataManager->addAccessoryFeature(accessoryLabel,
+                                                                    featureLabel,
+                                                                    getDataFromPyObject(data, type),
+                                                                    getDataFromPyObject(min, type),
+                                                                    getDataFromPyObject(max, type));
         }
         else
         {
-            msg_error("[addAccessoryComponent]") << "Expects either an Effector or Actuator component as the third argument.";
+            msg_error("[addAccessoryFeature]") << "Expects either an Effector or Actuator component as the third argument.";
         }
     }
 }
@@ -215,9 +210,9 @@ PYBIND11_MODULE(ImGui, m)
     m.def("addActuator", &addActuator
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "Add an actuator to pilot from the Move, Program or IO windows.");
-    m.def("addAccessoryComponent", &addAccessoryComponent
-          , "accessoryLabel"_a, "componentLabel"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
-          , "Add an accessory component to the Move, Program or IO windows.");
+    m.def("addAccessoryFeature", &addAccessoryFeature
+          , "accessoryLabel"_a, "featureLabel"_a, "data"_a, "min"_a, "max"_a,  "type"_a = "double"
+          , "Add an accessory (e.g. gripper) feature (e.g. opening) to the Move, Program or IO windows.");
 
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
     m.def("setRobotConnectionToggle", &setRobotConnectionToggle);

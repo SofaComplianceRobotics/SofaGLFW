@@ -21,35 +21,10 @@
  ******************************************************************************/
 
 
-#include <SofaImGui/models/guidata/ActuatorGUIData.h>
+#include <SofaImGui/models/guidata/AccessoryFeatureGUIData.h>
 
 
 namespace sofaimgui::models::guidata
 {
-
-double ActuatorGUIData::getValue(const sofa::Index &index)
-{
-    if (!isValid())
-        return 0.;
-
-    return m_data->getData()->getValueTypeInfo()->getScalarValue(m_data->getData()->getValueVoidPtr(), index);
-}
-
-void ActuatorGUIData::setValue(const sofa::Index& index, const double &value)
-{
-    if (isValid())
-    {
-        m_data->getData()->getValueTypeInfo()->setScalarValue(m_data->getData()->beginEditVoidPtr(), index, value);
-        m_data->getData()->endEditVoidPtr();
-    }
-}
-
-sofa::Index ActuatorGUIData::getIndexInProblem()
-{
-    if (!OwnedBaseData::isDataValid(m_indexInProblem))
-        return 0;
-
-    return m_indexInProblem->getData()->getValueTypeInfo()->getIntegerValue(m_indexInProblem->getData()->getValueVoidPtr(), 0);
-}
 
 }

@@ -161,13 +161,12 @@ inline void showWidget(sofa::core::objectmodel::BaseData& data,
         }
         else
         {
-            auto* typeInfo = data.getValueTypeInfo();
-            double d = typeInfo->getScalarValue(data.getValueVoidPtr(), 0);
-            const double dmin = typeInfo->getScalarValue(min->getValueVoidPtr(), 0);
-            const double dmax = typeInfo->getScalarValue(max->getValueVoidPtr(), 0);
+            double d = data.getValueTypeInfo()->getScalarValue(data.getValueVoidPtr(), 0);
+            const double dmin = min->getValueTypeInfo()->getScalarValue(min->getValueVoidPtr(), 0);
+            const double dmax = max->getValueTypeInfo()->getScalarValue(max->getValueVoidPtr(), 0);
             if (showSliderDouble(("##"+data.getName()).c_str(), &d, dmin, dmax))
             {
-                typeInfo->setScalarValue(data.beginEditVoidPtr(), 0, d);
+                data.getValueTypeInfo()->setScalarValue(data.beginEditVoidPtr(), 0, d);
                 data.endEditVoidPtr();
             }
         }

@@ -115,8 +115,8 @@ void moduleAddMoveWindow(py::module &m)
         SOFA_UNUSED(data);
         SOFA_UNUSED(min);
         SOFA_UNUSED(max);
-        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addAccessoryComponent() instead";
-        }, "[DEPRECATED] Use Sofa.ImGui.addAccessoryComponent() instead"
+        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addAccessoryFeature() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addAccessoryFeature() instead"
         );
 }
 

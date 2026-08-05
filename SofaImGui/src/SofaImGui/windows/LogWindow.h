@@ -43,6 +43,24 @@ namespace sofaimgui::windows
         void showWindow(const ImGuiWindowFlags &windowFlags) override;
         std::string getDescription() override;
 
+    protected:
+
+        bool m_autoScroll = true;
+        bool m_showInfo = true;
+        sofa::Index m_firstMessageIndex = 0;
+
+        void showButtons();
+        void showSettingsButton();
+        void showExportButton();
+        void showCopyLogButton();
+        void showClearButton();
+
+        void showLogs();
+
+        void clearLogs();
+        void addMessageContextMenu(const std::string &message);
+        void messagesToStringStream(std::stringstream &output);
+
     private:
         const std::vector<sofa::helper::logging::Message>& m_messages;
     };

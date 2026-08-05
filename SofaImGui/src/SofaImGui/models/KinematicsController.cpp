@@ -99,7 +99,7 @@ void KinematicsController::handleEvent(sofa::core::objectmodel::Event *event)
                     {
                         if (a1 && a1->isValid())
                         {
-                            if (a1->valueType.getSelectedId() == 0)
+                            if (a1->getValueTypeId() == 0)
                             {
                                 lambda[a1->getIndexInProblem()] = a1->getValue(0);
                             }

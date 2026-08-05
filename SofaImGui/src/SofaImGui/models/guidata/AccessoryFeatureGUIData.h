@@ -19,37 +19,35 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
+#pragma once
 
-
-#include <SofaImGui/models/guidata/ActuatorGUIData.h>
+#include <SofaImGui/models/guidata/GUIDataManager.h>
 
 
 namespace sofaimgui::models::guidata
 {
 
-double ActuatorGUIData::getValue(const sofa::Index &index)
+class AccessoryFeatureGUIData: public GUIData
 {
-    if (!isValid())
-        return 0.;
+public:
+    typedef std::shared_ptr<AccessoryFeatureGUIData> SPtr;
 
-    return m_data->getData()->getValueTypeInfo()->getScalarValue(m_data->getData()->getValueVoidPtr(), index);
-}
-
-void ActuatorGUIData::setValue(const sofa::Index& index, const double &value)
-{
-    if (isValid())
+    AccessoryFeatureGUIData(OwnedBaseData::SPtr data,
+                            OwnedBaseData::SPtr min,
+                            OwnedBaseData::SPtr max,
+                            std::string accessoryLabel,
+                            std::string featureLabel)
+        : GUIData(data, min, max, featureLabel, accessoryLabel, "")
+        , m_accessoryLabel(accessoryLabel)
     {
-        m_data->getData()->getValueTypeInfo()->setScalarValue(m_data->getData()->beginEditVoidPtr(), index, value);
-        m_data->getData()->endEditVoidPtr();
     }
-}
 
-sofa::Index ActuatorGUIData::getIndexInProblem()
-{
-    if (!OwnedBaseData::isDataValid(m_indexInProblem))
-        return 0;
+    std::string getFeatureLabel() {return m_label;}
+    std::string getAccessoryLabel() {return m_accessoryLabel;}
 
-    return m_indexInProblem->getData()->getValueTypeInfo()->getIntegerValue(m_indexInProblem->getData()->getValueVoidPtr(), 0);
-}
+protected:
+
+    std::string m_accessoryLabel;
+};
 
 }

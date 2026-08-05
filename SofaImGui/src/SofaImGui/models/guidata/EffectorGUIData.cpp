@@ -34,19 +34,19 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
         sofa::core::behavior::BaseMechanicalState::SPtr TCPTargetBaseMeca = nullptr;
 
         if (auto effectorIndices = effector->findData("indices"))
-            indices = std::make_shared<OwnedBaseData>(effectorIndices, false);
+            m_indices = std::make_shared<OwnedBaseData>(effectorIndices, false);
         else
-            validState = false;
+            m_validState = false;
 
         if (auto effectorWeights = effector->findData("weight"))
-            weights = std::make_shared<OwnedBaseData>(effectorWeights, false);
+            m_weights = std::make_shared<OwnedBaseData>(effectorWeights, false);
         else
-            validState = false;
+            m_validState = false;
 
         if (auto effectorDirection = effector->findData("useDirections"))
-            useDirections = std::make_shared<OwnedBaseData>(effectorDirection, false);
+            m_useDirections = std::make_shared<OwnedBaseData>(effectorDirection, false);
         else
-            validState = false;
+            m_validState = false;
 
         auto effectorGoal = effector->findData("effectorGoal");
         if (effectorGoal)
@@ -58,31 +58,31 @@ void EffectorGUIData::initFromEffector(softrobots::behavior::SoftRobotsBaseConst
             else
             {
                 msg_error("GUI") << "Effector should have an effectorGoal";
-                validState = false;
+                m_validState = false;
             }
 
-            if (validState)
+            if (m_validState)
             {
                 sofa::core::BaseData* position = TCPTargetBaseMeca->findData("position");
-                target = std::make_shared<OwnedBaseData>(position, false);
+                m_target = std::make_shared<OwnedBaseData>(position, false);
                 sofa::core::BaseData* positionInit = position->getNewInstance();
                 positionInit->copyValueFrom(position);
-                targetInit = std::make_shared<OwnedBaseData>(positionInit, true);
+                m_targetInit = std::make_shared<OwnedBaseData>(positionInit, true);
             }
         }
         else
-            validState = false;
+            m_validState = false;
     }
     else
-        validState = false;
+        m_validState = false;
 }
 
 sofa::Index EffectorGUIData::getEffectorIndex(const sofa::Index& index)
 {
-    if (!OwnedBaseData::isDataValid(indices))
+    if (!OwnedBaseData::isDataValid(m_indices))
         return 0;
 
-    return indices->getData()->getValueTypeInfo()->getIntegerValue(indices->getData()->getValueVoidPtr(), index);
+    return m_indices->getData()->getValueTypeInfo()->getIntegerValue(m_indices->getData()->getValueVoidPtr(), index);
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPPosition()
@@ -90,33 +90,33 @@ sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPPosition()
     if (!isValid())
         return sofa::defaulttype::Rigid3Types::Coord();
 
-    auto dposition = static_cast<sofa::Data<VecCoord>*>(data->getData());
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(m_data->getData());
     return dposition->getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetInitPosition()
 {
-    if (!OwnedBaseData::isDataValid(targetInit))
+    if (!OwnedBaseData::isDataValid(m_targetInit))
         return sofa::defaulttype::Rigid3Types::Coord();
 
-    auto dposition = static_cast<sofa::Data<VecCoord>*>(targetInit->getData());
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(m_targetInit->getData());
     return dposition->getValue()[getEffectorIndex(0)];
 }
 
 sofa::defaulttype::Rigid3Types::Coord EffectorGUIData::getTCPTargetPosition()
 {
-    if (!OwnedBaseData::isDataValid(target))
+    if (!OwnedBaseData::isDataValid(m_target))
         return sofa::defaulttype::Rigid3Types::Coord();
 
-    auto dposition = static_cast<sofa::Data<VecCoord>*>(target->getData());
+    auto dposition = static_cast<sofa::Data<VecCoord>*>(m_target->getData());
     return dposition->getValue()[getEffectorIndex(0)];
 }
 
 void EffectorGUIData::getTCPTargetPosition(double &x, double &y, double &z, double &rx, double &ry, double &rz)
 {
-    if (OwnedBaseData::isDataValid(target))
+    if (OwnedBaseData::isDataValid(m_target))
     {
-        auto dposition = static_cast<sofa::Data<VecCoord>*>(target->getData());
+        auto dposition = static_cast<sofa::Data<VecCoord>*>(m_target->getData());
         RigidCoord position = sofa::helper::getReadAccessor(*dposition)[getEffectorIndex(0)];
         x = position[0];
         y = position[1];
@@ -132,35 +132,35 @@ void EffectorGUIData::getTCPTargetPosition(double &x, double &y, double &z, doub
 
 void EffectorGUIData::setTCPTargetPosition(const RigidCoord& position)
 {
-    if (OwnedBaseData::isDataValid(target))
+    if (OwnedBaseData::isDataValid(m_target))
     {
         sofa::Data<VecCoord> vposition(sofa::type::vector<RigidCoord>(1, position));
-        target->getData()->copyValueFrom(vposition.getData());
+        m_target->getData()->copyValueFrom(vposition.getData());
     }
 }
 
 void EffectorGUIData::setTCPTargetPosition(const double &x, const double &y, const double &z, const double &rx, const double &ry, const double &rz)
 {
-    if (OwnedBaseData::isDataValid(target))
+    if (OwnedBaseData::isDataValid(m_target))
     {
         sofa::type::Vec3 rotation(rx, ry, rz);
         sofa::type::Quat<SReal> q = sofa::type::Quat<SReal>::createQuaterFromEuler(rotation);
         RigidCoord position(sofa::type::Vec3(x, y, z), q);
         sofa::Data<VecCoord> vposition(sofa::type::vector<RigidCoord>(1, position));
-        target->getData()->copyValueFrom(vposition.getData());
+        m_target->getData()->copyValueFrom(vposition.getData());
     }
 }
 
 bool EffectorGUIData::hasRotation()
 {
-    return OwnedBaseData::isDataValid(useDirections) && useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;
+    return OwnedBaseData::isDataValid(m_useDirections) && m_useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;
 }
 
 void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw)
 {
     if(hasRotation())
     {
-        auto duseDirections = static_cast<sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>>*>(useDirections->getData());
+        auto duseDirections = static_cast<sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>>*>(m_useDirections->getData());
         auto d = sofa::helper::getWriteAccessor(*duseDirections);
         d[3] = !freeRoll;
         d[4] = !freePitch;
@@ -170,15 +170,15 @@ void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePi
 
 double EffectorGUIData::getWeight(const sofa::Index& index)
 {
-    return OwnedBaseData::isDataValid(weights) && weights->getData()->getValueTypeInfo()->getScalarValue(weights->getData()->getValueVoidPtr(), index);
+    return OwnedBaseData::isDataValid(m_weights) && m_weights->getData()->getValueTypeInfo()->getScalarValue(m_weights->getData()->getValueVoidPtr(), index);
 }
 
 void EffectorGUIData::setWeight(const sofa::Index& index, const double& w)
 {
-    if (OwnedBaseData::isDataValid(weights))
+    if (OwnedBaseData::isDataValid(m_weights))
     {
-        weights->getData()->getValueTypeInfo()->setScalarValue(weights->getData()->beginEditVoidPtr(), index, w);
-        weights->getData()->endEditVoidPtr();
+        m_weights->getData()->getValueTypeInfo()->setScalarValue(m_weights->getData()->beginEditVoidPtr(), index, w);
+        m_weights->getData()->endEditVoidPtr();
     }
 }
 

@@ -42,24 +42,25 @@ public:
                     sofa::Size _size,
                     int _valueType)
         : GUIData(data, min, max, label, group, help)
-        , size(_size)
-        , indexInProblem(_indexInProblem)
+        , m_size(_size)
+        , m_indexInProblem(_indexInProblem)
     {
-        valueType.setSelectedItem(_valueType);
-
+        m_valueType.setSelectedItem(_valueType);
     }
 
-    sofa::Size size;
-    sofa::helper::OptionsGroup valueType{"lambda", "delta"};
 
     double getValue(const sofa::Index &index);
     void setValue(const sofa::Index &index, const double& value);
 
+    sofa::Size getSize() {return m_size;}
     sofa::Index getIndexInProblem();
+    sofa::Index getValueTypeId() {return m_valueType.getSelectedId();}
 
 protected:
 
-    OwnedBaseData::SPtr indexInProblem;
+    sofa::Size m_size;
+    OwnedBaseData::SPtr m_indexInProblem;
+    sofa::helper::OptionsGroup m_valueType{"lambda", "delta"};
 };
 
 }

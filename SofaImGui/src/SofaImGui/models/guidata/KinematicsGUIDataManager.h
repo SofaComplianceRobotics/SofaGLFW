@@ -25,6 +25,7 @@
 #include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <SofaImGui/models/guidata/EffectorGUIData.h>
 #include <SofaImGui/models/guidata/ActuatorGUIData.h>
+#include <SofaImGui/models/guidata/AccessoryFeatureGUIData.h>
 #include <SoftRobots.Inverse/component/solver/QPInverseProblemSolver.h>
 
 namespace sofaimgui::models::guidata {
@@ -34,12 +35,6 @@ class SOFAIMGUI_API KinematicsGUIDataManager: GUIDataManager
 public:
 
     typedef std::shared_ptr<KinematicsGUIDataManager> SPtr;
-
-    enum KinematicsSection {
-        TCP,
-        ACTUATOR,
-        ACCESSORY
-    };
 
     KinematicsGUIDataManager(){}
     ~KinematicsGUIDataManager() = default;
@@ -63,13 +58,11 @@ public:
                      const std::pair<sofa::core::BaseData*, bool>& max,
                      const std::string& group,
                      const std::string& help);
-    void addAccessoryComponent(const std::string &accessoryLabel,
-                               const std::string &componentLabel,
-                               softrobots::behavior::SoftRobotsBaseConstraint::SPtr constraint,
-                               const std::pair<sofa::core::BaseData*, bool>& min,
-                               const std::pair<sofa::core::BaseData*, bool>& max,
-                               const std::string& group,
-                               const std::string& help);
+    void addAccessoryFeature(const std::string &accessoryLabel,
+                             const std::string &featureLabel,
+                             const std::pair<sofa::core::BaseData*, bool> &data,
+                             const std::pair<sofa::core::BaseData*, bool>& min,
+                             const std::pair<sofa::core::BaseData*, bool>& max);
 
     bool hasInverseProblemSolver();
     bool hasTCP();
@@ -80,8 +73,9 @@ public:
     EffectorGUIData::SPtr getTCPGUIData(const sofa::Index& index=0); // Temp: for the moment we handle only one TCP
 
     softrobotsinverse::solver::QPInverseProblemSolver::SPtr getInverseProblemSolver() {return m_inverseProblemSolver;}
-    const std::vector<EffectorGUIData::SPtr>& getTCPs() {return m_effectorsGUIData[KinematicsSection::TCP];}
-    const std::vector<ActuatorGUIData::SPtr>& getActuators() {return m_actuatorsGUIData[KinematicsSection::ACTUATOR];}
+    const std::vector<EffectorGUIData::SPtr>& getTCPs() {return m_effectorsGUIData;}
+    const std::vector<ActuatorGUIData::SPtr>& getActuators() {return m_actuatorsGUIData;}
+    const std::map<std::string, std::vector<AccessoryFeatureGUIData::SPtr>>& getAccessories() {return m_accessoriesFeatureGUIData;}
 
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) {m_baseGUI=baseGUI;}
     sofa::simulation::Node::SPtr getRootNode() {return m_baseGUI->getRootNode();}
@@ -90,8 +84,9 @@ protected:
 
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
     softrobotsinverse::solver::QPInverseProblemSolver::SPtr m_inverseProblemSolver{nullptr};
-    std::map<KinematicsSection, std::vector<ActuatorGUIData::SPtr>> m_actuatorsGUIData;
-    std::map<KinematicsSection, std::vector<EffectorGUIData::SPtr>> m_effectorsGUIData;
+    std::vector<ActuatorGUIData::SPtr> m_actuatorsGUIData;
+    std::vector<EffectorGUIData::SPtr> m_effectorsGUIData;
+    std::map<std::string, std::vector<AccessoryFeatureGUIData::SPtr>> m_accessoriesFeatureGUIData;
 
     bool m_isSolverInDirectMode{false};
 };
