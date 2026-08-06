@@ -131,7 +131,7 @@ void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     
     if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, ImGuiWindowFlags_NoScrollbar))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), ImGuiWindowFlags_NoScrollbar))
         {
             if (!isEnabledInWorkbench() || !isEnabledByState())
                 showInfoMessage("This window is used to plot data over time. It currently has no data registered or is disabled in the active workbench.");

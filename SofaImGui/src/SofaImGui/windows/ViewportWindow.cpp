@@ -53,7 +53,7 @@ void ViewportWindow::showWindow(const ImTextureID& texture,
 {
     if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
         {
             ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
             {
@@ -137,7 +137,7 @@ void ViewportWindow::addCameraButtons()
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
     ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_TRANSPARENT);
-    if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
+    if (ImGui::Begin("ViewportChildGizmos", &isOpen(), ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
                                                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
@@ -222,7 +222,7 @@ void ViewportWindow::addCameraButtons()
 
     // Buttons
     bool translate = false;
-    if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+    if (ImGui::Begin("ViewportChildLeftButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImGui::TextDisabled("  " ICON_FA_VIDEO);
@@ -465,9 +465,9 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
     bool isItemClicked = false;
 
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -484,7 +484,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
                 ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
 
-                if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                if (ImGui::Begin("ViewportChildMiddleButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
                 {
                     ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
@@ -513,9 +513,9 @@ bool ViewportWindow::addStepButton()
 {
     bool isItemClicked = false;
     
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -542,9 +542,9 @@ bool ViewportWindow::addReloadButton()
 {
     bool isItemClicked = false;
 
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -569,9 +569,9 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
 {
     bool hasValueChanged = false;
     
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -599,9 +599,9 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
 
 void ViewportWindow::addSimulationTimeAndFPS()
 {
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if(ImGui::BeginChild("Render"))
             {
@@ -640,9 +640,9 @@ void ViewportWindow::addSimulationTimeAndFPS()
 
 void ViewportWindow::addRecordingStatus(const ImVec4& red)
 {
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if(ImGui::BeginChild("Render"))
             {

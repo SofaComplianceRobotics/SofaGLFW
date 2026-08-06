@@ -45,10 +45,10 @@ std::string ProfilerWindow::getDescription()
 
 void ProfilerWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
-    sofa::helper::AdvancedTimer::setEnabled("Animate", m_isOpen);
+    sofa::helper::AdvancedTimer::setEnabled("Animate", isOpen());
     if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
         {
             sofa::helper::AdvancedTimer::setInterval("Animate", 1);
             sofa::helper::AdvancedTimer::setOutputType("Animate", "gui");

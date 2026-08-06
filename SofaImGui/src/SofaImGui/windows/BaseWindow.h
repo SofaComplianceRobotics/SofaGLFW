@@ -103,17 +103,26 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// Get the label of the window (name to display in the tab). We add spaces for aesthetic reason
     std::string& getLabel();
 
-    /// Set the user choice to open the window or not.
+    /// Set the user choice to open the window or not, for the active workbench.
     void setOpen(const bool &isOpen);
 
-    /// Does the user choose to open the window or not.
+    /// Set the user choice to open the window or not, for the given workbench.
+    void setOpen(const Workbench& wb, const bool &isOpen);
+
+    /// Does the user choose to open the window or not, in the active workbench.
     bool& isOpen();
+
+    /// Does the user choose to open the window or not, in the given workbench
+    bool& isOpen(const Workbench& wb);
 
     /// The default open state when there is no project file
     const bool& getDefaultIsOpen();
 
-    /// Returns true if the window is enabled in the current workbench
+    /// Returns true if the window is enabled in the active workbench
     bool isEnabledInWorkbench();
+
+    /// Returns true if the window is enabled in the given workbench
+    bool isEnabledInWorkbench(const Workbench& wb);
 
     using models::guidata::GUIDataManager::addData;
     using models::guidata::GUIDataManager::addGUIData;
@@ -136,7 +145,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
 
-    bool m_isOpen{false}; /// The user choice to open the window or not
+    std::map<Workbench, bool> m_isOpen; /// The user choice to open the window or not
     bool m_defaultIsOpen{false}; /// The default open state when there is no project file
     std::string m_name = "Window"; /// The name of the window
     std::string m_labelname; /// The label of the window

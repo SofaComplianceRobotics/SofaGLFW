@@ -66,12 +66,22 @@ void BaseWindow::clearWindow()
 
 bool& BaseWindow::isOpen()
 {
-    return m_isOpen;
+    return m_isOpen[workbench];
+}
+
+bool& BaseWindow::isOpen(const Workbench& wb)
+{
+    return m_isOpen[wb];
 }
 
 void BaseWindow::setOpen(const bool &isOpen)
 {
-    m_isOpen=isOpen;
+    m_isOpen[workbench]=isOpen;
+}
+
+void BaseWindow::setOpen(const Workbench& wb, const bool &isOpen)
+{
+    m_isOpen[wb]=isOpen;
 }
 
 const bool& BaseWindow::getDefaultIsOpen()
@@ -82,6 +92,11 @@ const bool& BaseWindow::getDefaultIsOpen()
 bool BaseWindow::isEnabledInWorkbench()
 {
     return (m_workbenches & workbench);
+}
+
+bool BaseWindow::isEnabledInWorkbench(const Workbench &wb)
+{
+    return (m_workbenches & wb);
 }
 
 void BaseWindow::showInfoMessage(const char* message)

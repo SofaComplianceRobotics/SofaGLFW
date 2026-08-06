@@ -100,7 +100,7 @@ void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen,
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(),
                         windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
         {
             if (isEnabledByState())

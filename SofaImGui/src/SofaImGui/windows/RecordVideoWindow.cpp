@@ -51,7 +51,7 @@ void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     if (isOpen())
     {
         ImGui::SetNextWindowSize(ImVec2(0., 0.));
-        if (ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getName().c_str(), &isOpen(), windowFlags))
         {
             static bool record = false;
             ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());

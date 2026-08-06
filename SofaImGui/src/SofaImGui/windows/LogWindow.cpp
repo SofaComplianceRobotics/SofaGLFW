@@ -64,7 +64,7 @@ void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
 {
     if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
         {
             showButtons();
             showLogs();

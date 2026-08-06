@@ -143,14 +143,18 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
         auto& w = window.get();
         const auto& windowName = w.getName();
 
-        std::string settingName = (getWorkbenchName(workbench));
-        settingName += ".";
-        settingName += windowName;
+        for (int i=0; i<getWorkbenchCount(); i++)
+        {
+            Workbench wb = Workbench(pow(2, i));
+            std::string settingName = (getWorkbenchName(wb));
+            settingName += ".";
+            settingName += windowName;
 
-        windowSettings.setSetting(settingName.c_str(), "open", w.isOpen());
-        auto imguiWindow = ImGui::FindWindowByName(w.getLabel().c_str());
-        if (imguiWindow)
-            windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId));
+            windowSettings.setSetting(settingName.c_str(), "open", w.isOpen(wb));
+            auto imguiWindow = ImGui::FindWindowByName(w.getLabel().c_str());
+            if (imguiWindow)
+                windowSettings.setSetting(windowName.c_str(), "dockId", std::to_string(imguiWindow->DockId));
+        }
     }
 
     auto g = ImGui::GetCurrentContext();
@@ -162,9 +166,12 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
             auto dock = ImGui::DockContextFindNodeByID(g, dockID);
             if (dock)
             {
-                std::string settingName = std::to_string(dockID) + getWorkbenchName(workbench);
-                windowSettings.setSetting(settingName.c_str(), "width", double(dock->Size[0]));
-                windowSettings.setSetting(settingName.c_str(), "height", double(dock->Size[1]));
+                for (int i=0; i<getWorkbenchCount(); i++)
+                {
+                    std::string settingName = std::to_string(dockID) + getWorkbenchName(Workbench(pow(2, i)));
+                    windowSettings.setSetting(settingName.c_str(), "width", double(dock->Size[0]));
+                    windowSettings.setSetting(settingName.c_str(), "height", double(dock->Size[1]));
+                }
             }
         }
     }
@@ -337,10 +344,10 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
-        enableWindows();
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
         notifyWindowsEndInit();
+        enableWindows();
     }
     else
     {
@@ -551,7 +558,6 @@ void ImGuiGUIEngine::changeWorkbench(Workbench wb)
 {
     workbench = wb;
     m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
-    enableWindows();
 }
 
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -1030,7 +1036,8 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     Utils::loadSimulation(m_baseGUI, reload, filename);
 
     createGUINode(guiNode);
-    enableWindows();
+    if (!reload)
+        enableWindows();
     notifyWindowsEndInit();
 }
 
@@ -1066,13 +1073,17 @@ void ImGuiGUIEngine::enableWindows()
     for (const auto& window : m_windows)
     {
         auto& w = window.get();
-        std::string settingName = (getWorkbenchName(workbench));
-        settingName += ".";
-        settingName += w.getName();
+        for (int i=0; i<getWorkbenchCount(); i++)
+        {
+            Workbench wb = Workbench(pow(2, i));
+            std::string settingName = (getWorkbenchName(wb));
+            settingName += ".";
+            settingName += w.getName();
 
-        w.setOpen(windowsSettings.getSetting(settingName.c_str(),
-                                             "open",
-                                             w.getDefaultIsOpen() && w.isEnabledInWorkbench() && w.isEnabledByState()));
+            w.setOpen(wb, windowsSettings.getSetting(settingName.c_str(),
+                                                     "open",
+                                                     w.getDefaultIsOpen() && w.isEnabledInWorkbench(wb) && w.isEnabledByState()));
+        }
     }
     initDockSpace(true);
 }

@@ -273,7 +273,7 @@ std::string SceneGraphWindow::getObjectIconAlert(sofa::core::objectmodel::Base* 
 
 void SceneGraphWindow::showGraph(const ImGuiWindowFlags& windowFlags)
 {
-    if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+    if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
     {
         if (!isEnabledInWorkbench())
             showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
