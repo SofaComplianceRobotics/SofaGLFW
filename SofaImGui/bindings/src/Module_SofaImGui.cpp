@@ -211,7 +211,7 @@ PYBIND11_MODULE(ImGui, m)
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "Add an actuator to pilot from the Move, Program or IO windows.");
     m.def("addAccessoryFeature", &addAccessoryFeature
-          , "accessoryLabel"_a, "featureLabel"_a, "data"_a, "min"_a, "max"_a,  "type"_a = "double"
+          , "accessoryLabel"_a, "featureLabel"_a, "data"_a, "min"_a=py::none(), "max"_a=py::none(),  "type"_a = "double"
           , "Add an accessory (e.g. gripper) feature (e.g. opening) to the Move, Program or IO windows.");
 
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
