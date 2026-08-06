@@ -33,13 +33,14 @@ class SOFAIMGUI_API RecordVideoWindow : public BaseWindow
 {
 public:
 
-    RecordVideoWindow(const std::string& name, const bool& isWindowOpen);
+    RecordVideoWindow(const std::string& name);
     ~RecordVideoWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
     void showRecordingMessage();
 };
 

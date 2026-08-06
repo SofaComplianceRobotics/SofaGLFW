@@ -31,10 +31,9 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API SceneGraphWindow : public BaseWindow
 {
 public:
-    SceneGraphWindow(const std::string& name, const bool& isWindowOpen);
+    SceneGraphWindow(const std::string& name);
     ~SceneGraphWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
@@ -69,9 +68,12 @@ protected:
     bool m_showFilteredError = false;
     bool m_showFilteredInfo = false;
 
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
+    void afterShowWindow() override;
+
     void clear() override;
 
-    void showGraph(const ImGuiWindowFlags &windowFlags);
     void showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
     void showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter &filter);
     bool showComponentWindow(sofa::core::objectmodel::BaseObject* component, const ImGuiWindowFlags &windowsFlags);

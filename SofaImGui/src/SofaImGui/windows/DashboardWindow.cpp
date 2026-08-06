@@ -29,10 +29,11 @@
 
 namespace sofaimgui::windows {
 
-DashboardWindow::DashboardWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+DashboardWindow::DashboardWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = 0;
 }
 
 std::string DashboardWindow::getDescription()
@@ -40,31 +41,24 @@ std::string DashboardWindow::getDescription()
     return "Simulation data viewer.";
 }
 
-void DashboardWindow::showWindow(const ImGuiWindowFlags& windowFlags)
+void DashboardWindow::internalShowWindow()
 {
-    if (isOpen())
+    showInfoMessage("Drag and drop data to this window (e.g. from component or node window).");
+    showOptionButtons();
+    showGUIData();
+
+    // Fill the available window space with an invisible item defining a area to drop data
+    ImVec2 dropRegion = ImGui::GetContentRegionAvail();
+    ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
+    dropGUIData();
+
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+        ImGui::OpenPopup("##DashboardContextMenu");
+
+    if (ImGui::BeginPopup("##DashboardContextMenu"))
     {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
-        {
-            showOptionButtons();
-            showInfoMessage("Drag and drop data to this window (e.g. from component or node window).");
-            showGUIData();
-
-            // Fill the available window space with an invisible item defining a area to drop data
-            ImVec2 dropRegion = ImGui::GetContentRegionAvail();
-            ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
-            dropGUIData();
-
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                ImGui::OpenPopup("##DashboardContextMenu");
-
-            if (ImGui::BeginPopup("##DashboardContextMenu"))
-            {
-                addDashbordContextMenu();
-                ImGui::EndPopup();
-            }
-        }
-        ImGui::End();
+        addDashbordContextMenu();
+        ImGui::EndPopup();
     }
 }
 

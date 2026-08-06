@@ -37,10 +37,9 @@ class ProfilerWindow : public BaseWindow
 {
    public:
     ProfilerWindow(){}
-    ProfilerWindow(const std::string& name, const bool& isWindowOpen);
+    ProfilerWindow(const std::string& name);
     ~ProfilerWindow()=default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
@@ -48,6 +47,9 @@ protected:
     int m_timeWindowSize{150};
     int m_selectedFrame{0};
     float m_selectedFrameDuration{0.};
+
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
 
     SReal convertInMs(sofa::helper::system::thread::ctime_t t);
     void showChart(const std::deque<sofa::type::vector<sofa::helper::Record> > &allRecords, std::unordered_set<int>& selectedTimers);

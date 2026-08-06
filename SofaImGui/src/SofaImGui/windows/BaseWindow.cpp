@@ -32,19 +32,39 @@ WindowsSettings &WindowsSettings::getInstance()
 
 BaseWindow::BaseWindow()
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
-BaseWindow::BaseWindow(std::string name, bool defaultIsOpen)
+BaseWindow::BaseWindow(std::string name)
     : BaseWindow()
 {
     m_name = name;
-    m_defaultIsOpen = defaultIsOpen;
 }
 
-void BaseWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
 {
-    SOFA_UNUSED(windowFlags);
+    beforeShowWindow();
+
+    if (isOpen())
+    {
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags | m_windowFlags))
+        {
+            if (!isEnabledInWorkbench())
+            {
+                showInfoMessage((getDescription() + " Disabled in the active workbench.").c_str());
+                ImGui::BeginDisabled();
+            }
+
+            internalShowWindow();
+
+            if (!isEnabledInWorkbench())
+                ImGui::EndDisabled();
+        }
+        ImGui::End();
+    }
+
+    afterShowWindow();
 }
 
 std::string BaseWindow::getName() const
@@ -84,19 +104,19 @@ void BaseWindow::setOpen(const Workbench& wb, const bool &isOpen)
     m_isOpen[wb]=isOpen;
 }
 
-const bool& BaseWindow::getDefaultIsOpen()
-{
-    return m_defaultIsOpen;
-}
-
 bool BaseWindow::isEnabledInWorkbench()
 {
-    return (m_workbenches & workbench);
+    return (m_enabledWorkbenches & workbench);
 }
 
 bool BaseWindow::isEnabledInWorkbench(const Workbench &wb)
 {
-    return (m_workbenches & wb);
+    return (m_enabledWorkbenches & wb);
+}
+
+bool BaseWindow::isDefaultWorkbench(const Workbench &wb)
+{
+    return (m_defaultWorkbenches & m_enabledWorkbenches & wb);
 }
 
 void BaseWindow::showInfoMessage(const char* message)

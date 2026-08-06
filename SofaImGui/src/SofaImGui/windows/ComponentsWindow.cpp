@@ -38,10 +38,10 @@
 namespace sofaimgui::windows
 {
 
-ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+ComponentsWindow::ComponentsWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::SCENE_EDITOR;
+    m_defaultWorkbenches = Workbench::SCENE_EDITOR;
 }
 
 std::string ComponentsWindow::getDescription()
@@ -49,63 +49,56 @@ std::string ComponentsWindow::getDescription()
     return "List and inspect the loaded components.";
 }
 
-void ComponentsWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void ComponentsWindow::internalShowWindow()
 {
-    if (isOpen())
+    if (workbench == Workbench::SCENE_EDITOR)
+        showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
+
+    static bool firstTime = true;
+    if (firstTime)
     {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
-        {
-            if (workbench == Workbench::SCENE_EDITOR)
-                showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
-
-            static bool firstTime = true;
-            if (firstTime)
-            {
-                sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
-                ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
-                // TODO: loop over the plugins
-                sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
-                PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
-                firstTime = false;
-            }
-
-            ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
-            static sofa::core::ClassEntry::SPtr selectedComponent;
-
-            static std::vector<sofa::core::ClassEntry::SPtr> components;
-            components.clear();
-            sofa::core::ObjectFactory::getInstance()->getAllEntries(components);
-
-            if (ImGui::BeginChild("#LoadedComponents", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), false))
-            {
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("List of Loaded Components:");
-                ImGui::SetItemTooltip("Loaded %zu components and found %zu examples.",  components.size(), m_examplesPaths.size());
-                ImGui::SameLine();
-
-                showComponentsList(components, selectedComponent);
-            }
-
-            ImGui::EndChild();
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##SelectedComponent", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
-            {
-                ImGui::Text("Component Info:");
-
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                if (ImGui::BeginChild("##SelectedComponentInfo", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding))
-                {
-                    if (selectedComponent)
-                        showComponentInfo(selectedComponent);
-                }
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-        }
-        ImGui::End();
+        sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
+        ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
+        // TODO: loop over the plugins
+        sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
+        PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
+        firstTime = false;
     }
+
+    ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
+    static sofa::core::ClassEntry::SPtr selectedComponent;
+
+    static std::vector<sofa::core::ClassEntry::SPtr> components;
+    components.clear();
+    sofa::core::ObjectFactory::getInstance()->getAllEntries(components);
+
+    if (ImGui::BeginChild("#LoadedComponents", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), false))
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("List of Loaded Components:");
+        ImGui::SetItemTooltip("Loaded %zu components and found %zu examples.",  components.size(), m_examplesPaths.size());
+        ImGui::SameLine();
+
+        showComponentsList(components, selectedComponent);
+    }
+
+    ImGui::EndChild();
+    ImGui::SameLine();
+
+    if (ImGui::BeginChild("##SelectedComponent", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
+    {
+        ImGui::Text("Component Info:");
+
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+        if (ImGui::BeginChild("##SelectedComponentInfo", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            if (selectedComponent)
+                showComponentInfo(selectedComponent);
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
+    ImGui::EndChild();
 }
 
 void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ClassEntry::SPtr& selectedComponent)

@@ -32,10 +32,9 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MoveWindow : public BaseWindow
 {
    public:
-    MoveWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
+    MoveWindow(const std::string& name, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~MoveWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     enum MoveType {
@@ -60,6 +59,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     bool m_freeYaw{true};
 
     ImGui::MovePad m_movePad;
+
+    void internalShowWindow() override;
 
     bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 

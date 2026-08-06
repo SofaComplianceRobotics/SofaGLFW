@@ -37,11 +37,10 @@
 
 namespace sofaimgui::windows {
 
-MyRobotWindow::MyRobotWindow(const std::string& name,
-                             const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+MyRobotWindow::MyRobotWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL;
 }
 
 std::string MyRobotWindow::getDescription()
@@ -107,168 +106,161 @@ bool MyRobotWindow::isEnabledByState()
     return (m_connection.listAvailablePortsCallback || !m_groupedGUIData.empty() || !m_GUIData.empty());
 }
 
-void MyRobotWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void MyRobotWindow::internalShowWindow()
 {
-    if (isOpen())
+    if (isEnabledByState())
     {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
-        {
-            if (isEnabledByState())
+        ImGui::Spacing();
+
+        if (m_connection.listAvailablePortsCallback)
+        { // Connection
+            if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                ImGui::Spacing();
-
-                if (m_connection.listAvailablePortsCallback)
-                { // Connection
-                    if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        if (!isEnabledInWorkbench())
-                        {
-                            showInfoMessage("This section is disabled in the active workbench.");
-                            ImGui::BeginDisabled();
-                        }
-
-                        bool connected = Robot::getInstance().getConnection();
-
-                        ImGui::Text("Available ports:");
-
-                        if(connected)
-                            ImGui::BeginDisabled();
-
-                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                        const size_t nbPorts = m_connection.ports.size();
-                        std::vector<const char*> ports;
-                        ports.reserve(nbPorts);
-                        for (size_t i=0; i<nbPorts; i++)
-                            ports.push_back(m_connection.ports[i].c_str());
-                        ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
-                        static bool firstTime = true;
-                        if (ImGui::IsItemClicked() || firstTime)
-                        {
-                            firstTime = false;
-                            setAvailablePorts(m_connection.listAvailablePortsCallback());
-                        }
-                        ImGui::PopItemWidth();
-
-                        if(connected)
-                            ImGui::EndDisabled();
-
-                        ImGui::Text("Status:");
-                        ImGui::SameLine();
-
-                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                        ImGui::Text((connected)? "Connected": "Disconnected");
-                        ImGui::PopStyleColor();
-
-                        if (!isEnabledInWorkbench())
-                            ImGui::EndDisabled();
-
-                        ImGui::LocalEndCollapsingHeader();
-                    }
-                }
-
-                if (!m_sectionedGUIData.empty())
+                if (!isEnabledInWorkbench())
                 {
-                    // Information
-                    if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
-                    {
-                        std::string groups;
-                        int k=0;
-
-                        for (auto& itGroup : m_groupedGUIData)
-                        {
-                            ImGui::PushID(k++);
-                            bool firsttime = true;
-
-                            int i=0;
-                            for (auto &data : itGroup.second)
-                            {
-								if(m_sectionedGUIData[Section::INFORMATION].contains(data))
-                                {
-                                    if (data && data->isValid())
-                                    {
-                                        if (!isInEmptyGroup(data->getGroup()) && firsttime)
-                                        {
-                                            ImGui::TextDisabled("%s", data->getGroup().c_str());
-                                            ImGui::Indent();
-                                            firsttime = false;
-                                        }
-                                        ImGui::PushID(i++);
-                                        ImGui::AlignTextToFramePadding();
-                                        ImGui::Text("%s:", data->getLabel().c_str());
-                                        if (!data->getHelp().empty())
-                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
-                                        ImGui::SameLine();
-                                        BaseDataWidget::showWidgetAsText(*data->getData());
-                                        if (!data->getHelp().empty())
-                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
-                                        ImGui::PopID();
-                                    }
-                                }
-                            }
-
-                            if (!isInEmptyGroup(itGroup.first) && !firsttime)
-                                ImGui::Unindent();
-
-                            ImGui::PopID();
-                        }
-
-                        ImGui::LocalEndCollapsingHeader();
-                    }
-
-                    // Settings
-                    if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        std::string groups;
-                        int k = 0;
-                        for (auto& itGroup : m_groupedGUIData)
-                        {
-                            ImGui::PushID(k++);
-                            bool firsttime = true;
-
-                            for (auto& data : itGroup.second)
-                            {
-                                if (m_sectionedGUIData[Section::SETTINGS].contains(data))
-                                {
-                                    if (data && data->isValid())
-                                    {
-                                        if (!isInEmptyGroup(data->getGroup()) && firsttime)
-                                        {
-                                            ImGui::TextDisabled("%s", data->getGroup().c_str());
-                                            ImGui::Indent();
-                                            firsttime = false;
-                                        }
-                                        if (data->getData()->getValueTypeString()!="bool")
-                                            ImGui::AlignTextToFramePadding();
-                                        ImGui::Text("%s", data->getLabel().c_str());
-                                        if (!data->getHelp().empty())
-                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
-                                        ImGui::SameLine();
-
-                                        showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
-                                        if (!data->getHelp().empty())
-                                            ImGui::SetItemTooltip("%s", data->getHelp().c_str());
-                                    }
-                                }
-                            }
-
-                            if (!isInEmptyGroup(itGroup.first) && !firsttime)
-                                ImGui::Unindent();
-
-                            ImGui::PopID();
-                        }
-                        ImGui::LocalEndCollapsingHeader();
-                    }
+                    showInfoMessage("This section is disabled in the active workbench.");
+                    ImGui::BeginDisabled();
                 }
-            }
-            else
-            {
-                showInfoMessage("This window is used to display the robot's information and settings. "
-                                "It also provides connection management features. However, no information or settings"
-                                " have been registered for display, nor is there any connection management available."
-                                );
+
+                bool connected = Robot::getInstance().getConnection();
+
+                ImGui::Text("Available ports:");
+
+                if(connected)
+                    ImGui::BeginDisabled();
+
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                const size_t nbPorts = m_connection.ports.size();
+                std::vector<const char*> ports;
+                ports.reserve(nbPorts);
+                for (size_t i=0; i<nbPorts; i++)
+                    ports.push_back(m_connection.ports[i].c_str());
+                ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
+                static bool firstTime = true;
+                if (ImGui::IsItemClicked() || firstTime)
+                {
+                    firstTime = false;
+                    setAvailablePorts(m_connection.listAvailablePortsCallback());
+                }
+                ImGui::PopItemWidth();
+
+                if(connected)
+                    ImGui::EndDisabled();
+
+                ImGui::Text("Status:");
+                ImGui::SameLine();
+
+                ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::Text((connected)? "Connected": "Disconnected");
+                ImGui::PopStyleColor();
+
+                if (!isEnabledInWorkbench())
+                    ImGui::EndDisabled();
+
+                ImGui::LocalEndCollapsingHeader();
             }
         }
-        ImGui::End();
+
+        if (!m_sectionedGUIData.empty())
+        {
+            // Information
+            if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
+            {
+                std::string groups;
+                int k=0;
+
+                for (auto& itGroup : m_groupedGUIData)
+                {
+                    ImGui::PushID(k++);
+                    bool firsttime = true;
+
+                    int i=0;
+                    for (auto &data : itGroup.second)
+                    {
+                        if(m_sectionedGUIData[Section::INFORMATION].contains(data))
+                        {
+                            if (data && data->isValid())
+                            {
+                                if (!isInEmptyGroup(data->getGroup()) && firsttime)
+                                {
+                                    ImGui::TextDisabled("%s", data->getGroup().c_str());
+                                    ImGui::Indent();
+                                    firsttime = false;
+                                }
+                                ImGui::PushID(i++);
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s:", data->getLabel().c_str());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::SameLine();
+                                BaseDataWidget::showWidgetAsText(*data->getData());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::PopID();
+                            }
+                        }
+                    }
+
+                    if (!isInEmptyGroup(itGroup.first) && !firsttime)
+                        ImGui::Unindent();
+
+                    ImGui::PopID();
+                }
+
+                ImGui::LocalEndCollapsingHeader();
+            }
+
+            // Settings
+            if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                std::string groups;
+                int k = 0;
+                for (auto& itGroup : m_groupedGUIData)
+                {
+                    ImGui::PushID(k++);
+                    bool firsttime = true;
+
+                    for (auto& data : itGroup.second)
+                    {
+                        if (m_sectionedGUIData[Section::SETTINGS].contains(data))
+                        {
+                            if (data && data->isValid())
+                            {
+                                if (!isInEmptyGroup(data->getGroup()) && firsttime)
+                                {
+                                    ImGui::TextDisabled("%s", data->getGroup().c_str());
+                                    ImGui::Indent();
+                                    firsttime = false;
+                                }
+                                if (data->getData()->getValueTypeString()!="bool")
+                                    ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s", data->getLabel().c_str());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::SameLine();
+
+                                showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                            }
+                        }
+                    }
+
+                    if (!isInEmptyGroup(itGroup.first) && !firsttime)
+                        ImGui::Unindent();
+
+                    ImGui::PopID();
+                }
+                ImGui::LocalEndCollapsingHeader();
+            }
+        }
+    }
+    else
+    {
+        showInfoMessage("This window is used to display the robot's information and settings. "
+                        "It also provides connection management features. However, no information or settings"
+                        " have been registered for display, nor is there any connection management available."
+                        );
     }
 }
 

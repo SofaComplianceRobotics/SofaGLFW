@@ -52,11 +52,11 @@ using sofa::type::Vec3;
 using sofa::type::Quat;
 
 ProgramWindow::ProgramWindow(const std::string& name,
-                             const bool& isWindowOpen,
                              models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
-    : BaseWindow(name, isWindowOpen)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_windowFlags = ImGuiWindowFlags_AlwaysAutoResize;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 }
 
@@ -96,92 +96,84 @@ void ProgramWindow::loadAndProcessWindowSettings()
         importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
 }
 
-void ProgramWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void ProgramWindow::internalShowWindow()
 {
-    if (isOpen())
+    if (isEnabledByState())
     {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(),
-                        windowFlags | ImGuiWindowFlags_AlwaysAutoResize))
+        ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
+        ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
+        static bool firstTime = true;
+        if (firstTime)
         {
-            if (isEnabledByState())
-            {
-                ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.55;
-                ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
-                static bool firstTime = true;
-                if (firstTime)
-                {
-                    firstTime = false;
-                    loadAndProcessWindowSettings();
-                    ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
-                }
-                ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
-                ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
-
-                if (!isEnabledInWorkbench())
-                {
-                    ImGui::BeginDisabled();
-                    showInfoMessage("This window is disabled in the active workbench.");
-                }
-
-                showProgramButtons();
-
-                float width = ImGui::GetWindowWidth();
-                float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
-                static const float defaultZoomCoef = 6.5;
-                static float zoomCoef = defaultZoomCoef;
-                static float minSize = ImGui::GetFrameHeight() * 1.5;
-                ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
-                ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
-
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
-                if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
-                {
-                    ImGui::PopStyleColor();
-
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-
-                    if (m_timeBasedDisplay)
-                        showTimeline();
-                    else // Keep the space the timeline would have taken, empty
-                    {
-                        ImGui::NewLine();
-                        ImGui::NewLine();
-                    }
-
-                    int nbCollaspedTracks = showTracks();
-
-                    if (m_timeBasedDisplay)
-                        showCursorMarker(nbCollaspedTracks);
-
-                    ImGui::PopStyleVar();
-                }
-                else
-                {
-                    ImGui::PopStyleColor();
-                }
-                ImGui::EndChild();
-
-                if (m_timeBasedDisplay)
-                {
-                    if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-                        zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
-                    float coefMax = 20.f;
-                    zoomCoef = (zoomCoef < 1)? 1 : zoomCoef;
-                    zoomCoef = (zoomCoef > coefMax)? coefMax : zoomCoef;
-                }
-                else
-                    zoomCoef = defaultZoomCoef;
-
-                if (!isEnabledInWorkbench())
-                    ImGui::EndDisabled();
-            }
-            else
-            {
-                showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
-                                "The scene is missing elements for this window to work properly.");
-            }
+            firstTime = false;
+            loadAndProcessWindowSettings();
+            ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
         }
-        ImGui::End();
+        ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
+        ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
+
+        if (!isEnabledInWorkbench())
+        {
+            ImGui::BeginDisabled();
+            showInfoMessage("This window is disabled in the active workbench.");
+        }
+
+        showProgramButtons();
+
+        float width = ImGui::GetWindowWidth();
+        float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
+        static const float defaultZoomCoef = 6.5;
+        static float zoomCoef = defaultZoomCoef;
+        static float minSize = ImGui::GetFrameHeight() * 1.5;
+        ProgramSizes().TimelineOneSecondSize = zoomCoef * minSize;
+        ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
+
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+        if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
+        {
+            ImGui::PopStyleColor();
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+
+            if (m_timeBasedDisplay)
+                showTimeline();
+            else // Keep the space the timeline would have taken, empty
+            {
+                ImGui::NewLine();
+                ImGui::NewLine();
+            }
+
+            int nbCollaspedTracks = showTracks();
+
+            if (m_timeBasedDisplay)
+                showCursorMarker(nbCollaspedTracks);
+
+            ImGui::PopStyleVar();
+        }
+        else
+        {
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+
+        if (m_timeBasedDisplay)
+        {
+            if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+                zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
+            float coefMax = 20.f;
+            zoomCoef = (zoomCoef < 1)? 1 : zoomCoef;
+            zoomCoef = (zoomCoef > coefMax)? coefMax : zoomCoef;
+        }
+        else
+            zoomCoef = defaultZoomCoef;
+
+        if (!isEnabledInWorkbench())
+            ImGui::EndDisabled();
+    }
+    else
+    {
+        showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
+                        "The scene is missing elements for this window to work properly.");
     }
 }
 

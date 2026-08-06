@@ -35,10 +35,10 @@
 
 namespace sofaimgui::windows {
 
-RecordVideoWindow::RecordVideoWindow(const std::string& name,
-                                     const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+RecordVideoWindow::RecordVideoWindow(const std::string& name)
+    : BaseWindow(name)
 {
+    m_defaultWorkbenches = 0;
 }
 
 std::string RecordVideoWindow::getDescription()
@@ -46,95 +46,95 @@ std::string RecordVideoWindow::getDescription()
     return "Record video of the simulation.";
 }
 
-void RecordVideoWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void RecordVideoWindow::beforeShowWindow()
 {
     if (isOpen())
     {
         ImGui::SetNextWindowSize(ImVec2(0., 0.));
-        if (ImGui::Begin(getName().c_str(), &isOpen(), windowFlags))
-        {
-            static bool record = false;
-            ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-
-            if (record)
-                ImGui::BeginDisabled();
-
-            // Output file
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Output file");
-            ImGui::SameLine();
-
-            static std::string filename = m_baseGUI->generateFilename("video", "");
-            static bool generatedFilename = true;
-            if (ImGui::InputText("##OutputFile", &filename))
-                generatedFilename = false;
-            if (filename.empty())
-                filename = m_baseGUI->generateFilename("video", "");
-            ImGui::SameLine();
-            ImGui::TextDisabled(".mp4");
-            ImGui::SameLine();
-            if (generatedFilename)
-                ImGui::BeginDisabled();
-            if(ImGui::LocalButton(ICON_FA_ROTATE))
-            {
-                generatedFilename = true;
-                filename = m_baseGUI->generateFilename("video", "");
-            }
-            if (generatedFilename)
-                ImGui::EndDisabled();
-            ImGui::SetItemTooltip("Generate filename");
-
-            // Interval time
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Interval time");
-            ImGui::SameLine();
-
-            static float start_time = 0.;
-            ImGui::LocalInputFloat("##StartTime", &start_time);
-
-            ImGui::SameLine();
-            ImGui::Text("-");
-            ImGui::SameLine();
-
-            static float end_time = std::numeric_limits<float>::infinity();
-            ImGui::LocalInputFloat("##EndTime", &end_time);
-
-            // Current time
-            const auto& current_time = m_baseGUI->getRootNode()->getTime();
-
-            if (record)
-                ImGui::EndDisabled();
-
-            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
-
-            static bool clicked = false;
-            if (ImGui::Button(record? ICON_FA_STOP " Stop": ICON_DVS_CIRCLE_FULL" Record"))
-            {
-                clicked = true;
-                record = !record;
-
-                if (generatedFilename)
-                    filename = m_baseGUI->generateFilename("video", "");
-            }
-            ImGui::SetItemTooltip(record? "Stop recording": "Start recording");
-
-            if ((clicked && current_time >= start_time) || (record && current_time >= end_time))
-            {
-                clicked = false;
-                m_baseGUI->setVideoFilename(filename + ".mp4");
-                if (m_baseGUI->toggleVideoRecording())
-                    showRecordingMessage();
-                else
-                    FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
-                record = m_baseGUI->isVideoRecording();
-            }
-
-            ImGui::PopStyleColor(3);
-        }
-        ImGui::End();
     }
+}
+
+void RecordVideoWindow::internalShowWindow()
+{
+    static bool record = false;
+    ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+    if (record)
+        ImGui::BeginDisabled();
+
+    // Output file
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Output file");
+    ImGui::SameLine();
+
+    static std::string filename = m_baseGUI->generateFilename("video", "");
+    static bool generatedFilename = true;
+    if (ImGui::InputText("##OutputFile", &filename))
+        generatedFilename = false;
+    if (filename.empty())
+        filename = m_baseGUI->generateFilename("video", "");
+    ImGui::SameLine();
+    ImGui::TextDisabled(".mp4");
+    ImGui::SameLine();
+    if (generatedFilename)
+        ImGui::BeginDisabled();
+    if(ImGui::LocalButton(ICON_FA_ROTATE))
+    {
+        generatedFilename = true;
+        filename = m_baseGUI->generateFilename("video", "");
+    }
+    if (generatedFilename)
+        ImGui::EndDisabled();
+    ImGui::SetItemTooltip("Generate filename");
+
+    // Interval time
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Interval time");
+    ImGui::SameLine();
+
+    static float start_time = 0.;
+    ImGui::LocalInputFloat("##StartTime", &start_time);
+
+    ImGui::SameLine();
+    ImGui::Text("-");
+    ImGui::SameLine();
+
+    static float end_time = std::numeric_limits<float>::infinity();
+    ImGui::LocalInputFloat("##EndTime", &end_time);
+
+    // Current time
+    const auto& current_time = m_baseGUI->getRootNode()->getTime();
+
+    if (record)
+        ImGui::EndDisabled();
+
+    ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
+
+    static bool clicked = false;
+    if (ImGui::Button(record? ICON_FA_STOP " Stop": ICON_DVS_CIRCLE_FULL" Record"))
+    {
+        clicked = true;
+        record = !record;
+
+        if (generatedFilename)
+            filename = m_baseGUI->generateFilename("video", "");
+    }
+    ImGui::SetItemTooltip(record? "Stop recording": "Start recording");
+
+    if ((clicked && current_time >= start_time) || (record && current_time >= end_time))
+    {
+        clicked = false;
+        m_baseGUI->setVideoFilename(filename + ".mp4");
+        if (m_baseGUI->toggleVideoRecording())
+            showRecordingMessage();
+        else
+            FooterStatusBar::getInstance().setTempMessage("Something went wrong with the video, check the Log Window", FooterStatusBar::MERROR);
+        record = m_baseGUI->isVideoRecording();
+    }
+
+    ImGui::PopStyleColor(3);
 }
 
 void RecordVideoWindow::showRecordingMessage()

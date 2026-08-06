@@ -38,8 +38,8 @@
 
 namespace sofaimgui::windows {
 
-ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+ViewportWindow::ViewportWindow(const std::string& name)
+    : BaseWindow(name)
 {
 }
 

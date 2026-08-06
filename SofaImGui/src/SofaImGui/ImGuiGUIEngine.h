@@ -94,21 +94,21 @@ public:
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager = std::make_shared<models::guidata::KinematicsGUIDataManager>();
     models::KinematicsController::SPtr m_kinematicsController = sofa::core::objectmodel::New<models::KinematicsController>(m_kinematicsGUIDataManager); // TODO: remove when QPInverseProblemSolver can solve direct problem
 
-    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport", true);
-    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph", true);
-    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components", true);
-    windows::LogWindow          m_logWindow          = windows::LogWindow("Log", true);
-    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", false, m_kinematicsGUIDataManager);
-    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", true, m_kinematicsGUIDataManager);
-    windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting", true);
-    windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler", true);
-    windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot", true);
-    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", true, m_kinematicsGUIDataManager);
-    windows::DashboardWindow    m_dashboardWindow    = windows::DashboardWindow("Dashboard", false);
+    windows::ViewportWindow     m_viewportWindow     = windows::ViewportWindow("Viewport");
+    windows::SceneGraphWindow   m_sceneGraphWindow   = windows::SceneGraphWindow("Scene Graph");
+    windows::ComponentsWindow   m_componentsWindow   = windows::ComponentsWindow("Components");
+    windows::LogWindow          m_logWindow          = windows::LogWindow("Log");
+    windows::IOWindow           m_IOWindow           = windows::IOWindow("Input/Output", m_kinematicsGUIDataManager);
+    windows::ProgramWindow      m_programWindow      = windows::ProgramWindow("Program", m_kinematicsGUIDataManager);
+    windows::PlottingWindow     m_plottingWindow     = windows::PlottingWindow("Plotting");
+    windows::ProfilerWindow     m_profilerWindow     = windows::ProfilerWindow("Profiler");
+    windows::MyRobotWindow      m_myRobotWindow      = windows::MyRobotWindow("My Robot");
+    windows::MoveWindow         m_moveWindow         = windows::MoveWindow("Move", m_kinematicsGUIDataManager);
+    windows::DashboardWindow    m_dashboardWindow    = windows::DashboardWindow("Dashboard");
 
-    windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager", false);
-    windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager", false);
-    windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video", false);
+    windows::PluginsWindow      m_pluginsWindow      = windows::PluginsWindow("Plugins Manager");
+    windows::MouseManagerWindow m_mouseManagerWindow = windows::MouseManagerWindow("Mouse Manager");
+    windows::RecordVideoWindow  m_recordVideoWindow  = windows::RecordVideoWindow("Record Video");
 
 
 protected:

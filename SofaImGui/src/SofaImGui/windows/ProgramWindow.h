@@ -42,11 +42,9 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
    public:
     ProgramWindow(){}
-    ProgramWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
+    ProgramWindow(const std::string& name, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~ProgramWindow() = default;
 
-
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
     void clear() override;
     void onEndInit() override;
@@ -81,6 +79,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
 
     std::string m_info;
     bool m_refreshInfo = false;
+
+    void internalShowWindow() override;
 
     bool isEnabledByState() override {return m_program.isValid() && m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 

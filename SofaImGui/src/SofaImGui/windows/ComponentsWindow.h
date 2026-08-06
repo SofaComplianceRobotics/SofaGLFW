@@ -40,16 +40,17 @@ class SOFAIMGUI_API ComponentsWindow : public BaseWindow
 
 public:
     ComponentsWindow(){}
-    ComponentsWindow(const std::string& name, const bool& isWindowOpen);
+    ComponentsWindow(const std::string& name);
     ~ComponentsWindow()=default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
 
     std::vector<std::string> m_examplesPaths;
     std::vector<std::filesystem::path> m_selectedComponentExamples;
+
+    void internalShowWindow() override;
 
     void showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ObjectFactory::ClassEntry::SPtr &selectedComponent);
     void showComponentInfo(sofa::core::ClassEntry::SPtr selectedComponent);

@@ -37,10 +37,9 @@ namespace sofaimgui::windows
     class SOFAIMGUI_API LogWindow : public BaseWindow
     {
     public:
-        LogWindow(const std::string& name, const bool& isWindowOpen);
+        LogWindow(const std::string& name);
         ~LogWindow() = default;
 
-        void showWindow(const ImGuiWindowFlags &windowFlags) override;
         std::string getDescription() override;
 
     protected:
@@ -48,6 +47,8 @@ namespace sofaimgui::windows
         bool m_autoScroll = true;
         bool m_showInfo = true;
         sofa::Index m_firstMessageIndex = 0;
+
+        void internalShowWindow() override;
 
         void showButtons();
         void showSettingsButton();

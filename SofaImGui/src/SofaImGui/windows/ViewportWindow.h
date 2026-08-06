@@ -31,7 +31,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 {
    public:
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen);
+    ViewportWindow(const std::string& name);
     ~ViewportWindow() = default;
 
     void showWindow(const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);

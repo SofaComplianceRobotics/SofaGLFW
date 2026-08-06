@@ -65,10 +65,9 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
         }
     };
 
-    PlottingWindow(const std::string& name, const bool& isWindowOpen);
+    PlottingWindow(const std::string& name);
     ~PlottingWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
@@ -85,6 +84,9 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
     size_t m_nbRows{1};
     size_t m_nbCols{1};
+
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
 
     void clear() override;
     bool isEnabledByState() override {return !m_GUIData.empty();}

@@ -35,11 +35,11 @@
 
 namespace sofaimgui::windows {
 
-PlottingWindow::PlottingWindow(const std::string& name,
-                               const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+PlottingWindow::PlottingWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_windowFlags = ImGuiWindowFlags_NoScrollbar;
 }
 
 std::string PlottingWindow::getDescription()
@@ -104,9 +104,8 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
     return newData;;
 }
 
-void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void PlottingWindow::beforeShowWindow()
 {
-    SOFA_UNUSED(windowFlags);
     auto groot = m_baseGUI->getRootNode().get();
 
     size_t nbData = m_GUIData.size();
@@ -117,7 +116,7 @@ void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
     {
         for (size_t k=0; k<nbData; k++)
         {
-			auto& data = *std::next(m_GUIData.begin(), k);
+            auto& data = *std::next(m_GUIData.begin(), k);
             if (data && data->isValid())
             {
                 const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
@@ -128,25 +127,12 @@ void PlottingWindow::showWindow(const ImGuiWindowFlags &windowFlags)
             }
         }
     }
-    
-    if (isOpen())
-    {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), ImGuiWindowFlags_NoScrollbar))
-        {
-            if (!isEnabledInWorkbench() || !isEnabledByState())
-                showInfoMessage("This window is used to plot data over time. It currently has no data registered or is disabled in the active workbench.");
+}
 
-            if (!isEnabledInWorkbench())
-                ImGui::BeginDisabled();
-
-            showButtons();
-            showPlots();
-
-            if (!isEnabledInWorkbench())
-                ImGui::EndDisabled();
-        }
-        ImGui::End();
-    }
+void PlottingWindow::internalShowWindow()
+{
+    showButtons();
+    showPlots();
 }
 
 void PlottingWindow::showButtons()

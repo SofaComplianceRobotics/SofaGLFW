@@ -125,12 +125,11 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     };
 
     IOWindow(){}
-    IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
+    IOWindow(const std::string& name, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
     ~IOWindow();
 
     typedef typename sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
     void onEndInit() override;
 
@@ -154,6 +153,8 @@ class SOFAIMGUI_API IOWindow : public BaseWindow
     bool m_isReadyToPublish;
     bool m_isPublishing;
     bool m_isListening;
+
+    void internalShowWindow() override;
 
     void clear() override { m_selectableData.clear(); }
 

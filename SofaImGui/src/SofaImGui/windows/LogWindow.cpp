@@ -43,8 +43,8 @@
 
 namespace sofaimgui::windows {
 
-LogWindow::LogWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+LogWindow::LogWindow(const std::string& name)
+    : BaseWindow(name)
     , m_messages(sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages())
 {
     FooterStatusBar::getInstance().setLogStatusCallback(
@@ -60,17 +60,10 @@ std::string LogWindow::getDescription()
     return "Inspect the logs.";
 }
 
-void LogWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void LogWindow::internalShowWindow()
 {
-    if (isOpen())
-    {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
-        {
-            showButtons();
-            showLogs();
-        }
-        ImGui::End();
-    }
+    showButtons();
+    showLogs();
 }
 
 void LogWindow::showButtons()

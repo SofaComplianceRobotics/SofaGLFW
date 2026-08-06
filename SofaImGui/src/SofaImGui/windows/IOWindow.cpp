@@ -39,10 +39,11 @@
 
 namespace sofaimgui::windows {
 
-IOWindow::IOWindow(const std::string& name, const bool& isWindowOpen, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
-    : BaseWindow(name, isWindowOpen)
+IOWindow::IOWindow(const std::string& name, models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = 0;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 
 #if SOFAIMGUI_WITH_ROS
@@ -120,44 +121,28 @@ bool IOWindow::sanitizeName(std::string &name)
     return input != name;
 }
 
-void IOWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void IOWindow::internalShowWindow()
 {
-    if (isOpen())
-    {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
-        {
-            if (!isEnabledInWorkbench())
-            {
-                showInfoMessage("This window is used for input/output operations of data. It is disabled in the active workbench.");
-                ImGui::BeginDisabled();
-            }
-
-            static const char* items[]{
+    static const char* items[]{
 #if SOFAIMGUI_WITH_ROS
-                                       "ROS",
+                                 "ROS",
 #endif
-                                       "None"
-            };
+                               "None"
+    };
 
-            ImGui::Spacing();
-            ImGui::Indent();
-            ImGui::Text("Method:");
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::LocalCombo("##ComboMethod", &m_method, items, IM_ARRAYSIZE(items));
-            ImGui::PopItemWidth();
-            ImGui::Spacing();
-            ImGui::Unindent();
+    ImGui::Spacing();
+    ImGui::Indent();
+    ImGui::Text("Method:");
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::LocalCombo("##ComboMethod", &m_method, items, IM_ARRAYSIZE(items));
+    ImGui::PopItemWidth();
+    ImGui::Spacing();
+    ImGui::Unindent();
 
 #if SOFAIMGUI_WITH_ROS
-            if (m_method == 0) // ROS
-                showROSWindow();
+    if (m_method == 0) // ROS
+        showROSWindow();
 #endif
-
-            if (!isEnabledInWorkbench())
-                ImGui::EndDisabled();
-        }
-        ImGui::End();
-    }
 }
 
 models::guidata::GUIData::SPtr IOWindow::addData(const std::string& label,

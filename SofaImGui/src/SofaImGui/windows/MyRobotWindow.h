@@ -29,10 +29,9 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MyRobotWindow : public BaseWindow
 {
    public:
-    MyRobotWindow(const std::string& name, const bool& isWindowOpen);
+    MyRobotWindow(const std::string& name);
     ~MyRobotWindow() = default;
 
-    void showWindow(const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
     struct Connection{
@@ -64,7 +63,8 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
 
     Connection m_connection;
     std::map<Section, std::unordered_set<models::guidata::GUIData::SPtr>> m_sectionedGUIData;
-\
+
+    void internalShowWindow() override;
     void clear() override;
     bool isEnabledByState() override;
 

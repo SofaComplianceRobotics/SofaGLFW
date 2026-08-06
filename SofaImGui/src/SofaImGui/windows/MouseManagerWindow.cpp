@@ -28,10 +28,10 @@
 
 namespace sofaimgui::windows {
 
-MouseManagerWindow::MouseManagerWindow(const std::string& name,
-                                       const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+MouseManagerWindow::MouseManagerWindow(const std::string& name)
+    : BaseWindow(name)
 {
+    m_defaultWorkbenches = 0;
 }
 
 std::string MouseManagerWindow::getDescription()
@@ -39,58 +39,58 @@ std::string MouseManagerWindow::getDescription()
     return "Mouse settings, for interaction with the simulation.";
 }
 
-void MouseManagerWindow::showWindow(const ImGuiWindowFlags &windowFlags)
+void MouseManagerWindow::beforeShowWindow()
 {
     if (isOpen())
     {
-        if (auto* pickHandler = m_baseGUI->getPickHandler())
+        ImGuiIO& io = ImGui::GetIO();
+        const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);
+        ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
+    }
+}
+
+void MouseManagerWindow::internalShowWindow()
+{
+    if (auto* pickHandler = m_baseGUI->getPickHandler())
+    {
+        ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
+
+        if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
         {
-            ImGuiIO& io = ImGui::GetIO();
-            const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);
-            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
-            ImGui::Begin(getName().c_str(), &isOpen(), windowFlags);
-
-            ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
-
-            if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Left Button:");
-                if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::LEFT);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Left Button:");
+            if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::LEFT);
             ImGui::EndChild();
-
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Middle Button:");
-                if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::MIDDLE);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Right Button:");
-                if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::RIGHT);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-
-            ImGui::End();
+            ImGui::PopStyleColor();
         }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Middle Button:");
+            if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::MIDDLE);
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Right Button:");
+            if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::RIGHT);
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
     }
 }
 
