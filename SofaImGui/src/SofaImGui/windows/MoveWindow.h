@@ -58,7 +58,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     bool m_freePitch{true};
     bool m_freeYaw{true};
 
-    ImGui::MovePad m_movePad;
+    sofaimgui::widgets::MovePad m_movePad;
 
     void internalShowWindow() override;
 

@@ -20,7 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "SofaImGui/widgets/ImGuiDataWidget.h"
+#include <SofaImGui/widgets/DataWidget.h>
 #include <sofa/type/Quat.h>
 
 #include <imgui_internal.h>
@@ -63,11 +63,11 @@ void MoveWindow::internalShowWindow()
                 const double& min = TCPGUIData->getMin();
                 const double& max = TCPGUIData->getMax();
 
-                m_movePad = ImGui::MovePad("##MovePad", "X", "Z", "Y",
-                                           &m_x, &m_z, &m_y,
-                                           min, max,
-                                           min, max,
-                                           min, max);
+                m_movePad = sofaimgui::widgets::MovePad("##MovePad", "X", "Z", "Y",
+                                                       &m_x, &m_z, &m_y,
+                                                       min, max,
+                                                       min, max,
+                                                       min, max);
             }
 
             ImGui::Spacing();
@@ -121,7 +121,7 @@ void MoveWindow::internalShowWindow()
 
             TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-            if (TCPGUIData->hasRotation() && ImGui::LocalBeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
+            if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
             {
                 ImGui::SameLine();
 
@@ -131,7 +131,7 @@ void MoveWindow::internalShowWindow()
                 ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
-                if (ImGui::LocalButton(ICON_FA_BARS))
+                if (sofaimgui::widgets::Button(ICON_FA_BARS))
                     openOptions = true;
                 ImGui::PopStyleColor(3);
 
@@ -168,7 +168,7 @@ void MoveWindow::internalShowWindow()
                 if (m_freeYaw)
                     ImGui::EndDisabled();
 
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
 
             if (isDrivingSimulation())
@@ -186,7 +186,7 @@ void MoveWindow::internalShowWindow()
         {
             const auto& actuatorsGUIData = m_kinematicsGUIDataManager->getActuators();
 
-            if (ImGui::LocalBeginCollapsingHeader("Actuators", ImGuiTreeNodeFlags_DefaultOpen))
+            if (sofaimgui::widgets::BeginCollapsingHeader("Actuators", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 bool solveInverseProblem = true;
                 for (auto actuatorGUIData: actuatorsGUIData)
@@ -221,13 +221,13 @@ void MoveWindow::internalShowWindow()
                     && isDrivingSimulation())
                     m_kinematicsGUIDataManager->switchSolverMode();
 
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
         }
 
         if (m_kinematicsGUIDataManager->hasAccessory())
         {
-            if (ImGui::LocalBeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
+            if (sofaimgui::widgets::BeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 const auto& accessoriesGUIData = m_kinematicsGUIDataManager->getAccessories();
 
@@ -243,13 +243,13 @@ void MoveWindow::internalShowWindow()
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("%s", accessory->getFeatureLabel().c_str());
                             ImGui::SameLine();
-                            showWidget(*accessory->getData(), accessory->getDataMin(), accessory->getDataMax());
+                            sofaimgui::widgets::showWidget(*accessory->getData(), accessory->getDataMin(), accessory->getDataMax());
                         }
                     }
 
                     ImGui::Unindent();
                 }
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
         }
     }
@@ -297,7 +297,7 @@ bool MoveWindow::showSliderDouble(const char* name, const char* label1, const ch
 
     double step = max - min;
 
-    if (ImGui::LocalInputDouble(label2, v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
+    if (sofaimgui::widgets::InputDouble(label2, v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
         hasValueChanged=true;
 
     return hasValueChanged;
@@ -308,7 +308,7 @@ void MoveWindow::showOptions()
     if (ImGui::BeginTable("##option", 2, ImGuiTableFlags_None))
     {
         ImGui::TableNextColumn();
-        ImGui::LocalCheckBox("Free roll", &m_freeRoll);
+        sofaimgui::widgets::CheckBox("Free roll", &m_freeRoll);
         if (m_freeRoll)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
@@ -317,7 +317,7 @@ void MoveWindow::showOptions()
             ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
-        ImGui::LocalCheckBox("Free pitch", &m_freePitch);
+        sofaimgui::widgets::CheckBox("Free pitch", &m_freePitch);
         if (m_freePitch)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
@@ -326,7 +326,7 @@ void MoveWindow::showOptions()
             ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
-        ImGui::LocalCheckBox("Free yaw", &m_freeYaw);
+        sofaimgui::widgets::CheckBox("Free yaw", &m_freeYaw);
         if (m_freeYaw)
             ImGui::BeginDisabled();
         ImGui::TableNextColumn();
@@ -351,7 +351,7 @@ void MoveWindow::showWeightOption(const int &index)
     ImGui::Text("weight");
     ImGui::SameLine();
     ImGui::PushID(index);
-    if (ImGui::LocalInputDouble("##Input ", &w))
+    if (sofaimgui::widgets::InputDouble("##Input ", &w))
         TCPGUIData->setWeight(index, w);
     ImGui::PopID();
 }
@@ -375,7 +375,7 @@ bool MoveWindow::showVerticalTab(const std::string& label, const std::string& to
         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_TabActive));
     }
 
-    if (ImGui::LocalButton(label.c_str()))
+    if (sofaimgui::widgets::Button(label.c_str()))
         clicked = true;
     ImGui::SetItemTooltip("%s", tooltip.c_str());
 

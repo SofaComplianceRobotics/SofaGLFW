@@ -20,7 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <sofa/core/objectmodel/Base.h>
 
@@ -36,7 +36,7 @@
 #include <SofaImGui/widgets/IntWidget.h>
 #include <SofaImGui/widgets/BoundingBoxWidget.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 using namespace sofa;
@@ -71,7 +71,7 @@ void DataWidget<bool>::showWidget(MyData& data)
     bool changeableValue = initialValue;
     const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
-    ImGui::LocalCheckBox(("##" + id).c_str(), &changeableValue);
+    sofaimgui::widgets::CheckBox(("##" + id).c_str(), &changeableValue);
     if (changeableValue != initialValue)
     {
         data.setValue(changeableValue);

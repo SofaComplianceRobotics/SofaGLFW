@@ -27,7 +27,7 @@
 
 #include <unordered_map>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 struct SOFAIMGUI_API BaseDataWidget
@@ -138,7 +138,7 @@ inline bool showSliderDouble(const std::string& label, double* v, const double& 
 
     const double step = max - min;
 
-    if (ImGui::LocalInputDouble(("##SettingInput" + label).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
+    if (sofaimgui::widgets::InputDouble(("##SettingInput" + label).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
         hasValueChanged=true;
 
     return hasValueChanged;

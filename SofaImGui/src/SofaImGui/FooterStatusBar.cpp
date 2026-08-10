@@ -155,7 +155,7 @@ void FooterStatusBar::showPath()
         }
         else if (m_tempMessagePath.starts_with("http"))
         {
-            ImGui::LocalTextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
+            sofaimgui::widgets::TextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
         }
         else
         {

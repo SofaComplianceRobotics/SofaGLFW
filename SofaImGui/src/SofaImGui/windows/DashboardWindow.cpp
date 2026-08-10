@@ -23,7 +23,7 @@
 #include "IconsFontAwesome6.h"
 #include <SofaImGui/windows/DashboardWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <imgui_internal.h>
 
 
@@ -138,7 +138,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 
     // Data widget
     {
-        sofaimgui::showWidget(*data->getData());
+        sofaimgui::widgets::showWidget(*data->getData());
     }
 
     ImGui::TableNextColumn();
@@ -147,7 +147,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex())
         {
-            if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if (sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
                 removeGUIData(data);
             ImGui::SetItemTooltip("Remove from Drashboard");
         }
@@ -160,18 +160,18 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 
 void DashboardWindow::showOptionButtons()
 {
-    m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
+    m_expandAll = sofaimgui::widgets::Button(ICON_FA_EXPAND);
     ImGui::SetItemTooltip("Expand all");
     ImGui::SameLine();
 
-    m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
+    m_collapseAll = sofaimgui::widgets::Button(ICON_FA_COMPRESS);
     ImGui::SetItemTooltip("Collapse all");
     ImGui::SameLine();
 
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    if (ImGui::LocalButton(ICON_FA_BROOM))
+    if (sofaimgui::widgets::Button(ICON_FA_BROOM))
         clearWindow();
     ImGui::SetItemTooltip("Clear Dashboard");
 }

@@ -153,7 +153,7 @@ void PlottingWindow::showButtons()
     if (!isEnabledByState())
         ImGui::BeginDisabled();
 
-    if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
+    if (sofaimgui::widgets::Button(ICON_FA_FILE_EXPORT))
     {
         exportData();
     }
@@ -179,7 +179,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
     ImGui::SetCursorPosX(positionRight); // Set position to right of the header
 
-    if(ImGui::LocalButton("+##plotting"))
+    if(sofaimgui::widgets::Button("+##plotting"))
     {
         if (m_nbRows<MAX_NB_PLOT)
             m_nbRows+=1;
@@ -188,7 +188,7 @@ void PlottingWindow::showButtons()
 
     ImGui::SameLine();
 
-    if (ImGui::LocalButton("-##plotting"))
+    if (sofaimgui::widgets::Button("-##plotting"))
     {
         if (m_nbRows>1)
             m_nbRows-=1;
@@ -198,7 +198,7 @@ void PlottingWindow::showButtons()
     ImGui::SameLine();
 
     bool openOptions = false;
-    if (ImGui::LocalButton(ICON_FA_BARS))
+    if (sofaimgui::widgets::Button(ICON_FA_BARS))
         openOptions = true;
 
     if (openOptions)
@@ -352,11 +352,11 @@ void PlottingWindow::showMenu()
     auto& plots  = gp.Plots;
 
     bool showMousePosition = !ImHasFlag(plots.GetByIndex(0)->Flags, ImPlotFlags_NoMouseText);
-    ImGui::LocalCheckBox("Show mouse position", &showMousePosition);
+    sofaimgui::widgets::CheckBox("Show mouse position", &showMousePosition);
     bool showGrid = !ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
-    ImGui::LocalCheckBox("Show grid", &showGrid);
+    sofaimgui::widgets::CheckBox("Show grid", &showGrid);
     bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
-    ImGui::LocalCheckBox("Auto fit content", &autofit);
+    sofaimgui::widgets::CheckBox("Auto fit content", &autofit);
 
     for (size_t i=0; i<m_nbRows * m_nbCols; i++)
     {
@@ -411,18 +411,18 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
     ImGui::Separator();
 
     bool showMousePosition = !ImHasFlag(plot.Flags, ImPlotFlags_NoMouseText);
-    if (ImGui::LocalCheckBox("Show mouse position", &showMousePosition))
+    if (sofaimgui::widgets::CheckBox("Show mouse position", &showMousePosition))
         ImFlipFlag(plot.Flags, ImPlotFlags_NoMouseText);
 
     bool showGrid = !ImHasFlag(plot.XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
-    if (ImGui::LocalCheckBox("Show grid", &showGrid))
+    if (sofaimgui::widgets::CheckBox("Show grid", &showGrid))
     {
         ImFlipFlag(plot.XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
         ImFlipFlag(plot.YAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
     }
 
     bool autofit = ImHasFlag(plot.XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
-    if (ImGui::LocalCheckBox("Auto fit content", &autofit))
+    if (sofaimgui::widgets::CheckBox("Auto fit content", &autofit))
     {
         ImFlipFlag(plot.XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
         ImFlipFlag(plot.YAxis(0).Flags, ImPlotAxisFlags_AutoFit);

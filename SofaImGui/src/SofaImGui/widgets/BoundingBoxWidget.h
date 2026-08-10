@@ -24,7 +24,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/type/BoundingBox.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 inline void showBoundingBoxWidget(sofa::Data<sofa::type::BoundingBox>& data)

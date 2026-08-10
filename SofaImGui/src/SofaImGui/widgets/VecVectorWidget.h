@@ -26,7 +26,8 @@
 #include <string>
 
 
-namespace sofaimgui {
+namespace sofaimgui::widgets
+{
 
 using namespace sofa;
 

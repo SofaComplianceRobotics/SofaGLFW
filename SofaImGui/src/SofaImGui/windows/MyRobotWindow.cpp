@@ -21,7 +21,7 @@
  ******************************************************************************/
 
 #include <IconsFontAwesome6.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -114,7 +114,7 @@ void MyRobotWindow::internalShowWindow()
 
         if (m_connection.listAvailablePortsCallback)
         { // Connection
-            if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
+            if (sofaimgui::widgets::BeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 if (!isEnabledInWorkbench())
                 {
@@ -135,7 +135,7 @@ void MyRobotWindow::internalShowWindow()
                 ports.reserve(nbPorts);
                 for (size_t i=0; i<nbPorts; i++)
                     ports.push_back(m_connection.ports[i].c_str());
-                ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
+                sofaimgui::widgets::Combo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
                 static bool firstTime = true;
                 if (ImGui::IsItemClicked() || firstTime)
                 {
@@ -157,14 +157,14 @@ void MyRobotWindow::internalShowWindow()
                 if (!isEnabledInWorkbench())
                     ImGui::EndDisabled();
 
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
         }
 
         if (!m_sectionedGUIData.empty())
         {
             // Information
-            if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
+            if (sofaimgui::widgets::BeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
             {
                 std::string groups;
                 int k=0;
@@ -193,7 +193,7 @@ void MyRobotWindow::internalShowWindow()
                                 if (!data->getHelp().empty())
                                     ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                 ImGui::SameLine();
-                                BaseDataWidget::showWidgetAsText(*data->getData());
+                                sofaimgui::widgets::BaseDataWidget::showWidgetAsText(*data->getData());
                                 if (!data->getHelp().empty())
                                     ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                 ImGui::PopID();
@@ -207,11 +207,11 @@ void MyRobotWindow::internalShowWindow()
                     ImGui::PopID();
                 }
 
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
 
             // Settings
-            if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            if (sofaimgui::widgets::BeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 std::string groups;
                 int k = 0;
@@ -239,7 +239,7 @@ void MyRobotWindow::internalShowWindow()
                                     ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                                 ImGui::SameLine();
 
-                                showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
+                                sofaimgui::widgets::showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
                                 if (!data->getHelp().empty())
                                     ImGui::SetItemTooltip("%s", data->getHelp().c_str());
                             }
@@ -251,7 +251,7 @@ void MyRobotWindow::internalShowWindow()
 
                     ImGui::PopID();
                 }
-                ImGui::LocalEndCollapsingHeader();
+                sofaimgui::widgets::EndCollapsingHeader();
             }
         }
     }

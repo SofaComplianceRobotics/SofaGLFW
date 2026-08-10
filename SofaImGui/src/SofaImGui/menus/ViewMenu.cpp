@@ -225,16 +225,16 @@ void ViewMenu::addShowIn3DViewMenuItems()
     if (ImGui::BeginMenu("Grid"))
     {
         static bool show01 = false;
-        if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::DOTONE)).c_str(), &show01))
+        if (sofaimgui::widgets::CheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::DOTONE)).c_str(), &show01))
             showGrid(show01, SofaGLFWWindow::GridSquareSize::DOTONE, 1.f, sofa::type::RGBAColor::fromFloat(0.5f, 0.5f, 0.5f, 0.5f));
         static bool show1 = false;
-        if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::ONE)).c_str(), &show1))
+        if (sofaimgui::widgets::CheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::ONE)).c_str(), &show1))
             showGrid(show1, SofaGLFWWindow::GridSquareSize::ONE, 1.f, sofa::type::RGBAColor::fromFloat(0.5f, 0.5f, 0.5f, 0.75f));
         static bool show10 = false;
-        if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::TEN)).c_str(), &show10))
+        if (sofaimgui::widgets::CheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::TEN)).c_str(), &show10))
             showGrid(show10, SofaGLFWWindow::GridSquareSize::TEN, 1.f, sofa::type::RGBAColor::fromFloat(0.5f, 0.5f, 0.5f, 1.f));
         static bool show100 = false;
-        if (ImGui::LocalCheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::HUNDRED)).c_str(), &show100))
+        if (sofaimgui::widgets::CheckBox(std::string("Square size: " + SofaGLFWWindow::GridSquareSize::getString(SofaGLFWWindow::GridSquareSize::HUNDRED)).c_str(), &show100))
             showGrid(show100, SofaGLFWWindow::GridSquareSize::HUNDRED, 2.f, sofa::type::RGBAColor::fromFloat(0.5f, 0.5f, 0.5f, 1.f));
 
         ImGui::EndMenu();
@@ -242,14 +242,14 @@ void ViewMenu::addShowIn3DViewMenuItems()
 
     {
         static bool show = false;
-        if (ImGui::LocalCheckBox("Origin Frame", &show))
+        if (sofaimgui::widgets::CheckBox("Origin Frame", &show))
             showOriginFrame(show);
         ImGui::SetItemTooltip("Show / hide");
     }
 
     {
         static bool show = false;
-        if (ImGui::LocalCheckBox("Bounding Box", &show))
+        if (sofaimgui::widgets::CheckBox("Bounding Box", &show))
             showBoundingBox(show);
         ImGui::SetItemTooltip("Show / hide");
     }
@@ -265,7 +265,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowVisualModels();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Visual Models", &changeableValue);
+            sofaimgui::widgets::CheckBox("Visual Models", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -276,7 +276,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowBehaviorModels();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Behavior Models", &changeableValue);
+            sofaimgui::widgets::CheckBox("Behavior Models", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -287,7 +287,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowForceFields();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Force Fields", &changeableValue);
+            sofaimgui::widgets::CheckBox("Force Fields", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -298,7 +298,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowInteractionForceFields();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Interaction Force Fields", &changeableValue);
+            sofaimgui::widgets::CheckBox("Interaction Force Fields", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -309,7 +309,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowCollisionModels();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Collision Models", &changeableValue);
+            sofaimgui::widgets::CheckBox("Collision Models", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -320,7 +320,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowBoundingCollisionModels();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Bounding Collision Models", &changeableValue);
+            sofaimgui::widgets::CheckBox("Bounding Collision Models", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -333,7 +333,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowMappings();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Mappings", &changeableValue);
+            sofaimgui::widgets::CheckBox("Mappings", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -344,7 +344,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowMechanicalMappings();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Mechanical Mappings", &changeableValue);
+            sofaimgui::widgets::CheckBox("Mechanical Mappings", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -357,7 +357,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowWireFrame();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Wire Frame", &changeableValue);
+            sofaimgui::widgets::CheckBox("Wire Frame", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
@@ -368,7 +368,7 @@ void ViewMenu::addShowIn3DViewMenuItems()
         {
             const bool initialValue = displayFlags.getShowNormals();
             bool changeableValue = initialValue;
-            ImGui::LocalCheckBox("Normals", &changeableValue);
+            sofaimgui::widgets::CheckBox("Normals", &changeableValue);
             ImGui::SetItemTooltip("Show / hide");
             if (changeableValue != initialValue)
             {
