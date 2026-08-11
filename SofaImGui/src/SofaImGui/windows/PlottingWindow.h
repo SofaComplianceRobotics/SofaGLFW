@@ -87,7 +87,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
     void beforeShowWindow() override;
     void internalShowWindow() override;
-    void registerAndloadWindowSettings() override;
+    void registerAndLoadWindowSettings() override;
 
     void clear() override;
     bool isEnabledByState() override {return !m_GUIData.empty();}

@@ -21,6 +21,8 @@
 ******************************************************************************/
 
 #include <GUIColors.h>
+#include <SofaImGui/windows/LogWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 #include <SofaImGui/widgets/ImGuiDataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
@@ -31,15 +33,15 @@
 #include <sofa/simulation/SceneLoaderFactory.h>
 #include <sofa/simulation/Simulation.h>
 #include <sofa/helper/AdvancedTimer.h>
-#include <imgui.h>
-#include <nfd.h>
-#include <IconsFontAwesome6.h>
-#include <fstream>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/LineAxis.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <sofa/simulation/Node.h>
-#include <SofaImGui/windows/LogWindow.h>
+
+#include <imgui.h>
+#include <nfd.h>
+#include <IconsFontAwesome6.h>
+#include <fstream>
 
 namespace sofaimgui::windows {
 
@@ -58,6 +60,12 @@ LogWindow::LogWindow(const std::string& name)
 std::string LogWindow::getDescription()
 {
     return "Inspect the logs.";
+}
+
+void LogWindow::registerAndLoadWindowSettings()
+{
+    registerAndLoadSetting(WS_LOG_AUTOSCROLL, m_ws_autoScroll, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_LOG_SHOWINFO, m_ws_showInfo, WindowsSettings::BOOL);
 }
 
 void LogWindow::internalShowWindow()
@@ -92,8 +100,8 @@ void LogWindow::showSettingsButton()
 
     if (ImGui::BeginPopup("##LogSettings"))
     {
-        ImGui::LocalCheckBox("Automatic scroll", &m_autoScroll);
-        ImGui::LocalCheckBox("Show info", &m_showInfo);
+        ImGui::LocalCheckBox("Automatic scroll", &m_ws_autoScroll);
+        ImGui::LocalCheckBox("Show info", &m_ws_showInfo);
         ImGui::EndPopup();
     }
 }
@@ -169,7 +177,7 @@ void LogWindow::showLogs()
         for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
         {
             const auto& message = m_messages[index];
-            if (!m_showInfo && message.type() == sofa::helper::logging::Message::Info)
+            if (!m_ws_showInfo && message.type() == sofa::helper::logging::Message::Info)
             {
                 continue;
             }
@@ -233,7 +241,7 @@ void LogWindow::showLogs()
         }
 
         static std::size_t lastNbRows = 0;
-        if (m_autoScroll && lastNbRows < nbRows)
+        if (m_ws_autoScroll && lastNbRows < nbRows)
         {
             ImGui::SetScrollHereY(1.0f);
         }

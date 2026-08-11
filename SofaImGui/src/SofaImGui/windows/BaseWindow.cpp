@@ -44,7 +44,7 @@ void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
     {
         if (m_firstTime)
         {
-            registerAndloadWindowSettings();
+            registerAndLoadWindowSettings();
             m_firstTime = false;
         }
 

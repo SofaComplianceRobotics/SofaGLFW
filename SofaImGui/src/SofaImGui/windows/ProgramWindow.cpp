@@ -85,10 +85,14 @@ void ProgramWindow::onEndInit()
     }
 }
 
-void ProgramWindow::registerAndloadWindowSettings()
+void ProgramWindow::registerAndLoadWindowSettings()
 {
     registerAndLoadSetting(WS_PROGRAM_PROGRAMDIRPATH, m_ws_programDirPath, WindowsSettings::STRING);
     registerAndLoadSetting(WS_PROGRAM_PROGRAMFILENAME, m_ws_programFilename, WindowsSettings::STRING);
+    registerAndLoadSetting(WS_PROGRAM_REPEAT, m_ws_repeat, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_REVERSE, m_ws_reverse, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_DRAWTRAJECTORY, m_ws_drawTrajectory, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_TIMEBASEDDISPLAY, m_ws_timeBasedDisplay, WindowsSettings::BOOL);
 
     // Import program file if any
     if (!m_ws_programFilename.empty() && !m_ws_programDirPath.empty())
@@ -133,7 +137,7 @@ void ProgramWindow::internalShowWindow()
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
 
-            if (m_timeBasedDisplay)
+            if (m_ws_timeBasedDisplay)
                 showTimeline();
             else // Keep the space the timeline would have taken, empty
             {
@@ -143,7 +147,7 @@ void ProgramWindow::internalShowWindow()
 
             int nbCollaspedTracks = showTracks();
 
-            if (m_timeBasedDisplay)
+            if (m_ws_timeBasedDisplay)
                 showCursorMarker(nbCollaspedTracks);
 
             ImGui::PopStyleVar();
@@ -154,7 +158,7 @@ void ProgramWindow::internalShowWindow()
         }
         ImGui::EndChild();
 
-        if (m_timeBasedDisplay)
+        if (m_ws_timeBasedDisplay)
         {
             if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
                 zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
@@ -222,29 +226,29 @@ void ProgramWindow::showProgramButtons()
     ImGui::SameLine();
     ImGui::SetCursorPosX(positionRight); // Set position to right of the header
 
-    ImGui::LocalPushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_timeBasedDisplay);
+    ImGui::LocalPushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_ws_timeBasedDisplay);
     ImGui::SetItemTooltip("Display blocks based on simulation time");
 
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_drawTrajectory);
+    ImGui::LocalPushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_ws_drawTrajectory);
     ImGui::SetItemTooltip("Draw trajectory");
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_REPEAT"##Repeat", &m_repeat);
+    ImGui::LocalPushButton(ICON_FA_REPEAT"##Repeat", &m_ws_repeat);
     ImGui::SetItemTooltip("Repeat program");
-    if (m_repeat)
-        m_reverse = false;
+    if (m_ws_repeat)
+        m_ws_reverse = false;
 
     ImGui::SameLine();
 
-    ImGui::LocalPushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_reverse);
+    ImGui::LocalPushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_ws_reverse);
     ImGui::SetItemTooltip("Reverse and repeat program");
-    if (m_reverse)
-        m_repeat = false;
+    if (m_ws_reverse)
+        m_ws_repeat = false;
 }
 
 void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
@@ -597,7 +601,7 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
     while(actionIndex < actions.size())
     {
         std::shared_ptr<models::actions::Action> action = actions[actionIndex];
-        float blockWidth = (m_timeBasedDisplay? action->getDuration(): 1.f) * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
+        float blockWidth = (m_ws_timeBasedDisplay? action->getDuration(): 1.f) * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
         std::string blockLabel = "##Action" + std::to_string(trackIndex) + std::to_string(actionIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
 
@@ -610,7 +614,7 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
         std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
         if (move)
         {
-            move->setDrawTrajectory(m_drawTrajectory);
+            move->setDrawTrajectory(m_ws_drawTrajectory);
             if(move->getView()->showBlock(blockLabel, blockSize))
             {
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
@@ -919,7 +923,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 
         if (groot->getTime() >= programDuration - eps) // if we've reached the end of the program
         {
-            if (m_repeat) // start from beginning
+            if (m_ws_repeat) // start from beginning
             {
                 setTime(0.);
 
@@ -930,7 +934,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
                         modifier->reset();
                 }
             }
-            else if (m_reverse)
+            else if (m_ws_reverse)
             {
                 reverse = true;
                 dt = -groot->getDt();

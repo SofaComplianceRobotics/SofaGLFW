@@ -21,20 +21,25 @@
  ******************************************************************************/
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
-#include <Style.h>
-#include <GUIColors.h>
-#include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
-#include <SofaImGui/windows/ViewportWindow.h>
-#include <SofaImGui/widgets/Widgets.h>
+
 #include <imgui_internal.h>
+
 #include <IconsFontAwesome6.h>
-#include <SofaImGui/widgets/Gizmos.h>
+#include <Style.h>
+#include <GUIColors.h>
+
+#include <SofaGLFW/SofaGLFWWindow.h>
 #include <GLFW/glfw3.h>
-#include <SofaImGui/windows/WindowsSettingsName.h>
+
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/DrivingWindow.h>
+#include <SofaImGui/windows/ViewportWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
+#include <SofaImGui/widgets/Widgets.h>
+#include <SofaImGui/widgets/Gizmos.h>
 
 namespace sofaimgui::windows {
 
@@ -49,10 +54,11 @@ std::string ViewportWindow::getDescription()
     return "Main viewport rendering window.";
 }
 
-void ViewportWindow::registerAndloadWindowSettings()
+void ViewportWindow::registerAndLoadWindowSettings()
 {
     registerAndLoadSetting(WS_VIEWPORT_ORIENTATIONGIZMOENABLED, m_ws_orientationGizmoEnabled, WindowsSettings::SettingType::BOOL);
     registerAndLoadSetting(WS_VIEWPORT_CAMERABUTTONCOLLAPSE, m_ws_cameraButtonsCollapsed, WindowsSettings::SettingType::BOOL);
+    registerAndLoadSetting(WS_VIEWPORT_DRIVINGWINDOW, m_ws_drivingWindow, WindowsSettings::SettingType::LONG);
 }
 
 void ViewportWindow::internalShowWindow()
@@ -452,7 +458,6 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
     }
 }
 
-
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
     bool isItemClicked = false;
@@ -557,10 +562,11 @@ bool ViewportWindow::addReloadButton()
     return isItemClicked;
 }
 
-bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes)
+void ViewportWindow::addDrivingTabCombo()
 {
-    bool hasValueChanged = false;
-    
+    int dw = m_ws_drivingWindow;
+    drivingWindow = DrivingWindow(dw);
+
     if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &isOpen()))
@@ -574,7 +580,13 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+
+                    const char* listTabs[getDrivingWindowCount()];
+                    for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                        listTabs[i] = getDrivingWindowName(DrivingWindow(i));
+
+                    if(ImGui::Combo("##DrivingWindowViewport", &dw, listTabs, IM_ARRAYSIZE(listTabs)))
+                        m_ws_drivingWindow = dw;
                     ImGui::PopStyleColor(3);
                     ImGui::PopItemWidth();
                     ImGui::SetItemTooltip("Choose a window to drive the TCP target");
@@ -585,8 +597,6 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
         }
         ImGui::End();
     }
-
-    return hasValueChanged;
 }
 
 void ViewportWindow::addSimulationTimeAndFPS()

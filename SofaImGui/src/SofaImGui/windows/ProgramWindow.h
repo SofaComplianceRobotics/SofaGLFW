@@ -65,23 +65,22 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     models::Program m_program; // robot program
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
-    double m_cursorPos = 0;
-    ImVec2 m_trackBeginPos = ImVec2(0, 0);
-    double m_time = 0;
-
-    bool m_timeBasedDisplay = true;
-    bool m_drawTrajectory = true;
-    bool m_repeat = false;
-    bool m_reverse = false;
+    double m_cursorPos{0};
+    ImVec2 m_trackBeginPos{ImVec2(0, 0)};
+    double m_time{0};
 
     std::string m_info;
-    bool m_refreshInfo = false;
+    bool m_refreshInfo{false};
 
     std::string m_ws_programFilename;
     std::string m_ws_programDirPath;
+    bool m_ws_repeat{false};
+    bool m_ws_reverse{false};
+    bool m_ws_timeBasedDisplay{true};
+    bool m_ws_drawTrajectory{true};
 
     void internalShowWindow() override;
-    void registerAndloadWindowSettings() override;
+    void registerAndLoadWindowSettings() override;
 
     bool isEnabledByState() override {return m_program.isValid() && m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 

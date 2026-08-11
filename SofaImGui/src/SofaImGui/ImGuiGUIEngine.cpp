@@ -603,15 +603,7 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
         // Driving Tab combo
         if(m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
-        {
-            int dWindow = drivingWindow;
-            const char* listTabs[getDrivingWindowCount()];
-            for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
-                listTabs[i] = getDrivingWindowName(DrivingWindow(i));
-
-            if (m_viewportWindow.addDrivingTabCombo(&dWindow, listTabs, IM_ARRAYSIZE(listTabs)))
-                drivingWindow = DrivingWindow(dWindow);
-        }
+            m_viewportWindow.addDrivingTabCombo();
     }
 }
 

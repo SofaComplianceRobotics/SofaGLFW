@@ -43,7 +43,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     bool addAnimateButton(bool *animate, const float &shift_x);
     bool addStepButton();
     bool addReloadButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
+    void addDrivingTabCombo();
 
     std::pair<float, float> m_windowSize{0., 0.};
 
@@ -63,8 +63,9 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     bool m_ws_orientationGizmoEnabled{false};
     bool m_ws_cameraButtonsCollapsed{true};
+    long m_ws_drivingWindow{1};
 
-    void registerAndloadWindowSettings() override;
+    void registerAndLoadWindowSettings() override;
 
     void addSimulationTimeAndFPS();
     void addRecordingStatus(const ImVec4 &red);

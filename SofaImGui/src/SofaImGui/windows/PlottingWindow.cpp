@@ -130,7 +130,7 @@ void PlottingWindow::beforeShowWindow()
     }
 }
 
-void PlottingWindow::registerAndloadWindowSettings()
+void PlottingWindow::registerAndLoadWindowSettings()
 {
     registerAndLoadSetting(WS_PLOTTING_NBSUBPLOT, m_ws_nbRows, WindowsSettings::SettingType::LONG);
 }

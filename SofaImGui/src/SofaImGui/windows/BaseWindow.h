@@ -95,7 +95,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     virtual void afterShowWindow() {};
 
     /// Called once, the first time we draw the window.
-    virtual void registerAndloadWindowSettings() {};
+    virtual void registerAndLoadWindowSettings() {};
 
     /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
     virtual void clear() {}
