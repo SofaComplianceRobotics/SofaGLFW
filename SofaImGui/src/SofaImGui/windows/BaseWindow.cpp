@@ -24,12 +24,6 @@
 
 namespace sofaimgui::windows {
 
-WindowsSettings &WindowsSettings::getInstance()
-{
-    static WindowsSettings windowsSettings;
-    return windowsSettings;
-}
-
 BaseWindow::BaseWindow()
 {
     m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
@@ -48,6 +42,12 @@ void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
 
     if (isOpen())
     {
+        if (m_firstTime)
+        {
+            registerAndloadWindowSettings();
+            m_firstTime = false;
+        }
+
         if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags | m_windowFlags))
         {
             if (!isEnabledInWorkbench())
@@ -61,6 +61,28 @@ void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
             if (!isEnabledInWorkbench())
                 ImGui::EndDisabled();
         }
+
+        auto& windowSettings = WindowsSettings::getInstance();
+        for (auto it=m_registeredSettings.begin(); it!=m_registeredSettings.end(); it++)
+        {
+            switch (it->second.second) {
+            case WindowsSettings::SettingType::LONG:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(long*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::DOUBLE:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(double*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::BOOL:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(bool*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::STRING:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(std::string*)(it->second.first));
+                break;
+            default:
+                break;
+            }
+        }
+
         ImGui::End();
     }
 

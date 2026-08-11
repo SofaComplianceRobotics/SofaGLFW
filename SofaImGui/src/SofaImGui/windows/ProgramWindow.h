@@ -58,7 +58,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
-    void setProgramFilename(std::string filename) {m_programFilename=filename;}
+    void setProgramFilename(std::string filename) {m_ws_programFilename=filename;}
 
    protected:
 
@@ -74,13 +74,14 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     bool m_repeat = false;
     bool m_reverse = false;
 
-    std::string m_programFilename;
-    std::string m_programDirPath;
-
     std::string m_info;
     bool m_refreshInfo = false;
 
+    std::string m_ws_programFilename;
+    std::string m_ws_programDirPath;
+
     void internalShowWindow() override;
+    void registerAndloadWindowSettings() override;
 
     bool isEnabledByState() override {return m_program.isValid() && m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP();}
 
@@ -129,7 +130,6 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
 
     void saveProgramDirAndFilename(const std::string& filename);
-    void loadAndProcessWindowSettings();
 
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
     void setTime(const double &time);

@@ -20,17 +20,18 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "GUIColors.h"
+#include <GUIColors.h>
 #include <sofa/type/Quat.h>
 
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/PlottingWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
 
 #include <iostream>
 #include <fstream>
-#include <SofaImGui/widgets/Widgets.h>
 #include <nfd.h>
 
 namespace sofaimgui::windows {
@@ -129,6 +130,11 @@ void PlottingWindow::beforeShowWindow()
     }
 }
 
+void PlottingWindow::registerAndloadWindowSettings()
+{
+    registerAndLoadSetting(WS_PLOTTING_NBSUBPLOT, m_ws_nbRows, WindowsSettings::SettingType::LONG);
+}
+
 void PlottingWindow::internalShowWindow()
 {
     showButtons();
@@ -181,8 +187,8 @@ void PlottingWindow::showButtons()
 
     if(ImGui::LocalButton("+##plotting"))
     {
-        if (m_nbRows<MAX_NB_PLOT)
-            m_nbRows+=1;
+        if (m_ws_nbRows<MAX_NB_PLOT)
+            m_ws_nbRows+=1;
     }
     ImGui::SetItemTooltip("Show an additional subplot.");
 
@@ -190,8 +196,8 @@ void PlottingWindow::showButtons()
 
     if (ImGui::LocalButton("-##plotting"))
     {
-        if (m_nbRows>1)
-            m_nbRows-=1;
+        if (m_ws_nbRows>1)
+            m_ws_nbRows-=1;
     }
     ImGui::SetItemTooltip("Hide last subplot.");
 
@@ -221,13 +227,13 @@ void PlottingWindow::showPlots()
 
     bool portraitLayout = (ImGui::GetWindowWidth() * 0.75 < ImGui::GetWindowHeight());
     if (ImPlot::BeginSubplots("##myplots",
-                              portraitLayout? m_nbRows: m_nbCols,
-                              portraitLayout? m_nbCols: m_nbRows,
+                              portraitLayout? m_ws_nbRows: m_nbCols,
+                              portraitLayout? m_nbCols: m_ws_nbRows,
                               ImVec2(-1, -1),
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        for (size_t i=0; i< m_nbRows*m_nbCols; i++)
+        for (size_t i=0; i< m_ws_nbRows*m_nbCols; i++)
         {
             const auto& plots = m_data[i];
             if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
@@ -339,7 +345,7 @@ void PlottingWindow::showMenu()
                 buffer.ratio = ratio;
             }
 
-            for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+            for (size_t i=0; i<m_ws_nbRows * m_nbCols; i++)
 				m_ratio[i] = ratio;
         }
         ImGui::PopItemWidth();
@@ -358,7 +364,7 @@ void PlottingWindow::showMenu()
     bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
     ImGui::LocalCheckBox("Auto fit content", &autofit);
 
-    for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+    for (size_t i=0; i<m_ws_nbRows * m_nbCols; i++)
     {
         auto plot = plots.GetByIndex(i);
         showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;

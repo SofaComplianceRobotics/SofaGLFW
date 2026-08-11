@@ -569,9 +569,8 @@ void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         sofaglfw::SofaGLFWWindow::resetSimulationView(baseGUI);
     }
 
-    m_viewportWindow.showWindow((ImTextureID)m_fbo->getColorTexture(),
-                                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
-                                );
+    m_viewportWindow.setTextureID((ImTextureID)m_fbo->getColorTexture());
+    m_viewportWindow.showWindow();
 
     // Simulation
     if (workbench != Workbench::SCENE_EDITOR)

@@ -82,11 +82,12 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     std::vector<RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
-    size_t m_nbRows{1};
-    size_t m_nbCols{1};
+    long m_ws_nbRows{1};
+    long m_nbCols{1};
 
     void beforeShowWindow() override;
     void internalShowWindow() override;
+    void registerAndloadWindowSettings() override;
 
     void clear() override;
     bool isEnabledByState() override {return !m_GUIData.empty();}

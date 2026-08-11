@@ -79,21 +79,20 @@ void ProgramWindow::onEndInit()
 
         if (m_program.isValid())
         {
-            if (!m_programFilename.empty())
-                m_program.importProgram(m_programFilename);
+            if (!m_ws_programFilename.empty())
+                m_program.importProgram(m_ws_programFilename);
         }
     }
 }
 
-void ProgramWindow::loadAndProcessWindowSettings()
+void ProgramWindow::registerAndloadWindowSettings()
 {
-    auto& windowsSettings = WindowsSettings::getInstance();
+    registerAndLoadSetting(WS_PROGRAM_PROGRAMDIRPATH, m_ws_programDirPath, WindowsSettings::STRING);
+    registerAndLoadSetting(WS_PROGRAM_PROGRAMFILENAME, m_ws_programFilename, WindowsSettings::STRING);
 
     // Import program file if any
-    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
-    m_programFilename = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
-    if (!m_programFilename.empty() && !m_programDirPath.empty())
-        importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
+    if (!m_ws_programFilename.empty() && !m_ws_programDirPath.empty())
+        importProgram(sofa::helper::system::FileSystem::append(m_ws_programDirPath, m_ws_programFilename));
 }
 
 void ProgramWindow::internalShowWindow()
@@ -106,7 +105,6 @@ void ProgramWindow::internalShowWindow()
         if (firstTime)
         {
             firstTime = false;
-            loadAndProcessWindowSettings();
             ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
         }
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
@@ -745,29 +743,29 @@ void ProgramWindow::initFilePath(const std::string& filename)
     if (!filename.empty())
         absFilename = std::filesystem::absolute(filename);
 
-    if (m_programDirPath.empty())
+    if (m_ws_programDirPath.empty())
     {
         if (!absFilename.empty() && sofa::helper::system::FileSystem::exists(absFilename.parent_path().string()))
         {
-            m_programDirPath = absFilename.parent_path().string();
+            m_ws_programDirPath = absFilename.parent_path().string();
         }
         else
         {
-            m_programDirPath = sofa::helper::Utils::getSofaUserLocalDirectory();
+            m_ws_programDirPath = sofa::helper::Utils::getSofaUserLocalDirectory();
         }
     }
 
-    if (m_programFilename.empty())
+    if (m_ws_programFilename.empty())
     {
         if (!absFilename.empty())
         {
             std::filesystem::path path(absFilename);
             path = path.replace_extension(extension);
-            m_programFilename = path.filename().string();
+            m_ws_programFilename = path.filename().string();
         }
         else
         {
-            m_programFilename = "output" + extension;
+            m_ws_programFilename = "output" + extension;
         }
     }
 }
@@ -781,7 +779,7 @@ bool ProgramWindow::importProgram()
     std::filesystem::path path;
     initFilePath(m_baseGUI->getFilename());
 
-    nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), (m_programDirPath.empty()) ? nullptr : m_programDirPath.c_str());
+    nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), (m_ws_programDirPath.empty()) ? nullptr : m_ws_programDirPath.c_str());
     if (result == NFD_OKAY)
     {
         if (sofa::helper::system::FileSystem::exists(outPath))
@@ -825,13 +823,13 @@ void ProgramWindow::exportProgram(const bool &exportAs)
     initFilePath(m_baseGUI->getFilename());
 
     std::filesystem::path path;
-    path = m_programDirPath;
-    path.append(m_programFilename);
+    path = m_ws_programDirPath;
+    path.append(m_ws_programFilename);
     bool doExport = true;
 
     if (exportAs)
     {
-        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), m_programDirPath.c_str(), m_programFilename.c_str());
+        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), m_ws_programDirPath.c_str(), m_ws_programFilename.c_str());
         if (result == NFD_OKAY)
         {
             path = outPath;
@@ -858,10 +856,9 @@ void ProgramWindow::exportProgram(const bool &exportAs)
 void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
 {
     std::filesystem::path path = filename;
-    m_programDirPath = path.parent_path().string(); // store chosen dir path
-    m_programFilename = path.filename().string(); // store chosen filename
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
+
+    m_ws_programDirPath = path.parent_path().string(); // store chosen dir path
+    m_ws_programFilename = path.filename().string(); // store chosen filename
 }
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
