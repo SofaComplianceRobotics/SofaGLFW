@@ -233,7 +233,7 @@ void PlottingWindow::showPlots()
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        for (size_t i=0; i< m_ws_nbRows*m_nbCols; i++)
+        for (size_t i=0; i< (size_t)m_ws_nbRows*m_nbCols; i++)
         {
             const auto& plots = m_data[i];
             if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
@@ -345,7 +345,7 @@ void PlottingWindow::showMenu()
                 buffer.ratio = ratio;
             }
 
-            for (size_t i=0; i<m_ws_nbRows * m_nbCols; i++)
+            for (size_t i=0; i<(size_t)m_ws_nbRows * m_nbCols; i++)
 				m_ratio[i] = ratio;
         }
         ImGui::PopItemWidth();
@@ -364,7 +364,7 @@ void PlottingWindow::showMenu()
     bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
     ImGui::LocalCheckBox("Auto fit content", &autofit);
 
-    for (size_t i=0; i<m_ws_nbRows * m_nbCols; i++)
+    for (size_t i=0; i<(size_t)m_ws_nbRows * m_nbCols; i++)
     {
         auto plot = plots.GetByIndex(i);
         showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
