@@ -77,7 +77,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
    protected:
     std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
-    std::vector<RollingBuffer> m_buffers;
+    std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
     size_t m_nbRows{1};

@@ -56,12 +56,11 @@ void PlottingWindow::clear()
 void PlottingWindow::exportData()
 {
     nfdchar_t *outPath;
-    size_t nbData = m_GUIData.size();
 
     const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "plotting.csv");
     if (result == NFD_OKAY)
     {
-        if (nbData)
+        if (!m_buffers.empty())
         {
             std::ofstream outputFile;
             outputFile.open(outPath, std::ios::out);
@@ -69,22 +68,20 @@ void PlottingWindow::exportData()
             if (outputFile.is_open())
             {
                 outputFile << "time,";
-                for (const auto& d : m_buffers[0].data)
+                for (const auto& d : m_buffers.begin()->second.data)
                     outputFile << d.x << ",";
                 outputFile << "\n";
 
-				size_t i = 0;
 				for (auto& it : m_GUIData)
 				{
                     if (it && it->isValid())
                     {
                         outputFile << it->getLabel()<< ",";
-                        auto buffer = m_buffers[i];
+                        auto buffer = m_buffers[it];
                         for (const auto& d : buffer.data)
                             outputFile << d.y << ",";
                         outputFile << "\n";
                     }
-                    i++;
                 }
                 outputFile.close();
             }
@@ -104,7 +101,7 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
     size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
     m_nbRows = (m_nbRows < index + 1)? index + 1: m_nbRows;
 
-    m_data[0].insert(newData); // For the moment we add all data to the first subplot
+    m_data[index].insert(newData); // For the moment we add all data to the first subplot
     return newData;;
 }
 
@@ -112,21 +109,16 @@ void PlottingWindow::beforeShowWindow()
 {
     auto groot = m_baseGUI->getRootNode().get();
 
-    size_t nbData = m_GUIData.size();
-    if (m_buffers.size() != nbData)
-        m_buffers.resize(nbData);
-
     if(!m_GUIData.empty() && groot->getAnimate())
     {
-        for (size_t k=0; k<nbData; k++)
+        for (auto& data: m_GUIData)
         {
-            auto& data = *std::next(m_GUIData.begin(), k);
             if (data && data->isValid())
             {
                 const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
                 float value = typeInfo->getScalarValue(data->getData()->getValueVoidPtr(), 0);
                 float time = groot->getTime();
-                RollingBuffer& buffer = m_buffers[k];
+                RollingBuffer& buffer = m_buffers[data];
                 buffer.addPoint(time, value);
             }
         }
@@ -147,7 +139,7 @@ void PlottingWindow::showButtons()
     // Clear button
     if (ImGui::Button("Clear"))
     {
-        for(auto& buffer: m_buffers)
+        for(auto& [key, buffer]: m_buffers)
             buffer.clear();
     }
 
@@ -242,10 +234,9 @@ void PlottingWindow::showPlots()
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
 
-				size_t k = 0;
                 for (auto& data: plots)
                 {
-                    RollingBuffer& buffer = m_buffers[k];
+                    RollingBuffer& buffer = m_buffers[data];
 
                     ImPlotSpec spec;
                     spec.Stride = 2 * sizeof(float);
@@ -263,7 +254,6 @@ void PlottingWindow::showPlots()
                         ImGui::TextUnformatted(data->getLabel().c_str());
                         ImPlot::EndDragDropSource();
                     }
-                    k++;
                 }
 
                 if (ImPlot::BeginDragDropTargetPlot())
@@ -331,10 +321,8 @@ void PlottingWindow::showMenu()
         ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
         if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
         {
-            size_t nbData = m_buffers.size();
-            for (size_t i=0; i<nbData; i++)
+            for (auto& [key, buffer]: m_buffers)
             {
-                auto& buffer = m_buffers[i];
                 for (auto& point: buffer.data)
                 {
                     point.y /= buffer.ratio;
@@ -388,15 +376,13 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
         ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
         if (ImGui::InputFloat(("##Ratio" + std::to_string(idSubplot)).c_str(), &ratio, 0, 0, "%0.2e"))
         {
-            size_t nbData = m_GUIData.size();
-            for (size_t i=0; i<nbData; i++)
+            for (auto& data: m_GUIData)
             {
-				auto& data = *std::next(m_GUIData.begin(), i);
                 if (data && data->isValid())
                 {
-                    auto& buffer = m_buffers[i];
                     if (m_data[idSubplot].contains(data))
                     {
+                        auto& buffer = m_buffers[data];
                         for (auto& point: buffer.data)
                         {
                             point.y /= buffer.ratio;
