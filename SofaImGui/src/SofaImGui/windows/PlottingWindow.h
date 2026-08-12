@@ -29,11 +29,12 @@
 
 namespace sofaimgui::windows {
 
-#define MAX_NB_PLOT 4
 
 class SOFAIMGUI_API PlottingWindow : public BaseWindow
 {
    public:
+
+    static const int MAX_NB_PLOT {4};
 
     struct RollingBuffer
     {
@@ -72,10 +73,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
     sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
                                                      const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::string& group = "",
-                                                     const std::string& help = "") override;
+                                                     const int& subplotIndex) ;
 
    protected:
     std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
