@@ -101,8 +101,17 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
     size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
     m_nbRows = (m_nbRows < index + 1)? index + 1: m_nbRows;
 
-    m_data[index].insert(newData); // For the moment we add all data to the first subplot
+    if (index > 0)
+        changeSubplot(newData, index);
+
     return newData;;
+}
+
+models::guidata::GUIData::SPtr PlottingWindow::addGUIData(models::guidata::GUIData::SPtr guidata)
+{
+    models::guidata::GUIData::SPtr newData = BaseWindow::addGUIData(guidata);
+    m_data[0].insert(newData);
+    return newData;
 }
 
 void PlottingWindow::beforeShowWindow()
@@ -129,6 +138,7 @@ void PlottingWindow::internalShowWindow()
 {
     showButtons();
     showPlots();
+    dropGUIData();
 }
 
 void PlottingWindow::showButtons()
@@ -236,23 +246,26 @@ void PlottingWindow::showPlots()
 
                 for (auto& data: plots)
                 {
-                    RollingBuffer& buffer = m_buffers[data];
+                    if (data && data->isValid())
+                    {
+                        RollingBuffer& buffer = m_buffers[data];
 
-                    ImPlotSpec spec;
-                    spec.Stride = 2 * sizeof(float);
-                    ImPlot::PlotLine(data->getLabel().c_str(),
-                                     &buffer.data[0].x,
-                                     &buffer.data[0].y,
-                                     buffer.data.size(),
-                                     spec);
+                        ImPlotSpec spec;
+                        spec.Stride = 2 * sizeof(float);
+                        ImPlot::PlotLine(data->getLabel().c_str(),
+                                         &buffer.data[0].x,
+                                         &buffer.data[0].y,
+                                         buffer.data.size(),
+                                         spec);
 
-                    if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
-                        dragedData = data;
-                        ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
-                        ImPlot::ItemIcon(ImPlot::GetLastItemColor());
-                        ImGui::SameLine();
-                        ImGui::TextUnformatted(data->getLabel().c_str());
-                        ImPlot::EndDragDropSource();
+                        if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
+                            dragedData = data;
+                            ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
+                            ImPlot::ItemIcon(ImPlot::GetLastItemColor());
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted(data->getLabel().c_str());
+                            ImPlot::EndDragDropSource();
+                        }
                     }
                 }
 
@@ -261,17 +274,7 @@ void PlottingWindow::showPlots()
                     if (ImGui::AcceptDragDropPayload("dragndrop"))
                     {
                         if (dragedData)
-                        {
-                            for (auto& subplots : m_data)
-                            {
-								if (subplots.second.contains(dragedData))
-								{
-									subplots.second.erase(dragedData);
-									break;
-								}
-                            }
-                            m_data[i].insert(dragedData);
-                        }
+                            changeSubplot(dragedData, i);
                     }
                     ImPlot::EndDragDropTarget();
                 }
@@ -305,6 +308,19 @@ void PlottingWindow::showPlots()
         ImPlot::EndSubplots();
     }
     ImGui::PopStyleColor();
+}
+
+void PlottingWindow::changeSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex)
+{
+    for (auto& subplots : m_data)
+    {
+        if (subplots.second.contains(data))
+        {
+            subplots.second.erase(data);
+            break;
+        }
+    }
+    m_data[subplotIndex].insert(data);
 }
 
 void PlottingWindow::showMenu()

@@ -60,7 +60,9 @@ void moduleAddPlottingWindow(py::module &m)
                 if (subplotIndex >= windows::PlottingWindow::MAX_NB_PLOT)
                     msg_warning(m_a_name) << "The maximum number of sublots is " << windows::PlottingWindow::MAX_NB_PLOT;
 
-                engine->m_plottingWindow.addData(label, getDataFromPyObject(data, type), subplotIndex);
+                engine->m_plottingWindow.addData(label,
+                                                 getDataFromPyObject(data, type),
+                                                 subplotIndex);
             }
         }
         , "label"_a, "data"_a, "type"_a = "double", "subplotIndex"_a = 0

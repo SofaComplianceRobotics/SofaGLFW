@@ -72,8 +72,10 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     std::string getDescription() override;
 
     sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
-                                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const int& subplotIndex) ;
+                                                      const std::pair<sofa::core::BaseData*, bool>& data,
+                                                      const int& subplotIndex = 0);
+
+    models::guidata::GUIData::SPtr addGUIData(models::guidata::GUIData::SPtr guidata) override;
 
    protected:
     std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
@@ -90,6 +92,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     bool isEnabledByState() override {return !m_GUIData.empty();}
 
     void exportData();
+    void changeSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
     void showButtons();
     void showPlots();
     void showMenu();
