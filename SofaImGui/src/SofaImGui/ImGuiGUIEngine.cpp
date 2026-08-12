@@ -134,7 +134,6 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
 
     const std::string projectFile = path.string();
     FooterStatusBar::getInstance().setTempMessage("Saving project in " + projectFile);
-
     auto& windowSettings = windows::WindowsSettings::getInstance();
 
     // Save windows settings in project file
@@ -157,28 +156,21 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
         }
     }
 
-    auto g = ImGui::GetCurrentContext();
-    if (g)
-    {
-        // Save docks settings in project file
-        for (const auto& dockID : m_dockIDs)
-        {
-            auto dock = ImGui::DockContextFindNodeByID(g, dockID);
-            if (dock)
-            {
-                for (int i=0; i<getWorkbenchCount(); i++)
-                {
-                    std::string settingName = std::to_string(dockID) + getWorkbenchName(Workbench(pow(2, i)));
-                    windowSettings.setSetting(settingName.c_str(), "width", double(dock->Size[0]));
-                    windowSettings.setSetting(settingName.c_str(), "height", double(dock->Size[1]));
-                }
-            }
-        }
-    }
-
     CSimpleIniA& projectSettings = windowSettings.getIniWindowsSettings();
     projectSettings.SetLongValue("Workbench", "type", workbench);
     projectSettings.SaveFile(projectFile.c_str());
+}
+
+void ImGuiGUIEngine::loadProject()
+{
+    auto& windowsSettings = windows::WindowsSettings::getInstance();
+    auto& iniWindowsSettings = windowsSettings.getIniWindowsSettings();
+    if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
+    {
+        SI_Error rc = iniWindowsSettings.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
+        SOFA_UNUSED(rc);
+        assert(rc == SI_OK);
+    }
 }
 
 void ImGuiGUIEngine::clearGUI()
@@ -207,7 +199,7 @@ void ImGuiGUIEngine::notifyWindowsEndInit()
         window.get().onEndInit();
 }
 
-void ImGuiGUIEngine::setDockSizeFromFile(const ImGuiID& id)
+void ImGuiGUIEngine::applyDockSizeFromWindowsSettings(const ImGuiID& id)
 {
     if (ImGui::DockBuilderGetNode(id))
     {
@@ -347,6 +339,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
         notifyWindowsEndInit();
+        loadProject();
         enableWindows();
     }
     else
@@ -517,18 +510,18 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
         auto dock_id_right = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Right, 0.32f, nullptr, &dockspaceID);
         m_dockIDs.push_back(dock_id_right);
-        setDockSizeFromFile(dock_id_right);
+        applyDockSizeFromWindowsSettings(dock_id_right);
 
         auto dock_id_right_up = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.55f, nullptr, &dock_id_right); // this call overrides dock_id_right with the new id of the down dock
         m_dockIDs.push_back(dock_id_right);
         m_dockIDs.push_back(dock_id_right_up);
-        setDockSizeFromFile(dock_id_right);
-        setDockSizeFromFile(dock_id_right_up);
+        applyDockSizeFromWindowsSettings(dock_id_right);
+        applyDockSizeFromWindowsSettings(dock_id_right_up);
 
         auto dock_id_down = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Down, 0.32f, nullptr, &dockspaceID);
         m_dockIDs.push_back(dock_id_down);
         m_dockIDs.push_back(dockspaceID);
-        setDockSizeFromFile(dock_id_down);
+        applyDockSizeFromWindowsSettings(dock_id_down);
 
         ImGui::DockBuilderDockWindow(m_myRobotWindow.getLabel().c_str(), dock_id_right); // interactions with MoveWindow
         ImGui::DockBuilderDockWindow(m_dashboardWindow.getLabel().c_str(), dock_id_right); // interactions with SceneGraphWindow
@@ -556,8 +549,35 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
 
 void ImGuiGUIEngine::changeWorkbench(Workbench wb)
 {
-    workbench = wb;
-    m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
+    // Save active workbench docks size before changing
+    {
+        auto& windowSettings = windows::WindowsSettings::getInstance();
+        if (auto g = ImGui::GetCurrentContext())
+        {
+            // Save docks settings in project file
+            for (const auto& dockID : m_dockIDs)
+            {
+                if (auto dock = ImGui::DockContextFindNodeByID(g, dockID))
+                {
+                    std::string settingName = std::to_string(dockID) + getWorkbenchName(workbench);
+                    windowSettings.setSetting(settingName.c_str(), "width", double(dock->Size[0]));
+                    windowSettings.setSetting(settingName.c_str(), "height", double(dock->Size[1]));
+                }
+            }
+        }
+    }
+
+    // Change active workbench
+    {
+        workbench = wb;
+        m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
+    }
+
+    // Apply active workbench docks size
+    {
+        for (const auto& dockID : m_dockIDs)
+            applyDockSizeFromWindowsSettings(dockID);
+    }
 }
 
 void ImGuiGUIEngine::showViewportWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -1037,7 +1057,10 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
     createGUINode(guiNode);
     if (!reload)
+    {
+        loadProject();
         enableWindows();
+    }
     notifyWindowsEndInit();
 }
 
@@ -1061,13 +1084,6 @@ void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)
 void ImGuiGUIEngine::enableWindows()
 {
     auto& windowsSettings = windows::WindowsSettings::getInstance();
-    auto& iniWindowsSettings = windowsSettings.getIniWindowsSettings();
-    if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
-    {
-        SI_Error rc = iniWindowsSettings.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
-        SOFA_UNUSED(rc);
-        assert(rc == SI_OK);
-    }
 
     // Enable the windows based on file
     for (const auto& window : m_windows)
