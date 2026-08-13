@@ -975,7 +975,7 @@ void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Me
                 {
                     switch (t)
                     {
-                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREEN), "[SUGGESTION]");
                     case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
                     case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                     case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
@@ -1342,18 +1342,12 @@ bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
-
             if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
                 parent->removeChild(node);
                 clicked = true;
             }
             ImGui::SetItemTooltip("Delete Node");
-
-            ImGui::PopStyleColor(3);
         }
     }
     return clicked;
@@ -1366,10 +1360,6 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
-
             if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
             {
                 component->cleanup();
@@ -1378,8 +1368,6 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
                 clicked = true;
             }
             ImGui::SetItemTooltip("Delete Component");
-
-            ImGui::PopStyleColor(3);
         }
     }
     return clicked;
