@@ -43,6 +43,8 @@
 
 namespace sofaimgui::windows {
 
+sofa::Index LogWindow::firstMessageIndex = 0;
+
 LogWindow::LogWindow(const std::string& name)
     : BaseWindow(name)
     , m_messages(sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages())
@@ -166,7 +168,7 @@ void LogWindow::showLogs()
         ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("sender", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("message", ImGuiTableColumnFlags_WidthStretch);
-        for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
+        for (sofa::Index index = firstMessageIndex; index<m_messages.size(); index++)
         {
             const auto& message = m_messages[index];
             if (!m_showInfo && message.type() == sofa::helper::logging::Message::Info)
@@ -256,7 +258,7 @@ void LogWindow::showLogs()
 
 void LogWindow::clearLogs()
 {
-    m_firstMessageIndex = m_messages.size();
+    firstMessageIndex = m_messages.size();
 }
 
 void LogWindow::addMessageContextMenu(const std::string& message)

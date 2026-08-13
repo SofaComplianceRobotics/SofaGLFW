@@ -42,11 +42,12 @@ namespace sofaimgui::windows
 
         std::string getDescription() override;
 
+        static sofa::Index firstMessageIndex;
+
     protected:
 
-        bool m_autoScroll = true;
-        bool m_showInfo = true;
-        sofa::Index m_firstMessageIndex = 0;
+        bool m_autoScroll{true};
+        bool m_showInfo{true};
 
         void internalShowWindow() override;
 
