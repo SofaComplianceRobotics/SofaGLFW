@@ -629,7 +629,8 @@ void ViewportWindow::addSimulationTimeAndFPS()
                     ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                     ImGui::Text("%.1f FPS", m_fps);
                     ImGui::PopStyleColor();
-                    ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
+                    ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS) \n GUI Average %.2f ms per frame (%.1f FPS)",
+                                          1000.0f / m_fps, m_fps, 1000.0f / io.Framerate, io.Framerate);
                 }
             }
             ImGui::EndChild();
