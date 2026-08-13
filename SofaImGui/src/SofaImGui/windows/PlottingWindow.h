@@ -92,7 +92,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     bool isEnabledByState() override {return !m_GUIData.empty();}
 
     void exportData();
-    void changeSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
+    void setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
     void showButtons();
     void showPlots();
     void showMenu();

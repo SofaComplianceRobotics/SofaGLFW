@@ -102,7 +102,7 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
     m_nbRows = (m_nbRows < index + 1)? index + 1: m_nbRows;
 
     if (index > 0)
-        changeSubplot(newData, index);
+        setDataSubplot(newData, index);
 
     return newData;;
 }
@@ -274,7 +274,7 @@ void PlottingWindow::showPlots()
                     if (ImGui::AcceptDragDropPayload("dragndrop"))
                     {
                         if (dragedData)
-                            changeSubplot(dragedData, i);
+                            setDataSubplot(dragedData, i);
                     }
                     ImPlot::EndDragDropTarget();
                 }
@@ -310,7 +310,7 @@ void PlottingWindow::showPlots()
     ImGui::PopStyleColor();
 }
 
-void PlottingWindow::changeSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex)
+void PlottingWindow::setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex)
 {
     for (auto& subplots : m_data)
     {
@@ -325,55 +325,66 @@ void PlottingWindow::changeSubplot(models::guidata::GUIData::SPtr data, const in
 
 void PlottingWindow::showMenu()
 {
-    if (ImGui::BeginTable("Columns", 2, ImGuiTableFlags_None))
-    {
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Y axis ratio");
-        ImGui::TableNextColumn();
-        ImGui::SameLine();
-
-        float ratio = m_ratio[0];
-        ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
-        if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
-        {
-            for (auto& [key, buffer]: m_buffers)
-            {
-                for (auto& point: buffer.data)
-                {
-                    point.y /= buffer.ratio;
-                    point.y *= ratio;
-                }
-                buffer.ratio = ratio;
-            }
-
-            for (size_t i=0; i<m_nbRows * m_nbCols; i++)
-				m_ratio[i] = ratio;
-        }
-        ImGui::PopItemWidth();
-        ImGui::EndTable();
+    { // Remove data
+        if (ImGui::MenuItem("Remove all data"))
+            clearWindow();
     }
 
     ImGui::Separator();
 
-    ImPlotContext& gp = *GImPlot;
-    auto& plots  = gp.Plots;
+    { // Ratio
+        if (ImGui::BeginTable("Columns", 2, ImGuiTableFlags_None))
+        {
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Y axis ratio");
+            ImGui::TableNextColumn();
+            ImGui::SameLine();
 
-    bool showMousePosition = !ImHasFlag(plots.GetByIndex(0)->Flags, ImPlotFlags_NoMouseText);
-    ImGui::LocalCheckBox("Show mouse position", &showMousePosition);
-    bool showGrid = !ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
-    ImGui::LocalCheckBox("Show grid", &showGrid);
-    bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
-    ImGui::LocalCheckBox("Auto fit content", &autofit);
+            float ratio = m_ratio[0];
+            ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
+            if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
+            {
+                for (auto& [key, buffer]: m_buffers)
+                {
+                    for (auto& point: buffer.data)
+                    {
+                        point.y /= buffer.ratio;
+                        point.y *= ratio;
+                    }
+                    buffer.ratio = ratio;
+                }
 
-    for (size_t i=0; i<m_nbRows * m_nbCols; i++)
-    {
-        auto plot = plots.GetByIndex(i);
-        showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
-        showGrid ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->XAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
-        showGrid ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->YAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
-        !autofit ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->XAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
-        !autofit ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->YAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+                for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+                    m_ratio[i] = ratio;
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndTable();
+        }
+    }
+
+    ImGui::Separator();
+
+    { // Plots display options
+        ImPlotContext& gp = *GImPlot;
+        auto& plots  = gp.Plots;
+
+        bool showMousePosition = !ImHasFlag(plots.GetByIndex(0)->Flags, ImPlotFlags_NoMouseText);
+        ImGui::LocalCheckBox("Show mouse position", &showMousePosition);
+        bool showGrid = !ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
+        ImGui::LocalCheckBox("Show grid", &showGrid);
+        bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
+        ImGui::LocalCheckBox("Auto fit content", &autofit);
+
+        for (size_t i=0; i<m_nbRows * m_nbCols; i++)
+        {
+            auto plot = plots.GetByIndex(i);
+            showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
+            showGrid ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->XAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
+            showGrid ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->YAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
+            !autofit ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->XAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+            !autofit ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->YAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+        }
     }
 }
 
