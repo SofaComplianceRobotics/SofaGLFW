@@ -24,7 +24,6 @@
 #include <IconsFontAwesome6.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
-#include <SofaImGui/windows/LogWindow.h>
 #include <imgui_internal.h>
 
 #include <sofa/helper/logging/Messaging.h>
@@ -225,18 +224,12 @@ void FooterStatusBar::setTempMessage(const std::string &message, const MessageTy
 
 void FooterStatusBar::showLogStatus()
 {
-    if (windows::LogWindow::firstMessageIndex >= m_previousLogMessagesIndex)
-    {
-        m_previousLogMessagesIndex = windows::LogWindow::firstMessageIndex;
-        m_logStatus = sofa::helper::logging::Message::Info;
-    }
-
     // update log status if logs have changed
-    if (m_previousLogMessagesIndex < m_logMessages.size())
+    if (m_previousLogMessagesCount < m_logMessages.size())
     {
-        auto higherStatus = std::max_element(m_logMessages.begin() + m_previousLogMessagesIndex,
-                                             m_logMessages.end(),
-                                             [](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
+        auto higherStatus = std::max_element(m_logMessages.begin() + m_previousLogMessagesCount,
+                                            m_logMessages.end(),
+                                            [](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
         if(higherStatus->type() > m_logStatus)
             m_logStatus = higherStatus->type();
     }
@@ -291,7 +284,7 @@ void FooterStatusBar::showLogStatus()
         }
     }
 
-    m_previousLogMessagesIndex = m_logMessages.size();
+    m_previousLogMessagesCount = m_logMessages.size();
 }
 
 void FooterStatusBar::setLogStatusCallback(std::function<void()> f)

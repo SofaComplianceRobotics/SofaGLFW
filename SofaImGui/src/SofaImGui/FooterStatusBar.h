@@ -61,7 +61,7 @@ protected:
     const std::vector<sofa::helper::logging::Message>& m_logMessages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
     sofa::helper::logging::Message::Type m_logStatus = sofa::helper::logging::Message::Type::Info;
     std::function<void()> m_logStatusCallback = nullptr;
-    size_t m_previousLogMessagesIndex = 0;
+    size_t m_previousLogMessagesCount = 0;
 
 };
 
