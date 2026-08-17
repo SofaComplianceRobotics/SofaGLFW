@@ -257,6 +257,7 @@ void LogWindow::showLogs()
 void LogWindow::clearLogs()
 {
     m_firstMessageIndex = m_messages.size();
+    FooterStatusBar::getInstance().clearLogStatus(m_firstMessageIndex);
 }
 
 void LogWindow::addMessageContextMenu(const std::string& message)

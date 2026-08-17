@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
+#include <SofaImGui/FooterStatusBar.h>
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
 
