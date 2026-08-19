@@ -107,11 +107,11 @@ void MoveWindow::internalShowWindow()
                     else if (m_moveType == MoveType::SLIDERS)
                     {
                         ImGui::Indent();
-                        showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], ImColor(COLOR_RED));
+                        showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], COLOR_RED);
                         ImGui::Spacing();
-                        showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], ImColor(COLOR_GREEN));
+                        showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], COLOR_GREEN);
                         ImGui::Spacing();
-                        showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], ImColor(COLOR_BLUE));
+                        showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], COLOR_BLUE);
                         ImGui::Unindent();
                     }
                     ImGui::EndChild();
@@ -148,7 +148,7 @@ void MoveWindow::internalShowWindow()
 
                 if (m_freeRoll)
                     ImGui::BeginDisabled();
-                showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_RED));
+                showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_RED);
                 if (m_freeRoll)
                     ImGui::EndDisabled();
 
@@ -156,7 +156,7 @@ void MoveWindow::internalShowWindow()
 
                 if (m_freePitch)
                     ImGui::BeginDisabled();
-                showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_GREEN));
+                showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_GREEN);
                 if (m_freePitch)
                     ImGui::EndDisabled();
 
@@ -164,7 +164,7 @@ void MoveWindow::internalShowWindow()
 
                 if (m_freeYaw)
                     ImGui::BeginDisabled();
-                showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), ImColor(COLOR_BLUE));
+                showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_BLUE);
                 if (m_freeYaw)
                     ImGui::EndDisabled();
 
@@ -261,27 +261,16 @@ void MoveWindow::internalShowWindow()
     }
 }
 
-bool MoveWindow::showSliderDouble(const char* name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4& color)
-{
-    ImGui::AlignTextToFramePadding();
-    ImVec2 pos = ImGui::GetCurrentWindow()->DC.CursorPos;
-    pos.y += ImGui::GetFrameHeight() / 4.;
-    ImVec2 size(1.0f, ImGui::GetFrameHeight() / 2.);
-    ImGui::GetWindowDrawList()->AddRectFilled(pos,
-                                              ImVec2(pos.x + size.x, pos.y + size.y),
-                                              ImGui::GetColorU32(color), ImGuiStyleVar_FrameRounding);
-    ImGui::Spacing();
-    ImGui::SameLine();
-
-    return showSliderDouble(name, label1, label2, v, min, max);
-}
-
-bool MoveWindow::showSliderDouble(const char* name, const char* label1, const char *label2, double* v, const double& min, const double& max)
+bool MoveWindow::showSliderDouble(const char* name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImU32& color)
 {
     bool hasValueChanged = false;
 
     ImGui::AlignTextToFramePadding();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, color);
     ImGui::Text("%s", name);
+    ImGui::PopStyleColor();
+
     ImGui::SameLine();
     float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
     float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;

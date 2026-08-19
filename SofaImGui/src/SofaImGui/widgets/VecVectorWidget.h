@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include "GUIColors.h"
 #include "IconsFontAwesome6.h"
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaImGui/widgets/ScalarWidget.h>
@@ -32,7 +33,7 @@ namespace sofaimgui::widgets
 
 using namespace sofa;
 
-static ImGuiTableFlags tableflags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame |
+static ImGuiTableFlags tableflags = ImGuiTableFlags_SizingStretchSame |
                                     ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoBordersInBody;
 
 void tableSetupCorner(core::objectmodel::BaseData* data)
@@ -52,7 +53,20 @@ void showTableHeadersRow(core::objectmodel::BaseData* data)
     {
         if (!ImGui::TableSetColumnIndex(columnIndex))
             continue;
+
+        std::string axisLabel = ImGui::TableGetColumnName(columnIndex);
+        ImU32 color = ImGui::GetColorU32(ImGuiCol_Text);
+        if (strcmp(axisLabel.c_str(), "X")==0 || strcmp(axisLabel.c_str(), "rX")==0 || strcmp(axisLabel.c_str(), "qX")==0)
+            color = COLOR_RED;
+        else if (strcmp(axisLabel.c_str(), "Y")==0 || strcmp(axisLabel.c_str(), "rY")==0 || strcmp(axisLabel.c_str(), "qY")==0)
+            color = COLOR_GREEN;
+        else if (strcmp(axisLabel.c_str(), "Z")==0 || strcmp(axisLabel.c_str(), "rZ")==0 || strcmp(axisLabel.c_str(), "qZ")==0)
+            color = COLOR_BLUE;
+
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
         ImGui::TableHeader(ImGui::TableGetColumnName(columnIndex));
+        ImGui::PopStyleColor();
+
         if (columnIndex == 0)
         {
             if(data && ImGui::BeginDragDropSource())
@@ -72,10 +86,9 @@ void showTableHeadersRow(core::objectmodel::BaseData* data)
 
 
 template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<N, ValueType> >& data)
+void setupVecTableHeader(Data<sofa::type::Vec<N, ValueType> >& data)
 {
     tableSetupCorner(data.getData());
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
     for (unsigned int i = 0; i < N; ++i)
     {
         ImGui::TableSetupColumn(std::to_string(i).c_str());
@@ -83,20 +96,20 @@ void showVecTableHeader(Data<sofa::type::Vec<N, ValueType> >& data)
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<1, ValueType> >&)
+void setupVecTableHeader(Data<sofa::type::Vec<1, ValueType> >&)
 {
     ImGui::TableSetupColumn("X");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<2, ValueType> >&)
+void setupVecTableHeader(Data<sofa::type::Vec<2, ValueType> >&)
 {
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<3, ValueType> >&)
+void setupVecTableHeader(Data<sofa::type::Vec<3, ValueType> >&)
 {
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
@@ -108,7 +121,7 @@ void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
 {
     if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N, tableflags))
     {
-        showVecTableHeader(data);
+        setupVecTableHeader(data);
         showTableHeadersRow(data.getData());
 
         ImGui::TableNextRow();
@@ -134,7 +147,7 @@ void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
 
 
 template< Size N, typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<N, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<type::Vec<N, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     for (unsigned int i = 0; i < N; ++i)
@@ -144,21 +157,21 @@ void showVecTableHeader(Data<type::vector<type::Vec<N, ValueType> > >& data)
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<ValueType> >& data)
+void setupVecTableHeader(Data<type::vector<ValueType> >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("Value");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<1, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<type::Vec<1, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<2, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<type::Vec<2, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -166,7 +179,7 @@ void showVecTableHeader(Data<type::vector<type::Vec<2, ValueType> > >& data)
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<3, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<type::Vec<3, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -209,9 +222,9 @@ void showVectorWidget(Data<T>& data)
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
-    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags, innerWidth))
+    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags | ImGuiTableFlags_ScrollY, innerWidth))
     {
-        showVecTableHeader(data);
+        setupVecTableHeader(data);
         showTableHeadersRow(data.getData());
 
         bool anyChange = false;
@@ -244,7 +257,7 @@ void showVectorWidget(Data<T>& data)
 
 
 template< Size N, typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<N, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidCoord<N, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     for (unsigned int i = 0; i < defaulttype::RigidCoord<N, ValueType>::total_size; ++i)
@@ -254,7 +267,7 @@ void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<N, ValueType> 
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<3, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidCoord<3, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -268,7 +281,7 @@ void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<3, ValueType> 
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<2, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidCoord<2, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -278,7 +291,7 @@ void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<2, ValueType> 
 }
 
 template< Size N, typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<N, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<N, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     for (unsigned int i = 0; i < defaulttype::RigidDeriv<N, ValueType>::total_size; ++i)
@@ -288,7 +301,7 @@ void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<N, ValueType> 
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<3, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<3, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -301,7 +314,7 @@ void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<3, ValueType> 
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<2, ValueType> > >& data)
+void setupVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<2, ValueType> > >& data)
 {
     tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
@@ -384,9 +397,9 @@ void showWidgetT(Data<type::vector<ValueType> >& data)
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
 
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, tableflags, innerWidth))
+    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, tableflags | ImGuiTableFlags_ScrollY, innerWidth))
     {
-        showVecTableHeader(data);
+        setupVecTableHeader(data);
         showTableHeadersRow(data.getData());
 
         unsigned int counter {};

@@ -329,8 +329,6 @@ bool MovePad::show1DPadSlider(char const* label,
         ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
-        ImGui::PushStyleColor(ImGuiCol_ButtonText, ImGui::GetColorU32(ImGuiCol_Text));
-        ImGui::AlignTextToFramePadding();
         ImVec2 size(1.0f, ImGui::GetFrameHeight	()/2.);
 
         ImU32 color = COLOR_RED;
@@ -339,10 +337,7 @@ bool MovePad::show1DPadSlider(char const* label,
         if (strcmp(label, "Z")==0)
             color = COLOR_BLUE;
 
-        ImGui::GetWindowDrawList()->AddRectFilled(window->DC.CursorPos + ImVec2(0.0f, size.y / 2.),
-                                                  window->DC.CursorPos + ImVec2(0.0f, size.y / 2.) + size,
-                                                  color, ImGuiStyleVar_FrameRounding); // draw colored axis line in before button
-
+        ImGui::PushStyleColor(ImGuiCol_ButtonText, color);
         if (sofaimgui::widgets::Button((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str()))
         {
             showOtherAxis = true;
