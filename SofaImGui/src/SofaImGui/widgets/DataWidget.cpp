@@ -106,63 +106,6 @@ void DataWidget<unsigned int>::showWidget(MyData& data)
  * Vec
  **********************************************************************************************************************/
 
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<N, ValueType> >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < N; ++i)
-    {
-        ImGui::TableSetupColumn(std::to_string(i).c_str());
-    }
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<1, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<2, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<3, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-    ImGui::TableSetupColumn("Z");
-}
-
-template< sofa::Size N, typename ValueType>
-void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
-{
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N, flags))
-    {
-        showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
-
-        ImGui::TableNextRow();
-        int i=0;
-        for (auto& v : *sofa::helper::getWriteAccessor(data))
-        {
-            ImGui::TableNextColumn();
-            ImGui::PushID(i);
-            ImGui::PushItemWidth(-1); // Fit container width
-            showScalarWidget(ImGui::TableGetColumnName(i++), v);
-            ImGui::PopItemWidth();
-            ImGui::PopID();
-        }
-
-        ImGui::EndTable();
-    }
-}
-
 template<>
 void DataWidget<sofa::type::Vec<1, double> >::showWidget(MyData& data)
 {
@@ -455,7 +398,6 @@ void DataWidget<std::map<std::string, sofa::type::vector<float> > >::showWidget(
 /***********************************************************************************************************************
  * OptionsGroup
  **********************************************************************************************************************/
-
 template<>
 void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
 {
@@ -479,8 +421,7 @@ void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
  * SelectableItems
  **********************************************************************************************************************/
 template<>
-void DataWidget<helper::BaseSelectableItem>::showWidget(
-    sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
+void DataWidget<helper::BaseSelectableItem>::showWidget(sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
 {
     const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     int selectedId = selectableItems->getSelectedId();

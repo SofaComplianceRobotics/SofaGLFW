@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include "IconsFontAwesome6.h"
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaImGui/widgets/ScalarWidget.h>
 #include <imgui.h>
@@ -31,9 +32,49 @@ namespace sofaimgui::widgets
 
 using namespace sofa;
 
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<N, ValueType> > >&)
+static ImGuiTableFlags tableflags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame |
+                                    ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoBordersInBody;
+
+void tableSetupCorner(core::objectmodel::BaseData* data)
 {
+    if (data)
+        ImGui::TableSetupColumn(ICON_FA_GRIP_VERTICAL, ImGuiTableColumnFlags_WidthFixed);
+    else
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+}
+
+void showTableHeadersRow(core::objectmodel::BaseData* data)
+{
+    ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+    const int columnsCount = ImGui::TableGetColumnCount();
+    for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+    {
+        if (!ImGui::TableSetColumnIndex(columnIndex))
+            continue;
+        ImGui::TableHeader(ImGui::TableGetColumnName(columnIndex));
+        if (columnIndex == 0)
+        {
+            if(data && ImGui::BeginDragDropSource())
+            {
+                ImGui::SetDragDropPayload("_DATAWIDGET", data, sizeof(data), 0, false);
+                ImGui::Text("%s", data->getName().c_str());
+                ImGui::EndDragDropSource();
+            }
+        }
+    }
+}
+
+
+/***********************************************************************************************************************
+ * Vec
+ **********************************************************************************************************************/
+
+
+template< sofa::Size N, typename ValueType>
+void showVecTableHeader(Data<sofa::type::Vec<N, ValueType> >& data)
+{
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
     for (unsigned int i = 0; i < N; ++i)
     {
@@ -42,31 +83,92 @@ void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<N, ValueType> > 
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<type::vector<ValueType> >&)
+void showVecTableHeader(Data<sofa::type::Vec<1, ValueType> >&)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    ImGui::TableSetupColumn("Value");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<type::vector<type::Vec<1, ValueType> > >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn("X");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<2, ValueType> > >&)
+void showVecTableHeader(Data<sofa::type::Vec<2, ValueType> >&)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::type::Vec<3, ValueType> > >&)
+void showVecTableHeader(Data<sofa::type::Vec<3, ValueType> >&)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("X");
+    ImGui::TableSetupColumn("Y");
+    ImGui::TableSetupColumn("Z");
+}
+
+template< sofa::Size N, typename ValueType>
+void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
+{
+    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N, tableflags))
+    {
+        showVecTableHeader(data);
+        showTableHeadersRow(data.getData());
+
+        ImGui::TableNextRow();
+        int i=0;
+        for (auto& v : *sofa::helper::getWriteAccessor(data))
+        {
+            ImGui::TableNextColumn();
+            ImGui::PushID(i);
+            ImGui::PushItemWidth(-1); // Fit container width
+            showScalarWidget(ImGui::TableGetColumnName(i++), v);
+            ImGui::PopItemWidth();
+            ImGui::PopID();
+        }
+
+        ImGui::EndTable();
+    }
+}
+
+
+/***********************************************************************************************************************
+ * Vectors of Vec
+ **********************************************************************************************************************/
+
+
+template< Size N, typename ValueType>
+void showVecTableHeader(Data<type::vector<type::Vec<N, ValueType> > >& data)
+{
+    tableSetupCorner(data.getData());
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        ImGui::TableSetupColumn(std::to_string(i).c_str());
+    }
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<type::vector<ValueType> >& data)
+{
+    tableSetupCorner(data.getData());
+    ImGui::TableSetupColumn("Value");
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<type::vector<type::Vec<1, ValueType> > >& data)
+{
+    tableSetupCorner(data.getData());
+    ImGui::TableSetupColumn("X");
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<type::vector<type::Vec<2, ValueType> > >& data)
+{
+    tableSetupCorner(data.getData());
+    ImGui::TableSetupColumn("X");
+    ImGui::TableSetupColumn("Y");
+}
+
+template<typename ValueType>
+void showVecTableHeader(Data<type::vector<type::Vec<3, ValueType> > >& data)
+{
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
     ImGui::TableSetupColumn("Z");
@@ -101,18 +203,16 @@ bool showLine(unsigned int lineNumber, const std::string& tableLabel, ValueType&
 template<class T>
 void showVectorWidget(Data<T>& data)
 {
-    static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
     const auto nbColumns = data.getValueTypeInfo()->size() + 1;
     const auto tableLabel = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
-    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, flags, innerWidth))
+    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags, innerWidth))
     {
         showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
+        showTableHeadersRow(data.getData());
 
         bool anyChange = false;
         for (std::size_t i = 0; i < accessor.size(); ++i)
@@ -138,20 +238,25 @@ void showVectorWidget(Data<T>& data)
 }
 
 
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<N, ValueType> > >&)
+/***********************************************************************************************************************
+ * Vectors of Rigid
+ **********************************************************************************************************************/
+
+
+template< Size N, typename ValueType>
+void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<N, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < sofa::defaulttype::RigidCoord<N, ValueType>::total_size; ++i)
+    tableSetupCorner(data.getData());
+    for (unsigned int i = 0; i < defaulttype::RigidCoord<N, ValueType>::total_size; ++i)
     {
         ImGui::TableSetupColumn(std::to_string(i).c_str());
     }
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<3, ValueType> > >&)
+void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<3, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
     ImGui::TableSetupColumn("Z");
@@ -163,29 +268,29 @@ void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<3,
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidCoord<2, ValueType> > >&)
+void showVecTableHeader(Data<type::vector<defaulttype::RigidCoord<2, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
 
     ImGui::TableSetupColumn("w");
 }
 
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<N, ValueType> > >&)
+template< Size N, typename ValueType>
+void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<N, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < sofa::defaulttype::RigidDeriv<N, ValueType>::total_size; ++i)
+    tableSetupCorner(data.getData());
+    for (unsigned int i = 0; i < defaulttype::RigidDeriv<N, ValueType>::total_size; ++i)
     {
         ImGui::TableSetupColumn(std::to_string(i).c_str());
     }
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<3, ValueType> > >&)
+void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<3, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
     ImGui::TableSetupColumn("Z");
@@ -196,17 +301,17 @@ void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<3,
 }
 
 template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, ValueType> > >&)
+void showVecTableHeader(Data<type::vector<defaulttype::RigidDeriv<2, ValueType> > >& data)
 {
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    tableSetupCorner(data.getData());
     ImGui::TableSetupColumn("X");
     ImGui::TableSetupColumn("Y");
 
     ImGui::TableSetupColumn("w");
 }
 
-template< sofa::Size N, typename ValueType>
-void showRigidLine(sofa::defaulttype::RigidCoord<N, ValueType>& vec, const unsigned int& counter)
+template< Size N, typename ValueType>
+void showRigidLine(defaulttype::RigidCoord<N, ValueType>& vec, const unsigned int& counter)
 {
     int j=0;
     for (auto& v : vec.getCenter())
@@ -239,8 +344,8 @@ void showRigidLine(sofa::defaulttype::RigidCoord<N, ValueType>& vec, const unsig
 }
 
 
-template< sofa::Size N, typename ValueType>
-void showRigidLine(sofa::defaulttype::RigidDeriv<N, ValueType>& vec, const unsigned int& counter)
+template< Size N, typename ValueType>
+void showRigidLine(defaulttype::RigidDeriv<N, ValueType>& vec, const unsigned int& counter)
 {
     int j=0;
     for (auto& v : vec.getVCenter())
@@ -273,18 +378,16 @@ void showRigidLine(sofa::defaulttype::RigidDeriv<N, ValueType>& vec, const unsig
 }
 
 template<typename ValueType>
-void showWidgetT(Data<sofa::type::vector<ValueType> >& data)
+void showWidgetT(Data<type::vector<ValueType> >& data)
 {
-    static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
 
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, flags, innerWidth))
+    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, tableflags, innerWidth))
     {
         showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
+        showTableHeadersRow(data.getData());
 
         unsigned int counter {};
         for (auto& vec : *accessor)

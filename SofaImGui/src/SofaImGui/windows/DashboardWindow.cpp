@@ -80,11 +80,12 @@ void DashboardWindow::showGUIData()
         {
             ImGui::Indent();
 
-            if (ImGui::BeginTable("GUIDataTable", 4, ImGuiTableFlags_NoBordersInBody))
+            if (ImGui::BeginTable("GUIDataTable", 5, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp))
             {
                 static ImGuiTableColumnFlags flags = ImGuiTableColumnFlags_NoHide;
                 ImGui::TableSetupColumn("##Message", flags | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##Name", flags | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("##Separator", flags | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##Data", flags | ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("##Remove", flags | ImGuiTableColumnFlags_WidthFixed);
 
@@ -132,6 +133,14 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
     {
         ImGui::Text("%s ", data->getLabel().c_str()); // Value description
         ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+    }
+
+    ImGui::TableNextColumn();
+
+    // Separator
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     }
 
     ImGui::TableNextColumn();
