@@ -40,7 +40,7 @@ namespace sofaimgui::windows {
 MyRobotWindow::MyRobotWindow(const std::string& name)
     : BaseWindow(name)
 {
-    m_enabledWorkbenches = Workbench::LIVE_CONTROL;
+    m_enabledWorkbenches = Workbench::SIMULATION_MODE | Workbench::LIVE_CONTROL;
 }
 
 std::string MyRobotWindow::getDescription()
