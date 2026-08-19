@@ -161,16 +161,18 @@ void ImGuiGUIEngine::saveProject(const bool& saveAs)
     projectSettings.SaveFile(projectFile.c_str());
 }
 
-void ImGuiGUIEngine::loadProject()
+bool ImGuiGUIEngine::loadProject()
 {
-    auto& windowsSettings = windows::WindowsSettings::getInstance();
-    auto& iniWindowsSettings = windowsSettings.getIniWindowsSettings();
     if (sofa::helper::system::FileSystem::exists(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename())))
     {
+        auto& windowsSettings = windows::WindowsSettings::getInstance();
+        auto& iniWindowsSettings = windowsSettings.getIniWindowsSettings();
         SI_Error rc = iniWindowsSettings.LoadFile(sofaimgui::AppIniFile::getProjectFile(m_baseGUI->getFilename()).c_str());
         SOFA_UNUSED(rc);
         assert(rc == SI_OK);
+        return true;
     }
+    return false;
 }
 
 void ImGuiGUIEngine::clearGUI()
@@ -1058,8 +1060,8 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     createGUINode(guiNode);
     if (!reload)
     {
-        loadProject();
-        enableWindows();
+        if (loadProject())
+            enableWindows();
     }
     notifyWindowsEndInit();
 }

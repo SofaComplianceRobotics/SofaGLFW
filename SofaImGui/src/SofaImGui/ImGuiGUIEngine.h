@@ -87,7 +87,7 @@ public:
     void loadSimulation(const bool& reload, const std::string &filename) override;
 
     void saveProject(const bool& saveAs=false);
-    void loadProject();
+    bool loadProject();
 
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
