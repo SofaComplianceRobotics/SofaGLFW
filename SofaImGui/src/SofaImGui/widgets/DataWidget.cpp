@@ -278,49 +278,6 @@ void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, float> > >::
  * Topology elements
  **********************************************************************************************************************/
 
-template< typename GeometryElement>
-void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement> > >& data)
-{
-    constexpr auto N = sofa::topology::Element<GeometryElement>::static_size;
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N + 1, flags))
-    {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-        for (unsigned int i = 0; i < N; ++i)
-        {
-            ImGui::TableSetupColumn(std::to_string(i).c_str());
-        }
-
-        ImGui::TableHeadersRow();
-
-        unsigned int counter {};
-        for (auto& vec : *sofa::helper::getWriteAccessor(data))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%d", counter++);
-            unsigned int i=0;
-            for (auto& v : vec)
-            {
-                int vui = v;
-                ImGui::TableNextColumn();
-                ImGui::PushID(counter);
-                ImGui::PushItemWidth(-1); // Fit container width
-                ImGui::BeginDisabled();
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-                ImGui::InputInt((std::string("##") + ImGui::TableGetColumnName(i++) + std::to_string(counter)).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
-                ImGui::PopStyleVar();
-                ImGui::EndDisabled();
-                ImGui::PopItemWidth();
-                ImGui::PopID();
-            }
-        }
-
-        ImGui::EndTable();
-    }
-}
-
 template<>
 void DataWidget<sofa::type::vector<sofa::topology::Edge> >::showWidget(MyData& data)
 {

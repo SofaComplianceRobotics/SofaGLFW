@@ -33,8 +33,9 @@ namespace sofaimgui::widgets
 
 using namespace sofa;
 
-static ImGuiTableFlags tableflags = ImGuiTableFlags_SizingStretchSame |
-                                    ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoBordersInBody;
+static const ImGuiTableFlags tableflags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoBordersInBody;
+static const int maxNbRowsDisplayed = 11;
+static const int maxNbIndicesLoaded = 1000;
 
 void tableSetupCorner(core::objectmodel::BaseData* data)
 {
@@ -76,6 +77,59 @@ void showTableHeadersRow(core::objectmodel::BaseData* data)
                 ImGui::EndDragDropSource();
             }
         }
+    }
+}
+
+void showStartEnd(sofa::core::objectmodel::BaseData* data, const int&dataSize, int& start, int& end)
+{
+    if (data->isReadOnly())
+    {
+        ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, false);
+        ImGui::PopStyleColor();
+    }
+
+    auto sizeStr = std::to_string(dataSize);
+    int inputWidth = ImGui::CalcTextSize(sizeStr.c_str()).x + ImGui::GetFrameHeightWithSpacing() * 2;
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Start-End");
+
+    ImGui::SameLine();
+
+    { // Input start
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::InputInt(("##startRowIndex"+data->getPathName()).c_str(), &start);
+        start = std::min(std::max(start, 0), dataSize - 1);
+        ImGui::PopItemWidth();
+    }
+
+    ImGui::SameLine();
+    ImGui::Text("-");
+    ImGui::SameLine();
+
+    { // Input end
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::InputInt(("##endRowIndex"+data->getPathName()).c_str(), &end);
+        end = std::min(std::max(end, start + 1), dataSize);
+        ImGui::PopItemWidth();
+    }
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", (" / " + sizeStr).c_str());
+
+    if (data->isReadOnly())
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+        ImGui::PopItemFlag();
+    }
+}
+
+void showLoadMore(sofa::core::objectmodel::BaseData* data, const int& dataSize, int& end)
+{
+    if (end < dataSize)
+    {
+        if (ImGui::Button(("Show more##"+data->getPathName()).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+            end += maxNbIndicesLoaded;
     }
 }
 
@@ -221,32 +275,48 @@ void showVectorWidget(Data<T>& data)
 
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
-    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
-    if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags | ImGuiTableFlags_ScrollY, innerWidth))
+    static bool loadMore = false;
+
+    if (dataSize > 0)
     {
-        setupVecTableHeader(data);
-        showTableHeadersRow(data.getData());
+        static int start{0};
+        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
 
-        bool anyChange = false;
-        for (std::size_t i = 0; i < accessor.size(); ++i)
+        if (dataSize > maxNbRowsDisplayed)
+            showStartEnd(data.getData(), dataSize, start, end);
+
+        if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags | ImGuiTableFlags_ScrollY, outerSize))
         {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%zu", i);
-            auto& vec = accessor[i];
-            if (showLine(i, tableLabel, vec))
+            ImGui::TableSetColumnWidth(0, ImGui::CalcTextSize(std::to_string(end).c_str()).x);
+            setupVecTableHeader(data);
+            showTableHeadersRow(data.getData());
+
+            bool anyChange = false;
+            for (int i = start; i < end; ++i)
             {
-                anyChange = true;
-                data.setDirtyValue();
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("%zu", i);
+                auto& vec = accessor[i];
+                if (showLine(i, tableLabel, vec))
+                {
+                    anyChange = true;
+                    data.setDirtyValue();
+                }
             }
-        }
-        if (anyChange)
-        {
-            data.updateIfDirty();
+            if (anyChange)
+            {
+                data.updateIfDirty();
+            }
+
+            loadMore = (ImGui::GetScrollY() == ImGui::GetScrollMaxY());
+            ImGui::EndTable();
         }
 
-        ImGui::EndTable();
+        if (dataSize > maxNbRowsDisplayed && loadMore)
+            showLoadMore(data.getData(), dataSize, end);
     }
 }
 
@@ -395,24 +465,109 @@ void showWidgetT(Data<type::vector<ValueType> >& data)
 {
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
-    ImVec2 innerWidth = ImVec2(0.0f, ImGui::GetFrameHeightWithSpacing() * std::min(dataSize + 1, 11));
+    static bool loadMore = false;
 
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), ValueType::total_size + 1, tableflags | ImGuiTableFlags_ScrollY, innerWidth))
+    if (dataSize > 0)
     {
-        setupVecTableHeader(data);
-        showTableHeadersRow(data.getData());
+        static int start{0};
+        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
 
-        unsigned int counter {};
-        for (auto& vec : *accessor)
+        if (dataSize > maxNbRowsDisplayed)
+            showStartEnd(data.getData(), dataSize, start, end);
+
+        if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(),
+                              ValueType::total_size + 1,
+                              tableflags | ImGuiTableFlags_ScrollY,
+                              outerSize))
         {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%d", counter++);
-            showRigidLine(vec, counter);
+            ImGui::TableSetColumnWidth(0, ImGui::CalcTextSize(std::to_string(end).c_str()).x);
+            setupVecTableHeader(data);
+            showTableHeadersRow(data.getData());
+
+            auto& vecs = *sofa::helper::getWriteAccessor(data);
+            for (int index=start; index<end; index++)
+            {
+                auto& vec = vecs[index];
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("%d", index);
+                showRigidLine(vec, index);
+            }
+
+            loadMore = (ImGui::GetScrollY() == ImGui::GetScrollMaxY());
+            ImGui::EndTable();
         }
 
-        ImGui::EndTable();
+        if (dataSize > maxNbRowsDisplayed && loadMore)
+            showLoadMore(data.getData(), dataSize, end);
+    }
+}
+
+/***********************************************************************************************************************
+ * Topology elements
+ **********************************************************************************************************************/
+
+template< typename GeometryElement>
+void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement> > >& data)
+{
+    auto accessor = helper::getWriteAccessor(data);
+    int dataSize = accessor->size();
+    static bool loadMore = false;
+
+    if (dataSize > 0)
+    {
+        static int start{0};
+        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
+
+        if (dataSize > maxNbRowsDisplayed)
+            showStartEnd(data.getData(), dataSize, start, end);
+
+        constexpr auto N = sofa::topology::Element<GeometryElement>::static_size;
+        if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(),
+                              N + 1,
+                              tableflags | ImGuiTableFlags_ScrollY,
+                              outerSize))
+        {
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetColumnWidth(0, ImGui::CalcTextSize(std::to_string(end).c_str()).x);
+            for (unsigned int i = 0; i < N; ++i)
+                ImGui::TableSetupColumn(std::to_string(i).c_str());
+
+            ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+            ImGui::TableHeadersRow();
+
+            auto& vecs = *sofa::helper::getWriteAccessor(data);
+            for (int index=start; index<end; index++)
+            {
+                auto& vec = vecs[index];
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("%d", index);
+                unsigned int i=0;
+                for (auto& v : vec)
+                {
+                    int vui = v;
+                    ImGui::TableNextColumn();
+                    ImGui::PushID(index);
+                    ImGui::PushItemWidth(-1); // Fit container width
+                    ImGui::BeginDisabled();
+                    ImGui::InputInt((std::string("##") + ImGui::TableGetColumnName(i++) + std::to_string(index)).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
+                    ImGui::EndDisabled();
+                    ImGui::PopItemWidth();
+                    ImGui::PopID();
+                }
+            }
+
+            loadMore = (ImGui::GetScrollY() == ImGui::GetScrollMaxY());
+            ImGui::EndTable();
+        }
+
+        if (dataSize > maxNbRowsDisplayed && loadMore)
+            showLoadMore(data.getData(), dataSize, end);
     }
 }
 
