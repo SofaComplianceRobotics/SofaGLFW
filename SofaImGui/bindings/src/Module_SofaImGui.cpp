@@ -200,7 +200,7 @@ PYBIND11_MODULE(ImGui, m)
 {
     // Deprecated
     m.def("setIPController", &setIPController
-          ,"[Deprecated] Use setInverseProblemSolver instead");
+          ,"[DEPRECATED] Use setInverseProblemSolver instead.");
 
     m.def("setInverseProblemSolver", &setInverseProblemSolver
           , "Set the inverse problem solver for piloting TCP from the GUI.");
