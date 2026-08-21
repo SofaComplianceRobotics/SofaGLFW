@@ -56,7 +56,7 @@ protected:
     void showComponentInfo(sofa::core::ClassEntry::SPtr selectedComponent);
     void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
 
-    void showExampleContextMenu(const std::filesystem::__cxx11::path &examplePath);
+    void showExampleContextMenu(const std::filesystem::path &examplePath);
 
     void saveFile();
 };

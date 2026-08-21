@@ -111,6 +111,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
         m_registeredSettings[settingName] = std::pair<void*, WindowsSettings::SettingType>(&setting, settingType); // Register setting to be saved
         setting = WindowsSettings::getInstance().getSetting(m_name.c_str(), settingName.c_str(), setting); // Load setting
     }
+    void dropGUIData();
 
     using models::guidata::GUIDataManager::m_GUIData;
     using models::guidata::GUIDataManager::m_groupedGUIData;

@@ -197,7 +197,7 @@ void LogWindow::showLogs()
             {
                 switch (t)
                 {
-                case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREEN), "[SUGGESTION]");
                 case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
                 case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                 case sofa::helper::logging::Message::Info       : return ImGui::TextColored(ImGui::GetStyle().Colors[ImGuiCol_TextDisabled], "[INFO]");
@@ -265,6 +265,7 @@ void LogWindow::showLogs()
 void LogWindow::clearLogs()
 {
     m_firstMessageIndex = m_messages.size();
+    FooterStatusBar::getInstance().clearLogStatus(m_firstMessageIndex);
 }
 
 void LogWindow::addMessageContextMenu(const std::string& message)

@@ -18,6 +18,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "Module_SofaImGui.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/cast.h>
@@ -53,8 +54,8 @@ void moduleAddMoveWindow(py::module &m)
             {
             SOFA_UNUSED(positionDescription);
             SOFA_UNUSED(rotationDescription);
-            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addTCP() instead";
-            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead"
+            msg_deprecated(m_a_name) << "setTCPDescription is deprecated and will be removed in future versions. Use Sofa.ImGui.addTCP() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead. Set the description displayed on the GUI(positionDescription, rotationDescription). Use this to display the right unit."
             );
 
     m_a.def("setTCPLimits",
@@ -64,16 +65,16 @@ void moduleAddMoveWindow(py::module &m)
             SOFA_UNUSED(maxPosition);
             SOFA_UNUSED(minOrientation);
             SOFA_UNUSED(maxOrientation);
-            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addTCP() instead";
-            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead"
+            msg_deprecated(m_a_name) << "setTCPLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addTCP() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead. Set the sliders limits."
             );
 
     m_a.def("setActuatorsDescription",
         [m_a_name](const std::string &description)
         {
         SOFA_UNUSED(description);
-        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
-        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
+        msg_deprecated(m_a_name) << "setActuatorsDescription is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the description displayed on the GUI. Use this to display the right info and unit."
         );
 
     m_a.def("setActuatorsLimits",
@@ -81,8 +82,8 @@ void moduleAddMoveWindow(py::module &m)
         {
         SOFA_UNUSED(min);
         SOFA_UNUSED(max);
-        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
-        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
+        msg_deprecated(m_a_name) << "setActuatorsLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the sliders limits for the actuator number 'id'."
         );
 
     m_a.def("setActuatorLimits",
@@ -91,32 +92,66 @@ void moduleAddMoveWindow(py::module &m)
             SOFA_UNUSED(id);
             SOFA_UNUSED(min);
             SOFA_UNUSED(max);
-            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
-            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
+            msg_deprecated(m_a_name) << "setActuatorLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the sliders limits for the actuator number 'id'."
             );
 
     m_a.def("setActuators",
-            [m_a_name](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
-                     const std::vector<size_t> &indicesInProblem,
-                     const std::string valueType)
+            [m_a_name, engine](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
+                                const std::vector<size_t> &indicesInProblem,
+                                const std::string valueType)
             {
-            SOFA_UNUSED(actuatorsData);
-            SOFA_UNUSED(indicesInProblem);
-            SOFA_UNUSED(valueType);
-            msg_deprecated(m_a_name) << "Use Sofa.ImGui.addActuator() instead";
-            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead"
+                SOFA_UNUSED(indicesInProblem);
+                SOFA_UNUSED(valueType);
+                if (engine)
+                {
+                    int i=0;
+                    for (auto data : actuatorsData)
+                    {
+                        if(data)
+                        {
+                            py::object min = py::cast(-3.);
+                            py::object max = py::cast(3.);
+
+                            softrobots::behavior::SoftRobotsBaseConstraint *constraint = dynamic_cast<softrobots::behavior::SoftRobotsBaseConstraint *>(data->getOwner());
+                            if (constraint)
+                            {
+                                engine->m_kinematicsGUIDataManager->addActuator("M" + std::to_string(i++),
+                                                                                constraint,
+                                                                                getDataFromPyObject(min, "float"),
+                                                                                getDataFromPyObject(max, "float"),
+                                                                                "",
+                                                                                "");
+                            }
+                        }
+                    }
+                }
+                msg_deprecated(m_a_name) << "setActuators is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the actuators."
             );
 
     m_a.def("addAccessory",
-        [m_a_name](const std::string &description, sofa::core::BaseData* data,
+        [m_a_name, engine](const std::string &description, sofa::core::BaseData* data,
                  const float& min, const float& max)
         {
-        SOFA_UNUSED(description);
-        SOFA_UNUSED(data);
-        SOFA_UNUSED(min);
-        SOFA_UNUSED(max);
-        msg_deprecated(m_a_name) << "Use Sofa.ImGui.addAccessoryFeature() instead";
-        }, "[DEPRECATED] Use Sofa.ImGui.addAccessoryFeature() instead"
+            if (engine)
+            {
+                if (data)
+                {
+                    py::object pydata = py::cast(data);
+                    py::object pymin = py::cast(min);
+                    py::object pymax = py::cast(max);
+                    engine->m_kinematicsGUIDataManager->addAccessoryFeature("Accessory",
+                                                                            description,
+                                                                            getDataFromPyObject(pydata, "float"),
+                                                                            getDataFromPyObject(pymin, "float"),
+                                                                            getDataFromPyObject(pymax, "float"));
+                }
+            }
+
+
+            msg_deprecated(m_a_name) << "addAccessory is deprecated and will be removed in future versions. Use Sofa.ImGui.addAccessoryFeature() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addAccessoryFeature() instead. Add an accessory to the window."
         );
 }
 
