@@ -112,12 +112,6 @@ void ProgramWindow::internalShowWindow()
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
         ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
 
-        if (!isEnabledInWorkbench())
-        {
-            ImGui::BeginDisabled();
-            showInfoMessage("This window is disabled in the active workbench.");
-        }
-
         showProgramButtons();
 
         float width = ImGui::GetWindowWidth();
@@ -166,9 +160,6 @@ void ProgramWindow::internalShowWindow()
         }
         else
             zoomCoef = defaultZoomCoef;
-
-        if (!isEnabledInWorkbench())
-            ImGui::EndDisabled();
     }
     else
     {
