@@ -87,6 +87,7 @@ public:
     void loadSimulation(const bool& reload, const std::string &filename) override;
 
     void saveProject(const bool& saveAs=false);
+    bool loadProject();
 
     void setRobotConnection(const bool& robotConnectionToggle) { Robot::getInstance().setConnection(robotConnectionToggle); }
     bool getRobotConnection() { return Robot::getInstance().getConnection(); }
@@ -153,13 +154,14 @@ protected:
     void enableWindows();
     void createGUINode(Node::SPtr guiNode = nullptr);
     void clearGUI();
-    void setDockSizeFromFile(const ImGuiID& id);
+    void applyDockSizeFromWindowsSettings(const ImGuiID& id);
     void setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI*);
     void notifyWindowsEndInit();
 
     bool m_animate{false};
     bool m_darkMode{false};
     sofaglfw::SofaGLFWBaseGUI* m_baseGUI{nullptr};
+
     std::vector<ImGuiID> m_dockIDs;
 
     std::size_t m_frameCount{0};
