@@ -144,6 +144,8 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
 
+    void dropGUIData();
+
     using models::guidata::GUIDataManager::m_GUIData;
     using models::guidata::GUIDataManager::m_groupedGUIData;
 

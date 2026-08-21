@@ -128,4 +128,25 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
+void BaseWindow::dropGUIData()
+{
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
+        {
+            sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+            if (data)
+            {
+                addData(data->getName(),
+                        std::pair<sofa::core::BaseData*, bool>(data, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
+                        data->getHelp());
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+}
+
 }

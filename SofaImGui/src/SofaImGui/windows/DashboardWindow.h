@@ -44,7 +44,6 @@ protected:
     void showWidget(models::guidata::GUIData::SPtr data);
     void showOptionButtons();
     void showGUIData();
-    void dropGUIData();
 
     void addDashbordContextMenu();
 };
