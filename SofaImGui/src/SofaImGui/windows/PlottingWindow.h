@@ -82,11 +82,12 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
-    size_t m_nbRows{1};
-    size_t m_nbCols{1};
+    long m_ws_nbRows{1};
+    long m_nbCols{1};
 
     void beforeShowWindow() override;
     void internalShowWindow() override;
+    void registerAndLoadWindowSettings() override;
 
     void clear() override;
     bool isEnabledByState() override {return !m_GUIData.empty();}

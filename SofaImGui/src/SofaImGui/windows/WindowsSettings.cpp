@@ -19,60 +19,14 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#pragma once
-
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/menus/ViewMenu.h>
-#include <imgui.h>
+#include <SofaImGui/windows/WindowsSettings.h>
 
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API ViewportWindow : public BaseWindow
+WindowsSettings &WindowsSettings::getInstance()
 {
-   public:
-
-    ViewportWindow(const std::string& name);
-    ~ViewportWindow() = default;
-
-    void internalShowWindow() override;
-    std::string getDescription() override;
-
-    void setTextureID(const ImTextureID& textureID) {m_textureID=textureID;}
-
-    void addCameraButtons();
-    bool addAnimateButton(bool *animate, const float &shift_x);
-    bool addStepButton();
-    bool addReloadButton();
-    void addDrivingTabCombo();
-
-    std::pair<float, float> m_windowSize{0., 0.};
-
-    bool isMouseOnViewport() {return m_isMouseOnViewport;}
-    bool isFocusOnViewport() {return m_isFocusOnViewport;}
-
-   protected:
-
-    float m_fps{0.f};
-
-    bool m_isMouseOnViewport{false};
-    bool m_isFocusOnViewport{false};
-
-    double m_maxPanelItemWidth{0.0};
-
-    ImTextureID m_textureID;
-
-    bool m_ws_orientationGizmoEnabled{false};
-    bool m_ws_cameraButtonsCollapsed{true};
-    long m_ws_drivingWindow{1};
-
-    void registerAndLoadWindowSettings() override;
-
-    void addSimulationTimeAndFPS();
-    void addRecordingStatus(const ImVec4 &red);
-    bool checkCamera();
-    void addContextMenu(const ImTextureID& texture);
-};
-
+    static WindowsSettings windowsSettings;
+    return windowsSettings;
 }
 
-
+}

@@ -21,26 +21,32 @@
  ******************************************************************************/
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
-#include <Style.h>
-#include <GUIColors.h>
-#include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
-#include <SofaImGui/windows/ViewportWindow.h>
-#include <SofaImGui/widgets/Widgets.h>
+
 #include <imgui_internal.h>
+
 #include <IconsFontAwesome6.h>
-#include <SofaImGui/widgets/Gizmos.h>
+#include <Style.h>
+#include <GUIColors.h>
+
+#include <SofaGLFW/SofaGLFWWindow.h>
 #include <GLFW/glfw3.h>
-#include <SofaImGui/windows/WindowsSettingsName.h>
+
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/DrivingWindow.h>
+#include <SofaImGui/windows/ViewportWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
+#include <SofaImGui/widgets/Widgets.h>
+#include <SofaImGui/widgets/Gizmos.h>
 
 namespace sofaimgui::windows {
 
 ViewportWindow::ViewportWindow(const std::string& name)
     : BaseWindow(name)
 {
+    m_windowFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 }
 
 std::string ViewportWindow::getDescription()
@@ -48,48 +54,47 @@ std::string ViewportWindow::getDescription()
     return "Main viewport rendering window.";
 }
 
-void ViewportWindow::showWindow(const ImTextureID& texture,
-                                const ImGuiWindowFlags& windowFlags)
+void ViewportWindow::registerAndLoadWindowSettings()
 {
-    if (isOpen())
+    registerAndLoadSetting(WS_VIEWPORT_ORIENTATIONGIZMOENABLED, m_ws_orientationGizmoEnabled, WindowsSettings::SettingType::BOOL);
+    registerAndLoadSetting(WS_VIEWPORT_CAMERABUTTONCOLLAPSE, m_ws_cameraButtonsCollapsed, WindowsSettings::SettingType::BOOL);
+    registerAndLoadSetting(WS_VIEWPORT_DRIVINGWINDOW, m_ws_drivingWindow, WindowsSettings::SettingType::LONG);
+}
+
+void ViewportWindow::internalShowWindow()
+{
+    ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     {
-        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags))
+        ImVec2 viewportPos = ImGui::GetWindowPos();
+        m_baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
+
+        ImVec2 wsize = ImGui::GetWindowSize();
+        m_windowSize = {wsize.x, wsize.y};
+        m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
+
+        m_isFocusOnViewport = ImGui::IsWindowFocused();
+
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 p_min = ImGui::GetCursorScreenPos();
+        ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
+        ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
+        dl->AddImageRounded(m_textureID, p_min, p_max,
+                            ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
+                            ImGui::GetStyle().FrameRounding);
+
+        m_isMouseOnViewport = ImGui::IsWindowHovered();
+
+        if (workbench != Workbench::SCENE_EDITOR)
         {
-            ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-            {
-                ImVec2 viewportPos = ImGui::GetWindowPos();
-                m_baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
-
-                ImVec2 wsize = ImGui::GetWindowSize();
-                m_windowSize = {wsize.x, wsize.y};
-                m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
-
-                m_isFocusOnViewport = ImGui::IsWindowFocused();
-
-                ImDrawList* dl = ImGui::GetWindowDrawList();
-                ImVec2 p_min = ImGui::GetCursorScreenPos();
-                ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
-                ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
-                dl->AddImageRounded(texture, p_min, p_max,
-                                    ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
-                                    ImGui::GetStyle().FrameRounding);
-
-                m_isMouseOnViewport = ImGui::IsWindowHovered();
-
-                if (workbench != Workbench::SCENE_EDITOR)
-                {
-                    addSimulationTimeAndFPS();
-                }
-
-                addCameraButtons();
-                if(m_baseGUI->isVideoRecording())
-                    addRecordingStatus(ImColor(COLOR_RED));
-                addContextMenu(texture);
-            }
-            ImGui::EndChild();
+            addSimulationTimeAndFPS();
         }
-        ImGui::End();
+
+        addCameraButtons();
+        if(m_baseGUI->isVideoRecording())
+            addRecordingStatus(ImColor(COLOR_RED));
+        addContextMenu(m_textureID);
     }
+    ImGui::EndChild();
 }
 
 bool ViewportWindow::checkCamera()
@@ -118,11 +123,7 @@ void ViewportWindow::addCameraButtons()
     if (!checkCamera())
         return;
 
-    // Windows settings
-    auto& windowsSettings = WindowsSettings::getInstance();
-
     // Positions and sizes
-    static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
     auto position = ImGui::GetWindowPos();
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
@@ -132,7 +133,6 @@ void ViewportWindow::addCameraButtons()
     groot->get(camera);
 
     // Gizmos
-    static bool orientationGizmoEnabled = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, false);
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
@@ -140,7 +140,7 @@ void ViewportWindow::addCameraButtons()
     if (ImGui::Begin("ViewportChildGizmos", &isOpen(), ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
                                                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
-        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
+        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + m_ws_orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
         ImGui::ItemSize(wosize);
         ImGui::ItemAdd(wosize, ImGui::GetID("ViewportGizmos"));
 
@@ -181,7 +181,7 @@ void ViewportWindow::addCameraButtons()
             }
 
             { // Orientation gizmo
-                if (orientationGizmoEnabled)
+                if (m_ws_orientationGizmoEnabled)
                 {
                     // Center of the viewport (look at position)
                     sofaimgui::widget::SetRect(position.x + frameGizmoSize,
@@ -230,19 +230,18 @@ void ViewportWindow::addCameraButtons()
         ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-        std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
+        std::string title = (m_ws_cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
         if(ImGui::LocalButton(title.c_str()))
         {
-            cameraButtonsCollapsed = !cameraButtonsCollapsed;
-            windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
+            m_ws_cameraButtonsCollapsed = !m_ws_cameraButtonsCollapsed;
         }
         
-        ImGui::SetItemTooltip(cameraButtonsCollapsed? "Expand view options": "Collapse view options");
+        ImGui::SetItemTooltip(m_ws_cameraButtonsCollapsed? "Expand view options": "Collapse view options");
         ImGui::PopStyleColor(3);
 
-        if (!cameraButtonsCollapsed)
+        if (!m_ws_cameraButtonsCollapsed)
         {
             const auto& bbox = groot->f_bbox.getValue();
 
@@ -296,10 +295,9 @@ void ViewportWindow::addCameraButtons()
             { // Orientation gizmo button
                 if (ImGui::LocalButton(ICON_FA_ROTATE))
                 {
-                    orientationGizmoEnabled = !orientationGizmoEnabled;
-                    windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
+                    m_ws_orientationGizmoEnabled = !m_ws_orientationGizmoEnabled;
                 }
-                std::string text = (orientationGizmoEnabled)? "Disable ": "Enable ";
+                std::string text = (m_ws_orientationGizmoEnabled)? "Disable ": "Enable ";
                 text += "orientation gizmo \n(Rotation Center: Look At)";
                 ImGui::SetItemTooltip("%s", text.c_str());
             }
@@ -460,7 +458,6 @@ void ViewportWindow::addContextMenu(const ImTextureID& texture)
     }
 }
 
-
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
     bool isItemClicked = false;
@@ -565,10 +562,11 @@ bool ViewportWindow::addReloadButton()
     return isItemClicked;
 }
 
-bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes)
+void ViewportWindow::addDrivingTabCombo()
 {
-    bool hasValueChanged = false;
-    
+    int dw = m_ws_drivingWindow;
+    drivingWindow = DrivingWindow(dw);
+
     if (isOpen())
     {
         if (ImGui::Begin(getLabel().c_str(), &isOpen()))
@@ -582,7 +580,13 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+
+                    const char* listTabs[getDrivingWindowCount()];
+                    for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                        listTabs[i] = getDrivingWindowName(DrivingWindow(i));
+
+                    if(ImGui::Combo("##DrivingWindowViewport", &dw, listTabs, IM_ARRAYSIZE(listTabs)))
+                        m_ws_drivingWindow = dw;
                     ImGui::PopStyleColor(3);
                     ImGui::PopItemWidth();
                     ImGui::SetItemTooltip("Choose a window to drive the TCP target");
@@ -593,8 +597,6 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
         }
         ImGui::End();
     }
-
-    return hasValueChanged;
 }
 
 void ViewportWindow::addSimulationTimeAndFPS()
