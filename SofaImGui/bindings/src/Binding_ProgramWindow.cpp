@@ -75,9 +75,12 @@ void moduleAddProgramWindow(py::module &m)
         );
 
     m_a.def("importProgram",
-        [m_a_name](std::string filename)
+        [m_a_name, engine](std::string filename)
         {
-            SOFA_UNUSED(filename);
+            if (engine)
+            {
+                engine->m_programWindow.setProgramFilename(filename);
+            }
             msg_deprecated(m_a_name) << "Use setProgramFilename() instead.";
         }, "[DEPRECATED] Use setProgramFilename() instead."
         );
