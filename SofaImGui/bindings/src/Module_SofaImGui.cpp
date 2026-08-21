@@ -233,7 +233,7 @@ std::pair<sofa::core::BaseData*, bool> getDataFromPyObject(py::object& obj, std:
         return std::pair<sofa::core::BaseData*, bool>(nullptr, false);
 
     if (py::isinstance<sofa::core::objectmodel::BaseData>(obj))
-        return std::pair<sofa::core::BaseData*, bool>(py::cast<sofa::core::objectmodel::BaseData*>(obj), false); //sofapython3::addData(py::none(), "Label", obj, py::none(), "", "group", type); //py::cast<sofa::core::objectmodel::BaseData*>(obj);
+        return std::pair<sofa::core::BaseData*, bool>(py::cast<sofa::core::objectmodel::BaseData*>(obj), false);
 
     sofa::core::BaseData* data = sofapython3::PythonFactory::createInstance(type);
     if (!obj.is_none() and data)
