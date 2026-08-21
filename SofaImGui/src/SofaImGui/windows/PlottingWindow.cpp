@@ -100,7 +100,7 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
                                                                  std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
                                                                  "", "");
     size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
-    m_nbRows = (m_nbRows < index + 1)? index + 1: m_nbRows;
+    m_ws_nbRows = ((size_t)m_ws_nbRows < index + 1)? index + 1: m_ws_nbRows;
 
     if (index > 0)
         setDataSubplot(newData, index);
@@ -361,7 +361,7 @@ void PlottingWindow::showMenu()
                     buffer.ratio = ratio;
                 }
 
-                for (size_t i=0; i<(size_t)m_nbRows * m_nbCols; i++)
+                for (size_t i=0; i<(size_t)m_ws_nbRows * m_nbCols; i++)
                     m_ratio[i] = ratio;
             }
             ImGui::PopItemWidth();
@@ -382,7 +382,7 @@ void PlottingWindow::showMenu()
         bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
         ImGui::LocalCheckBox("Auto fit content", &autofit);
 
-        for (size_t i=0; i<(size_t)m_nbRows * m_nbCols; i++)
+        for (size_t i=0; i<(size_t)m_ws_nbRows * m_nbCols; i++)
         {
             auto plot = plots.GetByIndex(i);
             showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
