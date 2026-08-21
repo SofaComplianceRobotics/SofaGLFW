@@ -24,6 +24,7 @@
 #include <SofaImGui/models/guidata/GUIDataManager.h>
 #include <SoftRobots.Inverse/component/constraint/PositionEffector.h>
 #include <sofa/defaulttype/RigidCoord.h>
+#include <numbers>
 
 
 namespace sofaimgui::models::guidata

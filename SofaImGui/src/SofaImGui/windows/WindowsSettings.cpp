@@ -19,35 +19,14 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#pragma once
-
-#include <SofaImGui/windows/BaseWindow.h>
-#include <imgui.h>
+#include <SofaImGui/windows/WindowsSettings.h>
 
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API DashboardWindow : public BaseWindow
+WindowsSettings &WindowsSettings::getInstance()
 {
-public:
-    DashboardWindow(const std::string& name);
-    ~DashboardWindow() = default;
-
-    std::string getDescription() override;
-
-protected:
-
-    bool m_expandAll{false};
-    bool m_collapseAll{false};
-
-    void internalShowWindow() override;
-
-    void showWidget(models::guidata::GUIData::SPtr data);
-    void showOptionButtons();
-    void showGUIData();
-
-    void addDashbordContextMenu();
-};
-
+    static WindowsSettings windowsSettings;
+    return windowsSettings;
 }
 
-
+}

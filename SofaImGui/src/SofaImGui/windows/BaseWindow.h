@@ -24,56 +24,12 @@
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/models/guidata/GUIDataManager.h>
-#include <string>
 
-#include <sofa/simulation/Node.h>
 #include <SofaImGui/config.h>
+#include <SofaImGui/windows/WindowsSettings.h>
 #include <imgui.h>
-#include <SimpleIni.h>
 
 namespace sofaimgui::windows {
-
-class WindowsSettings
-{
-public:
-    static WindowsSettings &getInstance();
-
-    template <typename type>
-    type getSetting(const char* _windowName, const char* settingName, const type& defaultValue)
-    {
-        std::string windowName = "Window.";
-        windowName += _windowName;
-
-        type value;
-        _getSetting(windowName.c_str(), settingName, defaultValue, value);
-        return value;
-    }
-
-    template <typename type>
-    void setSetting(const char* _windowName, const char* settingName, const type& value)
-    {
-        std::string windowName = "Window.";
-        windowName += _windowName;
-
-        _setSetting(windowName.c_str(), settingName, value);
-    }
-
-    CSimpleIniA& getIniWindowsSettings() {return iniWindowsSettings;}
-
-protected:
-    CSimpleIniA iniWindowsSettings;
-
-    inline void _getSetting(const char* windowName, const char* settingName, const double& defaultValue, double& value){value = iniWindowsSettings.GetDoubleValue(windowName, settingName, defaultValue);}
-    inline void _getSetting(const char* windowName, const char* settingName, const bool& defaultValue, bool& value){value = iniWindowsSettings.GetBoolValue(windowName, settingName, defaultValue);}
-    inline void _getSetting(const char* windowName, const char* settingName, const int& defaultValue, int& value){value = iniWindowsSettings.GetLongValue(windowName, settingName, defaultValue);}
-    inline void _getSetting(const char* windowName, const char* settingName, const std::string& defaultValue, std::string& value){value = std::string(iniWindowsSettings.GetValue(windowName, settingName, defaultValue.c_str()));}
-
-    inline void _setSetting(const char* windowName, const char* settingName, const double& value){iniWindowsSettings.SetDoubleValue(windowName, settingName, value);}
-    inline void _setSetting(const char* windowName, const char* settingName, const bool& value){iniWindowsSettings.SetBoolValue(windowName, settingName, value);}
-    inline void _setSetting(const char* windowName, const char* settingName, const int& value){iniWindowsSettings.SetLongValue(windowName, settingName, value);}
-    inline void _setSetting(const char* windowName, const char* settingName, const std::string& value){iniWindowsSettings.SetValue(windowName, settingName, value.c_str());}
-
-};
 
 class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 {
@@ -88,7 +44,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     void clearWindow();
 
     /// Implements the drawing of the window
-    void showWindow(ImGuiWindowFlags windowFlags);
+    void showWindow(ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None);
 
     /// Every window must implement this method, give a description of the window
     /// Will be displayed as a tooltip
@@ -138,11 +94,24 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     virtual void internalShowWindow() {};
     virtual void afterShowWindow() {};
 
+    /// Called once, the first time we draw the window.
+    virtual void registerAndLoadWindowSettings() {};
+
     /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
     virtual void clear() {}
 
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
+
+    /// Load and register a setting.
+    /// The setting should be already initialized with the default value.
+    template <typename type>
+    void registerAndLoadSetting(const std::string& settingName, type& setting, const WindowsSettings::SettingType& settingType)
+    {
+        m_registeredSettings[settingName] = std::pair<void*, WindowsSettings::SettingType>(&setting, settingType); // Register setting to be saved
+        setting = WindowsSettings::getInstance().getSetting(m_name.c_str(), settingName.c_str(), setting); // Load setting
+    }
+    void dropGUIData();
 
     using models::guidata::GUIDataManager::m_GUIData;
     using models::guidata::GUIDataManager::m_groupedGUIData;
@@ -156,5 +125,10 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     int m_defaultWorkbenches;
 
     ImGuiWindowFlags m_windowFlags = ImGuiWindowFlags_None;
+
+   private:
+
+    bool m_firstTime{true};
+    std::map<std::string, std::pair<void*, WindowsSettings::SettingType>> m_registeredSettings;
 };
 }

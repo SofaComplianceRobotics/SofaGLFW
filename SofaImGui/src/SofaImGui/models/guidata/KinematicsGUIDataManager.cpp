@@ -160,9 +160,6 @@ bool KinematicsGUIDataManager::hasAccessory()
 
 EffectorGUIData::SPtr KinematicsGUIDataManager::getTCPGUIData(const sofa::Index& index)
 {
-    if (!hasTCP())
-        return nullptr;
-
     if (m_effectorsGUIData.size() > index)
         return m_effectorsGUIData[index];
 

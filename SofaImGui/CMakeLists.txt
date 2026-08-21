@@ -126,6 +126,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/RecordVideoWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettings.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.h
@@ -193,6 +194,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/RecordVideoWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettings.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp

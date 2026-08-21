@@ -79,21 +79,24 @@ void ProgramWindow::onEndInit()
 
         if (m_program.isValid())
         {
-            if (!m_programFilename.empty())
-                m_program.importProgram(m_programFilename);
+            if (!m_ws_programFilename.empty())
+                m_program.importProgram(m_ws_programFilename);
         }
     }
 }
 
-void ProgramWindow::loadAndProcessWindowSettings()
+void ProgramWindow::registerAndLoadWindowSettings()
 {
-    auto& windowsSettings = WindowsSettings::getInstance();
+    registerAndLoadSetting(WS_PROGRAM_PROGRAMDIRPATH, m_ws_programDirPath, WindowsSettings::STRING);
+    registerAndLoadSetting(WS_PROGRAM_PROGRAMFILENAME, m_ws_programFilename, WindowsSettings::STRING);
+    registerAndLoadSetting(WS_PROGRAM_REPEAT, m_ws_repeat, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_REVERSE, m_ws_reverse, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_DRAWTRAJECTORY, m_ws_drawTrajectory, WindowsSettings::BOOL);
+    registerAndLoadSetting(WS_PROGRAM_TIMEBASEDDISPLAY, m_ws_timeBasedDisplay, WindowsSettings::BOOL);
 
     // Import program file if any
-    m_programDirPath = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
-    m_programFilename = windowsSettings.getSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
-    if (!m_programFilename.empty() && !m_programDirPath.empty())
-        importProgram(sofa::helper::system::FileSystem::append(m_programDirPath, m_programFilename));
+    if (!m_ws_programFilename.empty() && !m_ws_programDirPath.empty())
+        importProgram(sofa::helper::system::FileSystem::append(m_ws_programDirPath, m_ws_programFilename));
 }
 
 void ProgramWindow::internalShowWindow()
@@ -106,17 +109,10 @@ void ProgramWindow::internalShowWindow()
         if (firstTime)
         {
             firstTime = false;
-            loadAndProcessWindowSettings();
             ProgramSizes().TrackHeight = ProgramSizes().TrackMaxHeight;
         }
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
         ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
-
-        if (!isEnabledInWorkbench())
-        {
-            ImGui::BeginDisabled();
-            showInfoMessage("This window is disabled in the active workbench.");
-        }
 
         showProgramButtons();
 
@@ -135,7 +131,7 @@ void ProgramWindow::internalShowWindow()
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
 
-            if (m_timeBasedDisplay)
+            if (m_ws_timeBasedDisplay)
                 showTimeline();
             else // Keep the space the timeline would have taken, empty
             {
@@ -145,7 +141,7 @@ void ProgramWindow::internalShowWindow()
 
             int nbCollaspedTracks = showTracks();
 
-            if (m_timeBasedDisplay)
+            if (m_ws_timeBasedDisplay)
                 showCursorMarker(nbCollaspedTracks);
 
             ImGui::PopStyleVar();
@@ -156,7 +152,7 @@ void ProgramWindow::internalShowWindow()
         }
         ImGui::EndChild();
 
-        if (m_timeBasedDisplay)
+        if (m_ws_timeBasedDisplay)
         {
             if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
                 zoomCoef += ImGui::GetIO().MouseWheel * 0.4f;
@@ -166,9 +162,6 @@ void ProgramWindow::internalShowWindow()
         }
         else
             zoomCoef = defaultZoomCoef;
-
-        if (!isEnabledInWorkbench())
-            ImGui::EndDisabled();
     }
     else
     {
@@ -224,29 +217,29 @@ void ProgramWindow::showProgramButtons()
     ImGui::SameLine();
     ImGui::SetCursorPosX(positionRight); // Set position to right of the header
 
-    sofaimgui::widgets::PushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_timeBasedDisplay);
+    sofaimgui::widgets::PushButton(ICON_FA_CLOCK"##TimeBasedDisplay", &m_ws_timeBasedDisplay);
     ImGui::SetItemTooltip("Display blocks based on simulation time");
 
     ImGui::SameLine();
 
-    sofaimgui::widgets::PushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_drawTrajectory);
+    sofaimgui::widgets::PushButton(ICON_FA_DRAW_POLYGON"##Draw", &m_ws_drawTrajectory);
     ImGui::SetItemTooltip("Draw trajectory");
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    sofaimgui::widgets::PushButton(ICON_FA_REPEAT"##Repeat", &m_repeat);
+    sofaimgui::widgets::PushButton(ICON_FA_REPEAT"##Repeat", &m_ws_repeat);
     ImGui::SetItemTooltip("Repeat program");
-    if (m_repeat)
-        m_reverse = false;
+    if (m_ws_repeat)
+        m_ws_reverse = false;
 
     ImGui::SameLine();
 
-    sofaimgui::widgets::PushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_reverse);
+    sofaimgui::widgets::PushButton(ICON_FA_ARROWS_LEFT_RIGHT"##Reverse", &m_ws_reverse);
     ImGui::SetItemTooltip("Reverse and repeat program");
-    if (m_reverse)
-        m_repeat = false;
+    if (m_ws_reverse)
+        m_ws_repeat = false;
 }
 
 void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
@@ -599,7 +592,7 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
     while(actionIndex < actions.size())
     {
         std::shared_ptr<models::actions::Action> action = actions[actionIndex];
-        float blockWidth = (m_timeBasedDisplay? action->getDuration(): 1.f) * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
+        float blockWidth = (m_ws_timeBasedDisplay? action->getDuration(): 1.f) * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
         std::string blockLabel = "##Action" + std::to_string(trackIndex) + std::to_string(actionIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
 
@@ -612,7 +605,7 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
         std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
         if (move)
         {
-            move->setDrawTrajectory(m_drawTrajectory);
+            move->setDrawTrajectory(m_ws_drawTrajectory);
             if(move->getView()->showBlock(blockLabel, blockSize))
             {
                 track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
@@ -745,29 +738,29 @@ void ProgramWindow::initFilePath(const std::string& filename)
     if (!filename.empty())
         absFilename = std::filesystem::absolute(filename);
 
-    if (m_programDirPath.empty())
+    if (m_ws_programDirPath.empty())
     {
         if (!absFilename.empty() && sofa::helper::system::FileSystem::exists(absFilename.parent_path().string()))
         {
-            m_programDirPath = absFilename.parent_path().string();
+            m_ws_programDirPath = absFilename.parent_path().string();
         }
         else
         {
-            m_programDirPath = sofa::helper::Utils::getSofaUserLocalDirectory();
+            m_ws_programDirPath = sofa::helper::Utils::getSofaUserLocalDirectory();
         }
     }
 
-    if (m_programFilename.empty())
+    if (m_ws_programFilename.empty())
     {
         if (!absFilename.empty())
         {
             std::filesystem::path path(absFilename);
             path = path.replace_extension(extension);
-            m_programFilename = path.filename().string();
+            m_ws_programFilename = path.filename().string();
         }
         else
         {
-            m_programFilename = "output" + extension;
+            m_ws_programFilename = "output" + extension;
         }
     }
 }
@@ -781,7 +774,7 @@ bool ProgramWindow::importProgram()
     std::filesystem::path path;
     initFilePath(m_baseGUI->getFilename());
 
-    nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), (m_programDirPath.empty()) ? nullptr : m_programDirPath.c_str());
+    nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), (m_ws_programDirPath.empty()) ? nullptr : m_ws_programDirPath.c_str());
     if (result == NFD_OKAY)
     {
         if (sofa::helper::system::FileSystem::exists(outPath))
@@ -825,13 +818,13 @@ void ProgramWindow::exportProgram(const bool &exportAs)
     initFilePath(m_baseGUI->getFilename());
 
     std::filesystem::path path;
-    path = m_programDirPath;
-    path.append(m_programFilename);
+    path = m_ws_programDirPath;
+    path.append(m_ws_programFilename);
     bool doExport = true;
 
     if (exportAs)
     {
-        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), m_programDirPath.c_str(), m_programFilename.c_str());
+        nfdresult_t result = NFD_SaveDialog(&outPath, nfd_filters.data(), nfd_filters.size(), m_ws_programDirPath.c_str(), m_ws_programFilename.c_str());
         if (result == NFD_OKAY)
         {
             path = outPath;
@@ -858,10 +851,9 @@ void ProgramWindow::exportProgram(const bool &exportAs)
 void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
 {
     std::filesystem::path path = filename;
-    m_programDirPath = path.parent_path().string(); // store chosen dir path
-    m_programFilename = path.filename().string(); // store chosen filename
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMDIRPATH, m_programDirPath);
-    WindowsSettings::getInstance().setSetting(m_name.c_str(), WS_PROGRAM_PROGRAMFILENAME, m_programFilename);
+
+    m_ws_programDirPath = path.parent_path().string(); // store chosen dir path
+    m_ws_programFilename = path.filename().string(); // store chosen filename
 }
 
 void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
@@ -922,7 +914,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 
         if (groot->getTime() >= programDuration - eps) // if we've reached the end of the program
         {
-            if (m_repeat) // start from beginning
+            if (m_ws_repeat) // start from beginning
             {
                 setTime(0.);
 
@@ -933,7 +925,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
                         modifier->reset();
                 }
             }
-            else if (m_reverse)
+            else if (m_ws_reverse)
             {
                 reverse = true;
                 dt = -groot->getDt();

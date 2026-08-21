@@ -44,11 +44,13 @@ namespace sofaimgui::windows
 
     protected:
 
-        bool m_autoScroll = true;
-        bool m_showInfo = true;
-        sofa::Index m_firstMessageIndex = 0;
+        bool m_ws_autoScroll{true};
+        bool m_ws_showInfo{true};
+
+        sofa::Index m_firstMessageIndex{0};
 
         void internalShowWindow() override;
+        void registerAndLoadWindowSettings() override;
 
         void showButtons();
         void showSettingsButton();

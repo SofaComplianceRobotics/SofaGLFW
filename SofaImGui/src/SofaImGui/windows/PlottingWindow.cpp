@@ -20,17 +20,18 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "GUIColors.h"
+#include <GUIColors.h>
 #include <sofa/type/Quat.h>
 
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/PlottingWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 #include <imgui_internal.h>
 #include <IconsFontAwesome6.h>
 
 #include <iostream>
 #include <fstream>
-#include <SofaImGui/widgets/Widgets.h>
 #include <nfd.h>
 
 namespace sofaimgui::windows {
@@ -56,12 +57,11 @@ void PlottingWindow::clear()
 void PlottingWindow::exportData()
 {
     nfdchar_t *outPath;
-    size_t nbData = m_GUIData.size();
 
     const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "plotting.csv");
     if (result == NFD_OKAY)
     {
-        if (nbData)
+        if (!m_buffers.empty())
         {
             std::ofstream outputFile;
             outputFile.open(outPath, std::ios::out);
@@ -69,22 +69,20 @@ void PlottingWindow::exportData()
             if (outputFile.is_open())
             {
                 outputFile << "time,";
-                for (const auto& d : m_buffers[0].data)
+                for (const auto& d : m_buffers.begin()->second.data)
                     outputFile << d.x << ",";
                 outputFile << "\n";
 
-				size_t i = 0;
 				for (auto& it : m_GUIData)
 				{
                     if (it && it->isValid())
                     {
                         outputFile << it->getLabel()<< ",";
-                        auto buffer = m_buffers[i];
+                        auto buffer = m_buffers[it];
                         for (const auto& d : buffer.data)
                             outputFile << d.y << ",";
                         outputFile << "\n";
                     }
-                    i++;
                 }
                 outputFile.close();
             }
@@ -94,45 +92,59 @@ void PlottingWindow::exportData()
 
 models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
                                                        const std::pair<sofa::core::BaseData*, bool>& data,
-                                                       const std::pair<sofa::core::BaseData*, bool>& min,
-                                                       const std::pair<sofa::core::BaseData*, bool>& max,
-                                                       const std::string& group,
-                                                       const std::string& help)
+                                                       const int& subplotIndex)
 {
-    models::guidata::GUIData::SPtr newData = BaseWindow::addData(label, data, min, max, group, help);
-    m_data[0].insert(newData); // For the moment we add all data to the first subplot
+    models::guidata::GUIData::SPtr newData = BaseWindow::addData(label,
+                                                                 data,
+                                                                 std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                                                                 std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                                                                 "", "");
+    size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
+    m_nbRows = (m_nbRows < index + 1)? index + 1: m_nbRows;
+
+    if (index > 0)
+        setDataSubplot(newData, index);
+
     return newData;;
+}
+
+models::guidata::GUIData::SPtr PlottingWindow::addGUIData(models::guidata::GUIData::SPtr guidata)
+{
+    models::guidata::GUIData::SPtr newData = BaseWindow::addGUIData(guidata);
+    m_data[0].insert(newData);
+    return newData;
 }
 
 void PlottingWindow::beforeShowWindow()
 {
     auto groot = m_baseGUI->getRootNode().get();
 
-    size_t nbData = m_GUIData.size();
-    if (m_buffers.size() != nbData)
-        m_buffers.resize(nbData);
-
     if(!m_GUIData.empty() && groot->getAnimate())
     {
-        for (size_t k=0; k<nbData; k++)
+        for (auto& data: m_GUIData)
         {
-            auto& data = *std::next(m_GUIData.begin(), k);
             if (data && data->isValid())
             {
                 const sofa::defaulttype::AbstractTypeInfo* typeInfo = data->getData()->getValueTypeInfo();
                 float value = typeInfo->getScalarValue(data->getData()->getValueVoidPtr(), 0);
                 float time = groot->getTime();
-                RollingBuffer& buffer = m_buffers[k];
+                RollingBuffer& buffer = m_buffers[data];
                 buffer.addPoint(time, value);
             }
         }
     }
 }
 
+void PlottingWindow::registerAndLoadWindowSettings()
+{
+    registerAndLoadSetting(WS_PLOTTING_NBSUBPLOT, m_ws_nbRows, WindowsSettings::SettingType::LONG);
+}
+
 void PlottingWindow::internalShowWindow()
 {
     showButtons();
     showPlots();
+    dropGUIData();
 }
 
 void PlottingWindow::showButtons()
@@ -143,7 +155,7 @@ void PlottingWindow::showButtons()
     // Clear button
     if (ImGui::Button("Clear"))
     {
-        for(auto& buffer: m_buffers)
+        for(auto& [key, buffer]: m_buffers)
             buffer.clear();
     }
 
@@ -181,8 +193,8 @@ void PlottingWindow::showButtons()
 
     if(sofaimgui::widgets::Button("+##plotting"))
     {
-        if (m_nbRows<MAX_NB_PLOT)
-            m_nbRows+=1;
+        if (m_ws_nbRows<MAX_NB_PLOT)
+            m_ws_nbRows+=1;
     }
     ImGui::SetItemTooltip("Show an additional subplot.");
 
@@ -190,8 +202,8 @@ void PlottingWindow::showButtons()
 
     if (sofaimgui::widgets::Button("-##plotting"))
     {
-        if (m_nbRows>1)
-            m_nbRows-=1;
+        if (m_ws_nbRows>1)
+            m_ws_nbRows-=1;
     }
     ImGui::SetItemTooltip("Hide last subplot.");
 
@@ -221,13 +233,13 @@ void PlottingWindow::showPlots()
 
     bool portraitLayout = (ImGui::GetWindowWidth() * 0.75 < ImGui::GetWindowHeight());
     if (ImPlot::BeginSubplots("##myplots",
-                              portraitLayout? m_nbRows: m_nbCols,
-                              portraitLayout? m_nbCols: m_nbRows,
+                              portraitLayout? m_ws_nbRows: m_nbCols,
+                              portraitLayout? m_nbCols: m_ws_nbRows,
                               ImVec2(-1, -1),
                               ImPlotSubplotFlags_ShareItems
                               ))
     {
-        for (size_t i=0; i< m_nbRows*m_nbCols; i++)
+        for (size_t i=0; i< (size_t)m_ws_nbRows*m_nbCols; i++)
         {
             const auto& plots = m_data[i];
             if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
@@ -238,28 +250,29 @@ void PlottingWindow::showPlots()
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight);
 
-				size_t k = 0;
                 for (auto& data: plots)
                 {
-                    RollingBuffer& buffer = m_buffers[k];
+                    if (data && data->isValid())
+                    {
+                        RollingBuffer& buffer = m_buffers[data];
 
-                    ImPlotSpec spec;
-                    spec.Stride = 2 * sizeof(float);
-                    ImPlot::PlotLine(data->getLabel().c_str(),
-                                     &buffer.data[0].x,
-                                     &buffer.data[0].y,
-                                     buffer.data.size(),
-                                     spec);
+                        ImPlotSpec spec;
+                        spec.Stride = 2 * sizeof(float);
+                        ImPlot::PlotLine(data->getLabel().c_str(),
+                                         &buffer.data[0].x,
+                                         &buffer.data[0].y,
+                                         buffer.data.size(),
+                                         spec);
 
-                    if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
-                        dragedData = data;
-                        ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
-                        ImPlot::ItemIcon(ImPlot::GetLastItemColor());
-                        ImGui::SameLine();
-                        ImGui::TextUnformatted(data->getLabel().c_str());
-                        ImPlot::EndDragDropSource();
+                        if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
+                            dragedData = data;
+                            ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
+                            ImPlot::ItemIcon(ImPlot::GetLastItemColor());
+                            ImGui::SameLine();
+                            ImGui::TextUnformatted(data->getLabel().c_str());
+                            ImPlot::EndDragDropSource();
+                        }
                     }
-                    k++;
                 }
 
                 if (ImPlot::BeginDragDropTargetPlot())
@@ -267,17 +280,7 @@ void PlottingWindow::showPlots()
                     if (ImGui::AcceptDragDropPayload("dragndrop"))
                     {
                         if (dragedData)
-                        {
-                            for (auto& subplots : m_data)
-                            {
-								if (subplots.second.contains(dragedData))
-								{
-									subplots.second.erase(dragedData);
-									break;
-								}
-                            }
-                            m_data[i].insert(dragedData);
-                        }
+                            setDataSubplot(dragedData, i);
                     }
                     ImPlot::EndDragDropTarget();
                 }
@@ -313,59 +316,81 @@ void PlottingWindow::showPlots()
     ImGui::PopStyleColor();
 }
 
+void PlottingWindow::setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex)
+{
+    for (auto& subplots : m_data)
+    {
+        if (subplots.second.contains(data))
+        {
+            subplots.second.erase(data);
+            break;
+        }
+    }
+    m_data[subplotIndex].insert(data);
+}
+
 void PlottingWindow::showMenu()
 {
-    if (ImGui::BeginTable("Columns", 2, ImGuiTableFlags_None))
-    {
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Y axis ratio");
-        ImGui::TableNextColumn();
-        ImGui::SameLine();
-
-        float ratio = m_ratio[0];
-        ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
-        if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
-        {
-            size_t nbData = m_buffers.size();
-            for (size_t i=0; i<nbData; i++)
-            {
-                auto& buffer = m_buffers[i];
-                for (auto& point: buffer.data)
-                {
-                    point.y /= buffer.ratio;
-                    point.y *= ratio;
-                }
-                buffer.ratio = ratio;
-            }
-
-            for (size_t i=0; i<m_nbRows * m_nbCols; i++)
-				m_ratio[i] = ratio;
-        }
-        ImGui::PopItemWidth();
-        ImGui::EndTable();
+    { // Remove data
+        if (ImGui::MenuItem("Remove all data"))
+            clearWindow();
     }
 
     ImGui::Separator();
 
-    ImPlotContext& gp = *GImPlot;
-    auto& plots  = gp.Plots;
+    { // Ratio
+        if (ImGui::BeginTable("Columns", 2, ImGuiTableFlags_None))
+        {
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Y axis ratio");
+            ImGui::TableNextColumn();
+            ImGui::SameLine();
 
-    bool showMousePosition = !ImHasFlag(plots.GetByIndex(0)->Flags, ImPlotFlags_NoMouseText);
-    sofaimgui::widgets::CheckBox("Show mouse position", &showMousePosition);
-    bool showGrid = !ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
-    sofaimgui::widgets::CheckBox("Show grid", &showGrid);
-    bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
-    sofaimgui::widgets::CheckBox("Auto fit content", &autofit);
+            float ratio = m_ratio[0];
+            ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
+            if (ImGui::InputFloat("##Ratio", &ratio, 0, 0, "%0.2e"))
+            {
+                for (auto& [key, buffer]: m_buffers)
+                {
+                    for (auto& point: buffer.data)
+                    {
+                        point.y /= buffer.ratio;
+                        point.y *= ratio;
+                    }
+                    buffer.ratio = ratio;
+                }
 
-    for (size_t i=0; i<m_nbRows * m_nbCols; i++)
-    {
-        auto plot = plots.GetByIndex(i);
-        showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
-        showGrid ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->XAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
-        showGrid ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->YAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
-        !autofit ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->XAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
-        !autofit ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->YAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+                for (size_t i=0; i<(size_t)m_nbRows * m_nbCols; i++)
+                    m_ratio[i] = ratio;
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndTable();
+        }
+    }
+
+    ImGui::Separator();
+
+    { // Plots display options
+        ImPlotContext& gp = *GImPlot;
+        auto& plots  = gp.Plots;
+
+        bool showMousePosition = !ImHasFlag(plots.GetByIndex(0)->Flags, ImPlotFlags_NoMouseText);
+        sofaimgui::widgets::CheckBox("Show mouse position", &showMousePosition);
+        bool showGrid = !ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_NoGridLines);
+        sofaimgui::widgets::CheckBox("Show grid", &showGrid);
+        bool autofit = ImHasFlag(plots.GetByIndex(0)->XAxis(0).Flags, ImPlotAxisFlags_AutoFit);
+        sofaimgui::widgets::CheckBox("Auto fit content", &autofit);
+
+        for (size_t i=0; i<(size_t)m_nbRows * m_nbCols; i++)
+        {
+            auto plot = plots.GetByIndex(i);
+            showMousePosition ? plot->Flags &= ~ImPlotFlags_NoMouseText : plot->Flags |= ImPlotFlags_NoMouseText;
+            showGrid ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->XAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
+            showGrid ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_NoGridLines : plot->YAxis(0).Flags |= ImPlotAxisFlags_NoGridLines;
+            !autofit ? plot->XAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->XAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+            !autofit ? plot->YAxis(0).Flags &= ~ImPlotAxisFlags_AutoFit : plot->YAxis(0).Flags |= ImPlotAxisFlags_AutoFit;
+        }
     }
 }
 
@@ -384,15 +409,13 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
         ImGui::PushItemWidth(ImGui::CalcTextSize("-100000,00").x);
         if (ImGui::InputFloat(("##Ratio" + std::to_string(idSubplot)).c_str(), &ratio, 0, 0, "%0.2e"))
         {
-            size_t nbData = m_GUIData.size();
-            for (size_t i=0; i<nbData; i++)
+            for (auto& data: m_GUIData)
             {
-				auto& data = *std::next(m_GUIData.begin(), i);
                 if (data && data->isValid())
                 {
-                    auto& buffer = m_buffers[i];
                     if (m_data[idSubplot].contains(data))
                     {
+                        auto& buffer = m_buffers[data];
                         for (auto& point: buffer.data)
                         {
                             point.y /= buffer.ratio;

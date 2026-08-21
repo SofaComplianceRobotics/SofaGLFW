@@ -29,11 +29,12 @@
 
 namespace sofaimgui::windows {
 
-#define MAX_NB_PLOT 4
 
 class SOFAIMGUI_API PlottingWindow : public BaseWindow
 {
    public:
+
+    static const int MAX_NB_PLOT {4};
 
     struct RollingBuffer
     {
@@ -71,27 +72,28 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     std::string getDescription() override;
 
     sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
-                                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                                     const std::pair<sofa::core::BaseData*, bool>& min = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                                                     const std::string& group = "",
-                                                     const std::string& help = "") override;
+                                                      const std::pair<sofa::core::BaseData*, bool>& data,
+                                                      const int& subplotIndex = 0);
+
+    models::guidata::GUIData::SPtr addGUIData(models::guidata::GUIData::SPtr guidata) override;
 
    protected:
     std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
-    std::vector<RollingBuffer> m_buffers;
+    std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
-    size_t m_nbRows{1};
-    size_t m_nbCols{1};
+    long m_ws_nbRows{1};
+    long m_nbCols{1};
 
     void beforeShowWindow() override;
     void internalShowWindow() override;
+    void registerAndLoadWindowSettings() override;
 
     void clear() override;
     bool isEnabledByState() override {return !m_GUIData.empty();}
 
     void exportData();
+    void setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
     void showButtons();
     void showPlots();
     void showMenu();

@@ -274,7 +274,7 @@ void ComponentsWindow::showExampleContextMenu(const std::filesystem::path &examp
         ImGui::SetClipboardText(examplePath.string().c_str());
 
     if (ImGui::MenuItem("Open File"))
-        if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(examplePath))
+        if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(examplePath.string()))
             FooterStatusBar::getInstance().setTempMessage("Opening file : " + examplePath.string());
 
     if (ImGui::MenuItem("Load File"))

@@ -47,39 +47,6 @@ using namespace pybind11::literals;
 namespace sofaimgui::python3
 {
 
-void setIPController(sofa::simulation::Node &TCPTargetNode,
-                     sofa::simulation::Node &TCPNode,
-                     sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
-{
-    SOFA_UNUSED(TCPNode);
-    msg_deprecated("SofaImGui.setIPController") << "This method is deprecated, use setInverseProblemSolver, addTCP, and addActuator instead.";
-
-    ImGuiGUI* gui = ImGuiGUI::getGUI();
-    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
-    softrobotsinverse::solver::QPInverseProblemSolver::SPtr qpsolver = dynamic_cast<softrobotsinverse::solver::QPInverseProblemSolver*>(&solver);
-
-    if (engine && qpsolver)
-    {
-        sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPTargetNode.getRoot());
-
-        // Find the PositionEffector component corresponding to the rotation if any
-        sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
-        groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);
-        // softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes>* rotationEffector{ nullptr };
-
-        for (auto* effector: effectors)
-        {
-            auto useDirections = effector->d_useDirections.getValue();
-            if (useDirections[0] || useDirections[1] || useDirections[2])
-                continue;
-            // rotationEffector = effector;
-            break;
-        }
-
-        engine->m_kinematicsGUIDataManager->setInverseProblemSolver(qpsolver);
-    }
-}
-
 void setInverseProblemSolver(sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl* solver)
 {
     ImGuiGUI* gui = ImGuiGUI::getGUI();
@@ -170,7 +137,7 @@ void addAccessoryFeature(std::string accessoryLabel,
         }
         else
         {
-            msg_error("[addAccessoryFeature]") << "Expects either an Effector or Actuator component as the third argument.";
+            msg_error("[addAccessoryFeature]") << "Expects a data as the third argument.";
         }
     }
 }
@@ -195,11 +162,45 @@ void setRobotConnectionToggle(const bool& robotConnectionToggle)
         engine->setRobotConnection(robotConnectionToggle);
 }
 
+// DEPRECATED
+void setIPController(sofa::simulation::Node &TCPTargetNode,
+                     sofa::simulation::Node &TCPNode,
+                     sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
+{
+    SOFA_UNUSED(TCPNode);
+    msg_deprecated("SofaImGui.setIPController") << "This method is deprecated, use setInverseProblemSolver, addTCP, and addActuator instead.";
+
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+    softrobotsinverse::solver::QPInverseProblemSolver::SPtr qpsolver = dynamic_cast<softrobotsinverse::solver::QPInverseProblemSolver*>(&solver);
+
+    if (engine && qpsolver)
+    {
+        sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPTargetNode.getRoot());
+
+        sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
+        groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);
+
+        for (auto* effector: effectors)
+        {
+            py::object min = py::cast(-100);
+            py::object max = py::cast(100);
+            addTCP("TCP", effector, min, max, "", "", -3., 3.);
+            auto useDirections = effector->d_useDirections.getValue();
+            if (useDirections[0] || useDirections[1] || useDirections[2])
+                continue;
+            break;
+        }
+
+        engine->m_kinematicsGUIDataManager->setInverseProblemSolver(qpsolver);
+    }
+}
+
 PYBIND11_MODULE(ImGui, m)
 {
     // Deprecated
     m.def("setIPController", &setIPController
-          ,"[Deprecated] Use setInverseProblemSolver instead");
+          ,"[DEPRECATED] Use setInverseProblemSolver instead.");
 
     m.def("setInverseProblemSolver", &setInverseProblemSolver
           , "Set the inverse problem solver for piloting TCP from the GUI.");
@@ -232,7 +233,7 @@ std::pair<sofa::core::BaseData*, bool> getDataFromPyObject(py::object& obj, std:
         return std::pair<sofa::core::BaseData*, bool>(nullptr, false);
 
     if (py::isinstance<sofa::core::objectmodel::BaseData>(obj))
-        return std::pair<sofa::core::BaseData*, bool>(py::cast<sofa::core::objectmodel::BaseData*>(obj), false); //sofapython3::addData(py::none(), "Label", obj, py::none(), "", "group", type); //py::cast<sofa::core::objectmodel::BaseData*>(obj);
+        return std::pair<sofa::core::BaseData*, bool>(py::cast<sofa::core::objectmodel::BaseData*>(obj), false);
 
     sofa::core::BaseData* data = sofapython3::PythonFactory::createInstance(type);
     if (!obj.is_none() and data)
