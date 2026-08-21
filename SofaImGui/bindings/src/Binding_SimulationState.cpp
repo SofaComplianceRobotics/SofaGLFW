@@ -60,16 +60,6 @@ void moduleAddSimulationState(py::module &m)
             SOFA_UNUSED(data);
 
             msg_deprecated(m_a_name) << "SimulationState is deprecated and will be removed in a future release. Please use Sofa.ImGui.Dashboard instead.";
-            if (engine)
-            {
-				// TODO Remove this when SimulationState is removed
-                // models::SimulationState::StateData stateData;
-                // stateData.group = group;
-                // stateData.description = description;
-                // stateData.data = getDataFromPyObject(data, "double").first;
-                // engine->getSimulationState().addStateData(stateData);
-
-            }
         },
         "[DEPRECATED] Add a data to the SimulationState"
         );
