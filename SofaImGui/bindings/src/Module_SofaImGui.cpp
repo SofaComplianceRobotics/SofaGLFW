@@ -137,7 +137,7 @@ void addAccessoryFeature(std::string accessoryLabel,
         }
         else
         {
-            msg_error("[addAccessoryFeature]") << "Expects either an Effector or Actuator component as the third argument.";
+            msg_error("[addAccessoryFeature]") << "Expects a data as the third argument.";
         }
     }
 }
