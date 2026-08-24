@@ -51,7 +51,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     virtual std::string getDescription() = 0;
 
     /// Implementation on end init
-    virtual void onEndInit(){}
+    virtual void onEndInit();
 
     /// Get the name of the window
     std::string getName() const;
@@ -82,7 +82,9 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     using models::guidata::GUIDataManager::addData;
     using models::guidata::GUIDataManager::addGUIData;
-    using models::guidata::GUIDataManager::removeGUIData;
+
+    void removeGUIData(models::guidata::GUIData::SPtr data) override;
+    void clearGUIData() override;
 
     /// The window may have nothing to display. It should override this method with the corresponding checks.
     /// For example: the PlottingWindow needs data to plot, if none are given, the window is disabled.
@@ -130,5 +132,9 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     bool m_firstTime{true};
     std::map<std::string, std::pair<void*, WindowsSettings::SettingType>> m_registeredSettings;
+    long m_ws_guiDataSize{0};
+
+    void registerAndLoadGUIData(); 
+    void resetGUIDataSettings();
 };
 }

@@ -20,6 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #include "IconsFontAwesome6.h"
+#include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/windows/BaseWindow.h>
 
 namespace sofaimgui::windows {
@@ -34,6 +35,11 @@ BaseWindow::BaseWindow(std::string name)
     : BaseWindow()
 {
     m_name = name;
+}
+
+void BaseWindow::onEndInit()
+{
+    registerAndLoadGUIData();
 }
 
 void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
@@ -165,10 +171,66 @@ void BaseWindow::dropGUIData()
                         std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                         data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
                         data->getHelp());
+                resetGUIDataSettings();
             }
         }
         ImGui::EndDragDropTarget();
     }
+}
+
+void BaseWindow::removeGUIData(models::guidata::GUIData::SPtr data)
+{
+    models::guidata::GUIDataManager::removeGUIData(data);
+    resetGUIDataSettings();
+}
+
+void BaseWindow::clearGUIData()
+{
+    models::guidata::GUIDataManager::clearGUIData();
+    resetGUIDataSettings();
+}
+
+void BaseWindow::registerAndLoadGUIData()
+{
+    // Load GUIData size
+    registerAndLoadSetting(WS_WINDOWS_GUIDATA, m_ws_guiDataSize, WindowsSettings::SettingType::LONG);
+
+    // Load GUIData
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    auto groot = m_baseGUI->getRootNode();
+    for (auto i=0; i<m_ws_guiDataSize; i++)
+    {
+        std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
+        if (!guiDataPath.empty())
+        {
+            sofa::core::BaseData* data;
+            if (groot->findDataLinkDest(data, "@" + guiDataPath, nullptr))
+            {
+                addData(data->getName(),
+                        std::pair<sofa::core::BaseData*, bool>(data, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                        data->getOwner()->getPathName(),
+                        data->getHelp());
+            }
+        }
+    }
+}
+
+void BaseWindow::resetGUIDataSettings()
+{
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    for (auto i=0; i<m_ws_guiDataSize; i++)
+        windowsSettings.deleteSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str());
+
+    m_ws_guiDataSize = m_GUIData.size();
+    windowsSettings.setSetting(m_name.c_str(), WS_WINDOWS_GUIDATA, m_ws_guiDataSize);
+
+    int i=0;
+    for (auto it=m_GUIData.begin(); it!=m_GUIData.end(); it++)
+        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)).c_str(), it->get()->getData()->getPathName());
 }
 
 }

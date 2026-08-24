@@ -26,11 +26,11 @@ namespace sofaimgui::models::guidata {
 
 
 GUIData::SPtr GUIDataManager::addData(const std::string& label,
-                                     const std::pair<sofa::core::BaseData*, bool>& data,
-                                     const std::pair<sofa::core::BaseData*, bool>& min,
-                                     const std::pair<sofa::core::BaseData*, bool>& max,
-                                     const std::string& group,
-                                     const std::string& help)
+                                      const std::pair<sofa::core::BaseData*, bool>& data,
+                                      const std::pair<sofa::core::BaseData*, bool>& min,
+                                      const std::pair<sofa::core::BaseData*, bool>& max,
+                                      const std::string& group,
+                                      const std::string& help)
 {
     if(data.first)
     {
@@ -79,6 +79,12 @@ void GUIDataManager::removeGUIData(GUIData::SPtr data)
         if(group.empty())
             m_groupedGUIData.erase(data->getGroup());
     }
+}
+
+void GUIDataManager::clearGUIData()
+{
+    m_GUIData.clear();
+    m_groupedGUIData.clear();
 }
 
 }

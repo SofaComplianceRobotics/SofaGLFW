@@ -66,6 +66,8 @@ std::string IOWindow::getDescription()
 
 void IOWindow::onEndInit()
 {
+    BaseWindow::onEndInit();
+
     if (auto effector = m_kinematicsGUIDataManager->getTCPGUIData())
     {
         m_selectableData[Role::PUBLISH][effector->getLabel()] = effector;

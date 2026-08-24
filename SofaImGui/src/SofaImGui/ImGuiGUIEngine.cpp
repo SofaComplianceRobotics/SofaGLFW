@@ -340,9 +340,11 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
-        notifyWindowsEndInit();
+
         loadProject();
         enableWindows();
+
+        notifyWindowsEndInit();
     }
     else
     {
@@ -1049,11 +1051,10 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     Utils::loadSimulation(m_baseGUI, reload, filename);
 
     createGUINode(guiNode);
-    if (!reload)
-    {
-        if (loadProject())
-            enableWindows();
-    }
+
+    if (loadProject() && !reload)
+        enableWindows();
+
     notifyWindowsEndInit();
 }
 
