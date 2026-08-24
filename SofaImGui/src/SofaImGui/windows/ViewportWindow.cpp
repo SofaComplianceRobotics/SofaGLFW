@@ -164,8 +164,8 @@ void ViewportWindow::addCameraButtons()
 
             { // Frame gizmo
                 bool axisClicked[6]{false};
-                sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
-                sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
+                sofaimgui::widgets::SetRect(position.x, position.y, frameGizmoSize);
+                sofaimgui::widgets::DrawFrameGizmo(mview, proj, axisClicked);
                 if (axisClicked[0])
                     sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
                 else if (axisClicked[1])
@@ -184,10 +184,10 @@ void ViewportWindow::addCameraButtons()
                 if (m_ws_orientationGizmoEnabled)
                 {
                     // Center of the viewport (look at position)
-                    sofaimgui::widget::SetRect(position.x + frameGizmoSize,
+                    sofaimgui::widgets::SetRect(position.x + frameGizmoSize,
                                                position.y,
                                                orientationGizmoSize);
-                    sofaimgui::widget::DrawOrientationGizmo(mview, proj, axisClicked);
+                    sofaimgui::widgets::DrawOrientationGizmo(mview, proj, axisClicked);
                 }
             }
         }
@@ -233,7 +233,7 @@ void ViewportWindow::addCameraButtons()
         std::string title = (m_ws_cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
-        if(ImGui::LocalButton(title.c_str()))
+        if(sofaimgui::widgets::Button(title.c_str()))
         {
             m_ws_cameraButtonsCollapsed = !m_ws_cameraButtonsCollapsed;
         }
@@ -252,7 +252,7 @@ void ViewportWindow::addCameraButtons()
                     ImGui::EndPopup();
                 }
 
-                if (ImGui::LocalButton(ICON_FA_EYE))
+                if (sofaimgui::widgets::Button(ICON_FA_EYE))
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }
@@ -264,7 +264,7 @@ void ViewportWindow::addCameraButtons()
             ImGui::PopStyleColor();
 
             { // Fit all
-                if (ImGui::LocalButton(ICON_FA_ARROWS_TO_DOT))
+                if (sofaimgui::widgets::Button(ICON_FA_ARROWS_TO_DOT))
                 {
                     camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
@@ -274,7 +274,7 @@ void ViewportWindow::addCameraButtons()
             }
 
             { // Center view
-                if (ImGui::LocalButton(ICON_FA_BULLSEYE))
+                if (sofaimgui::widgets::Button(ICON_FA_BULLSEYE))
                 {
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                     camera->d_lookAt.setValue(bbCenter);
@@ -284,7 +284,7 @@ void ViewportWindow::addCameraButtons()
 
             { // Othographic / perspective view
                 bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-                if (ImGui::LocalButton((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
+                if (sofaimgui::widgets::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
                     sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
@@ -293,7 +293,7 @@ void ViewportWindow::addCameraButtons()
             }
 
             { // Orientation gizmo button
-                if (ImGui::LocalButton(ICON_FA_ROTATE))
+                if (sofaimgui::widgets::Button(ICON_FA_ROTATE))
                 {
                     m_ws_orientationGizmoEnabled = !m_ws_orientationGizmoEnabled;
                 }
@@ -308,7 +308,7 @@ void ViewportWindow::addCameraButtons()
 
             { // Axis related
                 { // Translate Left/Right
-                    ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
+                    sofaimgui::widgets::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
@@ -325,7 +325,7 @@ void ViewportWindow::addCameraButtons()
                 }
 
                 { // Translate Up/Down
-                    ImGui::LocalButton(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
+                    sofaimgui::widgets::Button(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
@@ -342,7 +342,7 @@ void ViewportWindow::addCameraButtons()
                 }
 
                 { // Zoom
-                    ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
+                    sofaimgui::widgets::Button(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
@@ -484,7 +484,7 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
                 if (ImGui::Begin("ViewportChildMiddleButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
                 {
-                    ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
+                    sofaimgui::widgets::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
                     ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
                     if (ImGui::IsItemClicked())
@@ -520,7 +520,7 @@ bool ViewportWindow::addStepButton()
                 {
                     ImGui::SameLine();
                     ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                    if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
+                    if (sofaimgui::widgets::Button(ICON_FA_FORWARD_STEP))
                         isItemClicked = true;
                     ImGui::PopItemFlag();
                     ImGui::SetItemTooltip("One step of simulation");
@@ -548,7 +548,7 @@ bool ViewportWindow::addReloadButton()
                 if (ImGui::Begin("ViewportChildMiddleButtons"))
                 {
                     ImGui::SameLine();
-                    if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
+                    if (sofaimgui::widgets::Button(ICON_FA_ROTATE_LEFT))
                         isItemClicked = true;
                     ImGui::SetItemTooltip("Reload the simulation");
                 }

@@ -78,7 +78,7 @@ void RecordVideoWindow::internalShowWindow()
     ImGui::SameLine();
     if (generatedFilename)
         ImGui::BeginDisabled();
-    if(ImGui::LocalButton(ICON_FA_ROTATE))
+    if(sofaimgui::widgets::Button(ICON_FA_ROTATE))
     {
         generatedFilename = true;
         filename = m_baseGUI->generateFilename("video", "");
@@ -93,14 +93,14 @@ void RecordVideoWindow::internalShowWindow()
     ImGui::SameLine();
 
     static float start_time = 0.;
-    ImGui::LocalInputFloat("##StartTime", &start_time);
+    sofaimgui::widgets::InputFloat("##StartTime", &start_time);
 
     ImGui::SameLine();
     ImGui::Text("-");
     ImGui::SameLine();
 
     static float end_time = std::numeric_limits<float>::infinity();
-    ImGui::LocalInputFloat("##EndTime", &end_time);
+    sofaimgui::widgets::InputFloat("##EndTime", &end_time);
 
     // Current time
     const auto& current_time = m_baseGUI->getRootNode()->getTime();

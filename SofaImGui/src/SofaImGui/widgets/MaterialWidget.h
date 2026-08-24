@@ -23,7 +23,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <sofa/type/Material.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 void showMaterialWidget(sofa::Data<sofa::type::Material>& data);

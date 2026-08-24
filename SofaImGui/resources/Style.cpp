@@ -32,7 +32,7 @@ void setStyleVars()
 
     style.WindowPadding                     = ImVec2(10.00f, 10.00f);
     style.FramePadding                      = ImVec2(10.00f, 10.00f);
-    style.CellPadding                       = ImVec2(6.00f, 6.00f);
+    style.CellPadding                       = ImVec2(16.00f, 6.00f);
     style.DragDropTargetPadding             = 6.00f;
 
     style.ItemSpacing                       = ImVec2(16.00f, 16.00f);

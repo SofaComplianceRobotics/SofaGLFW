@@ -134,7 +134,7 @@ void IOWindow::internalShowWindow()
     ImGui::Indent();
     ImGui::Text("Method:");
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-    ImGui::LocalCombo("##ComboMethod", &m_method, items, IM_ARRAYSIZE(items));
+    sofaimgui::widgets::Combo("##ComboMethod", &m_method, items, IM_ARRAYSIZE(items));
     ImGui::PopItemWidth();
     ImGui::Spacing();
     ImGui::Unindent();
@@ -201,11 +201,11 @@ void IOWindow::showROSWindow()
 
     { // Show output section
         ImGui::PushStyleColor(ImGuiCol_Text, (m_isPublishing)? color: ImGui::GetStyle().Colors[ImGuiCol_Text]);
-        if (ImGui::LocalBeginCollapsingHeader("Output", ImGuiTreeNodeFlags_DefaultOpen))
+        if (sofaimgui::widgets::BeginCollapsingHeader("Output", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::PopStyleColor();
             showROSOutput();
-            ImGui::LocalEndCollapsingHeader();
+            sofaimgui::widgets::EndCollapsingHeader();
         }
         else
         {
@@ -215,11 +215,11 @@ void IOWindow::showROSWindow()
 
     { // Show input section
         ImGui::PushStyleColor(ImGuiCol_Text, (m_isListening)? color: ImGui::GetStyle().Colors[ImGuiCol_Text]);
-        if (ImGui::LocalBeginCollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
+        if (sofaimgui::widgets::BeginCollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::PopStyleColor();
             showROSInput();
-            ImGui::LocalEndCollapsingHeader();
+            sofaimgui::widgets::EndCollapsingHeader();
         }
         else
         {
@@ -297,7 +297,7 @@ void IOWindow::showROSOutput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                if (ImGui::LocalCheckBox(key.c_str(), &m_publishListboxItems[key]))
+                if (sofaimgui::widgets::CheckBox(key.c_str(), &m_publishListboxItems[key]))
                     updateROSData = true;
                 ImGui::PopStyleColor();
             }
@@ -324,7 +324,7 @@ void IOWindow::showROSOutput()
             ImGui::BeginDisabled();
         }
 
-        if (ImGui::LocalToggleButton("PublishersListening", &m_isPublishing))
+        if (sofaimgui::widgets::ToggleButton("PublishersListening", &m_isPublishing))
         {
             if(m_isPublishing)
             {
@@ -366,7 +366,7 @@ void IOWindow::showROSInput()
 
     ImGui::Text("Select a node:");
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-    ImGui::LocalCombo("##NodeSubscription", &nodeID, nodes.data(), nbNodes);
+    sofaimgui::widgets::Combo("##NodeSubscription", &nodeID, nodes.data(), nbNodes);
     ImGui::PopItemWidth();
 
     // List of found topics
@@ -422,7 +422,7 @@ void IOWindow::showROSInput()
                 ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
                 color.w = 1.0;
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, color);
-                if (ImGui::LocalCheckBox(name.c_str(), &m_subcriptionListboxItems[name]))
+                if (sofaimgui::widgets::CheckBox(name.c_str(), &m_subcriptionListboxItems[name]))
                     updateROSData = true;
                 ImGui::PopStyleColor();
 
@@ -453,7 +453,7 @@ void IOWindow::showROSInput()
             ImGui::BeginDisabled();
         }
 
-        if (ImGui::LocalToggleButton("SubcriptionListening", &m_isListening))
+        if (sofaimgui::widgets::ToggleButton("SubcriptionListening", &m_isListening))
         {
             if (m_isListening)
             {

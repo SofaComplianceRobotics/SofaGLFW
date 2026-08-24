@@ -20,7 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <sofa/core/objectmodel/Base.h>
 
@@ -36,7 +36,7 @@
 #include <SofaImGui/widgets/IntWidget.h>
 #include <SofaImGui/widgets/BoundingBoxWidget.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 using namespace sofa;
@@ -71,7 +71,7 @@ void DataWidget<bool>::showWidget(MyData& data)
     bool changeableValue = initialValue;
     const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
 
-    ImGui::LocalCheckBox(("##" + id).c_str(), &changeableValue);
+    sofaimgui::widgets::CheckBox(("##" + id).c_str(), &changeableValue);
     if (changeableValue != initialValue)
     {
         data.setValue(changeableValue);
@@ -105,63 +105,6 @@ void DataWidget<unsigned int>::showWidget(MyData& data)
 /***********************************************************************************************************************
  * Vec
  **********************************************************************************************************************/
-
-template< sofa::Size N, typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<N, ValueType> >&)
-{
-    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-    for (unsigned int i = 0; i < N; ++i)
-    {
-        ImGui::TableSetupColumn(std::to_string(i).c_str());
-    }
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<1, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<2, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-}
-
-template<typename ValueType>
-void showVecTableHeader(Data<sofa::type::Vec<3, ValueType> >&)
-{
-    ImGui::TableSetupColumn("X");
-    ImGui::TableSetupColumn("Y");
-    ImGui::TableSetupColumn("Z");
-}
-
-template< sofa::Size N, typename ValueType>
-void showWidgetT(Data<sofa::type::Vec<N, ValueType> >& data)
-{
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N, flags))
-    {
-        showVecTableHeader(data);
-
-        ImGui::TableHeadersRow();
-
-        ImGui::TableNextRow();
-        int i=0;
-        for (auto& v : *sofa::helper::getWriteAccessor(data))
-        {
-            ImGui::TableNextColumn();
-            ImGui::PushID(i);
-            ImGui::PushItemWidth(-1); // Fit container width
-            showScalarWidget(ImGui::TableGetColumnName(i++), v);
-            ImGui::PopItemWidth();
-            ImGui::PopID();
-        }
-
-        ImGui::EndTable();
-    }
-}
 
 template<>
 void DataWidget<sofa::type::Vec<1, double> >::showWidget(MyData& data)
@@ -335,49 +278,6 @@ void DataWidget<sofa::type::vector<sofa::defaulttype::RigidDeriv<2, float> > >::
  * Topology elements
  **********************************************************************************************************************/
 
-template< typename GeometryElement>
-void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement> > >& data)
-{
-    constexpr auto N = sofa::topology::Element<GeometryElement>::static_size;
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_RowBg;
-    if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(), N + 1, flags))
-    {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-        for (unsigned int i = 0; i < N; ++i)
-        {
-            ImGui::TableSetupColumn(std::to_string(i).c_str());
-        }
-
-        ImGui::TableHeadersRow();
-
-        unsigned int counter {};
-        for (auto& vec : *sofa::helper::getWriteAccessor(data))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%d", counter++);
-            unsigned int i=0;
-            for (auto& v : vec)
-            {
-                int vui = v;
-                ImGui::TableNextColumn();
-                ImGui::PushID(counter);
-                ImGui::PushItemWidth(-1); // Fit container width
-                ImGui::BeginDisabled();
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-                ImGui::InputInt((std::string("##") + ImGui::TableGetColumnName(i++) + std::to_string(counter)).c_str(), &vui, 0, 0, ImGuiInputTextFlags_None);
-                ImGui::PopStyleVar();
-                ImGui::EndDisabled();
-                ImGui::PopItemWidth();
-                ImGui::PopID();
-            }
-        }
-
-        ImGui::EndTable();
-    }
-}
-
 template<>
 void DataWidget<sofa::type::vector<sofa::topology::Edge> >::showWidget(MyData& data)
 {
@@ -455,7 +355,6 @@ void DataWidget<std::map<std::string, sofa::type::vector<float> > >::showWidget(
 /***********************************************************************************************************************
  * OptionsGroup
  **********************************************************************************************************************/
-
 template<>
 void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
 {
@@ -479,8 +378,7 @@ void DataWidget<helper::OptionsGroup>::showWidget(MyData& data)
  * SelectableItems
  **********************************************************************************************************************/
 template<>
-void DataWidget<helper::BaseSelectableItem>::showWidget(
-    sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
+void DataWidget<helper::BaseSelectableItem>::showWidget(sofa::core::objectmodel::BaseData& data, const helper::BaseSelectableItem* selectableItems)
 {
     const auto id = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     int selectedId = selectableItems->getSelectedId();

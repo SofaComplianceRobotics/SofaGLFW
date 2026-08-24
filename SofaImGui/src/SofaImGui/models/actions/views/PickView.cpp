@@ -45,7 +45,7 @@ bool Pick::PickView::showBlock(const std::string &label,
     ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
     ImVec2 topRight = ImVec2(x + size.x, y);
 
-    ImGui::ActionBlock(label.c_str(), bb, ProgramColors().PickBlockBg);
+    sofaimgui::widgets::ActionBlock(label.c_str(), bb, ProgramColors().PickBlockBg);
 
     auto rectMin = ImGui::GetItemRectMin();
     auto rectMax = ImGui::GetItemRectMax();
@@ -187,7 +187,7 @@ bool Pick::PickView::showBlock(const std::string &label,
         std::string id = "##release" + std::to_string(window->DC.CursorPos.x);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
         ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
-        ImGui::LocalToggleButton(id.c_str(), &pick.m_release);
+        sofaimgui::widgets::ToggleButton(id.c_str(), &pick.m_release);
         ImGui::PopStyleColor(2);
         ImGui::SameLine();
         ImGui::PopItemWidth();

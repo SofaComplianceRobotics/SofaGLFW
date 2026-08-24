@@ -58,14 +58,13 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     bool m_freePitch{true};
     bool m_freeYaw{true};
 
-    ImGui::MovePad m_movePad;
+    sofaimgui::widgets::MovePad m_movePad;
 
     void internalShowWindow() override;
 
     bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 
-    bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImVec4 &color);
-    bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max);
+    bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImU32 &color);
     void showOptions();
     void showWeightOption(const int &index);
     void showPad();

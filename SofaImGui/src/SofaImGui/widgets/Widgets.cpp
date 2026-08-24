@@ -5,10 +5,10 @@
 #include <string>
 
 
-namespace ImGui
+namespace sofaimgui::widgets
 {
 
-bool LocalCombo(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items)
+bool Combo(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     const bool value_changed = ImGui::Combo(label, current_item, items, items_count, height_in_items);
@@ -16,7 +16,7 @@ bool LocalCombo(const char* label, int* current_item, const char* const items[],
     return value_changed;
 }
 
-bool LocalInputDouble(const char* label, double* v, double step, double step_fast, const char*, ImGuiInputTextFlags flags)
+bool InputDouble(const char* label, double* v, double step, double step_fast, const char*, ImGuiInputTextFlags flags)
 {
     float inputWidth = ImGui::CalcTextSize("-100000,00").x;
     if (step>0) // add step buttons width
@@ -32,7 +32,7 @@ bool LocalInputDouble(const char* label, double* v, double step, double step_fas
     return value_changed;
 }
 
-bool LocalInputFloat(const char* label, float* v, float step, float step_fast, const char*, ImGuiInputTextFlags flags)
+bool InputFloat(const char* label, float* v, float step, float step_fast, const char*, ImGuiInputTextFlags flags)
 {
     float inputWidth = ImGui::CalcTextSize("-100000,00").x;
     if (step>0) // add step buttons width
@@ -48,7 +48,7 @@ bool LocalInputFloat(const char* label, float* v, float step, float step_fast, c
     return result;
 }
 
-bool LocalToggleButton(const char* str_id, bool* v)
+bool ToggleButton(const char* str_id, bool* v)
 {
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -94,13 +94,13 @@ bool LocalToggleButton(const char* str_id, bool* v)
     return clicked;
 }
 
-bool LocalButton(const char* str_id, const ImVec2 &buttonSize)
+bool Button(const char* str_id, const ImVec2 &buttonSize)
 {
     return ImGui::Button(str_id, buttonSize);
 }
 
 
-void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
+void PushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
 {
     ImVec4 colorActive = ImGui::GetStyle().Colors[ImGuiCol_Button];
     colorActive.x -= 0.25;
@@ -127,68 +127,68 @@ void LocalPushButton(const char* str_id, bool* v, const ImVec2 &buttonSize)
     ImGui::PopStyleColor(5);
 }
 
-bool LocalCheckBox(const char* label, bool* v)
+bool CheckBox(const char* label, bool* v)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    bool pressed = LocalCheckBoxEx(label, v);
+    bool pressed = CheckBoxEx(label, v);
     ImGui::PopStyleVar(2);
     return pressed;
 }
 
-bool LocalRadioButton(const char* label, int* v, int v_button)
+bool RadioButton(const char* label, int* v, int v_button)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    bool pressed = RadioButton(label, v, v_button);
+    bool pressed = ImGui::RadioButton(label, v, v_button);
     ImGui::PopStyleVar(2);
     return pressed;
 }
 
-bool LocalRadioButton(const char* label, bool active)
+bool RadioButton(const char* label, bool active)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-    bool pressed = RadioButton(label, active);
+    bool pressed = ImGui::RadioButton(label, active);
     ImGui::PopStyleVar(2);
     return pressed;
 }
 
-bool LocalCheckBoxEx(const char* label, bool* v)
+bool CheckBoxEx(const char* label, bool* v)
 {
-    ImGuiWindow* window = GetCurrentWindow();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return false;
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
 
-    const float square_sz = GetFrameHeight();
+    const float square_sz = ImGui::GetFrameHeight();
     const ImVec2 pos = window->DC.CursorPos;
     ImVec2 pos2 = ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f);
     const ImRect total_bb(pos, ImVec2(pos.x + pos2.x, pos.y + pos2.y));
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id))
+    ImGui::ItemSize(total_bb, style.FramePadding.y);
+    if (!ImGui::ItemAdd(total_bb, id))
     {
         IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
         return false;
     }
 
     bool hovered, held;
-    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+    bool pressed = ImGui::ButtonBehavior(total_bb, id, &hovered, &held);
     if (pressed)
     {
         *v = !(*v);
-        MarkItemEdited(id);
+        ImGui::MarkItemEdited(id);
     }
 
     pos2 = ImVec2(square_sz, square_sz);
     const ImRect check_bb(pos, ImVec2(pos.x + pos2.x, pos.y + pos2.y));
-    RenderNavHighlight(total_bb, id);
-    RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding / 2);
-    ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
+    ImGui::RenderNavHighlight(total_bb, id);
+    ImGui::RenderFrame(check_bb.Min, check_bb.Max, ImGui::GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding / 2);
+    ImU32 check_col = ImGui::GetColorU32(ImGuiCol_CheckMark);
     bool mixed_value = (g.LastItemData.ItemFlags & ImGuiItemFlags_MixedValue) != 0;
     if (mixed_value || *v)
     {
@@ -203,17 +203,17 @@ bool LocalCheckBoxEx(const char* label, bool* v)
 
     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
     if (g.LogEnabled)
-        LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
+        ImGui::LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
     if (label_size.x > 0.0f)
-        RenderText(label_pos, label);
+        ImGui::RenderText(label_pos, label);
 
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
     return pressed;
 }
 
-bool LocalBeginCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags)
+bool BeginCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags)
 {
-    bool result = CollapsingHeader(label, flags);
+    bool result = ImGui::CollapsingHeader(label, flags);
 
     if (result)
     {
@@ -223,17 +223,17 @@ bool LocalBeginCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags)
     return result;
 }
 
-void LocalEndCollapsingHeader()
+void EndCollapsingHeader()
 {
     ImGui::Spacing();
     ImGui::Unindent();
 }
 
-void LocalTextLinkOpenURL(const char* label, const char* url)
+void TextLinkOpenURL(const char* label, const char* url)
 {
     std::string _label = ICON_FA_GLOBE" ";
     _label += label;
-    TextLinkOpenURL(_label.c_str(), url);
+    ImGui::TextLinkOpenURL(_label.c_str(), url);
 }
 
 void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float &offset)
@@ -259,7 +259,7 @@ void Block(const char* label, const ImRect &bb, const ImVec4 &color, const float
         if (bb.Min.x + padding.x < bb.Max.x - padding.x)
         {
             drawList->AddRectFilled(ImVec2(bb.Min.x + padding.x, bb.Min.y + padding.y),
-                                    ImVec2(bb.Max.x - padding.x, bb.Min.y + padding.y + GetFrameHeight()),
+                                    ImVec2(bb.Max.x - padding.x, bb.Min.y + padding.y + ImGui::GetFrameHeight()),
                                     ImGui::GetColorU32(color),
                                     ImGui::GetStyle().FrameRounding,
                                     ImDrawFlags_None);
@@ -290,7 +290,7 @@ void ModifierBlock(const char* label, const ImRect &bb, double *dragleft, double
     labelRight += "dragRight";
     Drag(labelRight.c_str(), bbRight, dragright);
 
-    Block(label, bb, color, size.y + GetStyle().FramePadding.y);
+    Block(label, bb, color, size.y + ImGui::GetStyle().FramePadding.y);
 }
 
 void Drag(const char* label, const ImRect &bb, double *value)
@@ -307,7 +307,7 @@ void Drag(const char* label, const ImRect &bb, double *value)
     const bool makeActive = (clicked || g.NavActivateId == id);
 
     if (hovered || ImGui::IsMouseDown(0, id))
-        SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
     if (clicked)
         ImGui::SetKeyOwner(ImGuiKey_MouseLeft, id);

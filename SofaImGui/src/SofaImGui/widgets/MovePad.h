@@ -5,7 +5,7 @@
 #include <imgui_internal.h>
 #include <map>
 
-namespace ImGui
+namespace sofaimgui::widgets
 {
 
 class MovePad

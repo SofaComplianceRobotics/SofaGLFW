@@ -51,7 +51,7 @@ bool Repeat::RepeatView::showBlock(const std::string &label,
     ImVec2 topRight = ImVec2(bb.Max.x, bb.Min.y);
 
     double dragright, dragleft;
-    ImGui::ModifierBlock(label.c_str(), bb, &dragleft, &dragright, ProgramColors().RepeatBlockBg);
+    sofaimgui::widgets::ModifierBlock(label.c_str(), bb, &dragleft, &dragright, ProgramColors().RepeatBlockBg);
     repeat.setEndTime(repeat.getEndTime() + dragright / ProgramSizes().TimelineOneSecondSize);
     repeat.setStartTime(repeat.getStartTime() + dragleft / ProgramSizes().TimelineOneSecondSize);
 

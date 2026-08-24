@@ -23,7 +23,7 @@
 #include "IconsFontAwesome6.h"
 #include <SofaImGui/windows/DashboardWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <imgui_internal.h>
 
 
@@ -80,11 +80,12 @@ void DashboardWindow::showGUIData()
         {
             ImGui::Indent();
 
-            if (ImGui::BeginTable("GUIDataTable", 4, ImGuiTableFlags_NoBordersInBody))
+            if (ImGui::BeginTable("GUIDataTable", 5, ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingStretchProp))
             {
                 static ImGuiTableColumnFlags flags = ImGuiTableColumnFlags_NoHide;
                 ImGui::TableSetupColumn("##Message", flags | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##Name", flags | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("##Separator", flags | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##Data", flags | ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("##Remove", flags | ImGuiTableColumnFlags_WidthFixed);
 
@@ -136,9 +137,17 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 
     ImGui::TableNextColumn();
 
+    // Separator
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    }
+
+    ImGui::TableNextColumn();
+
     // Data widget
     {
-        sofaimgui::showWidget(*data->getData());
+        sofaimgui::widgets::showWidget(*data->getData());
     }
 
     ImGui::TableNextColumn();
@@ -147,7 +156,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex())
         {
-            if (ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if (sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
                 removeGUIData(data);
             ImGui::SetItemTooltip("Remove from Drashboard");
         }
@@ -160,18 +169,18 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 
 void DashboardWindow::showOptionButtons()
 {
-    m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
+    m_expandAll = sofaimgui::widgets::Button(ICON_FA_EXPAND);
     ImGui::SetItemTooltip("Expand all");
     ImGui::SameLine();
 
-    m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
+    m_collapseAll = sofaimgui::widgets::Button(ICON_FA_COMPRESS);
     ImGui::SetItemTooltip("Collapse all");
     ImGui::SameLine();
 
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    if (ImGui::LocalButton(ICON_FA_BROOM))
+    if (sofaimgui::widgets::Button(ICON_FA_BROOM))
         clearWindow();
     ImGui::SetItemTooltip("Clear Dashboard");
 }

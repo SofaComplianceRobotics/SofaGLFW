@@ -7,7 +7,7 @@
 
 #include <IconsFontAwesome6.h>
 
-namespace ImGui
+namespace sofaimgui::widgets
 {
 
 MovePad::MovePad(const char* label, const char* labelPadH, const char* labelPadV, const char* labelSlider,
@@ -61,20 +61,20 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     double borderThickness = 2.0f;
     double lineThickness = 2.0f;
     double fCursorOff = 16.0f;
-    const auto slidersRegionWidth = GetFrameHeight() * 8;
+    const auto slidersRegionWidth = ImGui::GetFrameHeight() * 8;
 
     const ImRect totalBB(window->DC.CursorPos, ImVec2(window->WorkRect.Max.x,
                                                       window->DC.CursorPos.y + window->WorkRect.GetWidth()- slidersRegionWidth));
 
-    const ImVec2 containerSize = ImVec2(totalBB.GetWidth(), totalBB.GetHeight() - GetFrameHeight()*2.);
+    const ImVec2 containerSize = ImVec2(totalBB.GetWidth(), totalBB.GetHeight() - ImGui::GetFrameHeight()*2.);
     const ImRect frameBB(totalBB.GetCenter() - ImVec2(containerSize.x/2.0, containerSize.y/2.0 - style.FramePadding.y ),
                          totalBB.GetCenter() + ImVec2(containerSize.x/2.0, containerSize.y/2.0));
 
     int padSize = frameBB.GetWidth() - slidersRegionWidth;
     padSize = std::min(frameBB.GetHeight(), std::max((float)padSize, frameBB.GetWidth() - slidersRegionWidth));
-    auto padwidth = padSize + slidersRegionWidth + GetFrameHeight();
-    const ImRect framePadBB(frameBB.GetCenter() - ImVec2(padwidth/2. - GetFrameHeight(), padSize/2.),
-                            frameBB.GetCenter() - ImVec2(padwidth/2. - GetFrameHeight(), padSize/2.) + ImVec2(padSize, padSize));
+    auto padwidth = padSize + slidersRegionWidth + ImGui::GetFrameHeight();
+    const ImRect framePadBB(frameBB.GetCenter() - ImVec2(padwidth/2. - ImGui::GetFrameHeight(), padSize/2.),
+                            frameBB.GetCenter() - ImVec2(padwidth/2. - ImGui::GetFrameHeight(), padSize/2.) + ImVec2(padSize, padSize));
 
     const ImRect framePadHBB(ImVec2(framePadBB.Min.x, framePadBB.Max.y + style.FramePadding.y * 2),
                              ImVec2(framePadBB.Max.x, framePadBB.Max.y + style.FramePadding.y * 2 + dragPadHThickness));
@@ -92,13 +92,11 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 
 
     { // Show sliders
-        const ImVec2 buttonSize = ImVec2(GetFrameHeight(), GetFrameHeight());
-
-        PushStyleColor(ImGuiCol_ButtonText, GetColorU32(ImGuiCol_Text));
+        ImGui::PushStyleColor(ImGuiCol_ButtonText, ImGui::GetColorU32(ImGuiCol_Text));
         { // PadH
-            window->DC.CursorPos = (ImVec2(framePadHBB.Min.x - GetFrameHeight() - style.FramePadding.x , framePadHBB.GetCenter().y - GetFrameHeight()/2));
-            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
-            if (Button(ICON_FA_ARROWS_LEFT_RIGHT"##PadH", buttonSize))
+            window->DC.CursorPos = (ImVec2(framePadHBB.Min.x - ImGui::GetFrameHeight() - style.FramePadding.x , framePadHBB.GetCenter().y - ImGui::GetFrameHeight()/2));
+            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+            if (sofaimgui::widgets::Button(ICON_FA_ARROWS_LEFT_RIGHT"##PadH"))
             {
                 m_flippedAxis["PadH"] = !m_flippedAxis["PadH"];
             }
@@ -110,9 +108,9 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         { // PadV
-            window->DC.CursorPos = (ImVec2(framePadVBB.GetCenter().x - GetFrameHeight()/2, framePadVBB.Min.y - GetFrameHeight() - style.FramePadding.y));
-            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
-            if (Button(ICON_FA_ARROWS_UP_DOWN"##PadV", buttonSize))
+            window->DC.CursorPos = (ImVec2(framePadVBB.GetCenter().x - ImGui::GetFrameHeight()/2, framePadVBB.Min.y - ImGui::GetFrameHeight() - style.FramePadding.y));
+            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+            if (sofaimgui::widgets::Button(ICON_FA_ARROWS_UP_DOWN"##PadV"))
             {
                 m_flippedAxis["PadV"] = !m_flippedAxis["PadV"];
             }
@@ -124,9 +122,9 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
 
         { // Slider
-            window->DC.CursorPos = (ImVec2(frameSliderBB.GetCenter().x - GetFrameHeight()/2, frameSliderBB.Min.y - GetFrameHeight() - style.FramePadding.y));
-            PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
-            if (Button(ICON_FA_ARROWS_UP_DOWN"##Slider", buttonSize))
+            window->DC.CursorPos = (ImVec2(frameSliderBB.GetCenter().x - ImGui::GetFrameHeight()/2, frameSliderBB.Min.y - ImGui::GetFrameHeight() - style.FramePadding.y));
+            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+            if (sofaimgui::widgets::Button(ICON_FA_ARROWS_UP_DOWN"##Slider"))
             {
                 m_flippedAxis["Slider"] = !m_flippedAxis["Slider"];
             }
@@ -226,8 +224,8 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         ImVec2 vCursorPos(m_grabBBPadH.GetCenter().x, m_grabBBPadV.GetCenter().y);
 
         // Cursor
-        window->DrawList->AddCircleFilled(vCursorPos, grabRadius * 1.2f, GetColorU32(g.ActiveId == idPad ? ImGuiCol_SliderGrabActive : ImGuiCol_Button));
-        window->DrawList->AddCircleFilled(vCursorPos, grabRadius, GetColorU32(ImGuiCol_SliderGrab));
+        window->DrawList->AddCircleFilled(vCursorPos, grabRadius * 1.2f, ImGui::GetColorU32(g.ActiveId == idPad ? ImGuiCol_SliderGrabActive : ImGuiCol_Button));
+        window->DrawList->AddCircleFilled(vCursorPos, grabRadius, ImGui::GetColorU32(ImGuiCol_SliderGrab));
 
         // Vertical Line
         if (fScaleY > 2.0f * fYLimit)
@@ -269,15 +267,15 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             pDrawList->AddLine(ImVec2(framePadBB.Max.x, framePadBB.Max.y), ImVec2(vCursorPos.x + fCursorOff, framePadBB.Max.y), padBorderColor, borderThickness);
     }
 
-    window->DC.CursorPos = framePadHBB.GetBL() + ImVec2(0., GetFrameHeight() + style.FramePadding.y*2);
-    PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
-    Text("Press Ctrl or scroll to move the third dimension");
-    PopStyleColor();
+    window->DC.CursorPos = framePadHBB.GetBL() + ImVec2(0., ImGui::GetFrameHeight() + style.FramePadding.y*2);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+    ImGui::Text("Press Ctrl or scroll to move the third dimension");
+    ImGui::PopStyleColor();
 
     window->DC.CursorPosPrevLine = totalBB.Max;
     window->DC.CursorPos = totalBB.Max;
 
-    NewLine();
+    ImGui::NewLine();
 
     return valuePadHChanged || valuePadVChanged || valueSliderChanged;
 }
@@ -321,18 +319,16 @@ bool MovePad::show1DPadSlider(char const* label,
     // Render grab
     valueChanged = ImGui::SliderBehavior(bb, id, ImGuiDataType_Double, p_value, p_min, p_max, NULL,
                                          ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat | flags, &grabBB);
-    window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius * 1.2f, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_Button));
-    window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius, GetColorU32(ImGuiCol_SliderGrab));
+    window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius * 1.2f, ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_Button));
+    window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius, ImGui::GetColorU32(ImGuiCol_SliderGrab));
 
     bool showOtherAxis = false;
     { // Add Button
-        window->DC.CursorPos = ((flags & ImGuiSliderFlags_Vertical) == ImGuiSliderFlags_Vertical) ? ImVec2(grabBB.Max.x + 2*style.FramePadding.x, grabBB.GetCenter().y - GetFrameHeight() / 2.0f) : ImVec2(grabBB.GetCenter().x-GetFrameHeight()/2.0f, grabBB.Max.y + 2*style.FramePadding.y);
+        window->DC.CursorPos = ((flags & ImGuiSliderFlags_Vertical) == ImGuiSliderFlags_Vertical) ? ImVec2(grabBB.Max.x + 2*style.FramePadding.x, grabBB.GetCenter().y - ImGui::GetFrameHeight() / 2.0f) : ImVec2(grabBB.GetCenter().x-ImGui::GetFrameHeight()/2.0f, grabBB.Max.y + 2*style.FramePadding.y);
 
-        PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
-        PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
-        PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
-        PushStyleColor(ImGuiCol_ButtonText, GetColorU32(ImGuiCol_Text));
-        ImGui::AlignTextToFramePadding();
+        ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
         ImVec2 size(1.0f, ImGui::GetFrameHeight	()/2.);
 
         ImU32 color = COLOR_RED;
@@ -341,22 +337,19 @@ bool MovePad::show1DPadSlider(char const* label,
         if (strcmp(label, "Z")==0)
             color = COLOR_BLUE;
 
-        ImGui::GetWindowDrawList()->AddRectFilled(window->DC.CursorPos + ImVec2(0.0f, size.y / 2.),
-                                                  window->DC.CursorPos + ImVec2(0.0f, size.y / 2.) + size,
-                                                  color, ImGuiStyleVar_FrameRounding); // draw colored axis line in before button
-
-        if (ImGui::LocalButton((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str()))
+        ImGui::PushStyleColor(ImGuiCol_ButtonText, color);
+        if (sofaimgui::widgets::Button((std::string(label)+ " " + ICON_FA_CARET_DOWN).c_str()))
         {
             showOtherAxis = true;
         }
-        PopStyleColor(4);
+        ImGui::PopStyleColor(4);
     }
 
-    SameLine();
+    ImGui::SameLine();
 
     { // Slider value
         window->DC.CursorPos -= ImVec2(style.FramePadding.x * 2, 0.);
-        ImGui::LocalInputDouble(("##Value"+std::string(label)).c_str(), p_value);
+        sofaimgui::widgets::InputDouble(("##Value"+std::string(label)).c_str(), p_value);
     }
 
     // Add popup
@@ -371,7 +364,7 @@ bool MovePad::show1DPadSlider(char const* label,
         for (int i = 0; i < 3; i++)
         {
             if (m_axis[i] != label)
-                if (Selectable(m_axis[i]))
+                if (ImGui::Selectable(m_axis[i]))
                     swapAxis(label, i);
         }
         ImGui::EndPopup();

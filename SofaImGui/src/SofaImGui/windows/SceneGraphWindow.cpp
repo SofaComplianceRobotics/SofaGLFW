@@ -31,7 +31,7 @@
 #include <IconsFontAwesome6.h>
 #include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
@@ -283,18 +283,18 @@ void SceneGraphWindow::internalShowWindow()
 
     // Top option buttons
 
-    m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
+    m_expandAll = sofaimgui::widgets::Button(ICON_FA_EXPAND);
     ImGui::SetItemTooltip("Expand all");
     ImGui::SameLine();
 
-    m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
+    m_collapseAll = sofaimgui::widgets::Button(ICON_FA_COMPRESS);
     ImGui::SetItemTooltip("Collapse all");
     ImGui::SameLine();
 
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    if (ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS))
+    if (sofaimgui::widgets::Button(ICON_FA_MAGNIFYING_GLASS))
     {
         m_showSearch = !m_showSearch;
         m_showFiltered = false;
@@ -302,7 +302,7 @@ void SceneGraphWindow::internalShowWindow()
     ImGui::SetItemTooltip("Search by name");
     ImGui::SameLine();
 
-    if (ImGui::LocalButton(ICON_FA_FILTER))
+    if (sofaimgui::widgets::Button(ICON_FA_FILTER))
     {
         m_showFiltered = !m_showFiltered;
         m_showSearch = false;
@@ -323,16 +323,16 @@ void SceneGraphWindow::internalShowWindow()
         filter.Draw("Filter");
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.3f, 0.3f, 1.f));
-        ImGui::LocalPushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showFilteredError);
+        sofaimgui::widgets::PushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showFilteredError);
         ImGui::SetItemTooltip("Filter Errors");
         ImGui::PopStyleColor();
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.5f, 0.f, 1.f));
-        ImGui::LocalPushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showFilteredWarning);
+        sofaimgui::widgets::PushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showFilteredWarning);
         ImGui::SetItemTooltip("Filter Warnings");
         ImGui::PopStyleColor();
         ImGui::SameLine();
-        ImGui::LocalPushButton(ICON_FA_CIRCLE_INFO, &m_showFilteredInfo);
+        sofaimgui::widgets::PushButton(ICON_FA_CIRCLE_INFO, &m_showFilteredInfo);
         ImGui::SetItemTooltip("Filter Info");
     }
     ImGui::PopItemWidth();
@@ -880,11 +880,11 @@ void SceneGraphWindow::addComponentDocTextLinkOpenURL(sofa::core::objectmodel::B
     sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
 
     if (!entry.creatorMap.empty() &&  !entry.documentationURL.empty() && entry.documentationURL.starts_with("http"))
-        ImGui::LocalTextLinkOpenURL("Documentation", entry.documentationURL.c_str());
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", entry.documentationURL.c_str());
     else
     {
         ImGui::BeginDisabled();
-        ImGui::LocalTextLinkOpenURL("Documentation", ""); // No documentation
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", ""); // No documentation
         ImGui::EndDisabled();
     }
 }
@@ -924,7 +924,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
 
                     if (workbench == Workbench::LIVE_CONTROL)
                         ImGui::BeginDisabled();
-                    showWidget(*data);
+                    sofaimgui::widgets::showWidget(*data);
                     if (workbench == Workbench::LIVE_CONTROL)
                         ImGui::EndDisabled();
 
@@ -1037,7 +1037,7 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
         ImGui::Separator();
 
         ImGui::BeginDisabled();
-        ImGui::LocalTextLinkOpenURL("Documentation", ""); // No documentation for node
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", ""); // No documentation for node
         ImGui::EndDisabled();
 
         if (node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
@@ -1325,7 +1325,7 @@ bool SceneGraphWindow::showAddNodeButton(sofa::simulation::Node *node)
     bool clicked = false;
     if (node)
     {
-        if(ImGui::LocalButton(ICON_DVS_PLUS))
+        if(sofaimgui::widgets::Button(ICON_DVS_PLUS))
         {
             node->createChild("New Node");
             clicked = true;
@@ -1342,7 +1342,7 @@ bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if(sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
             {
                 parent->removeChild(node);
                 clicked = true;
@@ -1360,7 +1360,7 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if(sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
             {
                 component->cleanup();
                 parent->removeObject(component);

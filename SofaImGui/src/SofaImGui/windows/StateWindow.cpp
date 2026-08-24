@@ -93,7 +93,7 @@ void StateWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWind
                             {
                                 ImGui::PushID(i);
                                 double buffer = typeinfo->getScalarValue(values, i);
-                                ImGui::LocalInputDouble("##0", &buffer, 0, 0);
+                                sofaimgui::widgets::LocalInputDouble("##0", &buffer, 0, 0);
                                 ImGui::SameLine();
                                 ImGui::PopID();
                             }

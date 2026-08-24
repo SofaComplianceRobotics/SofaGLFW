@@ -24,7 +24,7 @@
 #include <SofaImGui/windows/LogWindow.h>
 #include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 #include <iomanip>
@@ -95,20 +95,20 @@ void LogWindow::showButtons()
 
 void LogWindow::showSettingsButton()
 {
-    if (ImGui::LocalButton(ICON_FA_BARS))
+    if (sofaimgui::widgets::Button(ICON_FA_BARS))
         ImGui::OpenPopup("##LogSettings");
 
     if (ImGui::BeginPopup("##LogSettings"))
     {
-        ImGui::LocalCheckBox("Automatic scroll", &m_ws_autoScroll);
-        ImGui::LocalCheckBox("Show info", &m_ws_showInfo);
+        sofaimgui::widgets::CheckBox("Automatic scroll", &m_ws_autoScroll);
+        sofaimgui::widgets::CheckBox("Show info", &m_ws_showInfo);
         ImGui::EndPopup();
     }
 }
 
 void LogWindow::showExportButton()
 {
-    if (ImGui::LocalButton(ICON_FA_FILE_EXPORT))
+    if (sofaimgui::widgets::Button(ICON_FA_FILE_EXPORT))
     {
         nfdchar_t *outPath;
         const nfdresult_t result = NFD_SaveDialog(&outPath, nullptr, 0, nullptr, "log.txt");
@@ -136,7 +136,7 @@ void LogWindow::showExportButton()
 
 void LogWindow::showCopyLogButton()
 {
-    if (ImGui::LocalButton(ICON_FA_COPY))
+    if (sofaimgui::widgets::Button(ICON_FA_COPY))
     {
         std::stringstream s;
         messagesToStringStream(s);
@@ -148,7 +148,7 @@ void LogWindow::showCopyLogButton()
 
 void LogWindow::showClearButton()
 {
-    if (ImGui::LocalButton(ICON_FA_BROOM))
+    if (sofaimgui::widgets::Button(ICON_FA_BROOM))
         clearLogs();
     ImGui::SetItemTooltip("Clear Logs");
 }
