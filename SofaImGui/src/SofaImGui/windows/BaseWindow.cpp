@@ -37,9 +37,11 @@ BaseWindow::BaseWindow(std::string name)
     m_name = name;
 }
 
-void BaseWindow::onEndInit()
+void BaseWindow::onEndSimulationLoad()
 {
-    registerAndLoadGUIData();
+    m_GUIData.clear();
+    m_groupedGUIData.clear();
+    registerAndLoadGUIDataWindowSettings();
 }
 
 void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
@@ -106,12 +108,6 @@ std::string& BaseWindow::getLabel()
     return m_labelname;
 }
 
-void BaseWindow::clearWindow()
-{
-    clearGUIData();
-    clear();
-}
-
 bool& BaseWindow::isOpen()
 {
     return m_isOpen[workbench];
@@ -171,7 +167,7 @@ void BaseWindow::dropGUIData()
                         std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                         data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
                         data->getHelp());
-                resetGUIDataSettings();
+                resetGUIDataWindowSettings();
             }
         }
         ImGui::EndDragDropTarget();
@@ -181,19 +177,19 @@ void BaseWindow::dropGUIData()
 void BaseWindow::removeGUIData(models::guidata::GUIData::SPtr data)
 {
     models::guidata::GUIDataManager::removeGUIData(data);
-    resetGUIDataSettings();
+    resetGUIDataWindowSettings();
 }
 
 void BaseWindow::clearGUIData()
 {
     models::guidata::GUIDataManager::clearGUIData();
-    resetGUIDataSettings();
+    resetGUIDataWindowSettings();
 }
 
-void BaseWindow::registerAndLoadGUIData()
+void BaseWindow::registerAndLoadGUIDataWindowSettings()
 {
     // Load GUIData size
-    registerAndLoadSetting(WS_WINDOWS_GUIDATA, m_ws_guiDataSize, WindowsSettings::SettingType::LONG);
+    registerAndLoadWindowSetting(WS_WINDOWS_GUIDATA, m_ws_guiDataSize, WindowsSettings::SettingType::LONG);
 
     // Load GUIData
     auto& windowsSettings = WindowsSettings::getInstance();
@@ -218,7 +214,7 @@ void BaseWindow::registerAndLoadGUIData()
     }
 }
 
-void BaseWindow::resetGUIDataSettings()
+void BaseWindow::resetGUIDataWindowSettings()
 {
     auto& windowsSettings = WindowsSettings::getInstance();
 

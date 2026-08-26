@@ -64,8 +64,8 @@ std::string LogWindow::getDescription()
 
 void LogWindow::registerAndLoadWindowSettings()
 {
-    registerAndLoadSetting(WS_LOG_AUTOSCROLL, m_ws_autoScroll, WindowsSettings::BOOL);
-    registerAndLoadSetting(WS_LOG_SHOWINFO, m_ws_showInfo, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_LOG_AUTOSCROLL, m_ws_autoScroll, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_LOG_SHOWINFO, m_ws_showInfo, WindowsSettings::BOOL);
 }
 
 void LogWindow::internalShowWindow()

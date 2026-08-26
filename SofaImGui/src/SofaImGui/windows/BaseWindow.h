@@ -41,7 +41,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
     /// This is called before loading / reloading a simulation.
-    void clearWindow();
+    virtual void clearWindow() {};
 
     /// Implements the drawing of the window
     void showWindow(ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None);
@@ -51,7 +51,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     virtual std::string getDescription() = 0;
 
     /// Implementation on end init
-    virtual void onEndInit();
+    virtual void onEndSimulationLoad();
 
     /// Get the name of the window
     std::string getName() const;
@@ -99,16 +99,13 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// Called once, the first time we draw the window.
     virtual void registerAndLoadWindowSettings() {};
 
-    /// The window may have addional thing to clear. It should override this method with the corresponding cleaning.
-    virtual void clear() {}
-
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
 
     /// Load and register a setting.
     /// The setting should be already initialized with the default value.
     template <typename type>
-    void registerAndLoadSetting(const std::string& settingName, type& setting, const WindowsSettings::SettingType& settingType)
+    void registerAndLoadWindowSetting(const std::string& settingName, type& setting, const WindowsSettings::SettingType& settingType)
     {
         m_registeredSettings[settingName] = std::pair<void*, WindowsSettings::SettingType>(&setting, settingType); // Register setting to be saved
         setting = WindowsSettings::getInstance().getSetting(m_name.c_str(), settingName.c_str(), setting); // Load setting
@@ -134,7 +131,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     std::map<std::string, std::pair<void*, WindowsSettings::SettingType>> m_registeredSettings;
     long m_ws_guiDataSize{0};
 
-    void registerAndLoadGUIData(); 
-    void resetGUIDataSettings();
+    void registerAndLoadGUIDataWindowSettings();
+    void resetGUIDataWindowSettings();
 };
 }

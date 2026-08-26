@@ -92,7 +92,7 @@ void DashboardWindow::showGUIData()
                 int i = 0;
                 for (models::guidata::GUIData::SPtr data : itGroup.second)
                 {
-                    if (data)
+                    if (data && data->isValid())
                     {
                         ImGui::PushID(i++);
                         showWidget(data);
@@ -181,7 +181,7 @@ void DashboardWindow::showOptionButtons()
     ImGui::SameLine();
 
     if (sofaimgui::widgets::Button(ICON_FA_BROOM))
-        clearWindow();
+        clearGUIData();
     ImGui::SetItemTooltip("Clear Dashboard");
 }
 
@@ -192,7 +192,7 @@ void DashboardWindow::addDashbordContextMenu()
         ImGui::BeginDisabled();
 
     if (ImGui::MenuItem("Clear Dashboard"))
-        clearWindow();
+        clearGUIData();
 
     if (disable)
         ImGui::EndDisabled();
