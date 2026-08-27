@@ -72,7 +72,7 @@ protected:
     void internalShowWindow() override;
     void afterShowWindow() override;
 
-    void clear() override;
+    void clearWindow() override;
 
     void showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
     void showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter &filter);

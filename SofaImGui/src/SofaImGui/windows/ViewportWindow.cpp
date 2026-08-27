@@ -56,9 +56,9 @@ std::string ViewportWindow::getDescription()
 
 void ViewportWindow::registerAndLoadWindowSettings()
 {
-    registerAndLoadSetting(WS_VIEWPORT_ORIENTATIONGIZMOENABLED, m_ws_orientationGizmoEnabled, WindowsSettings::SettingType::BOOL);
-    registerAndLoadSetting(WS_VIEWPORT_CAMERABUTTONCOLLAPSE, m_ws_cameraButtonsCollapsed, WindowsSettings::SettingType::BOOL);
-    registerAndLoadSetting(WS_VIEWPORT_DRIVINGWINDOW, m_ws_drivingWindow, WindowsSettings::SettingType::LONG);
+    registerAndLoadWindowSetting(WS_VIEWPORT_ORIENTATIONGIZMOENABLED, m_ws_orientationGizmoEnabled, WindowsSettings::SettingType::BOOL);
+    registerAndLoadWindowSetting(WS_VIEWPORT_CAMERABUTTONCOLLAPSE, m_ws_cameraButtonsCollapsed, WindowsSettings::SettingType::BOOL);
+    registerAndLoadWindowSetting(WS_VIEWPORT_DRIVINGWINDOW, m_ws_drivingWindow, WindowsSettings::SettingType::LONG);
 }
 
 void ViewportWindow::internalShowWindow()

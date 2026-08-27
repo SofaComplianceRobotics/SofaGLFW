@@ -49,21 +49,20 @@ protected:
     template <typename type>
     type getSetting(const char* _windowName, const char* settingName, const type& defaultValue)
     {
-        std::string windowName = "Window.";
-        windowName += _windowName;
-
         type value;
-        _getSetting(windowName.c_str(), settingName, defaultValue, value);
+        _getSetting(getWindowLabel(_windowName).c_str(), settingName, defaultValue, value);
         return value;
     }
 
     template <typename type>
     void setSetting(const char* _windowName, const char* settingName, const type& value)
     {
-        std::string windowName = "Window.";
-        windowName += _windowName;
+        _setSetting(getWindowLabel(_windowName).c_str(), settingName, value);
+    }
 
-        _setSetting(windowName.c_str(), settingName, value);
+    void deleteSetting(const char* _windowName, const char* settingName)
+    {
+        iniWindowsSettings.Delete(getWindowLabel(_windowName).c_str(), settingName);
     }
 
     CSimpleIniA& getIniWindowsSettings() {return iniWindowsSettings;}
@@ -81,6 +80,7 @@ private:
     inline void _setSetting(const char* windowName, const char* settingName, const long& value){iniWindowsSettings.SetLongValue(windowName, settingName, value);}
     inline void _setSetting(const char* windowName, const char* settingName, const std::string& value){iniWindowsSettings.SetValue(windowName, settingName, value.c_str());}
 
+    std::string getWindowLabel(const char* _windowName);
 };
 
 }

@@ -49,7 +49,7 @@ std::string MyRobotWindow::getDescription()
            "Also provides connection management features.";
 }
 
-void MyRobotWindow::clear()
+void MyRobotWindow::clearWindow()
 {
 	m_sectionedGUIData.clear();
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#define WS_WINDOWS_GUIDATA "guiData"
+
 // Program Window
 #define WS_PROGRAM_PROGRAMFILENAME "programFilename"
 #define WS_PROGRAM_PROGRAMDIRPATH "programDirPath"

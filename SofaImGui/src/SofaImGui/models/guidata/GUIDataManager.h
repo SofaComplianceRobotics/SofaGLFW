@@ -38,9 +38,10 @@ public:
                          const std::pair<sofa::core::BaseData*, bool>& max = std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                          const std::string& group = GUIData::DEFAULTGROUP,
                          const std::string& help = "");
+
     virtual GUIData::SPtr addGUIData(GUIData::SPtr data);
     virtual void removeGUIData(GUIData::SPtr data);
-    void clearGUIData() {m_GUIData.clear(); m_groupedGUIData.clear();}
+    virtual void clearGUIData();
 
 protected:
 

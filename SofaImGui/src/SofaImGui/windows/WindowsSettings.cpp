@@ -29,4 +29,11 @@ WindowsSettings &WindowsSettings::getInstance()
     return windowsSettings;
 }
 
+std::string WindowsSettings::getWindowLabel(const char* _windowName)
+{
+    std::string windowName = "Window.";
+    windowName += _windowName;
+    return windowName;
+}
+
 }

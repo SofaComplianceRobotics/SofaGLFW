@@ -65,13 +65,13 @@ std::string ProgramWindow::getDescription()
     return "Create robot programs.";
 }
 
-void ProgramWindow::clear()
+void ProgramWindow::clearWindow()
 {
     if (isEnabledByState())
         m_program.clearTracks();
 }
 
-void ProgramWindow::onEndInit()
+void ProgramWindow::onEndSimulationLoad()
 {
     if (m_program.isEmpty())
     {
@@ -87,12 +87,12 @@ void ProgramWindow::onEndInit()
 
 void ProgramWindow::registerAndLoadWindowSettings()
 {
-    registerAndLoadSetting(WS_PROGRAM_PROGRAMDIRPATH, m_ws_programDirPath, WindowsSettings::STRING);
-    registerAndLoadSetting(WS_PROGRAM_PROGRAMFILENAME, m_ws_programFilename, WindowsSettings::STRING);
-    registerAndLoadSetting(WS_PROGRAM_REPEAT, m_ws_repeat, WindowsSettings::BOOL);
-    registerAndLoadSetting(WS_PROGRAM_REVERSE, m_ws_reverse, WindowsSettings::BOOL);
-    registerAndLoadSetting(WS_PROGRAM_DRAWTRAJECTORY, m_ws_drawTrajectory, WindowsSettings::BOOL);
-    registerAndLoadSetting(WS_PROGRAM_TIMEBASEDDISPLAY, m_ws_timeBasedDisplay, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_PROGRAM_PROGRAMDIRPATH, m_ws_programDirPath, WindowsSettings::STRING);
+    registerAndLoadWindowSetting(WS_PROGRAM_PROGRAMFILENAME, m_ws_programFilename, WindowsSettings::STRING);
+    registerAndLoadWindowSetting(WS_PROGRAM_REPEAT, m_ws_repeat, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_PROGRAM_REVERSE, m_ws_reverse, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_PROGRAM_DRAWTRAJECTORY, m_ws_drawTrajectory, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_PROGRAM_TIMEBASEDDISPLAY, m_ws_timeBasedDisplay, WindowsSettings::BOOL);
 
     // Import program file if any
     if (!m_ws_programFilename.empty() && !m_ws_programDirPath.empty())

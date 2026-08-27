@@ -175,13 +175,21 @@ bool ImGuiGUIEngine::loadProject()
     return false;
 }
 
-void ImGuiGUIEngine::clearGUI()
+void ImGuiGUIEngine::clearWindows()
 {
     m_kinematicsGUIDataManager->clear();
     for (auto& window : m_windows)
         window.get().clearWindow();
     for (auto& window : m_modalWindows)
         window.get().clearWindow();
+}
+
+void ImGuiGUIEngine::clearWindowsGUIData()
+{
+    for (auto& window : m_windows)
+        window.get().clearGUIData();
+    for (auto& window : m_modalWindows)
+        window.get().clearGUIData();
 }
 
 void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
@@ -193,12 +201,12 @@ void ImGuiGUIEngine::setWindowsBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         window.get().setBaseGUI(baseGUI);
 }
 
-void ImGuiGUIEngine::notifyWindowsEndInit()
+void ImGuiGUIEngine::notifyWindowsEndSimulationLoad()
 {
     for (auto& window : m_windows)
-        window.get().onEndInit();
+        window.get().onEndSimulationLoad();
     for (auto& window : m_modalWindows)
-        window.get().onEndInit();
+        window.get().onEndSimulationLoad();
 }
 
 void ImGuiGUIEngine::applyDockSizeFromWindowsSettings(const ImGuiID& id)
@@ -340,9 +348,11 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         m_baseGUI->setMouseInteractionEnabled(workbench==Workbench::SIMULATION_MODE);
         createGUINode();
         setWindowsBaseGUI(m_baseGUI);
-        notifyWindowsEndInit();
+
         loadProject();
         enableWindows();
+
+        notifyWindowsEndSimulationLoad();
     }
     else
     {
@@ -1037,7 +1047,9 @@ void ImGuiGUIEngine::key_callback(GLFWwindow* window, int key, int scancode, int
 
 void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filename)
 {
-    clearGUI();
+    clearWindows();
+    if (!reload) // When we reload the simulation, reset the GUI data without deleting them
+        clearWindowsGUIData();
 
     sofa::simulation::Node::SPtr root = m_baseGUI->getRootNode();
 
@@ -1049,12 +1061,11 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
     Utils::loadSimulation(m_baseGUI, reload, filename);
 
     createGUINode(guiNode);
-    if (!reload)
-    {
-        if (loadProject())
-            enableWindows();
-    }
-    notifyWindowsEndInit();
+
+    if (!reload && loadProject()) // When we reload the simulation, don't change the windows layout
+        enableWindows();
+
+    notifyWindowsEndSimulationLoad();
 }
 
 void ImGuiGUIEngine::createGUINode(sofa::simulation::Node::SPtr guinode)

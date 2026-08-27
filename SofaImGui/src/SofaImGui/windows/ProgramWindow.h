@@ -46,8 +46,8 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     ~ProgramWindow() = default;
 
     std::string getDescription() override;
-    void clear() override;
-    void onEndInit() override;
+    void clearWindow() override;
+    void onEndSimulationLoad() override;
 
     void animateBeginEvent(sofa::simulation::Node *groot);
     void animateEndEvent(sofa::simulation::Node *groot);

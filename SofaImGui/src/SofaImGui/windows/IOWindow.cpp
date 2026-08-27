@@ -64,8 +64,10 @@ std::string IOWindow::getDescription()
     return "Input / output operations of data.";
 }
 
-void IOWindow::onEndInit()
+void IOWindow::onEndSimulationLoad()
 {
+    BaseWindow::onEndSimulationLoad();
+
     if (auto effector = m_kinematicsGUIDataManager->getTCPGUIData())
     {
         m_selectableData[Role::PUBLISH][effector->getLabel()] = effector;
