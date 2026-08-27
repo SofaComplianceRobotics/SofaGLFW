@@ -32,13 +32,14 @@ class SOFAIMGUI_API PluginsWindow : public BaseWindow
 {
 public:
 
-    PluginsWindow(const std::string& name, const bool& isWindowOpen);
+    PluginsWindow(const std::string& name);
     ~PluginsWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
     sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
 
 };

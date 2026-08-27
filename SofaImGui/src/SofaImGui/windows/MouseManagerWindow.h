@@ -34,13 +34,14 @@ namespace sofaimgui::windows {
 class SOFAIMGUI_API MouseManagerWindow : public BaseWindow
 {
 public:
-    MouseManagerWindow(const std::string& name, const bool& isWindowOpen);
+    MouseManagerWindow(const std::string& name);
     ~MouseManagerWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
 
 protected:
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
     void showMouseSettings(PickHandler *pickHandler, sofa::gui::common::MOUSE_BUTTON button);
 };
 

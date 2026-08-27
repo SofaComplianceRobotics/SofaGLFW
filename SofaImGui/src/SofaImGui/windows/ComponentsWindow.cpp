@@ -22,22 +22,26 @@
 
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/windows/ComponentsWindow.h>
-#include <filesystem>
+#include <SofaImGui/FooterStatusBar.h>
+
 #include <sofa/simulation/Node.h>
+#include <sofa/helper/system/FileSystem.h>
 
 #include <imgui.h>
 #include <nfd.h>
 #include <IconsFontAwesome5.h>
+
 #include <fstream>
+#include <filesystem>
 
 
 namespace sofaimgui::windows
 {
 
-ComponentsWindow::ComponentsWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+ComponentsWindow::ComponentsWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::SCENE_EDITOR;
+    m_defaultWorkbenches = Workbench::SCENE_EDITOR;
 }
 
 std::string ComponentsWindow::getDescription()
@@ -45,65 +49,56 @@ std::string ComponentsWindow::getDescription()
     return "List and inspect the loaded components.";
 }
 
-void ComponentsWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ComponentsWindow::internalShowWindow()
 {
-    SOFA_UNUSED(baseGUI);
+    if (workbench == Workbench::SCENE_EDITOR)
+        showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
 
-    if (isOpen())
+    static bool firstTime = true;
+    if (firstTime)
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
-        {
-            if (workbench == Workbench::SCENE_EDITOR)
-                showInfoMessage("Draging and droping components in the Scene Graph window is enabled in the active workbench.");
-
-            static bool firstTime = true;
-            if (firstTime)
-            {
-                sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
-                ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
-                // TODO: loop over the plugins
-                sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
-                PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
-                firstTime = false;
-            }
-
-            ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
-            static sofa::core::ClassEntry::SPtr selectedComponent;
-
-            static std::vector<sofa::core::ClassEntry::SPtr> components;
-            components.clear();
-            sofa::core::ObjectFactory::getInstance()->getAllEntries(components);
-
-            if (ImGui::BeginChild("#LoadedComponents", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), false))
-            {
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("List of Loaded Components:");
-                ImGui::SetItemTooltip("Loaded %zu components and found %zu examples.",  components.size(), m_examplesPaths.size());
-                ImGui::SameLine();
-
-                showComponentsList(components, selectedComponent);
-            }
-
-            ImGui::EndChild();
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##SelectedComponent", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
-            {
-                ImGui::Text("Component Info:");
-
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                if (ImGui::BeginChild("##SelectedComponentInfo", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding))
-                {
-                    if (selectedComponent)
-                        showComponentInfo(selectedComponent);
-                }
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-        }
-        ImGui::End();
+        sofa::helper::system::FileRepository ExamplesRepository("", {sofa::helper::Utils::getSofaPathTo("examples")});
+        ExamplesRepository.findAllFilesInRepository("Component", m_examplesPaths, {".scn"});
+        // TODO: loop over the plugins
+        sofa::helper::system::FileRepository PluginsRepository("", {sofa::helper::Utils::getSofaPathTo("plugins")});
+        PluginsRepository.findAllFilesInRepository("examples", m_examplesPaths, {".py", ".scn"});
+        firstTime = false;
     }
+
+    ImVec2 buttonSize(ImGui::GetFrameHeight(),ImGui::GetFrameHeight());
+    static sofa::core::ClassEntry::SPtr selectedComponent;
+
+    static std::vector<sofa::core::ClassEntry::SPtr> components;
+    components.clear();
+    sofa::core::ObjectFactory::getInstance()->getAllEntries(components);
+
+    if (ImGui::BeginChild("#LoadedComponents", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), false))
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("List of Loaded Components:");
+        ImGui::SetItemTooltip("Loaded %zu components and found %zu examples.",  components.size(), m_examplesPaths.size());
+        ImGui::SameLine();
+
+        showComponentsList(components, selectedComponent);
+    }
+
+    ImGui::EndChild();
+    ImGui::SameLine();
+
+    if (ImGui::BeginChild("##SelectedComponent", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
+    {
+        ImGui::Text("Component Info:");
+
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+        if (ImGui::BeginChild("##SelectedComponentInfo", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            if (selectedComponent)
+                showComponentInfo(selectedComponent);
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
+    ImGui::EndChild();
 }
 
 void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SPtr> components, sofa::core::ClassEntry::SPtr& selectedComponent)
@@ -121,7 +116,7 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
         static std::map<std::string, bool> isSelected;
         for (const auto& component : components)
         {
-            const auto& name = component->className;
+            auto name = component->className;
             if (filter.PassFilter(name.c_str()))
             {
                 if (ImGui::Selectable(name.c_str(), selectedComponent == component))
@@ -137,8 +132,7 @@ void ComponentsWindow::showComponentsList(std::vector<sofa::core::ClassEntry::SP
                 }
                 if(workbench == Workbench::SCENE_EDITOR && ImGui::BeginDragDropSource())
                 {
-                    m_dragedName = name;
-                    ImGui::SetDragDropPayload("_COMPONENT", &m_dragedName, sizeof(m_dragedName));
+                    ImGui::SetDragDropPayload("_COMPONENT", &component->className, sizeof(name));
                     ImGui::Text("%s", name.c_str());
                     ImGui::EndDragDropSource();
                 }
@@ -173,30 +167,35 @@ void ComponentsWindow::showComponentInfo(sofa::core::ClassEntry::SPtr selectedCo
     {
         ImGui::TextDisabled("Documentation:");
         ImGui::SameLine();
-        ImGui::LocalTextLinkOpenURL("Documentation", selectedComponent->documentationURL.c_str());
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", selectedComponent->documentationURL.c_str());
     }
 
     if (!m_selectedComponentExamples.empty())
     {
         ImGui::TextDisabled("Examples:");
         ImGui::Indent();
+
+        static std::filesystem::path selectedExamplePath;
         for (const auto& examplePath: m_selectedComponentExamples)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextLink));
-            ImGui::TextWrapped(examplePath.filename().string().c_str());
+
+            ImGui::TextWrapped("%s", examplePath.filename().string().c_str());
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+            {
+                selectedExamplePath = examplePath;
+                ImGui::OpenPopup("##ExampleContextMenu");
+            }
+
             ImGui::PopStyleColor();
-
-            if (ImGui::IsItemClicked())
-                ImGui::SetClipboardText(examplePath.string().c_str());
-
-            static float copiedMessageDuration = 0;
-            if (ImGui::IsItemClicked() || copiedMessageDuration > 0)
-                copiedMessageDuration += ImGui::GetIO().DeltaTime;
-            if (copiedMessageDuration > 3)
-                copiedMessageDuration = 0;
-
-            ImGui::SetItemTooltip((copiedMessageDuration > 0)? "Copied!": "Click to copy the file path");
         }
+
+        if (ImGui::BeginPopup("##ExampleContextMenu"))
+        {
+            showExampleContextMenu(selectedExamplePath);
+            ImGui::EndPopup();
+        }
+
         ImGui::Unindent();
     }
 
@@ -267,6 +266,19 @@ void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedCo
         }
         ImGui::Unindent();
     }
+}
+
+void ComponentsWindow::showExampleContextMenu(const std::filesystem::path &examplePath)
+{
+    if (ImGui::MenuItem("Copy Path"))
+        ImGui::SetClipboardText(examplePath.string().c_str());
+
+    if (ImGui::MenuItem("Open File"))
+        if (sofa::helper::system::FileSystem::openFileWithDefaultApplication(examplePath.string()))
+            FooterStatusBar::getInstance().setTempMessage("Opening file : " + examplePath.string());
+
+    if (ImGui::MenuItem("Load File"))
+        m_baseGUI->getGUIEngine()->loadSimulation(false, examplePath.string());
 }
 
 void ComponentsWindow::saveFile()

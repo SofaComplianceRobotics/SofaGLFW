@@ -33,10 +33,13 @@
 #include <SofaImGui/ImGuiGUI.h>
 #include <SofaImGui/ImGuiGUIEngine.h>
 
+#include <Module_SofaImGui.h>
+
 SOFAPYTHON3_BIND_ATTRIBUTE_ERROR()
 
 /// Makes an alias for the pybind11 namespace to increase readability.
 namespace py { using namespace pybind11; }
+using namespace pybind11::literals;
 
 namespace sofaimgui::python3
 {
@@ -47,19 +50,23 @@ void moduleAddPlottingWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("PlottingWindow", "");
+    auto m_a_name = py::str(m_a.attr("__name__"));
 
     m_a.def("addData",
-        [engine](const std::string &description,
-                 sofa::core::objectmodel::BaseData* data)
+        [engine, m_a_name](const std::string &label, py::object data, std::string type, const int& subplotIndex)
         {
             if (engine)
             {
-                windows::PlottingWindow::PlottingData plottingData;
-                plottingData.value = data;
-                plottingData.description = description;
-                engine->m_plottingWindow.addData(plottingData);
+                if (subplotIndex >= windows::PlottingWindow::MAX_NB_PLOT)
+                    msg_warning(m_a_name) << "The maximum number of sublots is " << windows::PlottingWindow::MAX_NB_PLOT << ". Using first subplot instead." ;
+
+                engine->m_plottingWindow.addData(label,
+                                                 getDataFromPyObject(data, type),
+                                                 subplotIndex);
             }
-        }, "Add data to plot, with description."
+        }
+        , "label"_a, "data"_a, "type"_a = "double", "subplotIndex"_a = 0
+        ,"Add data to plot, with description."
         );
 }
 

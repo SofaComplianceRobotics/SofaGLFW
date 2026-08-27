@@ -32,7 +32,7 @@ SOFTWARE.
 #include <Style.h>
 #include <GUIColors.h>
 
-namespace sofaimgui::widget {
+namespace sofaimgui::widgets {
 
 namespace internal {
 

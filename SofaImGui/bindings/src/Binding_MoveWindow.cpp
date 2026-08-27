@@ -18,6 +18,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include "Module_SofaImGui.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/cast.h>
@@ -47,100 +48,111 @@ void moduleAddMoveWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("MoveWindow", "");
+    std::string m_a_name = py::str(m_a.attr("__name__"));
     m_a.def("setTCPDescription",
-        [engine](const std::string &positionDescription, const std::string &rotationDescription)
-        {
-            if (engine)
+            [m_a_name](const std::string &positionDescription, const std::string &rotationDescription)
             {
-                engine->m_moveWindow.setTCPDescriptions(positionDescription, rotationDescription);
-            }
-        }, "Set the description displayed on the GUI (positionDescription, rotationDescription). Use this to display the right unit."
-        );
+            SOFA_UNUSED(positionDescription);
+            SOFA_UNUSED(rotationDescription);
+            msg_deprecated(m_a_name) << "setTCPDescription is deprecated and will be removed in future versions. Use Sofa.ImGui.addTCP() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead. Set the description displayed on the GUI(positionDescription, rotationDescription). Use this to display the right unit."
+            );
 
     m_a.def("setTCPLimits",
-        [engine](const float &minPosition, const float &maxPosition, const double &minOrientation, const double &maxOrientation)
-        {
-            if (engine)
+            [m_a_name](const float &minPosition, const float &maxPosition, const double &minOrientation, const double &maxOrientation)
             {
-                engine->m_moveWindow.setTCPLimits(minPosition, maxPosition, minOrientation, maxOrientation);
-            }
-        }, "Set the sliders limits."
-        );
+            SOFA_UNUSED(minPosition);
+            SOFA_UNUSED(maxPosition);
+            SOFA_UNUSED(minOrientation);
+            SOFA_UNUSED(maxOrientation);
+            msg_deprecated(m_a_name) << "setTCPLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addTCP() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addTCP() instead. Set the sliders limits."
+            );
 
     m_a.def("setActuatorsDescription",
-        [engine](const std::string &description)
+        [m_a_name](const std::string &description)
         {
-            if (engine)
-            {
-                engine->m_moveWindow.setActuatorsDescriptions(description);
-            }
-        }, "Set the description displayed on the GUI. Use this to display the right info and unit."
+        SOFA_UNUSED(description);
+        msg_deprecated(m_a_name) << "setActuatorsDescription is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the description displayed on the GUI. Use this to display the right info and unit."
         );
 
     m_a.def("setActuatorsLimits",
-        [engine](const double &min, const double &max)
+        [m_a_name](const double &min, const double &max)
         {
-            if (engine)
-            {
-                engine->m_moveWindow.setActuatorsLimits(min, max);
-            }
-        }, "Set the sliders limits for all the actuators."
+        SOFA_UNUSED(min);
+        SOFA_UNUSED(max);
+        msg_deprecated(m_a_name) << "setActuatorsLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the sliders limits for the actuator number 'id'."
         );
 
     m_a.def("setActuatorLimits",
-            [engine](const sofa::Index &id, const double &min, const double &max)
+            [m_a_name](const sofa::Index &id, const double &min, const double &max)
             {
-                if (engine)
-                {
-                    engine->m_moveWindow.setActuatorLimits(id, min, max);
-                }
-            }, "Set the sliders limits for the actuator number 'id'."
+            SOFA_UNUSED(id);
+            SOFA_UNUSED(min);
+            SOFA_UNUSED(max);
+            msg_deprecated(m_a_name) << "setActuatorLimits is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the sliders limits for the actuator number 'id'."
             );
 
     m_a.def("setActuators",
-        [engine](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
-                 const std::vector<size_t> &indicesInProblem,
-                 const std::string valueType)
-        {
-            if (engine)
+            [m_a_name, engine](const std::vector<sofa::core::objectmodel::BaseData*> &actuatorsData,
+                                const std::vector<size_t> &indicesInProblem,
+                                const std::string valueType)
             {
-                sofa::Size nbActuators = std::min(actuatorsData.size(), indicesInProblem.size());
-                std::vector<models::IPController::Actuator> actuators;
-                sofa::Size size = actuators.size();
-                for (size_t i=0; i< nbActuators; i++)
+                SOFA_UNUSED(indicesInProblem);
+                SOFA_UNUSED(valueType);
+                if (engine)
                 {
-                    models::IPController::Actuator actuator = (i<size)? actuators[i]: models::IPController::Actuator();
+                    int i=0;
+                    for (auto data : actuatorsData)
+                    {
+                        if(data)
+                        {
+                            py::object min = py::cast(-3.);
+                            py::object max = py::cast(3.);
 
-                    actuator.data = actuatorsData[i];
-                    actuator.indexInProblem = indicesInProblem[i];
-                    actuator.valueType.setSelectedItem(valueType);
-
-                    if (i < size)
-                        actuators[i] = actuator;
-                    else
-                        actuators.push_back(actuator);
+                            softrobots::behavior::SoftRobotsBaseConstraint *constraint = dynamic_cast<softrobots::behavior::SoftRobotsBaseConstraint *>(data->getOwner());
+                            if (constraint)
+                            {
+                                engine->m_kinematicsGUIDataManager->addActuator("M" + std::to_string(i++),
+                                                                                constraint,
+                                                                                getDataFromPyObject(min, "float"),
+                                                                                getDataFromPyObject(max, "float"),
+                                                                                "",
+                                                                                "");
+                            }
+                        }
+                    }
                 }
-                engine->m_moveWindow.setActuators(actuators);
-            }
-        }, "Set the actuators."
-        );
+                msg_deprecated(m_a_name) << "setActuators is deprecated and will be removed in future versions. Use Sofa.ImGui.addActuator() instead";
+            }, "[DEPRECATED] Use Sofa.ImGui.addActuator() instead. Set the actuators."
+            );
 
     m_a.def("addAccessory",
-        [engine](const std::string &description, sofa::core::BaseData* data,
+        [m_a_name, engine](const std::string &description, sofa::core::BaseData* data,
                  const float& min, const float& max)
         {
             if (engine)
             {
-                windows::MoveWindow::Accessory accessory;
-                accessory.description = description;
-                accessory.data = data;
-                accessory.min = min;
-                accessory.max = max;
-                engine->m_moveWindow.addAccessory(accessory);
+                if (data)
+                {
+                    py::object pydata = py::cast(data);
+                    py::object pymin = py::cast(min);
+                    py::object pymax = py::cast(max);
+                    engine->m_kinematicsGUIDataManager->addAccessoryFeature("Accessory",
+                                                                            description,
+                                                                            getDataFromPyObject(pydata, "float"),
+                                                                            getDataFromPyObject(pymin, "float"),
+                                                                            getDataFromPyObject(pymax, "float"));
+                }
             }
-        }, "Add an accessory to the window."
-        );
 
+
+            msg_deprecated(m_a_name) << "addAccessory is deprecated and will be removed in future versions. Use Sofa.ImGui.addAccessoryFeature() instead";
+        }, "[DEPRECATED] Use Sofa.ImGui.addAccessoryFeature() instead. Add an accessory to the window."
+        );
 }
 
 

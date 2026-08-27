@@ -113,22 +113,23 @@ set(SOFAIMGUI_SOURCE_DIR src/SofaImGui)
 set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/BaseWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ComponentsWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/DashboardWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/IOWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/LogWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MyRobotWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MouseManagerWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MoveWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/SceneGraphWindow.h
-    ${SOFAIMGUI_SOURCE_DIR}/windows/StateWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/RecordVideoWindow.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.h
+    ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettings.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/ImGuiDataWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/BoundingBoxWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
@@ -152,10 +153,15 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Repeat.h
 
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/SimulationState.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/IPController.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIData.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIDataManager.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/ActuatorGUIData.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/AccessoryFeatureGUIData.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/EffectorGUIData.h
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/KinematicsGUIDataManager.h
 
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.h
@@ -175,21 +181,22 @@ set(HEADER_FILES
 set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/BaseWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ComponentsWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/DashboardWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/IOWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/LogWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/MyRobotWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/MouseManagerWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/MoveWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/SceneGraphWindow.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/windows/StateWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/PlottingWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/PluginsWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProgramWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ProfilerWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/RecordVideoWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettings.cpp
 
-    ${SOFAIMGUI_SOURCE_DIR}/widgets/ImGuiDataWidget.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Widgets.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
@@ -213,10 +220,14 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/views/RepeatView.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/SimulationState.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/IPController.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIDataManager.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/ActuatorGUIData.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/AccessoryFeatureGUIData.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/EffectorGUIData.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/KinematicsGUIDataManager.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.cpp
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.cpp

@@ -48,6 +48,7 @@ void moduleAddProgramWindow(py::module &m)
     std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
 
     auto m_a = m.def_submodule("ProgramWindow", "");
+    std::string m_a_name = py::str(m_a.attr("__name__"));
 
     m_a.def("addGripper",
         [engine](sofa::core::BaseData* data,
@@ -63,14 +64,25 @@ void moduleAddProgramWindow(py::module &m)
         }, "Add the pick action to the program window."
         );
 
-    m_a.def("importProgram",
+    m_a.def("setProgramFilename",
         [engine](std::string filename)
         {
             if (engine)
             {
-                engine->m_programWindow.importProgram(filename);
+                engine->m_programWindow.setProgramFilename(filename);
             }
-        }, "Import a program."
+        }, "Set the program filename to import."
+        );
+
+    m_a.def("importProgram",
+        [m_a_name, engine](std::string filename)
+        {
+            if (engine)
+            {
+                engine->m_programWindow.setProgramFilename(filename);
+            }
+            msg_deprecated(m_a_name) << "Use setProgramFilename() instead.";
+        }, "[DEPRECATED] Use setProgramFilename() instead."
         );
 }
 

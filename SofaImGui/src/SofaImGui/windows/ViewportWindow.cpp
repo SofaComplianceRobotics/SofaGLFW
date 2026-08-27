@@ -21,26 +21,32 @@
  ******************************************************************************/
 #define IMGUI_DEFINE_MATH_OPERATORS // import math operators
 
-#include <Style.h>
-#include <GUIColors.h>
-#include <SofaGLFW/SofaGLFWWindow.h>
 #include <sofa/core/visual/VisualParams.h>
 #include <sofa/component/visual/BaseCamera.h>
-#include <SofaImGui/windows/ViewportWindow.h>
-#include <SofaImGui/widgets/Widgets.h>
+
 #include <imgui_internal.h>
+
 #include <IconsFontAwesome6.h>
-#include <SofaImGui/widgets/Gizmos.h>
+#include <Style.h>
+#include <GUIColors.h>
+
+#include <SofaGLFW/SofaGLFWWindow.h>
 #include <GLFW/glfw3.h>
-#include <SofaImGui/windows/WindowsSettingsName.h>
+
 #include <SofaImGui/Workbench.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <SofaImGui/DrivingWindow.h>
+#include <SofaImGui/windows/ViewportWindow.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
+#include <SofaImGui/widgets/Widgets.h>
+#include <SofaImGui/widgets/Gizmos.h>
 
 namespace sofaimgui::windows {
 
-ViewportWindow::ViewportWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+ViewportWindow::ViewportWindow(const std::string& name)
+    : BaseWindow(name)
 {
+    m_windowFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 }
 
 std::string ViewportWindow::getDescription()
@@ -48,58 +54,52 @@ std::string ViewportWindow::getDescription()
     return "Main viewport rendering window.";
 }
 
-void ViewportWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI,
-                                const ImTextureID& texture,
-                                const ImGuiWindowFlags& windowFlags)
+void ViewportWindow::registerAndLoadWindowSettings()
 {
-    if (isOpen())
-    {
-        if (!baseGUI)
-            return;
-
-        auto groot = baseGUI->getRootNode().get();
-
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
-        {
-            ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-            {
-                ImVec2 viewportPos = ImGui::GetWindowPos();
-                baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
-
-                ImVec2 wsize = ImGui::GetWindowSize();
-                m_windowSize = {wsize.x, wsize.y};
-                m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
-
-                m_isFocusOnViewport = ImGui::IsWindowFocused();
-
-                ImDrawList* dl = ImGui::GetWindowDrawList();
-                ImVec2 p_min = ImGui::GetCursorScreenPos();
-                ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
-                ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
-                dl->AddImageRounded(texture, p_min, p_max,
-                                    ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
-                                    ImGui::GetStyle().FrameRounding);
-
-                m_isMouseOnViewport = ImGui::IsWindowHovered();
-
-                if (workbench != Workbench::SCENE_EDITOR)
-                {
-                    addSimulationTimeAndFPS(groot);
-                }
-
-                addCameraButtons(baseGUI, groot);
-                if(baseGUI->isVideoRecording())
-                    addRecordingStatus(ImColor(COLOR_RED));
-                addContextMenu(baseGUI, texture);
-            }
-            ImGui::EndChild();
-        }
-        ImGui::End();
-    }
+    registerAndLoadWindowSetting(WS_VIEWPORT_ORIENTATIONGIZMOENABLED, m_ws_orientationGizmoEnabled, WindowsSettings::SettingType::BOOL);
+    registerAndLoadWindowSetting(WS_VIEWPORT_CAMERABUTTONCOLLAPSE, m_ws_cameraButtonsCollapsed, WindowsSettings::SettingType::BOOL);
+    registerAndLoadWindowSetting(WS_VIEWPORT_DRIVINGWINDOW, m_ws_drivingWindow, WindowsSettings::SettingType::LONG);
 }
 
-bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
+void ViewportWindow::internalShowWindow()
 {
+    ImGui::BeginChild("Render", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    {
+        ImVec2 viewportPos = ImGui::GetWindowPos();
+        m_baseGUI->updateViewportPosition(viewportPos.x, viewportPos.y);
+
+        ImVec2 wsize = ImGui::GetWindowSize();
+        m_windowSize = {wsize.x, wsize.y};
+        m_maxPanelItemWidth = ImGui::CalcTextSize("Input/Output").x + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetTextLineHeightWithSpacing();
+
+        m_isFocusOnViewport = ImGui::IsWindowFocused();
+
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 p_min = ImGui::GetCursorScreenPos();
+        ImVec2 p_max = ImVec2(p_min.x + wsize.x, p_min.y + wsize.y);
+        ImGui::ItemAdd(ImRect(p_min, p_max), ImGui::GetID("ImageRender"));
+        dl->AddImageRounded(m_textureID, p_min, p_max,
+                            ImVec2(0, 1), ImVec2(1, 0), COLOR_WHITE,
+                            ImGui::GetStyle().FrameRounding);
+
+        m_isMouseOnViewport = ImGui::IsWindowHovered();
+
+        if (workbench != Workbench::SCENE_EDITOR)
+        {
+            addSimulationTimeAndFPS();
+        }
+
+        addCameraButtons();
+        if(m_baseGUI->isVideoRecording())
+            addRecordingStatus(ImColor(COLOR_RED));
+        addContextMenu(m_textureID);
+    }
+    ImGui::EndChild();
+}
+
+bool ViewportWindow::checkCamera()
+{
+    auto groot = m_baseGUI->getRootNode().get();
     if (groot) // Check the groot
     {
         sofa::component::visual::BaseCamera::SPtr camera;
@@ -115,17 +115,15 @@ bool ViewportWindow::checkCamera(sofa::simulation::Node* groot)
     return false;
 }
 
-void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* groot)
+void ViewportWindow::addCameraButtons()
 {
+    auto groot = m_baseGUI->getRootNode().get();
+
     // If the camera is not correctly initialized don't draw anything
-    if (!checkCamera(groot))
+    if (!checkCamera())
         return;
 
-    // Windows settings
-    auto& windowsSettings = WindowsSettings::getInstance();
-
     // Positions and sizes
-    static bool cameraButtonsCollapsed = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, true);
     const auto& wpos = ImGui::GetMainViewport()->Pos;
     auto position = ImGui::GetWindowPos();
     ImGui::GetCurrentWindow()->DC.CursorPos = position;
@@ -135,15 +133,14 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     groot->get(camera);
 
     // Gizmos
-    static bool orientationGizmoEnabled = windowsSettings.getSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, false);
     double frameGizmoSize = ImGui::GetFrameHeight() * 4;
     double orientationGizmoSize = frameGizmoSize;
     bool axisClicked[3]{false};
     ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_TRANSPARENT);
-    if (ImGui::Begin("ViewportChildGizmos", &m_isOpen, ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
+    if (ImGui::Begin("ViewportChildGizmos", &isOpen(), ImGuiWindowFlags_ChildWindow| ImGuiWindowFlags_AlwaysAutoResize |
                                                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
-        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
+        ImRect wosize = ImRect(wpos, ImVec2(wpos.x + frameGizmoSize + m_ws_orientationGizmoEnabled * orientationGizmoSize, wpos.y + frameGizmoSize));
         ImGui::ItemSize(wosize);
         ImGui::ItemAdd(wosize, ImGui::GetID("ViewportGizmos"));
 
@@ -167,30 +164,30 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
             { // Frame gizmo
                 bool axisClicked[6]{false};
-                sofaimgui::widget::SetRect(position.x, position.y, frameGizmoSize);
-                sofaimgui::widget::DrawFrameGizmo(mview, proj, axisClicked);
+                sofaimgui::widgets::SetRect(position.x, position.y, frameGizmoSize);
+                sofaimgui::widgets::DrawFrameGizmo(mview, proj, axisClicked);
                 if (axisClicked[0])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::LEFT);
                 else if (axisClicked[1])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::TOP);
                 else if (axisClicked[2])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::FRONT);
                 else if (axisClicked[3])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::RIGHT);
                 else if (axisClicked[4])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BOTTOM);
                 else if (axisClicked[5])
-                    sofaglfw::SofaGLFWWindow::alignCamera(baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
+                    sofaglfw::SofaGLFWWindow::alignCamera(m_baseGUI, sofaglfw::SofaGLFWWindow::CameraAlignement::BACK);
             }
 
             { // Orientation gizmo
-                if (orientationGizmoEnabled)
+                if (m_ws_orientationGizmoEnabled)
                 {
                     // Center of the viewport (look at position)
-                    sofaimgui::widget::SetRect(position.x + frameGizmoSize,
+                    sofaimgui::widgets::SetRect(position.x + frameGizmoSize,
                                                position.y,
                                                orientationGizmoSize);
-                    sofaimgui::widget::DrawOrientationGizmo(mview, proj, axisClicked);
+                    sofaimgui::widgets::DrawOrientationGizmo(mview, proj, axisClicked);
                 }
             }
         }
@@ -225,7 +222,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
     // Buttons
     bool translate = false;
-    if (ImGui::Begin("ViewportChildLeftButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+    if (ImGui::Begin("ViewportChildLeftButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
         ImGui::TextDisabled("  " ICON_FA_VIDEO);
@@ -233,30 +230,29 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
         ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-        std::string title = (cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
+        std::string title = (m_ws_cameraButtonsCollapsed) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP;
         title+="##viewoptions";
 
-        if(ImGui::LocalButton(title.c_str()))
+        if(sofaimgui::widgets::Button(title.c_str()))
         {
-            cameraButtonsCollapsed = !cameraButtonsCollapsed;
-            windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_CAMERABUTTONCOLLAPSE, cameraButtonsCollapsed);
+            m_ws_cameraButtonsCollapsed = !m_ws_cameraButtonsCollapsed;
         }
         
-        ImGui::SetItemTooltip(cameraButtonsCollapsed? "Expand view options": "Collapse view options");
+        ImGui::SetItemTooltip(m_ws_cameraButtonsCollapsed? "Expand view options": "Collapse view options");
         ImGui::PopStyleColor(3);
 
-        if (!cameraButtonsCollapsed)
+        if (!m_ws_cameraButtonsCollapsed)
         {
             const auto& bbox = groot->f_bbox.getValue();
 
             { // 3D view display options
                 if (ImGui::BeginPopup("##DisplayOptions"))
                 {
-                    menus::ViewMenu(baseGUI).addShowIn3DViewMenuItems();
+                    menus::ViewMenu(m_baseGUI).addShowIn3DViewMenuItems();
                     ImGui::EndPopup();
                 }
 
-                if (ImGui::LocalButton(ICON_FA_EYE))
+                if (sofaimgui::widgets::Button(ICON_FA_EYE))
                 {
                     ImGui::OpenPopup("##DisplayOptions");
                 }
@@ -268,7 +264,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             ImGui::PopStyleColor();
 
             { // Fit all
-                if (ImGui::LocalButton(ICON_FA_ARROWS_TO_DOT))
+                if (sofaimgui::widgets::Button(ICON_FA_ARROWS_TO_DOT))
                 {
                     camera->fitBoundingBox(bbox.minBBox(), bbox.maxBBox());
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
@@ -278,7 +274,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             }
 
             { // Center view
-                if (ImGui::LocalButton(ICON_FA_BULLSEYE))
+                if (sofaimgui::widgets::Button(ICON_FA_BULLSEYE))
                 {
                     auto bbCenter = (bbox.maxBBox() + bbox.minBBox()) * 0.5f;
                     camera->d_lookAt.setValue(bbCenter);
@@ -288,7 +284,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
             { // Othographic / perspective view
                 bool ortho = (camera->getCameraType() == sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
-                if (ImGui::LocalButton((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
+                if (sofaimgui::widgets::Button((!ortho)? ICON_FA_SQUARE: ICON_FA_CUBE))
                 {
                     camera->setCameraType((!ortho)? sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE: sofa::core::visual::VisualParams::PERSPECTIVE_TYPE);
                     sofaglfw::SofaGLFWWindow::userSelectedOrthographic = !ortho;
@@ -297,12 +293,11 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
             }
 
             { // Orientation gizmo button
-                if (ImGui::LocalButton(ICON_FA_ROTATE))
+                if (sofaimgui::widgets::Button(ICON_FA_ROTATE))
                 {
-                    orientationGizmoEnabled = !orientationGizmoEnabled;
-                    windowsSettings.setSetting(m_name.c_str(), WS_VIEWPORT_ORIENTATIONGIZMOENABLED, orientationGizmoEnabled);
+                    m_ws_orientationGizmoEnabled = !m_ws_orientationGizmoEnabled;
                 }
-                std::string text = (orientationGizmoEnabled)? "Disable ": "Enable ";
+                std::string text = (m_ws_orientationGizmoEnabled)? "Disable ": "Enable ";
                 text += "orientation gizmo \n(Rotation Center: Look At)";
                 ImGui::SetItemTooltip("%s", text.c_str());
             }
@@ -313,7 +308,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
 
             { // Axis related
                 { // Translate Left/Right
-                    ImGui::LocalButton(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
+                    sofaimgui::widgets::Button(ICON_FA_ARROWS_LEFT_RIGHT"##TranslateLR");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(1., 0., 0.);
@@ -330,7 +325,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
 
                 { // Translate Up/Down
-                    ImGui::LocalButton(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
+                    sofaimgui::widgets::Button(ICON_FA_ARROWS_UP_DOWN"##TranslateUD");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 1., 0.);
@@ -347,7 +342,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
                 }
 
                 { // Zoom
-                    ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
+                    sofaimgui::widgets::Button(ICON_FA_MAGNIFYING_GLASS_PLUS"##Zoom");
                     if (ImGui::IsItemActive())
                     {
                         sofa::type::Vec3 t = sofa::type::Vec3(0., 0., 1.);
@@ -429,7 +424,7 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     }
 
     // Hides and grabs the cursor, providing virtual and unlimited cursor movement.
-    baseGUI->setDisabledMouse(rotate || translate);
+    m_baseGUI->setDisabledMouse(rotate || translate);
 
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
@@ -437,11 +432,11 @@ void ViewportWindow::addCameraButtons(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::
     ImGui::EndChild();
 }
 
-void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture)
+void ViewportWindow::addContextMenu(const ImTextureID& texture)
 {
     if (ImGui::BeginPopup("##ViewportContextMenu"))
     {
-        menus::ViewMenu viewMenu(baseGUI);
+        menus::ViewMenu viewMenu(m_baseGUI);
         viewMenu.addSaveCameraMenuItem();
         viewMenu.addRestoreCameraMenuItem();
 
@@ -463,14 +458,13 @@ void ViewportWindow::addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const Im
     }
 }
 
-
 bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 {
     bool isItemClicked = false;
 
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -487,10 +481,10 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
                 ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
 
-                if (ImGui::Begin("ViewportChildMiddleButtons", &m_isOpen, ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
+                if (ImGui::Begin("ViewportChildMiddleButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
                 {
-                    ImGui::LocalButton(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
+                    sofaimgui::widgets::Button(*animate ? ICON_FA_PAUSE : ICON_FA_PLAY);
                     ImGui::SetItemTooltip(*animate ? "Stop simulation" : "Start simulation");
 
                     if (ImGui::IsItemClicked())
@@ -516,9 +510,9 @@ bool ViewportWindow::addStepButton()
 {
     bool isItemClicked = false;
     
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -526,7 +520,7 @@ bool ViewportWindow::addStepButton()
                 {
                     ImGui::SameLine();
                     ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-                    if (ImGui::LocalButton(ICON_FA_FORWARD_STEP))
+                    if (sofaimgui::widgets::Button(ICON_FA_FORWARD_STEP))
                         isItemClicked = true;
                     ImGui::PopItemFlag();
                     ImGui::SetItemTooltip("One step of simulation");
@@ -545,16 +539,16 @@ bool ViewportWindow::addReloadButton()
 {
     bool isItemClicked = false;
 
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
                 if (ImGui::Begin("ViewportChildMiddleButtons"))
                 {
                     ImGui::SameLine();
-                    if (ImGui::LocalButton(ICON_FA_ROTATE_LEFT))
+                    if (sofaimgui::widgets::Button(ICON_FA_ROTATE_LEFT))
                         isItemClicked = true;
                     ImGui::SetItemTooltip("Reload the simulation");
                 }
@@ -568,13 +562,14 @@ bool ViewportWindow::addReloadButton()
     return isItemClicked;
 }
 
-bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes)
+void ViewportWindow::addDrivingTabCombo()
 {
-    bool hasValueChanged = false;
-    
-    if (m_isOpen)
+    int dw = m_ws_drivingWindow;
+    drivingWindow = DrivingWindow(dw);
+
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if (ImGui::BeginChild("Render"))
             {
@@ -585,7 +580,13 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.53f, 0.54f, 0.55f, 1.00f));
-                    hasValueChanged = ImGui::Combo("##DrivingWindowViewport", mode, listModes, sizeListModes);
+
+                    const char* listTabs[getDrivingWindowCount()];
+                    for (sofa::Index i=0; i<getDrivingWindowCount(); i++)
+                        listTabs[i] = getDrivingWindowName(DrivingWindow(i));
+
+                    if(ImGui::Combo("##DrivingWindowViewport", &dw, listTabs, IM_ARRAYSIZE(listTabs)))
+                        m_ws_drivingWindow = dw;
                     ImGui::PopStyleColor(3);
                     ImGui::PopItemWidth();
                     ImGui::SetItemTooltip("Choose a window to drive the TCP target");
@@ -596,15 +597,13 @@ bool ViewportWindow::addDrivingTabCombo(int *mode, const char *listModes[], cons
         }
         ImGui::End();
     }
-
-    return hasValueChanged;
 }
 
-void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
+void ViewportWindow::addSimulationTimeAndFPS()
 {
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if(ImGui::BeginChild("Render"))
             {
@@ -615,6 +614,7 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                 ImGui::SetCursorPosX(position);
                 ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing());
                 ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
+                auto groot = m_baseGUI->getRootNode();
                 ImGui::Text("Time: %.3f", groot->getTime());
                 ImGui::PopStyleColor();
                 ImGui::SetItemTooltip("Total time simulated");
@@ -631,7 +631,8 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
                     ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
                     ImGui::Text("%.1f FPS", m_fps);
                     ImGui::PopStyleColor();
-                    ImGui::SetItemTooltip("FPS: frame per second \n Average %.2f ms per frame (%.1f FPS)", 1000.0f / m_fps, m_fps);
+                    ImGui::SetItemTooltip("FPS: Frame Per Second \n Average %.2f ms per frame (%.1f FPS) \n GUI Average %.2f ms per frame (%.1f FPS)",
+                                          1000.0f / m_fps, m_fps, 1000.0f / io.Framerate, io.Framerate);
                 }
             }
             ImGui::EndChild();
@@ -642,9 +643,9 @@ void ViewportWindow::addSimulationTimeAndFPS(sofa::simulation::Node* groot)
 
 void ViewportWindow::addRecordingStatus(const ImVec4& red)
 {
-    if (m_isOpen)
+    if (isOpen())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen))
+        if (ImGui::Begin(getLabel().c_str(), &isOpen()))
         {
             if(ImGui::BeginChild("Render"))
             {

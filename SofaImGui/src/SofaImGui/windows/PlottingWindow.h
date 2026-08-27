@@ -29,11 +29,12 @@
 
 namespace sofaimgui::windows {
 
-#define MAX_NB_PLOT 4
 
 class SOFAIMGUI_API PlottingWindow : public BaseWindow
 {
    public:
+
+    static const int MAX_NB_PLOT {4};
 
     struct RollingBuffer
     {
@@ -65,37 +66,38 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
         }
     };
 
-    struct PlottingData
-    {
-        sofa::core::objectmodel::BaseData* value;
-        std::string description;
-        size_t idSubplot{0};
-    };
-
-    PlottingWindow(const std::string& name, const bool& isWindowOpen);
+    PlottingWindow(const std::string& name);
     ~PlottingWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
     std::string getDescription() override;
-    void clearWindow() override;
 
-    void addData(const PlottingData data) {m_data.push_back(data);}
+    sofaimgui::models::guidata::GUIData::SPtr addData(const std::string& label,
+                                                      const std::pair<sofa::core::BaseData*, bool>& data,
+                                                      const int& subplotIndex = 0);
+
+    models::guidata::GUIData::SPtr addGUIData(models::guidata::GUIData::SPtr guidata) override;
 
    protected:
-    std::vector<PlottingData> m_data;
-    std::vector<RollingBuffer> m_buffers;
+    std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
+    std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
-    size_t m_nbRows{1};
-    size_t m_nbCols{1};
+    long m_ws_nbRows{1};
+    long m_nbCols{1};
 
-    bool isEnabledByState() override {return !m_data.empty();}
+    void beforeShowWindow() override;
+    void internalShowWindow() override;
+    void registerAndLoadWindowSettings() override;
+
+    void clearWindow() override;
+    bool isEnabledByState() override {return !m_GUIData.empty();}
 
     void exportData();
+    void setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
     void showButtons();
     void showPlots();
     void showMenu();
-    void showMenu(ImPlotPlot &plot, const size_t &idSubplot);
+    void showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot);
 };
 
 }

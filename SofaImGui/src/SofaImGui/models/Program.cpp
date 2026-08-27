@@ -34,11 +34,8 @@ namespace sofaimgui::models {
 void Program::clearTracks()
 {
     m_tracks.clear();
-    if (m_IPController)
-    {
-        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_IPController);
-        addTrack(track);
-    }
+    std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_kinematicsGUIDataManager);
+    addTrack(track);
 }
 
 bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * root)
@@ -66,7 +63,7 @@ bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * roo
 
 bool Program::importProgram(const std::string &filename)
 {
-    if (checkExtension(filename))
+    if (checkExtension(filename) && isValid())
     {
         // Temporarily set the numeric formatting locale to ensure that
         // floating-point values are interpreted correctly by tinyXML. (I.e. the
@@ -83,7 +80,7 @@ bool Program::importProgram(const std::string &filename)
                 std::vector<std::shared_ptr<Track>> tracks;
                 for(auto* t = root->FirstChildElement("track"); t != nullptr; t = t->NextSiblingElement("track"))
                 {
-                    std::shared_ptr<Track> track = std::make_shared<Track>(m_IPController);
+                    std::shared_ptr<Track> track = std::make_shared<Track>(m_kinematicsGUIDataManager);
 
                     for(const auto* e = t->FirstChildElement("action"); e != nullptr; e = e->NextSiblingElement("action"))
                     {
@@ -126,7 +123,7 @@ bool Program::importProgram(const std::string &filename)
                                 move = std::make_shared<actions::Move>(RigidCoord(),
                                                                        wp,
                                                                        duration,
-                                                                       m_IPController,
+                                                                       m_kinematicsGUIDataManager,
                                                                        freeInRotation,
                                                                        type);
 
@@ -405,6 +402,12 @@ bool Program::isEmpty()
 
     return true;
 }
+
+bool Program::isValid()
+{
+    return !m_tracks.empty() && m_tracks[0] && m_tracks[0]->getStartMove();
+}
+
 
 } // namespace
 

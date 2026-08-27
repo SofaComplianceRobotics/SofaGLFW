@@ -22,7 +22,6 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/windows/StateWindow.h>
 #include <SofaImGui/menus/ViewMenu.h>
 #include <imgui.h>
 
@@ -32,17 +31,19 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 {
    public:
 
-    ViewportWindow(const std::string& name, const bool& isWindowOpen);
+    ViewportWindow(const std::string& name);
     ~ViewportWindow() = default;
 
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture, const ImGuiWindowFlags &windowFlags);
+    void internalShowWindow() override;
     std::string getDescription() override;
 
-    void addCameraButtons(sofaglfw::SofaGLFWBaseGUI *baseGUI, sofa::simulation::Node *groot);
+    void setTextureID(const ImTextureID& textureID) {m_textureID=textureID;}
+
+    void addCameraButtons();
     bool addAnimateButton(bool *animate, const float &shift_x);
     bool addStepButton();
     bool addReloadButton();
-    bool addDrivingTabCombo(int *mode, const char *listModes[], const int &sizeListModes);
+    void addDrivingTabCombo();
 
     std::pair<float, float> m_windowSize{0., 0.};
 
@@ -58,10 +59,18 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     double m_maxPanelItemWidth{0.0};
 
-    void addSimulationTimeAndFPS(sofa::simulation::Node *groot);
+    ImTextureID m_textureID;
+
+    bool m_ws_orientationGizmoEnabled{false};
+    bool m_ws_cameraButtonsCollapsed{true};
+    long m_ws_drivingWindow{1};
+
+    void registerAndLoadWindowSettings() override;
+
+    void addSimulationTimeAndFPS();
     void addRecordingStatus(const ImVec4 &red);
-    bool checkCamera(sofa::simulation::Node* groot);
-    void addContextMenu(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImTextureID& texture);
+    bool checkCamera();
+    void addContextMenu(const ImTextureID& texture);
 };
 
 }

@@ -23,7 +23,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <imgui.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 template<sofa::Size N, typename real>

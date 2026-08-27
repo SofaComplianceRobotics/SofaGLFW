@@ -51,6 +51,8 @@ public:
 
     virtual void animateBeginEvent(sofa::simulation::Node* groot){SOFA_UNUSED(groot);}
     virtual void animateEndEvent(sofa::simulation::Node* groot){SOFA_UNUSED(groot);}
+
+    virtual void loadSimulation(const bool& reload, const std::string &filename){SOFA_UNUSED(reload); SOFA_UNUSED(filename);}
 };
 
 } // namespace sofaglfw

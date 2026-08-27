@@ -27,7 +27,7 @@
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/models/Trajectory.h>
 #include <SofaImGui/models/actions/StartMove.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 namespace sofaimgui::models::actions {
 
@@ -42,12 +42,12 @@ class Move : public StartMove
         LINE
     };
 
-    Move(const RigidCoord& initialPoint,
-         const RigidCoord& waypoint,
-         const double& duration,
-         IPController::SPtr IPController,
-         const bool& freeInRotation = true,
-         Type type = LINE);
+       Move(const RigidCoord& initialPoint,
+            const RigidCoord& waypoint,
+            const double& duration,
+            guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager,
+            const bool& freeInRotation = true,
+            Type type = LINE);
 
     virtual ~Move();
 

@@ -20,32 +20,81 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #include "IconsFontAwesome6.h"
+#include <SofaImGui/windows/WindowsSettingsName.h>
 #include <SofaImGui/windows/BaseWindow.h>
 
 namespace sofaimgui::windows {
 
-WindowsSettings &WindowsSettings::getInstance()
-{
-    static WindowsSettings windowsSettings;
-    return windowsSettings;
-}
-
 BaseWindow::BaseWindow()
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = Workbench::LIVE_CONTROL | Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
-BaseWindow::BaseWindow(std::string name, bool defaultIsOpen)
+BaseWindow::BaseWindow(std::string name)
     : BaseWindow()
 {
     m_name = name;
-    m_defaultIsOpen = defaultIsOpen;
 }
 
-void BaseWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags &windowFlags)
+void BaseWindow::onEndSimulationLoad()
 {
-    SOFA_UNUSED(baseGUI);
-    SOFA_UNUSED(windowFlags);
+    m_GUIData.clear();
+    m_groupedGUIData.clear();
+    registerAndLoadGUIDataWindowSettings();
+}
+
+void BaseWindow::showWindow(ImGuiWindowFlags windowFlags)
+{
+    beforeShowWindow();
+
+    if (isOpen())
+    {
+        if (m_firstTime)
+        {
+            registerAndLoadWindowSettings();
+            m_firstTime = false;
+        }
+
+        if (ImGui::Begin(getLabel().c_str(), &isOpen(), windowFlags | m_windowFlags))
+        {
+            if (!isEnabledInWorkbench())
+            {
+                showInfoMessage((getDescription() + " Disabled in the active workbench.").c_str());
+                ImGui::BeginDisabled();
+            }
+
+            internalShowWindow();
+
+            if (!isEnabledInWorkbench())
+                ImGui::EndDisabled();
+        }
+
+        auto& windowSettings = WindowsSettings::getInstance();
+        for (auto it=m_registeredSettings.begin(); it!=m_registeredSettings.end(); it++)
+        {
+            switch (it->second.second) {
+            case WindowsSettings::SettingType::LONG:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(long*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::DOUBLE:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(double*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::BOOL:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(bool*)(it->second.first));
+                break;
+            case WindowsSettings::SettingType::STRING:
+                windowSettings.setSetting(m_name.c_str(), it->first.c_str(), *(std::string*)(it->second.first));
+                break;
+            default:
+                break;
+            }
+        }
+
+        ImGui::End();
+    }
+
+    afterShowWindow();
 }
 
 std::string BaseWindow::getName() const
@@ -61,22 +110,37 @@ std::string& BaseWindow::getLabel()
 
 bool& BaseWindow::isOpen()
 {
-    return m_isOpen;
+    return m_isOpen[workbench];
+}
+
+bool& BaseWindow::isOpen(const Workbench& wb)
+{
+    return m_isOpen[wb];
 }
 
 void BaseWindow::setOpen(const bool &isOpen)
 {
-    m_isOpen=isOpen;
+    m_isOpen[workbench]=isOpen;
 }
 
-const bool& BaseWindow::getDefaultIsOpen()
+void BaseWindow::setOpen(const Workbench& wb, const bool &isOpen)
 {
-    return m_defaultIsOpen;
+    m_isOpen[wb]=isOpen;
 }
 
 bool BaseWindow::isEnabledInWorkbench()
 {
-    return (m_workbenches & workbench);
+    return (m_enabledWorkbenches & workbench);
+}
+
+bool BaseWindow::isEnabledInWorkbench(const Workbench &wb)
+{
+    return (m_enabledWorkbenches & wb);
+}
+
+bool BaseWindow::isDefaultWorkbench(const Workbench &wb)
+{
+    return (m_defaultWorkbenches & m_enabledWorkbenches & wb);
 }
 
 void BaseWindow::showInfoMessage(const char* message)
@@ -87,4 +151,82 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::TextWrapped("%s", message);
     ImGui::EndDisabled();
 }
+
+void BaseWindow::dropGUIData()
+{
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
+        {
+            sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+            if (data)
+            {
+                addData(data->getName(),
+                        std::pair<sofa::core::BaseData*, bool>(data, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                        data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
+                        data->getHelp());
+                resetGUIDataWindowSettings();
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+}
+
+void BaseWindow::removeGUIData(models::guidata::GUIData::SPtr data)
+{
+    models::guidata::GUIDataManager::removeGUIData(data);
+    resetGUIDataWindowSettings();
+}
+
+void BaseWindow::clearGUIData()
+{
+    models::guidata::GUIDataManager::clearGUIData();
+    resetGUIDataWindowSettings();
+}
+
+void BaseWindow::registerAndLoadGUIDataWindowSettings()
+{
+    // Load GUIData size
+    registerAndLoadWindowSetting(WS_WINDOWS_GUIDATA, m_ws_guiDataSize, WindowsSettings::SettingType::LONG);
+
+    // Load GUIData
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    auto groot = m_baseGUI->getRootNode();
+    for (auto i=0; i<m_ws_guiDataSize; i++)
+    {
+        std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
+        if (!guiDataPath.empty())
+        {
+            sofa::core::BaseData* data;
+            if (groot->findDataLinkDest(data, "@" + guiDataPath, nullptr))
+            {
+                addData(data->getName(),
+                        std::pair<sofa::core::BaseData*, bool>(data, false),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                        data->getOwner()->getPathName(),
+                        data->getHelp());
+            }
+        }
+    }
+}
+
+void BaseWindow::resetGUIDataWindowSettings()
+{
+    auto& windowsSettings = WindowsSettings::getInstance();
+
+    for (auto i=0; i<m_ws_guiDataSize; i++)
+        windowsSettings.deleteSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str());
+
+    m_ws_guiDataSize = m_GUIData.size();
+    windowsSettings.setSetting(m_name.c_str(), WS_WINDOWS_GUIDATA, m_ws_guiDataSize);
+
+    int i=0;
+    for (auto it=m_GUIData.begin(); it!=m_GUIData.end(); it++)
+        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)).c_str(), it->get()->getData()->getPathName());
+}
+
 }

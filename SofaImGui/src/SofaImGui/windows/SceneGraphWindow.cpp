@@ -31,7 +31,7 @@
 #include <IconsFontAwesome6.h>
 #include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
-#include <SofaImGui/widgets/ImGuiDataWidget.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/helper/system/FileSystem.h>
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
@@ -41,10 +41,10 @@ namespace sofaimgui::windows {
 
 const static int NOT_MODIFYING_ROW = -1;
 
-SceneGraphWindow::SceneGraphWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+SceneGraphWindow::SceneGraphWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = Workbench::SCENE_EDITOR | Workbench::SIMULATION_MODE;
 }
 
 std::string SceneGraphWindow::getDescription()
@@ -64,14 +64,14 @@ void SceneGraphWindow::clearWindow()
     m_previousHighlightedNode = nullptr;
 }
 
-void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+void SceneGraphWindow::beforeShowWindow()
 {
     m_componentToOpen.clear();
     m_nodeToOpen.clear();
     m_componentToOpenContextMenu.clear();
     m_nodeToOpenContextMenu.clear();
 
-    auto c = baseGUI->m_selectionColor;
+    auto c = m_baseGUI->m_selectionColor;
     m_highlightMaterial.setColor(c.r(), c.g(), c.b(), c.a());
     float s = 0.7;
     m_highlightMaterial.emissive.set(c.r()*s, c.g()*s, c.b()*s, c.a());
@@ -80,12 +80,10 @@ void SceneGraphWindow::showWindow(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGu
     m_highlightMaterial.useEmissive = true;
     m_highlightMaterial.useAmbient = true;
     m_highlightMaterial.useDiffuse = true;
+}
 
-    if (isOpen())
-    {
-        showGraph(baseGUI, windowFlags);
-    }
-
+void SceneGraphWindow::afterShowWindow()
+{
     ImGuiIO& io = ImGui::GetIO();
     const auto height = io.DisplaySize.y*0.66; // Main window size
     const ImVec2 defaultSize = ImVec2(height*0.66, height);
@@ -273,126 +271,121 @@ std::string SceneGraphWindow::getObjectIconAlert(sofa::core::objectmodel::Base* 
     return "";
 }
 
-void SceneGraphWindow::showGraph(sofaglfw::SofaGLFWBaseGUI* baseGUI, const ImGuiWindowFlags& windowFlags)
+void SceneGraphWindow::internalShowWindow()
 {
-    if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+    if (workbench == Workbench::LIVE_CONTROL)
+        showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
+
+    if (workbench == Workbench::SCENE_EDITOR)
     {
-        if (!isEnabledInWorkbench())
-            showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
-
-        if (workbench == Workbench::SCENE_EDITOR)
-        {
-            showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window");
-        }
-
-        // Top option buttons
-
-        m_expandAll = ImGui::LocalButton(ICON_FA_EXPAND);
-        ImGui::SetItemTooltip("Expand all");
-        ImGui::SameLine();
-
-        m_collapseAll = ImGui::LocalButton(ICON_FA_COMPRESS);
-        ImGui::SetItemTooltip("Collapse all");
-        ImGui::SameLine();
-
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-
-        if (ImGui::LocalButton(ICON_FA_MAGNIFYING_GLASS))
-        {
-            m_showSearch = !m_showSearch;
-            m_showFiltered = false;
-        }
-        ImGui::SetItemTooltip("Search by name");
-        ImGui::SameLine();
-
-        if (ImGui::LocalButton(ICON_FA_FILTER))
-        {
-            m_showFiltered = !m_showFiltered;
-            m_showSearch = false;
-        }
-        ImGui::SetItemTooltip("Filter by name");
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-        static ImGuiTextFilter filter;
-        ImGui::PushItemWidth(ImGui::GetFrameHeight() * 5);
-        if (m_showSearch)
-        {
-            ImGui::SameLine();
-            filter.Draw("Search");
-        }
-        if (m_showFiltered)
-        {
-            ImGui::SameLine();
-            filter.Draw("Filter");
-            ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.3f, 0.3f, 1.f));
-            ImGui::LocalPushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showFilteredError);
-            ImGui::SetItemTooltip("Filter Errors");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.5f, 0.f, 1.f));
-            ImGui::LocalPushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showFilteredWarning);
-            ImGui::SetItemTooltip("Filter Warnings");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::LocalPushButton(ICON_FA_CIRCLE_INFO, &m_showFilteredInfo);
-            ImGui::SetItemTooltip("Filter Info");
-        }
-        ImGui::PopItemWidth();
-        ImGui::PopStyleVar();
-
-        static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
-                                       ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
-
-        if (workbench == Workbench::SCENE_EDITOR)
-        {
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_LIGHT_BLUE);
-            if (ImGui::BeginChild("##WarningMessage", ImVec2(0,0),
-                                  ImGuiChildFlags_AlwaysUseWindowPadding | ImGuiChildFlags_AutoResizeY,
-                                  ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking))
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
-                ImGui::Text(" " ICON_FA_TRIANGLE_EXCLAMATION);
-                ImGui::SameLine();
-                ImGui::TextWrapped("Editing the scene graph from the GUI is a work in progress, for the moment you won't be able to save your changes.");
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-            ImGui::PopStyleColor();
-        }
-
-        if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
-        {
-            ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Add | Name": "Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Type  /  Template", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
-            if (workbench == Workbench::SCENE_EDITOR) // Delete buttons
-                ImGui::TableSetupColumn("Delete", ImGuiTableColumnFlags_NoResize);
-            ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
-            ImGui::TableHeadersRow();
-
-            sofa::simulation::Node *groot = baseGUI->getRootNode().get();
-
-            const auto o = baseGUI->m_selectionColor;
-            const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, workbench == Workbench::SCENE_EDITOR? ImVec4(0., 0., 0., 0): selectedColorBg);
-
-            showNode(baseGUI, nullptr, groot, filter);
-
-            ImGui::PopStyleColor();
-
-            baseGUI->setCurrentSelection(m_selection);
-
-            ImGui::EndTable();
-        }
+        showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window");
     }
-    ImGui::End();
+
+    // Top option buttons
+
+    m_expandAll = sofaimgui::widgets::Button(ICON_FA_EXPAND);
+    ImGui::SetItemTooltip("Expand all");
+    ImGui::SameLine();
+
+    m_collapseAll = sofaimgui::widgets::Button(ICON_FA_COMPRESS);
+    ImGui::SetItemTooltip("Collapse all");
+    ImGui::SameLine();
+
+    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine();
+
+    if (sofaimgui::widgets::Button(ICON_FA_MAGNIFYING_GLASS))
+    {
+        m_showSearch = !m_showSearch;
+        m_showFiltered = false;
+    }
+    ImGui::SetItemTooltip("Search by name");
+    ImGui::SameLine();
+
+    if (sofaimgui::widgets::Button(ICON_FA_FILTER))
+    {
+        m_showFiltered = !m_showFiltered;
+        m_showSearch = false;
+    }
+    ImGui::SetItemTooltip("Filter by name");
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+    static ImGuiTextFilter filter;
+    ImGui::PushItemWidth(ImGui::GetFrameHeight() * 5);
+    if (m_showSearch)
+    {
+        ImGui::SameLine();
+        filter.Draw("Search");
+    }
+    if (m_showFiltered)
+    {
+        ImGui::SameLine();
+        filter.Draw("Filter");
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.3f, 0.3f, 1.f));
+        sofaimgui::widgets::PushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showFilteredError);
+        ImGui::SetItemTooltip("Filter Errors");
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_ButtonText, ImVec4(1.f, 0.5f, 0.f, 1.f));
+        sofaimgui::widgets::PushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showFilteredWarning);
+        ImGui::SetItemTooltip("Filter Warnings");
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        sofaimgui::widgets::PushButton(ICON_FA_CIRCLE_INFO, &m_showFilteredInfo);
+        ImGui::SetItemTooltip("Filter Info");
+    }
+    ImGui::PopItemWidth();
+    ImGui::PopStyleVar();
+
+    static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                                   ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody;
+
+    if (workbench == Workbench::SCENE_EDITOR)
+    {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, COLOR_LIGHT_BLUE);
+        if (ImGui::BeginChild("##WarningMessage", ImVec2(0,0),
+                              ImGuiChildFlags_AlwaysUseWindowPadding | ImGuiChildFlags_AutoResizeY,
+                              ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking))
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_WHITE);
+            ImGui::Text(" " ICON_FA_TRIANGLE_EXCLAMATION);
+            ImGui::SameLine();
+            ImGui::TextWrapped("Editing the scene graph from the GUI is a work in progress, for the moment you won't be able to save your changes.");
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+    }
+
+    if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
+    {
+        ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Add | Name": "Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Type  /  Template", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
+        if (workbench == Workbench::SCENE_EDITOR) // Delete buttons
+            ImGui::TableSetupColumn("Delete", ImGuiTableColumnFlags_NoResize);
+        ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
+        ImGui::TableHeadersRow();
+
+        sofa::simulation::Node *groot = m_baseGUI->getRootNode().get();
+
+        const auto o = m_baseGUI->m_selectionColor;
+        const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, workbench == Workbench::SCENE_EDITOR? ImVec4(0., 0., 0., 0): selectedColorBg);
+
+        showNode(nullptr, groot, filter);
+
+        ImGui::PopStyleColor();
+
+        m_baseGUI->setCurrentSelection(m_selection);
+
+        ImGui::EndTable();
+    }
 }
 
-void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
+void SceneGraphWindow::showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
 {
-    const auto o = baseGUI->m_selectionColor;
+    const auto o = m_baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
     const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
@@ -548,14 +541,14 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         ImGui::Indent();
         ImGui::Indent();
 
-        showNodeComponents(baseGUI, node, filter);
+        showNodeComponents(node, filter);
 
         ++treeDepth;
         // Child nodes
         for (const auto child : node->getChildren())
         {
             ImGui::PushID(child->getName().c_str());
-            showNode(baseGUI, node, dynamic_cast<sofa::simulation::Node*>(child), filter);
+            showNode(node, dynamic_cast<sofa::simulation::Node*>(child), filter);
             ImGui::PopID();
         }
         --treeDepth;
@@ -567,9 +560,9 @@ void SceneGraphWindow::showNode(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simula
         ImGui::PopStyleColor();
 }
 
-void SceneGraphWindow::showNodeComponents(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::simulation::Node* node, const ImGuiTextFilter& filter)
+void SceneGraphWindow::showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter& filter)
 {
-    const auto o = baseGUI->m_selectionColor;
+    const auto o = m_baseGUI->m_selectionColor;
     const ImVec4 selectedColor(o.r(), o.g(), o.b(), o.a());
     const ImVec4 selectedColorBg(o.r(), o.g(), o.b(), o.a()*0.2); // todo: style sheet
     const ImVec4 filteredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
@@ -887,11 +880,11 @@ void SceneGraphWindow::addComponentDocTextLinkOpenURL(sofa::core::objectmodel::B
     sofa::core::ObjectFactory::ClassEntry entry = sofa::core::ObjectFactory::getInstance()->getEntry(component->getClassName());
 
     if (!entry.creatorMap.empty() &&  !entry.documentationURL.empty() && entry.documentationURL.starts_with("http"))
-        ImGui::LocalTextLinkOpenURL("Documentation", entry.documentationURL.c_str());
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", entry.documentationURL.c_str());
     else
     {
         ImGui::BeginDisabled();
-        ImGui::LocalTextLinkOpenURL("Documentation", ""); // No documentation
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", ""); // No documentation
         ImGui::EndDisabled();
     }
 }
@@ -929,10 +922,10 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
 
                     ImGui::PopStyleColor();
 
-                    if (!isEnabledInWorkbench())
+                    if (workbench == Workbench::LIVE_CONTROL)
                         ImGui::BeginDisabled();
-                    showWidget(*data);
-                    if (!isEnabledInWorkbench())
+                    sofaimgui::widgets::showWidget(*data);
+                    if (workbench == Workbench::LIVE_CONTROL)
                         ImGui::EndDisabled();
 
                     ImGui::Unindent();
@@ -982,7 +975,7 @@ void SceneGraphWindow::addMessagesTab(const std::deque<sofa::helper::logging::Me
                 {
                     switch (t)
                     {
-                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREY), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREEN), "[SUGGESTION]");
                     case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
                     case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
                     case sofa::helper::logging::Message::Info       : return ImGui::Text("[INFO]");
@@ -1029,13 +1022,13 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
 
         { // Deactivate
             const bool& activated = node->is_activated.getValue();
-            if (!isEnabledInWorkbench())
+            if (workbench == Workbench::LIVE_CONTROL)
                 ImGui::BeginDisabled();
 
             if(ImGui::MenuItem(activated? "Deactivate": "Activate"))
                 node->setActive(!activated);
 
-            if (!isEnabledInWorkbench())
+            if (workbench == Workbench::LIVE_CONTROL)
                 ImGui::EndDisabled();
         }
 
@@ -1044,7 +1037,7 @@ void SceneGraphWindow::addNodeContextMenu(sofa::simulation::Node* node)
         ImGui::Separator();
 
         ImGui::BeginDisabled();
-        ImGui::LocalTextLinkOpenURL("Documentation", ""); // No documentation for node
+        sofaimgui::widgets::TextLinkOpenURL("Documentation", ""); // No documentation for node
         ImGui::EndDisabled();
 
         if (node->hasTag(sofaglfw::SofaGLFWBaseGUI::getGUITag()))
@@ -1220,7 +1213,9 @@ bool SceneGraphWindow::showTemplate(sofa::core::objectmodel::BaseObject *object,
                             if (ImGui::Selectable(componentTemplatesList[n].c_str(), currentTemplate == componentTemplatesList[n]))
                             {
                                 auto componentClassName = object->getName();
+                                object->cleanup();
                                 node->removeObject(object);
+                                object->reset();
                                 removed = true;
 
                                 auto creator = entry.creatorMap.find(componentTemplatesList[n])->second;
@@ -1330,7 +1325,7 @@ bool SceneGraphWindow::showAddNodeButton(sofa::simulation::Node *node)
     bool clicked = false;
     if (node)
     {
-        if(ImGui::LocalButton(ICON_DVS_PLUS))
+        if(sofaimgui::widgets::Button(ICON_DVS_PLUS))
         {
             node->createChild("New Node");
             clicked = true;
@@ -1347,18 +1342,12 @@ bool SceneGraphWindow::showRemoveNodeButton(sofa::simulation::Node *parent, sofa
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
-
-            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if(sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
             {
                 parent->removeChild(node);
                 clicked = true;
             }
             ImGui::SetItemTooltip("Delete Node");
-
-            ImGui::PopStyleColor(3);
         }
     }
     return clicked;
@@ -1371,18 +1360,14 @@ bool SceneGraphWindow::showRemoveComponentButton(sofa::simulation::Node *parent,
     {
         if (ImGui::TableGetHoveredRow() == ImGui::TableGetRowIndex() || m_modifyingRow == ImGui::TableGetRowIndex())
         {
-            ImGui::PushStyleColor(ImGuiCol_Button, COLOR_RED);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, sofaimgui::blendColors(ImColor(COLOR_RED), ImVec4(0.5,0.,0.,1.), 0.3));
-
-            if(ImGui::LocalButton(ICON_FA_TRASH_CAN))
+            if(sofaimgui::widgets::Button(ICON_FA_TRASH_CAN))
             {
+                component->cleanup();
                 parent->removeObject(component);
+                component->reset();
                 clicked = true;
             }
             ImGui::SetItemTooltip("Delete Component");
-
-            ImGui::PopStyleColor(3);
         }
     }
     return clicked;
