@@ -910,11 +910,11 @@ void ProgramWindow::exportProgram(const bool &exportAs)
     }
 }
 
-void ProgramWindow::saveProgramDirAndFilename(const std::string& filename)
+void ProgramWindow::saveProgramDirAndFilename(const std::string& filepath)
 {
-    if (sofa::helper::system::FileSystem::exists(filename))
+    if (sofa::helper::system::FileSystem::exists(filepath))
     {
-        std::filesystem::path path = filename;
+        std::filesystem::path path = filepath;
 
         if (path.extension() == m_program.getExtension() && path.has_parent_path() && path.has_filename())
         {

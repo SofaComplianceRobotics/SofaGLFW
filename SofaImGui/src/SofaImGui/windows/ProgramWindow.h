@@ -58,7 +58,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     bool importProgram(const std::string& filename);
     void exportProgram(const bool &exportAs = true);
 
-    void saveProgramDirAndFilename(const std::string& filename);
+    void saveProgramDirAndFilename(const std::string& filepath);
 
    protected:
 
