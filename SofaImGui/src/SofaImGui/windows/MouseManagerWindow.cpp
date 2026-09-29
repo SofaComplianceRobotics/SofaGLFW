@@ -22,17 +22,16 @@
 
 #include <imgui.h>
 
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <sofa/gui/common/MouseOperations.h>
 #include <SofaImGui/windows/MouseManagerWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 
 namespace sofaimgui::windows {
 
-MouseManagerWindow::MouseManagerWindow(const std::string& name,
-                                       const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+MouseManagerWindow::MouseManagerWindow(const std::string& name)
+    : BaseWindow(name)
 {
+    m_defaultWorkbenches = 0;
 }
 
 std::string MouseManagerWindow::getDescription()
@@ -40,59 +39,58 @@ std::string MouseManagerWindow::getDescription()
     return "Mouse settings, for interaction with the simulation.";
 }
 
-void MouseManagerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void MouseManagerWindow::beforeShowWindow()
 {
-    SOFA_UNUSED(baseGUI);
     if (isOpen())
     {
-        if (auto* pickHandler = baseGUI->getPickHandler())
+        ImGuiIO& io = ImGui::GetIO();
+        const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);
+        ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
+    }
+}
+
+void MouseManagerWindow::internalShowWindow()
+{
+    if (auto* pickHandler = m_baseGUI->getPickHandler())
+    {
+        ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
+
+        if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
         {
-            ImGuiIO& io = ImGui::GetIO();
-            const ImVec2 defaultSize = ImVec2(io.DisplaySize.x * 0.5, io.DisplaySize.y * 0.3);
-            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_Once);
-            ImGui::Begin(getName().c_str(), &m_isOpen, windowFlags);
-
-            ImGui::TextDisabled("Mouse interaction with the simulation is enabled by pressing the left shift key.");
-
-            if (ImGui::BeginChild("##MouseLeft", ImVec2(ImGui::GetContentRegionAvail().x * 0.33f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Left Button:");
-                if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::LEFT);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Left Button:");
+            if (ImGui::BeginChild("##MouseLeftSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::LEFT);
             ImGui::EndChild();
-
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Middle Button:");
-                if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::MIDDLE);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-
-            ImGui::SameLine();
-
-            if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-            {
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                ImGui::Text("Right Button:");
-                if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
-                    showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::RIGHT);
-                ImGui::EndChild();
-                ImGui::PopStyleColor();
-            }
-            ImGui::EndChild();
-
-            ImGui::End();
+            ImGui::PopStyleColor();
         }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        if (ImGui::BeginChild("##MouseMiddle", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Middle Button:");
+            if (ImGui::BeginChild("##MouseMiddleSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::MIDDLE);
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        if (ImGui::BeginChild("##MouseRight", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+        {
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+            ImGui::Text("Right Button:");
+            if (ImGui::BeginChild("##MouseRightSettings", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None | ImGuiChildFlags_AlwaysUseWindowPadding))
+                showMouseSettings(pickHandler, sofa::gui::common::MOUSE_BUTTON::RIGHT);
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
     }
 }
 
@@ -150,21 +148,21 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
     if (auto* attachOperation = dynamic_cast<AttachOperation*>(operation)) //also valid for ConstraintAttachOperation because of inheritance
     {
         float stiffness = attachOperation->getStiffness();
-        if (ImGui::LocalInputFloat("Stiffness", &stiffness))
+        if (sofaimgui::widgets::InputFloat("Stiffness", &stiffness))
         {
             stiffness = std::clamp(stiffness, 0.0f, 1000.0f);
             attachOperation->setStiffness(stiffness);
         }
 
         float arrowSize = attachOperation->getArrowSize();
-        if (ImGui::LocalInputFloat("Arrow Size", &arrowSize))
+        if (sofaimgui::widgets::InputFloat("Arrow Size", &arrowSize))
         {
             arrowSize = std::clamp(arrowSize, 0.0f, 10.0f);
             attachOperation->setArrowSize(arrowSize);
         }
 
         float showFactorSize = attachOperation->getShowFactorSize();
-        if (ImGui::LocalInputFloat("Show Factor Size", &showFactorSize))
+        if (sofaimgui::widgets::InputFloat("Show Factor Size", &showFactorSize))
         {
             showFactorSize = std::clamp(showFactorSize, 1.0f, 5.0f);
             attachOperation->setShowFactorSize(showFactorSize);
@@ -173,7 +171,7 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
     else if (auto* fixOperation = dynamic_cast<FixOperation*>(operation))
     {
         float stiffness = fixOperation->getStiffness();
-        if (ImGui::LocalInputFloat("Stiffness", &stiffness))
+        if (sofaimgui::widgets::InputFloat("Stiffness", &stiffness))
         {
             stiffness = std::clamp(stiffness, 0.0f, 100000.0f);
             fixOperation->setStiffness(stiffness);
@@ -183,12 +181,12 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
     {
         auto incisionMethod = inciseOperation->getIncisionMethod();
         ImGui::Text("Type:");
-        if (ImGui::LocalRadioButton("Through segment", incisionMethod == 0))
+        if (sofaimgui::widgets::RadioButton("Through segment", incisionMethod == 0))
         {
             inciseOperation->setIncisionMethod(0);
         }
         ImGui::SetItemTooltip("Incise from click to click");
-        if (ImGui::LocalRadioButton("Continually", incisionMethod != 0))
+        if (sofaimgui::widgets::RadioButton("Continually", incisionMethod != 0))
         {
             inciseOperation->setIncisionMethod(1);
         }
@@ -221,13 +219,13 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
         ImGui::PopItemWidth();
 
         bool finishIncision = inciseOperation->getCompleteIncision();
-        if (ImGui::LocalCheckBox("Complete incision", &finishIncision))
+        if (sofaimgui::widgets::CheckBox("Complete incision", &finishIncision))
         {
             inciseOperation->setCompleteIncision(finishIncision);
         }
 
         bool keepPoint = inciseOperation->getKeepPoint();
-        if (ImGui::LocalCheckBox("Keep in memory last incision point", &keepPoint))
+        if (sofaimgui::widgets::CheckBox("Keep in memory last incision point", &keepPoint))
         {
             inciseOperation->setKeepPoint(keepPoint);
         }
@@ -237,18 +235,18 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
         {
             auto topologicalOperation = topologyOperation->getTopologicalOperation();
             ImGui::Text("Topological operation:");
-            if (ImGui::LocalRadioButton("Remove one element", topologicalOperation == 0))
+            if (sofaimgui::widgets::RadioButton("Remove one element", topologicalOperation == 0))
             {
                 topologyOperation->setTopologicalOperation(0);
             }
-            if (ImGui::LocalRadioButton("Remove a zone of elements", topologicalOperation != 0))
+            if (sofaimgui::widgets::RadioButton("Remove a zone of elements", topologicalOperation != 0))
             {
                 topologyOperation->setTopologicalOperation(1);
             }
         }
 
         static float scale = topologyOperation->getScale();
-        if (ImGui::LocalInputFloat("Selector scale", &scale))
+        if (sofaimgui::widgets::InputFloat("Selector scale", &scale))
         {
             scale = std::clamp(scale, 0.0f, 100.0f);
             topologyOperation->setScale(scale);
@@ -257,11 +255,11 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
         {
             auto volumicMesh = topologyOperation->getVolumicMesh();
             ImGui::Text("Remove area type:");
-            if (ImGui::LocalRadioButton("Surface", !volumicMesh))
+            if (sofaimgui::widgets::RadioButton("Surface", !volumicMesh))
             {
                 topologyOperation->setVolumicMesh(false);
             }
-            if (ImGui::LocalRadioButton("Volume", volumicMesh))
+            if (sofaimgui::widgets::RadioButton("Volume", volumicMesh))
             {
                 topologyOperation->setVolumicMesh(true);
             }
@@ -270,14 +268,14 @@ void MouseManagerWindow::showMouseSettings(PickHandler* pickHandler, sofa::gui::
     else if (auto* sutureOperation = dynamic_cast<AddSutureOperation*>(operation))
     {
         static float stiffness = 10.0f;
-        if (ImGui::LocalInputFloat("Stiffness", &stiffness))
+        if (sofaimgui::widgets::InputFloat("Stiffness", &stiffness))
         {
             stiffness = std::clamp(stiffness, 0.0f, 1000.0f);
             sutureOperation->setStiffness(stiffness);
         }
 
         static float damping = 1.0f;
-        if (ImGui::LocalInputFloat("Damping", &damping))
+        if (sofaimgui::widgets::InputFloat("Damping", &damping))
         {
             damping = std::clamp(damping, 0.0f, 10.0f);
             sutureOperation->setDamping(damping);

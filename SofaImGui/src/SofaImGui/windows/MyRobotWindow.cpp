@@ -20,6 +20,8 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
+#include <IconsFontAwesome6.h>
+#include <SofaImGui/widgets/DataWidget.h>
 #include <sofa/core/behavior/BaseMechanicalState.h>
 #include <sofa/type/Quat.h>
 
@@ -35,13 +37,10 @@
 
 namespace sofaimgui::windows {
 
-std::string MyRobotWindow::DEFAULTGROUP = "empty";
-
-MyRobotWindow::MyRobotWindow(const std::string& name,
-                             const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+MyRobotWindow::MyRobotWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL;
+    m_enabledWorkbenches = Workbench::SIMULATION_MODE | Workbench::LIVE_CONTROL;
 }
 
 std::string MyRobotWindow::getDescription()
@@ -52,13 +51,12 @@ std::string MyRobotWindow::getDescription()
 
 void MyRobotWindow::clearWindow()
 {
-    m_informationGroups.clear();
-    m_settingGroups.clear();
+	m_sectionedGUIData.clear();
 }
 
 bool MyRobotWindow::isInEmptyGroup(const std::string &group)
 {
-    return DEFAULTGROUP.find(group) != std::string::npos;
+    return models::guidata::GUIData::DEFAULTGROUP.find(group) != std::string::npos;
 }
 
 void MyRobotWindow::setAvailablePorts(const std::vector<std::string> &ports)
@@ -84,250 +82,186 @@ MyRobotWindow::Connection& MyRobotWindow::getConnection()
     return m_connection;
 }
 
-
-void MyRobotWindow::addInformation(const Information &info, const std::string &group)
+models::guidata::GUIData::SPtr MyRobotWindow::addData(const std::string& label,
+                                                    const std::pair<sofa::core::BaseData*, bool>& data,
+                                                    const std::pair<sofa::core::BaseData*, bool>& min,
+                                                    const std::pair<sofa::core::BaseData*, bool>& max,
+                                                    const std::string& group,
+                                                    const std::string& help, Section section)
 {
-    bool found=false;
-    for (auto &g: m_informationGroups)
-    {
-        if (g.description.find(group) != std::string::npos)
-        {
-            found=true;
-            g.information.push_back(info);
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        InformationGroup g;
-        g.description = group;
-        g.information.push_back(info);
-
-        if (isInEmptyGroup(group))
-            m_informationGroups.insert(m_informationGroups.begin(), g);
-        else
-            m_informationGroups.push_back(g);
-    }
+    auto added = BaseWindow::addData(label, data, min, max, group, help);
+	m_sectionedGUIData[section].insert(added);
+	return added;
 }
 
-void MyRobotWindow::addSetting(const Setting &setting, const std::string &group)
+void MyRobotWindow::removeGUIData(models::guidata::GUIData::SPtr guiData)
 {
-    bool found=false;
-    for (auto &s: m_settingGroups)
-    {
-        if (s.description.find(group) != std::string::npos)
-        {
-            found=true;
-            s.settings.push_back(setting);
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        SettingGroup s;
-        s.description = group;
-        s.settings.push_back(setting);
-
-        if (isInEmptyGroup(group))
-            m_settingGroups.insert(m_settingGroups.begin(), s);
-        else
-            m_settingGroups.push_back(s);
-    }
+    BaseWindow::removeGUIData(guiData);
+	m_sectionedGUIData[Section::INFORMATION].erase(guiData);
+	m_sectionedGUIData[Section::SETTINGS].erase(guiData);
 }
 
 bool MyRobotWindow::isEnabledByState()
 {
-    return (m_connection.listAvailablePortsCallback || !m_informationGroups.empty() || !m_settingGroups.empty());
+    return (m_connection.listAvailablePortsCallback || !m_groupedGUIData.empty() || !m_GUIData.empty());
 }
 
-void MyRobotWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void MyRobotWindow::internalShowWindow()
 {
-    SOFA_UNUSED(baseGUI);
-
-    if (isOpen())
+    if (isEnabledByState())
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
-        {
-            if (isEnabledByState())
+        ImGui::Spacing();
+
+        if (m_connection.listAvailablePortsCallback)
+        { // Connection
+            if (sofaimgui::widgets::BeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                ImGui::Spacing();
-
-                if (m_connection.listAvailablePortsCallback)
-                { // Connection
-                    if (ImGui::LocalBeginCollapsingHeader("Connection", ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        if (!isEnabledInWorkbench())
-                        {
-                            showInfoMessage("This section is disabled in the active workbench.");
-                            ImGui::BeginDisabled();
-                        }
-
-                        bool connected = Robot::getInstance().getConnection();
-
-                        ImGui::Text("Available ports:");
-
-                        if(connected)
-                            ImGui::BeginDisabled();
-
-                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                        const size_t nbPorts = m_connection.ports.size();
-                        std::vector<const char*> ports;
-                        ports.reserve(nbPorts);
-                        for (size_t i=0; i<nbPorts; i++)
-                            ports.push_back(m_connection.ports[i].c_str());
-                        ImGui::LocalCombo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
-                        static bool firstTime = true;
-                        if (ImGui::IsItemClicked() || firstTime)
-                        {
-                            firstTime = false;
-                            setAvailablePorts(m_connection.listAvailablePortsCallback());
-                        }
-                        ImGui::PopItemWidth();
-
-                        if(connected)
-                            ImGui::EndDisabled();
-
-                        ImGui::Text("Status:");
-                        ImGui::SameLine();
-
-                        ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                        ImGui::Text((connected)? "Connected": "Disconnected");
-                        ImGui::PopStyleColor();
-
-                        if (!isEnabledInWorkbench())
-                            ImGui::EndDisabled();
-
-                        ImGui::LocalEndCollapsingHeader();
-                    }
-                }
-
-                // Information
-                if (!m_informationGroups.empty())
+                if (!isEnabledInWorkbench())
                 {
-                    if (ImGui::LocalBeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
-                    {
-                        std::string groups;
-                        int k=0;
-                        for (auto &group: m_informationGroups)
-                        {
-                            ImGui::PushID(k++);
-                            if (!isInEmptyGroup(group.description))
-                            {
-                                ImGui::TextDisabled("%s", group.description.c_str());
-                                ImGui::Indent();
-                            }
-
-                            int i=0;
-                            for (auto &information: group.information)
-                            {
-                                ImGui::PushID(i++);
-                                ImGui::AlignTextToFramePadding();
-                                ImGui::Text("%s", information.description.c_str());
-                                ImGui::SameLine();
-
-                                auto* typeinfo = information.data->getValueTypeInfo();
-                                auto* values = information.data->getValueVoidPtr();
-
-                                ImGui::BeginDisabled();
-                                for (size_t i=0; i<typeinfo->size(); i++)
-                                {
-                                    double buffer = typeinfo->getScalarValue(values, i);
-                                    ImGui::LocalInputDouble(("##information" + information.description).c_str(), &buffer, 0, 0);
-                                }
-                                ImGui::EndDisabled();
-                                ImGui::PopID();
-                            }
-
-                            if (!isInEmptyGroup(group.description))
-                                ImGui::Unindent();
-
-                            ImGui::PopID();
-                        }
-
-                        ImGui::LocalEndCollapsingHeader();
-                    }
+                    showInfoMessage("This section is disabled in the active workbench.");
+                    ImGui::BeginDisabled();
                 }
 
-                // Settings
-                if (!m_settingGroups.empty())
+                bool connected = Robot::getInstance().getConnection();
+
+                ImGui::Text("Available ports:");
+
+                if(connected)
+                    ImGui::BeginDisabled();
+
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                const size_t nbPorts = m_connection.ports.size();
+                std::vector<const char*> ports;
+                ports.reserve(nbPorts);
+                for (size_t i=0; i<nbPorts; i++)
+                    ports.push_back(m_connection.ports[i].c_str());
+                sofaimgui::widgets::Combo("##ComboMethod", &m_connection.portId, ports.data(), nbPorts);
+                static bool firstTime = true;
+                if (ImGui::IsItemClicked() || firstTime)
                 {
-                    if (ImGui::LocalBeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        std::string groups;
-                        int k=0;
-                        for (auto &group: m_settingGroups)
-                        {
-                            ImGui::PushID(k++);
-                            if (!isInEmptyGroup(group.description))
-                            {
-                                ImGui::TextDisabled("%s", group.description.c_str());
-                                ImGui::Indent();
-                            }
-
-                            for (auto &setting: group.settings)
-                            {
-                                ImGui::AlignTextToFramePadding();
-                                ImGui::Text("%s", setting.description.c_str());
-                                ImGui::SameLine();
-
-                                auto* typeinfo = setting.data->getValueTypeInfo();
-                                auto* values = setting.data->getValueVoidPtr();
-
-                                std::string uiValue;
-                                for (size_t i=0; i<typeinfo->size(); i++)
-                                {
-                                    setting.buffer = typeinfo->getScalarValue(values, i);
-                                    showSliderDouble(setting.description, &setting.buffer, setting.min, setting.max);
-                                    setting.buffer = std::clamp(setting.buffer, setting.min, setting.max);
-                                    uiValue += std::to_string(setting.buffer) + " ";
-                                }
-                                setting.data->read(uiValue);
-                            }
-
-                            if (!isInEmptyGroup(group.description))
-                                ImGui::Unindent();
-
-                            ImGui::PopID();
-                        }
-                        ImGui::LocalEndCollapsingHeader();
-                    }
+                    firstTime = false;
+                    setAvailablePorts(m_connection.listAvailablePortsCallback());
                 }
-            }
-            else
-            {
-                showInfoMessage("This window is used to display the robot's information and settings. "
-                               "It also provides connection management features. However, no information or settings"
-                               " have been registered for display, nor is there any connection management available."
-                               );
+                ImGui::PopItemWidth();
+
+                if(connected)
+                    ImGui::EndDisabled();
+
+                ImGui::Text("Status:");
+                ImGui::SameLine();
+
+                ImGui::PushStyleColor(ImGuiCol_Text, (connected)? ImColor(COLOR_GREEN).Value: ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                ImGui::Text((connected)? "Connected": "Disconnected");
+                ImGui::PopStyleColor();
+
+                if (!isEnabledInWorkbench())
+                    ImGui::EndDisabled();
+
+                sofaimgui::widgets::EndCollapsingHeader();
             }
         }
-        ImGui::End();
+
+        if (!m_sectionedGUIData.empty())
+        {
+            // Information
+            if (sofaimgui::widgets::BeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
+            {
+                std::string groups;
+                int k=0;
+
+                for (auto& itGroup : m_groupedGUIData)
+                {
+                    ImGui::PushID(k++);
+                    bool firsttime = true;
+
+                    int i=0;
+                    for (auto &data : itGroup.second)
+                    {
+                        if(m_sectionedGUIData[Section::INFORMATION].contains(data))
+                        {
+                            if (data && data->isValid())
+                            {
+                                if (!isInEmptyGroup(data->getGroup()) && firsttime)
+                                {
+                                    ImGui::TextDisabled("%s", data->getGroup().c_str());
+                                    ImGui::Indent();
+                                    firsttime = false;
+                                }
+                                ImGui::PushID(i++);
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s:", data->getLabel().c_str());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::SameLine();
+                                sofaimgui::widgets::BaseDataWidget::showWidgetAsText(*data->getData());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::PopID();
+                            }
+                        }
+                    }
+
+                    if (!isInEmptyGroup(itGroup.first) && !firsttime)
+                        ImGui::Unindent();
+
+                    ImGui::PopID();
+                }
+
+                sofaimgui::widgets::EndCollapsingHeader();
+            }
+
+            // Settings
+            if (sofaimgui::widgets::BeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                std::string groups;
+                int k = 0;
+                for (auto& itGroup : m_groupedGUIData)
+                {
+                    ImGui::PushID(k++);
+                    bool firsttime = true;
+
+                    for (auto& data : itGroup.second)
+                    {
+                        if (m_sectionedGUIData[Section::SETTINGS].contains(data))
+                        {
+                            if (data && data->isValid())
+                            {
+                                if (!isInEmptyGroup(data->getGroup()) && firsttime)
+                                {
+                                    ImGui::TextDisabled("%s", data->getGroup().c_str());
+                                    ImGui::Indent();
+                                    firsttime = false;
+                                }
+                                if (data->getData()->getValueTypeString()!="bool")
+                                    ImGui::AlignTextToFramePadding();
+                                ImGui::Text("%s", data->getLabel().c_str());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::SameLine();
+
+                                sofaimgui::widgets::showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
+                                if (!data->getHelp().empty())
+                                    ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                            }
+                        }
+                    }
+
+                    if (!isInEmptyGroup(itGroup.first) && !firsttime)
+                        ImGui::Unindent();
+
+                    ImGui::PopID();
+                }
+                sofaimgui::widgets::EndCollapsingHeader();
+            }
+        }
     }
-}
-
-bool MyRobotWindow::showSliderDouble(const std::string& name, double* v, const double& min, const double& max)
-{
-    bool hasValueChanged = false;
-    float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
-    float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-    ImGui::PushItemWidth(sliderWidth);
-    if (ImGui::SliderScalar(("##SettingSlider" + name).c_str() , ImGuiDataType_Double, v, &min, &max, "%0.2f", ImGuiSliderFlags_NoInput))
-        hasValueChanged=true;
-    ImGui::PopItemWidth();
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-
-    double step = max - min;
-
-    if (ImGui::LocalInputDouble(("##SettingInput" + name).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
-        hasValueChanged=true;
-
-    return hasValueChanged;
+    else
+    {
+        showInfoMessage("This window is used to display the robot's information and settings. "
+                        "It also provides connection management features. However, no information or settings"
+                        " have been registered for display, nor is there any connection management available."
+                        );
+    }
 }
 
 }

@@ -32,10 +32,11 @@
 
 namespace sofaimgui::windows {
 
-ProfilerWindow::ProfilerWindow(const std::string& name, const bool& isWindowOpen)
-    : BaseWindow(name, isWindowOpen)
+ProfilerWindow::ProfilerWindow(const std::string& name)
+    : BaseWindow(name)
 {
-    m_workbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
+    m_defaultWorkbenches = Workbench::SIMULATION_MODE;
 }
 
 std::string ProfilerWindow::getDescription()
@@ -43,87 +44,79 @@ std::string ProfilerWindow::getDescription()
     return "Profiling information about the simulation steps.";
 }
 
-void ProfilerWindow::showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags)
+void ProfilerWindow::beforeShowWindow()
 {
-    SOFA_UNUSED(baseGUI);
+    sofa::helper::AdvancedTimer::setEnabled("Animate", isOpen());
+}
 
-    sofa::helper::AdvancedTimer::setEnabled("Animate", m_isOpen);
-    if (isOpen())
+void ProfilerWindow::internalShowWindow()
+{
+    sofa::helper::AdvancedTimer::setInterval("Animate", 1);
+    sofa::helper::AdvancedTimer::setOutputType("Animate", "gui");
+
+    auto groot = m_baseGUI->getRootNode().get();
+    if (groot->animate_.getValue())
+        ImGui::BeginDisabled();
+
+    static std::unordered_set<int> selectedTimers;
+    static std::deque< sofa::type::vector<sofa::helper::Record> > allRecords;
+    int maxTimeWindowSize = 5000;
+    float inputWidth = ImGui::CalcTextSize(std::to_string(maxTimeWindowSize).c_str()).x * 5;
+
+    // Chart
+    if (ImGui::BeginChild("##Chart", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
     {
-        if (ImGui::Begin(getLabel().c_str(), &m_isOpen, windowFlags))
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Tme Window Size:");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.);
+        ImGui::InputInt("##TimeWindowSizeInput", &m_timeWindowSize);
+        ImGui::PopStyleVar();
+        ImGui::PopItemWidth();
+        m_timeWindowSize = std::clamp(m_timeWindowSize, 10, maxTimeWindowSize);
+        m_selectedFrame = std::min(m_selectedFrame, m_timeWindowSize - 1);
+
+        if (groot->animate_.getValue())
         {
-            sofa::helper::AdvancedTimer::setInterval("Animate", 1);
-            sofa::helper::AdvancedTimer::setOutputType("Animate", "gui");
+            sofa::type::vector<sofa::helper::Record> _records = sofa::helper::AdvancedTimer::getRecords("Animate");
+            allRecords.emplace_back(std::move(_records));
 
-            auto groot = baseGUI->getRootNode().get();
-            if (groot->animate_.getValue() || !isEnabledInWorkbench())
-                ImGui::BeginDisabled();
-
-            if (!isEnabledInWorkbench())
-                showInfoMessage("This window is disabled in the active workbench.");
-
-            static std::unordered_set<int> selectedTimers;
-            static std::deque< sofa::type::vector<sofa::helper::Record> > allRecords;
-            int maxTimeWindowSize = 5000;
-            float inputWidth = ImGui::CalcTextSize(std::to_string(maxTimeWindowSize).c_str()).x * 5;
-
-            // Chart
-            if (ImGui::BeginChild("##Chart", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
-            {
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Tme Window Size:");
-                ImGui::SameLine();
-                ImGui::PushItemWidth(inputWidth);
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.);
-                ImGui::InputInt("##TimeWindowSizeInput", &m_timeWindowSize);
-                ImGui::PopStyleVar();
-                ImGui::PopItemWidth();
-                m_timeWindowSize = std::clamp(m_timeWindowSize, 10, maxTimeWindowSize);
-                m_selectedFrame = std::min(m_selectedFrame, m_timeWindowSize - 1);
-
-                if (groot->animate_.getValue())
-                {
-                    sofa::type::vector<sofa::helper::Record> _records = sofa::helper::AdvancedTimer::getRecords("Animate");
-                    allRecords.emplace_back(std::move(_records));
-
-                    while (allRecords.size() >= size_t(m_timeWindowSize))
-                        allRecords.pop_front();
-                }
-
-                showChart(allRecords, selectedTimers);
-            }
-            ImGui::EndChild();
-
-            ImGui::SameLine();
-
-            // Table
-            if (ImGui::BeginChild("##Table", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
-            {
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Selected Frame:");
-                ImGui::SameLine();
-                ImGui::PushItemWidth(inputWidth);
-                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.);
-                ImGui::InputInt("##FrameInput", &m_selectedFrame);
-                ImGui::PopStyleVar();
-                ImGui::PopItemWidth();
-                m_selectedFrame = std::clamp(m_selectedFrame, 0, std::max(0, int(allRecords.size()) - 1));
-                ImGui::SameLine();
-                ImGui::TextDisabled("(duration in ms: %0.2f)", m_selectedFrameDuration);
-
-                if (ImGui::BeginChild("##SelectedFrameTable", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
-                {
-                    showTable(allRecords, selectedTimers);
-                }
-                ImGui::EndChild();
-            }
-            ImGui::EndChild();
-
-            if (groot->animate_.getValue() || !isEnabledInWorkbench())
-                ImGui::EndDisabled();
+            while (allRecords.size() >= size_t(m_timeWindowSize))
+                allRecords.pop_front();
         }
-        ImGui::End();
+
+        showChart(allRecords, selectedTimers);
     }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+
+    // Table
+    if (ImGui::BeginChild("##Table", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
+    {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Selected Frame:");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.);
+        ImGui::InputInt("##FrameInput", &m_selectedFrame);
+        ImGui::PopStyleVar();
+        ImGui::PopItemWidth();
+        m_selectedFrame = std::clamp(m_selectedFrame, 0, std::max(0, int(allRecords.size()) - 1));
+        ImGui::SameLine();
+        ImGui::TextDisabled("(duration in ms: %0.2f)", m_selectedFrameDuration);
+
+        if (ImGui::BeginChild("##SelectedFrameTable", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
+        {
+            showTable(allRecords, selectedTimers);
+        }
+        ImGui::EndChild();
+    }
+    ImGui::EndChild();
+
+    if (groot->animate_.getValue())
+        ImGui::EndDisabled();
 }
 
 SReal ProfilerWindow::convertInMs(sofa::helper::system::thread::ctime_t t)

@@ -6,6 +6,7 @@ namespace sofaimgui {
 ProgramColors::ProgramColors()
 {
     FrameBg             = ImVec4(1.00f, 1.00f, 1.00f, 0.6f);
+    CustomBlockBg       = ImVec4(0.45f, 0.45f, 0.45f, 0.6f);
     MoveBlockBg         = ImVec4(0.22f, 0.45f, 0.56f, 0.6f);
     PickBlockBg         = ImVec4(0.84f, 0.73f, 0.52f, 0.6f);
     StartMoveBlockBg    = ImVec4(0.86f, 0.86f, 0.86f, 0.6f);

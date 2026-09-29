@@ -41,6 +41,7 @@ public:
 
     void showLogStatus();
     void setLogStatusCallback(std::function<void()>);
+    void clearLogStatus(const sofa::Index& index);
 
 protected:
 
@@ -59,9 +60,9 @@ protected:
     std::string m_name = "##FooterStatusBar";
 
     const std::vector<sofa::helper::logging::Message>& m_logMessages = sofa::helper::logging::MainLoggingMessageHandler::getInstance().getMessages();
-    sofa::helper::logging::Message::Type m_logStatus = sofa::helper::logging::Message::Type::Info;
+    sofa::helper::logging::Message::Type m_highestLogStatus = sofa::helper::logging::Message::Type::Info;
     std::function<void()> m_logStatusCallback = nullptr;
-    size_t m_previousLogMessagesCount = 0;
+    sofa::Index m_previousLogMessagesIndex = 0;
 
 };
 

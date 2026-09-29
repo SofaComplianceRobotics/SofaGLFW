@@ -23,18 +23,18 @@
 
 #include <sofa/type/Vec.h>
 #include <sofa/defaulttype/RigidTypes.h>
-#include <sofa/core/objectmodel/BaseObject.h>
+#include <sofa/core/objectmodel/BaseComponent.h>
 #include <SofaImGui/config.h>
 
 namespace sofaimgui::models {
 
-class Trajectory : public sofa::core::objectmodel::BaseObject
+class SOFAIMGUI_API Trajectory : public sofa::core::objectmodel::BaseComponent
 {
     typedef sofa::defaulttype::Rigid3Types::VecCoord VecCoord;
 
    public:
 
-    SOFA_CLASS(Trajectory, sofa::core::objectmodel::BaseObject);
+    SOFA_CLASS(Trajectory, sofa::core::objectmodel::BaseComponent);
 
     Trajectory();
     ~Trajectory() = default;

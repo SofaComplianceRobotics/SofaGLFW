@@ -20,26 +20,36 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include <SofaImGui/models/SimulationState.h>
 
-namespace sofaimgui::models {
+#include <SofaImGui/models/guidata/ActuatorGUIData.h>
 
 
-void SimulationState::clearData()
+namespace sofaimgui::models::guidata
 {
-    m_stateData.clear();
+
+double ActuatorGUIData::getValue(const sofa::Index &index)
+{
+    if (!isValid())
+        return 0.;
+
+    return m_data->getData()->getValueTypeInfo()->getScalarValue(m_data->getData()->getValueVoidPtr(), index);
 }
 
-void SimulationState::addStateData(StateData &data)
+void ActuatorGUIData::setValue(const sofa::Index& index, const double &value)
 {
-    m_stateData.push_back(data);
+    if (isValid())
+    {
+        m_data->getData()->getValueTypeInfo()->setScalarValue(m_data->getData()->beginEditVoidPtr(), index, value);
+        m_data->getData()->endEditVoidPtr();
+    }
 }
 
-const std::vector<SimulationState::StateData>& SimulationState::getStateData() const
+sofa::Index ActuatorGUIData::getIndexInProblem()
 {
-    return m_stateData;
+    if (!OwnedBaseData::isDataValid(m_indexInProblem))
+        return 0;
+
+    return m_indexInProblem->getData()->getValueTypeInfo()->getIntegerValue(m_indexInProblem->getData()->getValueVoidPtr(), 0);
 }
 
-} // namespace
-
-
+}

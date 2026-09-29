@@ -21,12 +21,13 @@
 ******************************************************************************/
 #pragma once
 #include <imgui.h>
+#include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/config.h>
 #include <sofa/core/objectmodel/Data.h>
 
 #include <unordered_map>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 struct SOFAIMGUI_API BaseDataWidget
@@ -55,7 +56,10 @@ struct DataWidget : BaseDataWidget
     void showWidget(sofa::core::objectmodel::BaseData& data) override
     {
         if (data.isReadOnly())
-            ImGui::BeginDisabled();
+        {
+            ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, true);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+        }
 
         if (MyData* d = dynamic_cast<MyData*>(&data))
         {
@@ -75,7 +79,10 @@ struct DataWidget : BaseDataWidget
         }
 
         if (data.isReadOnly())
-            ImGui::EndDisabled();
+        {
+            ImGui::PopStyleColor();
+            ImGui::PopItemFlag();
+        }
     }
 
     void showWidget(MyData& data)
@@ -120,23 +127,73 @@ private:
     inline static std::unordered_map<std::string, std::unique_ptr<BaseDataWidget> > factoryMap;
 };
 
-inline void showWidget(sofa::core::objectmodel::BaseData& data)
+inline bool showSliderDouble(const std::string& label, double* v, const double& min, const double& max)
+{
+    bool hasValueChanged = false;
+    const float inputWidth = ImGui::CalcTextSize("-100000,00").x + ImGui::GetFrameHeight() / 2 + ImGui::GetStyle().FramePadding.x;
+    const float sliderWidth = ImGui::GetContentRegionAvail().x - inputWidth;
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+    ImGui::PushItemWidth(sliderWidth);
+    if (ImGui::SliderScalar(("##SettingSlider" + label).c_str() , ImGuiDataType_Double, v, &min, &max, "%0.2f", ImGuiSliderFlags_NoInput))
+        hasValueChanged=true;
+    ImGui::PopItemWidth();
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    const double step = max - min;
+
+    if (sofaimgui::widgets::InputDouble(("##SettingInput" + label).c_str(), v, powf(10.0f, floorf(log10f(step * 0.01))), step * 0.1))
+        hasValueChanged=true;
+
+    return hasValueChanged;
+}
+
+inline void showWidget(sofa::core::objectmodel::BaseData& data,
+                       const sofa::core::objectmodel::BaseData* min=nullptr,
+                       const sofa::core::objectmodel::BaseData* max=nullptr)
 {
     auto* widget = DataWidgetFactory::GetWidget(data);
+    std::string tooltip = data.isReadOnly()? "(read only) ": "";
+    tooltip += "data type: ";
+    tooltip += data.getData()->getValueTypeString();
 
     ImGui::PushItemWidth(-1); // Fit container width
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
     if (widget)
     {
-        widget->showWidget(data);
+        if (min == nullptr || max == nullptr)
+        {
+            widget->showWidget(data);
+            ImGui::SetItemTooltip("%s", tooltip.c_str());
+        }
+        else
+        {
+            double d = data.getValueTypeInfo()->getScalarValue(data.getValueVoidPtr(), 0);
+            const double dmin = min->getValueTypeInfo()->getScalarValue(min->getValueVoidPtr(), 0);
+            const double dmax = max->getValueTypeInfo()->getScalarValue(max->getValueVoidPtr(), 0);
+            if (showSliderDouble(("##"+data.getName()).c_str(), &d, dmin, dmax))
+            {
+                data.getValueTypeInfo()->setScalarValue(data.beginEditVoidPtr(), 0, d);
+                data.endEditVoidPtr();
+            }
+        }
     }
     else
     {
         BaseDataWidget::showWidgetAsText(data);
+        ImGui::SetItemTooltip("%s", tooltip.c_str());
     }
-    ImGui::SetItemTooltip("data type: %s", data.getData()->getValueTypeString().c_str());
     ImGui::PopStyleVar();
     ImGui::PopItemWidth();
+
+    if(ImGui::BeginDragDropSource())
+    {
+        ImGui::SetDragDropPayload("_DATAWIDGET", data.getData(), sizeof(data), 0, false);
+        ImGui::Text("%s", data.m_name.c_str());
+        ImGui::EndDragDropSource();
+    }
 }
 
 }

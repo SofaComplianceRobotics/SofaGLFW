@@ -19,30 +19,21 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#pragma once
-
-#include <SofaImGui/windows/BaseWindow.h>
-#include <SofaImGui/models/SimulationState.h>
-#include <imgui.h>
+#include <SofaImGui/windows/WindowsSettings.h>
 
 namespace sofaimgui::windows {
 
-class SOFAIMGUI_API StateWindow : public BaseWindow
+WindowsSettings &WindowsSettings::getInstance()
 {
-   public:
-    StateWindow(const std::string& name, const bool& isWindowOpen);
-    ~StateWindow() = default;
-
-    void showWindow(sofaglfw::SofaGLFWBaseGUI *baseGUI, const ImGuiWindowFlags &windowFlags) override;
-    std::string getDescription() override;
-    void setSimulationState(const models::SimulationState &simulationState);
-
-  protected:
-    bool isEnabledByState() override {return !m_simulationStateData.empty();}
-
-    std::vector<models::SimulationState::StateData> m_simulationStateData;
-};
-
+    static WindowsSettings windowsSettings;
+    return windowsSettings;
 }
 
+std::string WindowsSettings::getWindowLabel(const char* _windowName)
+{
+    std::string windowName = "Window.";
+    windowName += _windowName;
+    return windowName;
+}
 
+}

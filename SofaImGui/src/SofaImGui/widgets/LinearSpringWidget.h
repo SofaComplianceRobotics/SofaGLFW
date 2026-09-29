@@ -24,7 +24,7 @@
 #include <sofa/component/solidmechanics/spring/LinearSpring.h>
 #include <SofaImGui/widgets/ScalarWidget.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 template<class Real>

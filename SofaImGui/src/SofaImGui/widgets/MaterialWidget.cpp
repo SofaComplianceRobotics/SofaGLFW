@@ -26,7 +26,7 @@
 #include <misc/cpp/imgui_stdlib.h>
 #include <sofa/core/objectmodel/Base.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 void showMaterialWidgetImpl(sofa::type::Material& material, std::string id)
@@ -40,15 +40,15 @@ void showMaterialWidgetImpl(sofa::type::Material& material, std::string id)
 
     ImGui::InputFloat(("Shininess##" + id).c_str(), &material.shininess, 0.0f, 0.0f, "%.8f", ImGuiInputTextFlags_None);
 
-    ImGui::LocalCheckBox(("Use diffuse##" + id).c_str(), &material.useDiffuse);
-    ImGui::LocalCheckBox(("Use specular##" + id).c_str(), &material.useSpecular);
-    ImGui::LocalCheckBox(("Use ambiant##" + id).c_str(), &material.useAmbient);
-    ImGui::LocalCheckBox(("Use emissive##" + id).c_str(), &material.useEmissive);
-    ImGui::LocalCheckBox(("Use shininess##" + id).c_str(), &material.useShininess);
-    ImGui::LocalCheckBox(("Use texture##" + id).c_str(), &material.useTexture);
-    ImGui::LocalCheckBox(("Use bump mapping##" + id).c_str(), &material.useBumpMapping);
+    sofaimgui::widgets::CheckBox(("Use diffuse##" + id).c_str(), &material.useDiffuse);
+    sofaimgui::widgets::CheckBox(("Use specular##" + id).c_str(), &material.useSpecular);
+    sofaimgui::widgets::CheckBox(("Use ambiant##" + id).c_str(), &material.useAmbient);
+    sofaimgui::widgets::CheckBox(("Use emissive##" + id).c_str(), &material.useEmissive);
+    sofaimgui::widgets::CheckBox(("Use shininess##" + id).c_str(), &material.useShininess);
+    sofaimgui::widgets::CheckBox(("Use texture##" + id).c_str(), &material.useTexture);
+    sofaimgui::widgets::CheckBox(("Use bump mapping##" + id).c_str(), &material.useBumpMapping);
 
-    ImGui::LocalCheckBox(("Activated##" + id).c_str(), &material.activated);
+    sofaimgui::widgets::CheckBox(("Activated##" + id).c_str(), &material.activated);
 }
 
 void showMaterialWidget(sofa::Data<sofa::type::Material> &data)

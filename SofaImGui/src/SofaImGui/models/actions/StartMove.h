@@ -26,7 +26,7 @@
 
 #include <sofa/simulation/Node.h>
 #include <SofaImGui/models/actions/Action.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 namespace sofaimgui::models::actions {
 
@@ -40,7 +40,7 @@ class StartMove : public Action
     StartMove(const RigidCoord& initialPoint,
               const RigidCoord& waypoint,
               const double& duration,
-              IPController::SPtr IPController,
+              guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager,
               const bool& freeInRotation = true);
 
     virtual ~StartMove();
@@ -72,7 +72,7 @@ class StartMove : public Action
     double m_minSpeed{10};
     double m_maxSpeed; // TODO: set
 
-    IPController::SPtr m_IPController;
+    guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
 
     bool m_freeInRotation;
 

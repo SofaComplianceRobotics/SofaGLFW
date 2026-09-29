@@ -28,17 +28,6 @@
 
 namespace sofaimgui::python3 {
 
-void addInformation(std::shared_ptr<ImGuiGUIEngine> engine,
-                    const std::string &description,
-                    sofa::core::BaseData* data,
-                    const std::string &group=windows::MyRobotWindow::DEFAULTGROUP);
-
-void addSetting(std::shared_ptr<ImGuiGUIEngine> engine,
-                const std::string &description,
-                sofa::core::BaseData* data,
-                double min, double max,
-                const std::string &group=windows::MyRobotWindow::DEFAULTGROUP);
-
 void moduleAddMyRobotWindow(pybind11::module &m);
 
 } /// namespace 
