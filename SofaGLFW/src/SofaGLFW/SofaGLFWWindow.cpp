@@ -69,6 +69,12 @@ void SofaGLFWWindow::close()
 
 void SofaGLFWWindow::draw(simulation::NodeSPtr groot, core::visual::VisualParams* vparams)
 {
+    if (!m_currentCamera)
+    {
+        msg_error("SofaGLFWGUI") << "No camera defined.";
+        return;
+    }
+
     glClearColor(m_backgroundColor.r(), m_backgroundColor.g(), m_backgroundColor.b(), m_backgroundColor.a());
     glClearDepth(1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -81,13 +87,6 @@ void SofaGLFWWindow::draw(simulation::NodeSPtr groot, core::visual::VisualParams
     glDisable(GL_COLOR_MATERIAL);
 
     // draw the scene
-    if (!m_currentCamera)
-    {
-        msg_error("SofaGLFWGUI") << "No camera defined.";
-        return;
-    }
-    
-    
     if (groot->f_bbox.getValue().isValid())
     {        
         vparams->sceneBBox() = groot->f_bbox.getValue();
@@ -169,14 +168,15 @@ void SofaGLFWWindow::drawBackgroundImage()
     if(!m_backgrounds.contains(m_currentBackgroundFilename))
         return;
 
+    const auto& background = m_backgrounds[m_currentBackgroundFilename];
+
+    // before glPushAttrib(), otherwise the attribute stack leaks on every frame
+    if(!background.image)
+        return;
+
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     
     glDisable(GL_LIGHTING);
-    
-    const auto& background = m_backgrounds[m_currentBackgroundFilename];
-
-    if(!background.image)
-        return;
     
     const int imageWidth = background.image->getWidth();
     const int imageHeight = background.image->getHeight();
@@ -220,6 +220,52 @@ void SofaGLFWWindow::drawBackgroundImage()
     glDisable(GL_TEXTURE_2D);
     
     glPopAttrib();
+}
+
+void SofaGLFWWindow::alignCamera(sofaglfw::SofaGLFWBaseGUI* baseGUI, const CameraAlignement& align)
+{
+    if (baseGUI)
+    {
+        sofa::core::sptr<sofa::simulation::Node> groot = baseGUI->getRootNode();
+        if (groot)
+        {
+            sofa::component::visual::BaseCamera::SPtr camera;
+            groot->get(camera);
+
+            if (camera)
+            {
+                sofa::type::Quat<float> orientation;
+
+                switch (align)
+                {
+                case CameraAlignement::TOP:
+                    orientation = sofa::type::Quat(-0.707f, 0.f, 0.f, 0.707f);
+                    break;
+                case CameraAlignement::BOTTOM:
+                    orientation = sofa::type::Quat(0.707f, 0.f, 0.f, 0.707f);
+                    break;
+                case CameraAlignement::FRONT:
+                    orientation = sofa::type::Quat(0.f, 0.f, 0.f, 1.f);
+                    break;
+                case CameraAlignement::BACK:
+                    orientation = sofa::type::Quat(0.f, 1.f, 0.f, 0.f);
+                    break;
+                case CameraAlignement::LEFT:
+                    orientation = sofa::type::Quat(0.f, 0.707f, 0.f, 0.707f);
+                    break;
+                case CameraAlignement::RIGHT:
+                    orientation = sofa::type::Quat(0.f, -0.707f, 0.f, 0.707f);
+                    break;
+                }
+
+                auto bbCenter = (groot->f_bbox.getValue().maxBBox() + groot->f_bbox.getValue().minBBox()) * 0.5f;
+                const auto cameraPosition = camera->getPositionFromOrientation(sofa::type::Vec3(0., 0., 0.), -camera->getDistance(), orientation);
+                camera->setView(cameraPosition + bbCenter, orientation);
+                camera->d_lookAt.setValue(bbCenter);
+                camera->setCameraType(sofa::core::visual::VisualParams::ORTHOGRAPHIC_TYPE);
+            }
+        }
+    }
 }
 
 void SofaGLFWWindow::setCamera(component::visual::BaseCamera::SPtr newCamera)
@@ -273,6 +319,7 @@ void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos, SofaGLFWBaseGUI* gui)
             auto rootNode = gui->getRootNode();
 
             rootNode->propagateEvent(core::execparams::defaultInstance(), mEvent);
+            delete mEvent;
 
             break;
         }
@@ -295,6 +342,7 @@ void SofaGLFWWindow::mouseMoveEvent(int xpos, int ypos, SofaGLFWBaseGUI* gui)
             auto rootNode = gui->getRootNode();
 
             rootNode->propagateEvent(core::execparams::defaultInstance(), mEvent);
+            delete mEvent;
 
             break;
         }

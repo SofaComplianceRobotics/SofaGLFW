@@ -38,7 +38,7 @@ extern "C" {
     SOFAIMGUI_API const char* getModuleComponentList();
 }
 
-void initExternalModule()
+void init()
 {
     static bool first = true;
     if (first)
@@ -48,7 +48,7 @@ void initExternalModule()
         sofa::helper::logging::MessageDispatcher::addHandler(&sofa::helper::logging::MainLoggingMessageHandler::getInstance());
         sofa::helper::logging::MainLoggingMessageHandler::getInstance().activate();
 
-        sofa::gui::common::GUIManager::RegisterGUI("imgui", &sofaimgui::ImGuiGUI::CreateGUI,nullptr,1);
+        sofa::gui::common::GUIManager::RegisterGUI("imgui", &sofaimgui::ImGuiGUI::CreateGUI, &sofaglfw::SofaGLFWGUI::RegisterGUIParameters, 1);
     }
 }
 
@@ -72,15 +72,9 @@ const char* getModuleDescription()
     return "A ImGui Gui for SOFA.";
 }
 
-const char* getModuleComponentList()
+void initExternalModule()
 {
-    //no Components in this plugin
-    return "";
-}
-
-void init()
-{
-    initExternalModule();
+    init();
 }
 
 } // namespace sofaimgui

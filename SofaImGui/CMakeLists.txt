@@ -20,6 +20,14 @@ sofa_fetch_dependency(imgui
         DONT_BUILD
 )
 
+
+
+sofa_fetch_dependency(imoguizmo
+        GIT_REPOSITORY https://github.com/sofa-framework/imoguizmo
+        GIT_TAG        SofaGLFW-version
+        DONT_BUILD
+)
+
 # nfd (nativefiledialog-extended)
 find_package(nfd CONFIG QUIET)
 
@@ -40,7 +48,9 @@ elseif( (DEFINED SOFA_ALLOW_FETCH_DEPENDENCIES AND SOFA_ALLOW_FETCH_DEPENDENCIES
     )
     set_property(TARGET nfd  PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_target_properties(nfd PROPERTIES LINKER_LANGUAGE CXX)
-    add_library(nfd::nfd ALIAS nfd) # introduced in nfd >= v1.2.1
+endif()
+if(TARGET nfd AND NOT TARGET nfd::nfd)
+  add_library(nfd::nfd ALIAS nfd) # introduced in nfd >= v1.2.1
 endif()
 
 # ImPlot
@@ -97,11 +107,14 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/UIStrings.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/BoundingBoxWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/BoolWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ClampedScalarWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DisplayFlagsWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/LinearSpringWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMass.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/VectorWidgetCommon.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/VecVectorWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/Log.h
     ${SOFAIMGUI_SOURCE_DIR}/windows/MouseManager.h
@@ -123,6 +136,8 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.cpp
     ${SOFAIMGUI_SOURCE_DIR}/initSofaImGui.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DisplayFlagsWidget.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ClampedScalarWidget.cpp
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/RigidMass.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/ScalarWidget.cpp
@@ -144,18 +159,14 @@ set(SOURCE_FILES
 )
 
 
-
 set(IMGUI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources ${imgui_SOURCE_DIR} ${ImPlot_SOURCE_DIR} ${IconFontCppHeaders_SOURCE_DIR} ${simpleini_SOURCE_DIR})
 
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${IMGUI_SOURCE_FILES} )
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${IMGUI_SOURCE_DIR}>")
+target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${imoguizmo_SOURCE_DIR}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaGLFW Sofa.GL.Component.Rendering3D ${CMAKE_DL_LIBS})
 target_link_libraries(${PROJECT_NAME} PRIVATE SimpleIni::SimpleIni)
-if (EXISTS nfd)
-    target_link_libraries(${PROJECT_NAME} PRIVATE nfd)
-else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE nfd::nfd)
-endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE nfd::nfd)
 
 # setup the same API exports for imgui
 target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_API=SOFAIMGUI_API)

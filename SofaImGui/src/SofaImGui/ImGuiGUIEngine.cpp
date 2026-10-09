@@ -73,13 +73,13 @@
 #include <sofa/component/visual/VisualStyle.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/core/visual/VisualParams.h>
-#include <sofa/gl/component/rendering3d/OglSceneFrame.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <sofa/helper/Utils.h>
 #include <sofa/helper/io/File.h>
 #include <sofa/helper/io/STBImage.h>
 #include <sofa/helper/system/PluginManager.h>
 #include <sofa/version.h>
+#include <sofa/component/visual/InteractiveCamera.h>
 
 #include <clocale>
 
@@ -215,17 +215,34 @@ void ImGuiGUIEngine::loadFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sp
     sofa::simulation::node::unload(groot);
 
     groot = sofa::simulation::node::load(filePathName.c_str());
+    
     if( !groot )
-        groot = sofa::simulation::getSimulation()->createNewGraph("");
+        groot = sofa::simulation::MainSimulation::getSimulation()->createNewGraph("");
+
     baseGUI->setSimulation(groot, filePathName);
     baseGUI->setWindowTitle(nullptr, std::string("SOFA - " + filePathName).c_str());
     
     sofa::simulation::node::initRoot(groot.get());
-    auto camera = baseGUI->getCamera();
-    if (camera)
+
+
+    baseGUI->addCameraIfRequired();
+
+    if (baseGUI->getCamera())
     {
-        camera->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
-        baseGUI->changeCamera(camera);
+
+        if( groot->f_bbox.getValue().isValid())
+        {
+            baseGUI->getCamera()->fitBoundingBox(groot->f_bbox.getValue().minBBox(), groot->f_bbox.getValue().maxBBox());
+        }
+        else
+        {
+            msg_warning_when(!groot->f_bbox.getValue().isValid(), "GUI") << "Global bounding box is invalid: " << groot->f_bbox.getValue();
+        }
+        baseGUI->changeCamera(baseGUI->getCamera());
+    }
+    else
+    {
+        msg_warning("GUI") << "No camera found in the scene";
     }
 
     if(reload)
@@ -296,10 +313,28 @@ void ImGuiGUIEngine::openFile(sofaglfw::SofaGLFWBaseGUI* baseGUI, sofa::core::sp
     }
 }
 
+
+void ImGuiGUIEngine::saveNamedScreenshot(sofaglfw::SofaGLFWBaseGUI* baseGUI, std::string filename, int compression_level)
+{
+    helper::io::STBImage image;
+    image.init(m_currentFBOSize.first, m_currentFBOSize.second, 1, 1, sofa::helper::io::Image::DataType::UINT32, sofa::helper::io::Image::ChannelFormat::RGBA);
+
+    glBindTexture(GL_TEXTURE_2D, m_fbo->getColorTexture());
+
+    // Read the pixel data from the OpenGL texture
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPixels());
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if(compression_level < 0)
+        compression_level = 90;
+
+    image.save(filename, compression_level);
+
+}
+
 void ImGuiGUIEngine::saveScreenshot(sofaglfw::SofaGLFWBaseGUI* baseGUI)
 {
-    nfdchar_t *outPath;
-    std::array<nfdfilteritem_t, 1> filterItem{ { {"Image", "jpg,png"} } };
     const auto sceneFilename = baseGUI->getSceneFileName();
     std::string baseFilename{};
     if (!sceneFilename.empty())
@@ -307,26 +342,20 @@ void ImGuiGUIEngine::saveScreenshot(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         std::filesystem::path path(sceneFilename);
         baseFilename = path.stem().string();
     }
-    
+
     std::ostringstream oss{};
     oss << baseFilename << "_" << std::setfill('0') << std::setw(4) << m_screenshotCounter << ".png";
     m_screenshotCounter++;
 
+    nfdchar_t *outPath;
+    std::array<nfdfilteritem_t, 1> filterItem{ { {"Image", "jpg,png"} } };
+
     nfdresult_t result = NFD_SaveDialog(&outPath,
         filterItem.data(), filterItem.size(), nullptr, oss.str().c_str());
+
     if (result == NFD_OKAY)
     {
-        helper::io::STBImage image;
-        image.init(m_currentFBOSize.first, m_currentFBOSize.second, 1, 1, sofa::helper::io::Image::DataType::UINT32, sofa::helper::io::Image::ChannelFormat::RGBA);
-
-        glBindTexture(GL_TEXTURE_2D, m_fbo->getColorTexture());
-
-        // Read the pixel data from the OpenGL texture
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPixels());
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        image.save(outPath, 90);
+        saveNamedScreenshot(baseGUI,std::string(outPath));
     }
 }
 
@@ -336,21 +365,6 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     std::setlocale(LC_NUMERIC, "C.UTF-8");
 
     auto groot = baseGUI->getRootNode();
-
-    bool alwaysShowFrame = settings->ini.GetBoolValue("Visualization", "alwaysShowFrame", true);
-    if (alwaysShowFrame)
-    {
-        auto sceneFrame = groot->get<sofa::gl::component::rendering3d::OglSceneFrame>();
-        if (!sceneFrame)
-        {
-            auto newSceneFrame = sofa::core::objectmodel::New<sofa::gl::component::rendering3d::OglSceneFrame>();
-            groot->addObject(newSceneFrame);
-            newSceneFrame->setName("viewportFrame");
-            newSceneFrame->addTag(core::objectmodel::Tag("createdByGUI"));
-            newSceneFrame->d_drawFrame.setValue(true);
-            newSceneFrame->init();
-        }
-    }
 
     // Start the Dear ImGui frame
 #if SOFAIMGUI_FORCE_OPENGL2 == 1
@@ -407,6 +421,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     static bool showTime = true;
 
     ImVec2 mainMenuBarSize;
+    bool doCloseSimulation = false;
 
     static bool animate;
     animate = groot->animate_.getValue();
@@ -441,12 +456,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             }
 
             if (ImGui::MenuItem(ICON_FA_CIRCLE_XMARK "  Close Simulation"))
-            {
-                sofa::simulation::node::unload(groot);
-                baseGUI->setSimulationIsRunning(false);
-                sofa::simulation::node::initRoot(baseGUI->getRootNode().get());
-                return;
-            }
+                doCloseSimulation = true;
             ImGui::Separator();
             if (ImGui::MenuItem("Exit"))
             {
@@ -579,7 +589,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         if (ImGui::BeginPopupModal("About SOFA", &closeButton, ImGuiWindowFlags_AlwaysAutoResize))
         {
             std::stringstream version;
-            version << SOFA_VERSION / 10000 << "." << SOFA_VERSION / 100 % 100;
+            version << SOFA_VERSION / 10000 << "." << std::setw(2) << std::setfill('0') << (SOFA_VERSION % 10000) / 100;
 
             ImGui::Text("SOFA v%s", version.str().c_str());
             ImGui::TextLinkOpenURL("Website", "https://www.sofa-framework.org/");
@@ -647,6 +657,14 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
         }
         mainMenuBarSize = ImGui::GetWindowSize();
         ImGui::EndMainMenuBar();
+    }
+
+    if (doCloseSimulation)
+    {
+        sofa::simulation::node::unload(groot);
+        baseGUI->setSimulationIsRunning(false);
+        sofa::simulation::node::initRoot(baseGUI->getRootNode().get());
+        return;
     }
 
     if (m_imguiNeedViewReset)
@@ -717,7 +735,7 @@ void ImGuiGUIEngine::startFrame(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     /***************************************
      * Log window
      **************************************/
-    windows::showLog(windowNameLog, winManagerLog);
+    windows::showLog(windowNameLog, settings->ini, winManagerLog);
 
     /***************************************
      * Mouse window

@@ -40,14 +40,14 @@ extern "C" {
     SOFAGLFW_API const char* getModuleComponentList();
 }
 
-void initExternalModule()
+void init()
 {
     static bool first = true;
     if (first)
     {
         first = false;
 #if SOFAGLFW_HAVE_SOFA_GUI_COMMON
-        sofa::gui::common::GUIManager::RegisterGUI("glfw", &sofaglfw::SofaGLFWGUI::CreateGUI,nullptr,0);
+        sofa::gui::common::GUIManager::RegisterGUI("glfw", &sofaglfw::SofaGLFWGUI::CreateGUI, &sofaglfw::SofaGLFWGUI::RegisterGUIParameters, 0);
 #endif // SOFAGLFW_HAVE_SOFA_GUI_COMMON
     }
 }
@@ -72,15 +72,9 @@ const char* getModuleDescription()
     return "A GLFW Gui for SOFA.";
 }
 
-const char* getModuleComponentList()
+void initExternalModule()
 {
-    //no Components in this plugin
-    return "";
-}
-
-void init()
-{
-    initExternalModule();
+    init();
 }
 
 } // namespace sofaglfw

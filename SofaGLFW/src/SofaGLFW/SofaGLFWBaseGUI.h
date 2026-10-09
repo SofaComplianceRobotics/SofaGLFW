@@ -57,6 +57,15 @@ public:
 
     bool createWindow(int width, int height, const char* title, bool fullscreenAtStartup = false);
     void destroyWindow();
+
+    /// Window and OpenGL context created but never shown; graphics functions are still
+    /// called. To be set before createWindow().
+    void setOffscreen(bool offscreen) { m_bOffscreen = offscreen; }
+    bool isOffscreen() const { return m_bOffscreen; }
+
+    /// Hide the progress bar of a bounded run
+    void setHideProgressBar(bool hide) { m_bHideProgressBar = hide; }
+
     void initVisual();
     std::size_t runLoop(std::size_t targetNbIterations = 0);
     void terminate();
@@ -84,7 +93,13 @@ public:
     void setWindowBackgroundColor(const RGBAColor& newColor, unsigned int windowID = 0);
     void setWindowBackgroundImage(const std::string& imageFileName, unsigned int windowID = 0);
     void setWindowTitle(GLFWwindow* window, const char* title);
-    
+
+    virtual void screenshot(const std::string& filename, int compression_level = -1) override
+    {
+        m_guiEngine->saveNamedScreenshot(this, filename,compression_level);
+    }
+
+
     virtual void setBackgroundColour(float r, float g, float b) override
     {
         setWindowBackgroundColor(RGBAColor{r, g, b, 1.0f}, 0);
@@ -150,8 +165,10 @@ private:
 
     bool m_bGlfwIsInitialized{ false };
     bool m_bGlewIsInitialized{ false };
+    bool m_bOffscreen{ false };
+    bool m_bHideProgressBar{ false };
 
-    sofa::gl::DrawToolGL* m_glDrawTool{ nullptr };
+    std::unique_ptr<sofa::gl::DrawToolGL> m_glDrawTool;
     sofa::core::visual::VisualParams* m_vparams{ nullptr };
     GLFWwindow* m_firstWindow{ nullptr };
     int m_windowWidth{ 0 };

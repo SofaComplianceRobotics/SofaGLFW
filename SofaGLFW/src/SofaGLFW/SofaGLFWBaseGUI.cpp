@@ -50,7 +50,12 @@
 #include <sofa/helper/system/SetDirectory.h>
 #include <sofa/helper/Utils.h>
 
+#if SOFAGLFW_HAVE_SOFA_GUI_BATCH
+#include <sofa/gui/batch/ProgressBar.h>
+#endif
+
 #include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <map>
 
@@ -61,7 +66,6 @@ using std::endl;
 using namespace sofa::type;
 using namespace sofa::defaulttype;
 using namespace sofa::gl;
-using simulation::getSimulation;
 using namespace sofa::simulation;
 using namespace sofa::gui::common;
 using namespace  core::visual;
@@ -111,7 +115,7 @@ bool SofaGLFWBaseGUI::init(int nbMSAASamples)
         // max = 32 (MSAA with 32 samples)
         glfwWindowHint(GLFW_SAMPLES, std::clamp(nbMSAASamples, 0, 32) );
 
-        m_glDrawTool = new DrawToolGL();
+        m_glDrawTool = std::make_unique<DrawToolGL>();
         m_bGlfwIsInitialized = true;
         return true;
     }
@@ -132,7 +136,7 @@ void SofaGLFWBaseGUI::setSimulation(NodeSPtr groot, const std::string& filename)
     this->groot = groot;
     this->sceneFileName = filename;
 
-    VisualParams::defaultInstance()->drawTool() = m_glDrawTool;
+    VisualParams::defaultInstance()->drawTool() = m_glDrawTool.get();
     sofa::core::visual::VisualParams::defaultInstance()->setSupported(sofa::core::visual::API_OpenGL);
 
     if (this->groot)
@@ -252,6 +256,15 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
         return false;
     }
 
+    // the hint is sticky, hence always set explicitly
+    glfwWindowHint(GLFW_VISIBLE, m_bOffscreen ? GLFW_FALSE : GLFW_TRUE);
+
+    if (m_bOffscreen && fullscreenAtStartup)
+    {
+        msg_warning("SofaGLFWBaseGUI") << "Fullscreen is ignored in offscreen mode.";
+        fullscreenAtStartup = false;
+    }
+
     GLFWwindow* glfwWindow = nullptr;
     if (fullscreenAtStartup)
     {
@@ -276,6 +289,7 @@ bool SofaGLFWBaseGUI::createWindow(int width, int height, const char* title, boo
     s_numberOfActiveWindows++;
 
 #ifndef __APPLE__ // Apple implies Cocoa and Cocoa does not support icon for the window
+    if (!m_bOffscreen)
     {
         setWindowIcon(glfwWindow);
     }
@@ -384,6 +398,12 @@ bool SofaGLFWBaseGUI::isFullScreen(GLFWwindow* glfwWindow) const
 
 void SofaGLFWBaseGUI::switchFullScreen(GLFWwindow* glfwWindow, unsigned int /* screenID */)
 {
+    if (m_bOffscreen)
+    {
+        msg_warning("SofaGLFWBaseGUI") << "Cannot switch to fullscreen in offscreen mode.";
+        return;
+    }
+
     if (hasWindow())
     {
         // only manage the first window for now
@@ -482,6 +502,16 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
     std::stringstream tmpStr;
     std::vector<uint8_t> pixels;
 
+#if SOFAGLFW_HAVE_SOFA_GUI_BATCH
+    std::unique_ptr<sofa::gui::batch::ProgressBar> progressBar;
+    if (targetNbIterations > 0 && !m_bHideProgressBar)
+    {
+        progressBar = std::make_unique<sofa::gui::batch::ProgressBar>(static_cast<int>(targetNbIterations));
+    }
+#endif
+
+    const auto startTime = std::chrono::steady_clock::now();
+
     while (s_numberOfActiveWindows > 0 && running)
     {
         SIMULATION_LOOP_SCOPE
@@ -550,10 +580,28 @@ std::size_t SofaGLFWBaseGUI::runLoop(std::size_t targetNbIterations)
                 s_numberOfActiveWindows--;
                 s_mapWindows.erase(currentSofaWindow);
             }
+            delete sofaGlfwWindow;
         }
+
+#if SOFAGLFW_HAVE_SOFA_GUI_BATCH
+        if (progressBar)
+        {
+            progressBar->tick();
+        }
+#endif
 
         currentNbIterations++;
         running = (targetNbIterations > 0) ? currentNbIterations < targetNbIterations : true;
+    }
+
+    // measurements only make sense for a bounded run
+    if (targetNbIterations > 0)
+    {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - startTime).count() / 1000.0;
+        msg_info("SofaGLFWBaseGUI") << currentNbIterations << " iterations done in " << elapsed << " s ( "
+                                    << (elapsed > 0.0 ? static_cast<double>(currentNbIterations) / elapsed : 0.0)
+                                    << " FPS)." << msgendl;
     }
 
     return currentNbIterations;
@@ -671,7 +719,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
     SOFA_UNUSED(mods);
 
     const char keyName = handleArrowKeys(key);
-    const bool isCtrlKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+    const bool isCtrlKeyPressed = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
     const bool isShiftKeyPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT ) == GLFW_PRESS;
 
     const bool foundGUI = s_mapGUIs.contains(window);
@@ -694,7 +742,8 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
     // Key events are forwarded to SOFA using: CTRL + SHIFT
     if (isCtrlKeyPressed && isShiftKeyPressed)
     {
-        if (action == GLFW_PRESS)
+        
+        if (action == GLFW_PRESS || action == GLFW_REPEAT)
         {
             KeypressedEvent keyPressedEvent(keyName);
             rootNode->propagateEvent(core::ExecParams::defaultInstance(), &keyPressedEvent);
@@ -1020,7 +1069,7 @@ void SofaGLFWBaseGUI::cursor_position_callback(GLFWwindow* window, double xpos, 
 
     auto currentSofaWindow = s_mapWindows.find(window);
 
-    if (shiftPressed)
+    if (shiftPressed && currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)
     {
         for (const auto button : {GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_MOUSE_BUTTON_RIGHT})
         {

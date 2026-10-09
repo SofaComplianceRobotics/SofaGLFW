@@ -28,12 +28,15 @@
 #include <sofa/helper/OptionsGroup.h>
 #include <sofa/helper/SelectableItem.h>
 #include <SofaImGui/widgets/DisplayFlagsWidget.h>
+#include <SofaImGui/widgets/IntWidget.h>
 #include <SofaImGui/widgets/LinearSpringWidget.h>
 #include <SofaImGui/widgets/MaterialWidget.h>
 #include <SofaImGui/widgets/RigidMass.h>
 #include <SofaImGui/widgets/VecVectorWidget.h>
+#include <SofaImGui/widgets/TopologyElementVectorWidget.h>
 #include <SofaImGui/widgets/BoundingBoxWidget.h>
 #include <SofaImGui/widgets/BoolWidget.h>
+#include <SofaImGui/widgets/ClampedScalarWidget.h>
 
 namespace sofaimgui
 {
@@ -61,6 +64,27 @@ template<>
 void DataWidget<double>::showWidget(MyData& data)
 {
     showScalarWidget(data);
+}
+
+template<>
+void DataWidget<int>::showWidget(MyData& data)
+{
+    showIntegerWidget(data);
+}
+
+/***********************************************************************************************************************
+ * ClampedScalar
+ **********************************************************************************************************************/
+template <>
+void DataWidget<type::ClampedScalar<float>>::showWidget(MyData& data)
+{
+    showClampedScalarWidget(data);
+}
+
+template <>
+void DataWidget<type::ClampedScalar<double>>::showWidget(MyData& data)
+{
+    showClampedScalarWidget(data);
 }
 
 /***********************************************************************************************************************
@@ -336,83 +360,51 @@ void DataWidget<type::vector<defaulttype::RigidCoord<2, float> > >::showWidget(M
     showWidgetT(data);
 }
 
+
 /***********************************************************************************************************************
  * Topology elements
  **********************************************************************************************************************/
 
-template< typename GeometryElement>
-void showWidgetT(Data<type::vector<topology::Element<GeometryElement> > >& data)
-{
-    constexpr auto N = topology::Element<GeometryElement>::static_size;
-    static ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
-    ImGui::Text("%d elements", data.getValue().size());
-    if (ImGui::BeginTable((data.getName() + data.getOwner()->getPathName()).c_str(), N + 1, flags))
-    {
-        ImGui::TableSetupColumn("");
-        for (unsigned int i = 0; i < N; ++i)
-        {
-            ImGui::TableSetupColumn(std::to_string(i).c_str());
-        }
-
-        ImGui::TableHeadersRow();
-
-        unsigned int counter {};
-        for (const auto& vec : *helper::getReadAccessor(data))
-        {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("%d", counter++);
-            for (const auto& v : vec)
-            {
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", v);
-            }
-        }
-
-        ImGui::EndTable();
-    }
-}
-
 template<>
 void DataWidget<type::vector<topology::Edge> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Hexahedron> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Pentahedron> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Pyramid> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Quad> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Tetrahedron> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 template<>
 void DataWidget<type::vector<topology::Triangle> >::showWidget(MyData& data)
 {
-    showWidgetT(data);
+    showTopologyElementVectorWidget(data);
 }
 
 /***********************************************************************************************************************
@@ -671,6 +663,11 @@ const bool dw_bool = DataWidgetFactory::Add<bool>();
 const bool dw_float = DataWidgetFactory::Add<float>();
 const bool dw_double = DataWidgetFactory::Add<double>();
 
+const bool dw_int = DataWidgetFactory::Add<int>();
+
+const bool dw_clampedfloat = DataWidgetFactory::Add<sofa::type::ClampedScalar<float>>();
+const bool dw_clampeddouble = DataWidgetFactory::Add<sofa::type::ClampedScalar<double>>();
+
 const bool dw_vec1d = DataWidgetFactory::Add<type::Vec<1, double> >();
 const bool dw_vec1f = DataWidgetFactory::Add<type::Vec<1, float> >();
 
@@ -718,7 +715,7 @@ const bool dw_vector_rigid3f = DataWidgetFactory::Add<type::vector<defaulttype::
 
 const bool dw_vector_edge = DataWidgetFactory::Add<type::vector<topology::Edge > >();
 const bool dw_vector_hexa = DataWidgetFactory::Add<type::vector<topology::Hexahedron > >();
-const bool dw_vector_penta = DataWidgetFactory::Add<type::vector<topology::Pentahedron > >();
+const bool dw_vector_prism = DataWidgetFactory::Add<type::vector<topology::Prism > >();
 const bool dw_vector_pyramid = DataWidgetFactory::Add<type::vector<topology::Pyramid > >();
 const bool dw_vector_quad = DataWidgetFactory::Add<type::vector<topology::Quad > >();
 const bool dw_vector_tetra = DataWidgetFactory::Add<type::vector<topology::Tetrahedron > >();
