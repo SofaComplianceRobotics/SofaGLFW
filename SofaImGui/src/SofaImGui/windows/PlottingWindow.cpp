@@ -258,15 +258,19 @@ void PlottingWindow::showPlots()
 
                         ImPlotSpec spec;
                         spec.Stride = 2 * sizeof(float);
-                        ImPlot::PlotLine(data->getLabel().c_str(),
+                        std::string dataPath = data->getData()->getPathName();
+                        std::string label = data->getLabel() + "##" + dataPath;
+                        ImPlot::PlotLine(label.c_str(),
                                          &buffer.data[0].x,
                                          &buffer.data[0].y,
                                          buffer.data.size(),
                                          spec);
+                        if (ImGui::IsWindowHovered() && ImGui::GetHoveredID() == ImGui::GetID(label.c_str()))
+                            ImGui::SetTooltip("%s", dataPath.c_str());
 
-                        if (ImPlot::BeginDragDropSourceItem(data->getLabel().c_str())) {
+                        if (ImPlot::BeginDragDropSourceItem(label.c_str())) {
                             dragedData = data;
-                            ImGui::SetDragDropPayload("dragndrop", nullptr, 0);
+                            ImGui::SetDragDropPayload("_PLOTTINGSUBDROP", nullptr, 0);
                             ImPlot::ItemIcon(ImPlot::GetLastItemColor());
                             ImGui::SameLine();
                             ImGui::TextUnformatted(data->getLabel().c_str());
@@ -277,7 +281,7 @@ void PlottingWindow::showPlots()
 
                 if (ImPlot::BeginDragDropTargetPlot())
                 {
-                    if (ImGui::AcceptDragDropPayload("dragndrop"))
+                    if (ImGui::AcceptDragDropPayload("_PLOTTINGSUBDROP"))
                     {
                         if (dragedData)
                             setDataSubplot(dragedData, i);
