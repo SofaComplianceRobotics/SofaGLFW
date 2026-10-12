@@ -40,9 +40,6 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     void setBaseGUI(sofaglfw::SofaGLFWBaseGUI* baseGUI) { m_baseGUI = baseGUI; }
 
-    /// This is called before loading / reloading a simulation.
-    virtual void clearWindow() {};
-
     /// Implements the drawing of the window
     void showWindow(ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None);
 
@@ -50,7 +47,10 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
     /// Will be displayed as a tooltip
     virtual std::string getDescription() = 0;
 
-    /// Implementation on end init
+    /// Called on begin simulation load
+    virtual void onBeginSimulationLoad();
+
+    /// Called on end simulation load
     virtual void onEndSimulationLoad();
 
     /// Get the name of the window

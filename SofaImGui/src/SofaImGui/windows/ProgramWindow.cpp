@@ -66,8 +66,9 @@ std::string ProgramWindow::getDescription()
     return "Create programs with simulation data.";
 }
 
-void ProgramWindow::clearWindow()
+void ProgramWindow::onBeginSimulationLoad()
 {
+    BaseWindow::onBeginSimulationLoad();
     if (m_program.isValid())
         m_program.clearTracks();
 }

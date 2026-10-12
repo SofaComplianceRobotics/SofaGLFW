@@ -52,8 +52,9 @@ std::string SceneGraphWindow::getDescription()
     return "Scene graph of the simulation nodes and components.";
 }
 
-void SceneGraphWindow::clearWindow()
+void SceneGraphWindow::onBeginSimulationLoad()
 {
+    BaseWindow::onBeginSimulationLoad();
     m_openedComponents.clear();
     m_openedNodes.clear();
     m_openedComponentPopups.clear();

@@ -35,6 +35,7 @@ public:
     ~SceneGraphWindow() = default;
 
     std::string getDescription() override;
+    void onBeginSimulationLoad() override;
 
 protected:
 
@@ -71,8 +72,6 @@ protected:
     void beforeShowWindow() override;
     void internalShowWindow() override;
     void afterShowWindow() override;
-
-    void clearWindow() override;
 
     void showNode(sofa::simulation::Node* parent, sofa::simulation::Node* node, const ImGuiTextFilter& filter);
     void showNodeComponents(sofa::simulation::Node* node, const ImGuiTextFilter &filter);

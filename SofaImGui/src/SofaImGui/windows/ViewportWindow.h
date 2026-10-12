@@ -34,7 +34,6 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     ViewportWindow(const std::string& name);
     ~ViewportWindow() = default;
 
-    void internalShowWindow() override;
     std::string getDescription() override;
 
     void setTextureID(const ImTextureID& textureID) {m_textureID=textureID;}
@@ -65,6 +64,7 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
     bool m_ws_cameraButtonsCollapsed{true};
     long m_ws_drivingWindow{1};
 
+    void internalShowWindow() override;
     void registerAndLoadWindowSettings() override;
 
     void addSimulationTimeAndFPS();

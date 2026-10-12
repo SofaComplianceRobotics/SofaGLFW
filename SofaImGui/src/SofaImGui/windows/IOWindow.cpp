@@ -64,6 +64,15 @@ std::string IOWindow::getDescription()
     return "Input / output operations of data.";
 }
 
+void IOWindow::onBeginSimulationLoad()
+{
+    BaseWindow::onBeginSimulationLoad();
+
+    m_rosnode->clearSelectedInput();
+    m_rosnode->clearSelectedOutput();
+    m_selectableData.clear();
+}
+
 void IOWindow::onEndSimulationLoad()
 {
     BaseWindow::onEndSimulationLoad();
@@ -88,6 +97,9 @@ void IOWindow::onEndSimulationLoad()
                 m_selectableData[Role::PUBLISH][accessory->getLabel()] = accessory;
                 m_selectableData[Role::SUBSCRIBE][accessory->getLabel()] = accessory;
             }
+
+    updateROSInput();
+    updateROSOutput();
 }
 
 bool IOWindow::sanitizeName(std::string &name)
@@ -563,10 +575,10 @@ void IOWindow::animateEndEventROS(sofa::simulation::Node *groot)
 
     if (m_isPublishing)
     {
-        for (const auto& publisher : m_rosnode->m_publishers)
+        for (auto publisher : m_rosnode->m_publishers)
         {
             // Copy the data to publish
-            const auto& data = m_rosnode->m_selectedDataToPublish[publisher->get_topic_name()];
+            auto data = m_rosnode->m_selectedDataToPublish[publisher->get_topic_name()];
             if (data)
             {
                 auto message = std_msgs::msg::Float32MultiArray();

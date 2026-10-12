@@ -33,6 +33,8 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
     ~MyRobotWindow() = default;
 
     std::string getDescription() override;
+    void onBeginSimulationLoad() override;
+    bool isEnabledByState() override;
 
     struct Connection{
         std::vector<std::string> ports;
@@ -58,15 +60,12 @@ class SOFAIMGUI_API MyRobotWindow : public BaseWindow
                                            Section section = Section::NONE);
     void removeGUIData(models::guidata::GUIData::SPtr guiData) override;
 
-
    protected:
 
     Connection m_connection;
     std::map<Section, std::unordered_set<models::guidata::GUIData::SPtr>> m_sectionedGUIData;
 
     void internalShowWindow() override;
-    void clearWindow() override;
-    bool isEnabledByState() override;
 
     bool isInEmptyGroup(const std::string &group);
 };

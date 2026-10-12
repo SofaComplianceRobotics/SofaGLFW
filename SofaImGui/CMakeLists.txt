@@ -130,6 +130,7 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettingsName.h
 
     ${SOFAIMGUI_SOURCE_DIR}/widgets/BoundingBoxWidget.h
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ClampedScalarWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.h
     ${SOFAIMGUI_SOURCE_DIR}/widgets/IntWidget.h
@@ -198,6 +199,7 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/windows/ViewportWindow.cpp
     ${SOFAIMGUI_SOURCE_DIR}/windows/WindowsSettings.cpp
 
+    ${SOFAIMGUI_SOURCE_DIR}/widgets/ClampedScalarWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/DataWidget.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/Gizmos.cpp
     ${SOFAIMGUI_SOURCE_DIR}/widgets/MaterialWidget.cpp
