@@ -65,7 +65,7 @@ std::string LogWindow::getDescription()
 void LogWindow::registerAndLoadWindowSettings()
 {
     registerAndLoadWindowSetting(WS_LOG_AUTOSCROLL, m_ws_autoScroll, WindowsSettings::BOOL);
-    registerAndLoadWindowSetting(WS_LOG_SHOWINFO, m_ws_showInfo, WindowsSettings::BOOL);
+    registerAndLoadWindowSetting(WS_LOG_SHOWLOGLEVELONLY, m_ws_showLogLevelOnly, WindowsSettings::BOOL);
     registerAndLoadWindowSetting(WS_LOG_WRAPTEXT, m_ws_wrapText, WindowsSettings::BOOL);
 }
 
@@ -97,7 +97,7 @@ void LogWindow::showButtons()
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
-    showFilterButton();
+    showLogLevelDropdown();
 }
 
 void LogWindow::showSettingsButton()
@@ -108,29 +108,22 @@ void LogWindow::showSettingsButton()
     if (ImGui::BeginPopup("##LogSettings"))
     {
         sofaimgui::widgets::CheckBox("Automatic scroll", &m_ws_autoScroll);
-        sofaimgui::widgets::CheckBox("Show info", &m_ws_showInfo);
+        sofaimgui::widgets::CheckBox("Log Level only", &m_ws_showLogLevelOnly);
+        ImGui::SetItemTooltip("Only show the chosen log level instead of level and up");
         sofaimgui::widgets::CheckBox("Wrap text", &m_ws_wrapText);
         ImGui::EndPopup();
     }
 }
 
-void LogWindow::showFilterButton()
+void LogWindow::showLogLevelDropdown()
 {
-    ImGui::PushStyleColor(ImGuiCol_ButtonText, COLOR_RED);
-    sofaimgui::widgets::PushButton(ICON_FA_CIRCLE_EXCLAMATION, &m_showOnlyErrors);
-    if (m_showOnlyErrors)
-        m_showOnlyWarnings = false;
-    ImGui::SetItemTooltip("Show only errors");
-    ImGui::PopStyleColor();
+    ImGui::Text("Log Level:");
 
     ImGui::SameLine();
 
-    ImGui::PushStyleColor(ImGuiCol_ButtonText, COLOR_ORANGE);
-    sofaimgui::widgets::PushButton(ICON_FA_TRIANGLE_EXCLAMATION, &m_showOnlyWarnings);
-    if (m_showOnlyWarnings)
-        m_showOnlyErrors = false;
-    ImGui::SetItemTooltip("Show only warnings");
-    ImGui::PopStyleColor();
+    int level = m_logLevel;
+    if (ImGui::Combo("##LogLevel", &level, m_logLevelList, IM_ARRAYSIZE(m_logLevelList)))
+        m_logLevel = sofa::helper::logging::Message::Type(level);
 }
 
 void LogWindow::showExportButton()
@@ -208,13 +201,10 @@ void LogWindow::showLogs()
         for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
         {
             const auto& message = m_messages[index];
-            if (!m_ws_showInfo && message.type() == sofa::helper::logging::Message::Info)
+            if (message.type() < m_logLevel)
                 continue;
 
-            if (m_showOnlyWarnings && message.type() != sofa::helper::logging::Message::Warning)
-                continue;
-
-            if (m_showOnlyErrors && message.type() != sofa::helper::logging::Message::Error)
+            if (m_ws_showLogLevelOnly && message.type() != m_logLevel)
                 continue;
 
             ImGui::TableNextRow();

@@ -20,5 +20,5 @@
 
 // Log Window
 #define WS_LOG_AUTOSCROLL "autoScroll"
-#define WS_LOG_SHOWINFO "showInfo"
+#define WS_LOG_SHOWLOGLEVELONLY "showLogLevelOnly"
 #define WS_LOG_WRAPTEXT "wrapText"
