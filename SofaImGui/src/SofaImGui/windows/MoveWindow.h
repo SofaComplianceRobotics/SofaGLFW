@@ -36,6 +36,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     ~MoveWindow() = default;
 
     std::string getDescription() override;
+    void onEndSimulationLoad() override;
+    bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 
     enum MoveType {
         PAD,
@@ -60,10 +62,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     sofaimgui::widgets::MovePad m_movePad;
 
-    void onEndSimulationLoad() override;
     void internalShowWindow() override;
-
-    bool isEnabledByState() override {return m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() || m_kinematicsGUIDataManager->hasActuator();}
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImU32 &color);
     void showOptions();

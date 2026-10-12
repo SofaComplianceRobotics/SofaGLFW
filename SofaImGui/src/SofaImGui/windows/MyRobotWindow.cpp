@@ -49,8 +49,9 @@ std::string MyRobotWindow::getDescription()
            "Also provides connection management features.";
 }
 
-void MyRobotWindow::clearWindow()
+void MyRobotWindow::onBeginSimulationLoad()
 {
+    BaseWindow::onBeginSimulationLoad();
 	m_sectionedGUIData.clear();
 }
 

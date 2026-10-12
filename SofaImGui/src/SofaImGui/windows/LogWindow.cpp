@@ -126,7 +126,7 @@ void LogWindow::showExportButton()
 
             } else
             {
-                std::cout << "Failed to open the file " << outPath << std::endl;
+                msg_error(m_name) << "Failed to open the file " << outPath;
             }
             NFD_FreePath(outPath);
         }
