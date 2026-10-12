@@ -32,7 +32,6 @@ public:
     DashboardWindow(const std::string& name);
     ~DashboardWindow() = default;
 
-    void onBeginSimulationLoad() override;
     std::string getDescription() override;
 
 protected:

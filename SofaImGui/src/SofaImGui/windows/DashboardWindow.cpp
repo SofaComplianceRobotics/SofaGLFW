@@ -41,11 +41,6 @@ std::string DashboardWindow::getDescription()
     return "Simulation data viewer.";
 }
 
-void DashboardWindow::onBeginSimulationLoad()
-{
-    // Do not clear the GUIData
-}
-
 void DashboardWindow::internalShowWindow()
 {
     showInfoMessage("Drag and drop data to this window (e.g. from component or node window).");

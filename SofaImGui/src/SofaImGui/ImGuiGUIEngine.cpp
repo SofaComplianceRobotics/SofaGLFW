@@ -1065,7 +1065,8 @@ void ImGuiGUIEngine::loadSimulation(const bool& reload, const std::string& filen
 
     createGUINode(guiNode);
 
-    if (!reload && loadProject()) // When we reload the simulation, don't change the windows layout
+    loadProject(); // The settings from the project file always win over the settings from the Python bindings
+    if (!reload) // When we reload the simulation, don't change the windows layout
         enableWindows();
 
     notifyWindowsEndSimulationLoad();
