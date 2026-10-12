@@ -153,9 +153,6 @@ int main(int argc, char** argv)
 
     glfwGUI.initVisual();
 
-    // camera of the '.view' sidecar file, if any
-    glfwGUI.restoreCamera(glfwGUI.getCamera());
-
     //Background
     sofa::component::setting::BackgroundSetting* background;
     groot->get(background, sofa::core::objectmodel::BaseContext::SearchRoot);
