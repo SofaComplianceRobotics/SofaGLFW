@@ -67,10 +67,12 @@ std::string IOWindow::getDescription()
 void IOWindow::onBeginSimulationLoad()
 {
     BaseWindow::onBeginSimulationLoad();
+    m_selectableData.clear();
 
+#if SOFAIMGUI_WITH_ROS
     m_rosnode->clearSelectedInput();
     m_rosnode->clearSelectedOutput();
-    m_selectableData.clear();
+#endif
 }
 
 void IOWindow::onEndSimulationLoad()
@@ -98,8 +100,10 @@ void IOWindow::onEndSimulationLoad()
                 m_selectableData[Role::SUBSCRIBE][accessory->getLabel()] = accessory;
             }
 
+#if SOFAIMGUI_WITH_ROS
     updateROSInput();
     updateROSOutput();
+#endif
 }
 
 bool IOWindow::sanitizeName(std::string &name)
