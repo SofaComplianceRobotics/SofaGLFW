@@ -52,6 +52,13 @@ void SofaGLFWWindow::close()
 
 void SofaGLFWWindow::draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::VisualParams* vparams)
 {
+    // draw the scene
+    if (!m_currentCamera)
+    {
+        msg_error("SofaGLFWGUI") << "No camera defined.";
+        return;
+    }
+
     glClearColor(m_backgroundColor.r(), m_backgroundColor.g(), m_backgroundColor.b(), m_backgroundColor.a());
     glClearDepth(1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -59,13 +66,6 @@ void SofaGLFWWindow::draw(sofa::simulation::NodeSPtr groot, sofa::core::visual::
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_COLOR_MATERIAL);
-
-    // draw the scene
-    if (!m_currentCamera)
-    {
-        msg_error("SofaGLFWGUI") << "No camera defined.";
-        return;
-    }
 
     if (groot->f_bbox.getValue().isValid())
     {
