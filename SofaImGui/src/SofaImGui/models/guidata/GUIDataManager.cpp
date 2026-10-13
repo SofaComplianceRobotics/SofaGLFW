@@ -87,4 +87,20 @@ void GUIDataManager::clearGUIData()
     m_groupedGUIData.clear();
 }
 
+void GUIDataManager::changeGUIDataGroup(GUIData::SPtr data, const std::string& group)
+{
+    for (auto& group : m_groupedGUIData)
+    {
+        auto& dataList = group.second;
+        auto it = std::find(dataList.begin(), dataList.end(), data);
+        if( it != dataList.end())
+        {
+            dataList.erase(it);
+            break;
+        }
+    }
+    data->setGroup(group);
+    m_groupedGUIData[group].push_back(data);
+}
+
 }

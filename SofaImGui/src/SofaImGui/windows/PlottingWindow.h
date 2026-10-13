@@ -80,7 +80,6 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     models::guidata::GUIData::SPtr addGUIData(models::guidata::GUIData::SPtr guidata) override;
 
    protected:
-    std::map<sofa::Index, std::set<sofaimgui::models::guidata::GUIData::SPtr>> m_data;
     std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
     float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
@@ -92,7 +91,6 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     void registerAndLoadWindowSettings() override;
 
     void exportData();
-    void setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex);
     void showButtons();
     void showPlots();
     void showMenu();
