@@ -122,7 +122,7 @@ void LogWindow::showLogLevelDropdown()
     ImGui::SameLine();
 
     int level = m_logLevel;
-    if (ImGui::Combo("##LogLevel", &level, m_logLevelList, IM_ARRAYSIZE(m_logLevelList)))
+    if (sofaimgui::widgets::Combo("##LogLevel", &level, m_logLevelList, IM_ARRAYSIZE(m_logLevelList)))
         m_logLevel = sofa::helper::logging::Message::Type(level);
 }
 
