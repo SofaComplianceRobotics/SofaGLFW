@@ -56,6 +56,7 @@ protected:
     guidata::GUIData::SPtr m_data{nullptr};
     double m_startValue{0.f};
     double m_endValue{1.f};
+    sofa::Index m_index{0};
 
     class CustomView : public ActionView
     {
