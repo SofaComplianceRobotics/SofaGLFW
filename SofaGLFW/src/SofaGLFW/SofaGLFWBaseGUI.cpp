@@ -646,7 +646,7 @@ void SofaGLFWBaseGUI::key_callback(GLFWwindow* window, int key, int scancode, in
 
     if (isCtrlKeyPressed && isAltKeyPressed)
     {
-        if (action == GLFW_PRESS)
+        if (action == GLFW_PRESS || action == GLFW_REPEAT)
         {
             sofa::core::objectmodel::KeypressedEvent keyPressedEvent(sofaKey);
             rootNode->propagateEvent(sofa::core::ExecParams::defaultInstance(), &keyPressedEvent);

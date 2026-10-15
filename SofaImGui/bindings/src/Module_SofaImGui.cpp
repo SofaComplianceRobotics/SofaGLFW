@@ -167,7 +167,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
                      sofa::simulation::Node &TCPNode,
                      sofa::component::constraint::lagrangian::solver::ConstraintSolverImpl &solver)
 {
-    SOFA_UNUSED(TCPNode);
+    SOFA_UNUSED(TCPTargetNode);
     msg_deprecated("SofaImGui.setIPController") << "This method is deprecated, use setInverseProblemSolver, addTCP, and addActuator instead.";
 
     ImGuiGUI* gui = ImGuiGUI::getGUI();
@@ -176,7 +176,7 @@ void setIPController(sofa::simulation::Node &TCPTargetNode,
 
     if (engine && qpsolver)
     {
-        sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPTargetNode.getRoot());
+        sofa::simulation::Node::SPtr groot = dynamic_cast<sofa::simulation::Node*>(TCPNode.getRoot());
 
         sofa::type::vector<softrobotsinverse::constraint::PositionEffector<sofa::defaulttype::Rigid3dTypes> *> effectors;
         groot->getContext()->getObjects(effectors, sofa::core::objectmodel::BaseContext::SearchDirection::SearchRoot);

@@ -48,6 +48,12 @@ std::string MoveWindow::getDescription()
     return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
 }
 
+void MoveWindow::onEndSimulationLoad()
+{
+    if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
+        m_kinematicsGUIDataManager->getTCPGUIData()->getFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+}
+
 void MoveWindow::internalShowWindow()
 {
     if (isEnabledByState())
@@ -57,11 +63,15 @@ void MoveWindow::internalShowWindow()
             models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
 
             static bool firstTime = true;
+            static ImGuiTreeNodeFlags orientationDefaultOpen = ImGuiTreeNodeFlags_None;
             if (firstTime)
             {
                 firstTime = false;
                 const double& min = TCPGUIData->getMin();
                 const double& max = TCPGUIData->getMax();
+
+                if (!m_freeRoll || !m_freePitch || !m_freeYaw)
+                    orientationDefaultOpen = ImGuiTreeNodeFlags_DefaultOpen;
 
                 m_movePad = sofaimgui::widgets::MovePad("##MovePad", "X", "Z", "Y",
                                                        &m_x, &m_z, &m_y,
@@ -121,7 +131,7 @@ void MoveWindow::internalShowWindow()
 
             TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
-            if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap))
+            if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap | orientationDefaultOpen))
             {
                 ImGui::SameLine();
 
@@ -206,7 +216,7 @@ void MoveWindow::internalShowWindow()
                                                  ("##Input" + name).c_str(),
                                                  &value,
                                                  actuatorGUIData->getMin(), actuatorGUIData->getMax(),
-                                                 ImColor(COLOR_TRANSPARENT)))
+                                                 ImGui::GetColorU32(ImGuiCol_Text)))
                             {
                                 actuatorGUIData->setValue(index, value);
                                 solveInverseProblem = false;

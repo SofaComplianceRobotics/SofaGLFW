@@ -68,6 +68,7 @@ public:
     RigidCoord getTCPPosition();
 
     bool hasRotation();
+    void getFreeInRotation(bool &freeRoll, bool &freePitch, bool &freeYaw);
     void setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw);
 
     double getWeight(const sofa::Index &index);

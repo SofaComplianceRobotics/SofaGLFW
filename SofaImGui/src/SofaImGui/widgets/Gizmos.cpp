@@ -131,7 +131,7 @@ bool drawPositiveLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color
 
     config.mDrawList->AddLine(center, lineEndPositive, ImGui::GetColorU32(color), thickness);
 
-    isHovered = circleContainsPoint(lineEndPositive, radius, mousePos);
+    isHovered = circleContainsPoint(lineEndPositive, radius, mousePos) && ImGui::IsItemHovered();
     config.mDrawList->AddCircleFilled(lineEndPositive, radius, isHovered ? ImGui::GetColorU32(config.hoverColor): ImGui::GetColorU32(color));
 
     const auto labelSize = ImGui::CalcTextSize(text);
@@ -152,7 +152,7 @@ bool drawNegativeLine(const ImVec2 center, const ImVec2 axis, const ImVec4 color
 
     config.mDrawList->AddCircleFilled(lineEndNegative, radius, ImGui::GetColorU32(colorBg));
 
-    isHovered = circleContainsPoint(lineEndNegative, radius, mousePos);
+    isHovered = circleContainsPoint(lineEndNegative, radius, mousePos) && ImGui::IsItemHovered();
     config.mDrawList->AddCircle(lineEndNegative, radius, isHovered? ImGui::GetColorU32(config.hoverColor): ImGui::GetColorU32(color), 0, thickness);
 
     if (isHovered)
@@ -196,7 +196,18 @@ void DrawFrameGizmo(float* const viewMatrix, const float* const projectionMatrix
 {
     const float size = internal::config.mSize;
     const float hSize = size * 0.5f;
-    const auto center = ImVec2{ internal::config.mX + hSize, internal::config.mY + hSize };
+    const ImVec2 pos = ImVec2{internal::config.mX, internal::config.mY};
+    const auto center = ImVec2{pos.x + hSize, pos.y + hSize };
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    const ImGuiID id = window->GetIDFromPos(center);
+    const ImRect bb(pos, ImVec2{pos.x + size, pos.y + size});
+    ImGui::ItemSize(ImVec2(size,size), ImGui::GetStyle().FramePadding.y);
+    if (!ImGui::ItemAdd(bb, id))
+        return;
 
     float viewProjection[16];
     internal::multiply(viewMatrix, projectionMatrix, viewProjection);
@@ -261,7 +272,18 @@ void DrawOrientationGizmo(float* const viewMatrix, const float* const projection
 {
     const float size = internal::config.mSize;
     const float hSize = size * 0.5f;
-    const auto center = ImVec2{ internal::config.mX + hSize, internal::config.mY + hSize };
+    const ImVec2 pos = ImVec2{internal::config.mX, internal::config.mY};
+    const auto center = ImVec2{pos.x + hSize, pos.y + hSize };
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    const ImGuiID id = window->GetIDFromPos(center);
+    const ImRect bb(pos, ImVec2{pos.x + size, pos.y + size});
+    ImGui::ItemSize(ImVec2(size,size), ImGui::GetStyle().FramePadding.y);
+    if (!ImGui::ItemAdd(bb, id))
+        return;
 
     static bool isXClicked = false;
     static bool isYClicked = false;
@@ -287,21 +309,21 @@ void DrawOrientationGizmo(float* const viewMatrix, const float* const projection
     // draw back first
     const float lineThickness = size * config.lineThicknessScale;
 
-    bool isXHoverable = (!isYClicked && !isZClicked);
+    bool isXHoverable = (!isYClicked && !isZClicked) && ImGui::IsItemHovered();
     bool isXHovered = internal::drawEllipse(viewProjection, center, yAxis, zAxis, config.xCircleBackColor, lineThickness, isXHoverable, isXClicked);
 
     if (isXHoverable && isXHovered && ImGui::IsMouseClicked(0)) {
         isXClicked = true;
     }
 
-    bool isYHoverable = (!isXClicked && !isZClicked && !isXHovered);
+    bool isYHoverable = (!isXClicked && !isZClicked && !isXHovered) && ImGui::IsItemHovered();
     bool isYHovered = internal::drawEllipse(viewProjection, center, xAxis, zAxis, config.yCircleBackColor, lineThickness, isYHoverable, isYClicked);
 
     if (isYHoverable && isYHovered && ImGui::IsMouseClicked(0)) {
         isYClicked = true;
     }
 
-    bool isZHoverable = (!isYClicked && !isXClicked && !isXHovered && !isYHovered);
+    bool isZHoverable = (!isYClicked && !isXClicked && !isXHovered && !isYHovered) && ImGui::IsItemHovered();
     bool isZHovered = internal::drawEllipse(viewProjection, center, xAxis, yAxis, config.zCircleBackColor, lineThickness, isZHoverable, isZClicked);
 
     if (isZHoverable && isZHovered && ImGui::IsMouseClicked(0)) {

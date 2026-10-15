@@ -48,10 +48,10 @@ std::string PlottingWindow::getDescription()
     return "Plot data over time.";
 }
 
-void PlottingWindow::clearWindow()
+void PlottingWindow::onBeginSimulationLoad()
 {
-    m_data.clear();
-    m_buffers.clear();
+    BaseWindow::onBeginSimulationLoad();
+    removeAllData();
 }
 
 void PlottingWindow::exportData()
@@ -334,8 +334,7 @@ void PlottingWindow::showMenu()
     { // Remove data
         if (ImGui::MenuItem("Remove all data"))
         {
-            clearWindow();
-            clearGUIData();
+            removeAllData();
         }
     }
 
@@ -455,6 +454,13 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
     }
 
     ImGui::PopID();
+}
+
+void PlottingWindow::removeAllData()
+{
+    clearGUIData();
+    m_data.clear();
+    m_buffers.clear();
 }
 
 }

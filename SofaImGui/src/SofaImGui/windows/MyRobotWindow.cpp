@@ -49,8 +49,9 @@ std::string MyRobotWindow::getDescription()
            "Also provides connection management features.";
 }
 
-void MyRobotWindow::clearWindow()
+void MyRobotWindow::onBeginSimulationLoad()
 {
+    BaseWindow::onBeginSimulationLoad();
 	m_sectionedGUIData.clear();
 }
 
@@ -220,6 +221,7 @@ void MyRobotWindow::internalShowWindow()
                     ImGui::PushID(k++);
                     bool firsttime = true;
 
+                    int i=0;
                     for (auto& data : itGroup.second)
                     {
                         if (m_sectionedGUIData[Section::SETTINGS].contains(data))
@@ -232,6 +234,7 @@ void MyRobotWindow::internalShowWindow()
                                     ImGui::Indent();
                                     firsttime = false;
                                 }
+                                ImGui::PushID(i++);
                                 if (data->getData()->getValueTypeString()!="bool")
                                     ImGui::AlignTextToFramePadding();
                                 ImGui::Text("%s", data->getLabel().c_str());
@@ -242,6 +245,7 @@ void MyRobotWindow::internalShowWindow()
                                 sofaimgui::widgets::showWidget(*data->getData(), data->getDataMin(), data->getDataMax());
                                 if (!data->getHelp().empty())
                                     ImGui::SetItemTooltip("%s", data->getHelp().c_str());
+                                ImGui::PopID();
                             }
                         }
                     }

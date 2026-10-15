@@ -156,6 +156,18 @@ bool EffectorGUIData::hasRotation()
     return OwnedBaseData::isDataValid(m_useDirections) && m_useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;
 }
 
+void EffectorGUIData::getFreeInRotation(bool &freeRoll, bool &freePitch, bool &freeYaw)
+{
+    if(hasRotation())
+    {
+        auto duseDirections = static_cast<sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>>*>(m_useDirections->getData());
+        auto d = sofa::helper::getReadAccessor(*duseDirections);
+        freeRoll = !d[3];
+        freePitch = !d[4];
+        freeYaw = !d[5];
+    }
+}
+
 void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePitch, const bool &freeYaw)
 {
     if(hasRotation())
@@ -170,7 +182,10 @@ void EffectorGUIData::setFreeInRotation(const bool &freeRoll, const bool &freePi
 
 double EffectorGUIData::getWeight(const sofa::Index& index)
 {
-    return OwnedBaseData::isDataValid(m_weights) && m_weights->getData()->getValueTypeInfo()->getScalarValue(m_weights->getData()->getValueVoidPtr(), index);
+    if (!OwnedBaseData::isDataValid(m_weights))
+        return 0;
+
+    return m_weights->getData()->getValueTypeInfo()->getScalarValue(m_weights->getData()->getValueVoidPtr(), index);
 }
 
 void EffectorGUIData::setWeight(const sofa::Index& index, const double& w)

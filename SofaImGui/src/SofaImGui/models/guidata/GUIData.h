@@ -122,7 +122,7 @@ protected:
 
 public:
     typedef std::shared_ptr<GUIData> SPtr;
-    constexpr static std::string DEFAULTGROUP = "";
+    inline static const std::string DEFAULTGROUP = "";
 
     virtual ~GUIData() {};
 

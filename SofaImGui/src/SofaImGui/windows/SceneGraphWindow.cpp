@@ -52,8 +52,9 @@ std::string SceneGraphWindow::getDescription()
     return "Scene graph of the simulation nodes and components.";
 }
 
-void SceneGraphWindow::clearWindow()
+void SceneGraphWindow::onBeginSimulationLoad()
 {
+    BaseWindow::onBeginSimulationLoad();
     m_openedComponents.clear();
     m_openedNodes.clear();
     m_openedComponentPopups.clear();
@@ -908,7 +909,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
 
                     if (data->getParent())
                     {
-                        const auto linkPath = data->getLinkPath();
+                        const auto linkPath = data->getParent()->getLinkPath();
                         if (!linkPath.empty())
                         {
                             ImGui::TextWrapped("%s", linkPath.c_str());
