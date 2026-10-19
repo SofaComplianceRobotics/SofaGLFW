@@ -65,8 +65,12 @@ std::string LogWindow::getDescription()
 void LogWindow::registerAndLoadWindowSettings()
 {
     registerAndLoadWindowSetting(WS_LOG_AUTOSCROLL, m_ws_autoScroll, WindowsSettings::BOOL);
+<<<<<<< HEAD
     registerAndLoadWindowSetting(WS_LOG_SHOWLOGLEVELONLY, m_ws_showLogLevelOnly, WindowsSettings::BOOL);
     registerAndLoadWindowSetting(WS_LOG_WRAPTEXT, m_ws_wrapText, WindowsSettings::BOOL);
+=======
+    registerAndLoadWindowSetting(WS_LOG_SHOWINFO, m_ws_showInfo, WindowsSettings::BOOL);
+>>>>>>> robotics
 }
 
 void LogWindow::internalShowWindow()
@@ -92,12 +96,15 @@ void LogWindow::showButtons()
     ImGui::SameLine();
 
     showClearButton();
+<<<<<<< HEAD
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     ImGui::SameLine();
 
     showLogLevelDropdown();
+=======
+>>>>>>> robotics
 }
 
 void LogWindow::showSettingsButton()
@@ -108,13 +115,18 @@ void LogWindow::showSettingsButton()
     if (ImGui::BeginPopup("##LogSettings"))
     {
         sofaimgui::widgets::CheckBox("Automatic scroll", &m_ws_autoScroll);
+<<<<<<< HEAD
         sofaimgui::widgets::CheckBox("Log Level only", &m_ws_showLogLevelOnly);
         ImGui::SetItemTooltip("Only show the chosen log level instead of level and up");
         sofaimgui::widgets::CheckBox("Wrap text", &m_ws_wrapText);
+=======
+        sofaimgui::widgets::CheckBox("Show info", &m_ws_showInfo);
+>>>>>>> robotics
         ImGui::EndPopup();
     }
 }
 
+<<<<<<< HEAD
 void LogWindow::showLogLevelDropdown()
 {
     ImGui::Text("Log Level:");
@@ -126,6 +138,8 @@ void LogWindow::showLogLevelDropdown()
         m_logLevel = sofa::helper::logging::Message::Type(level);
 }
 
+=======
+>>>>>>> robotics
 void LogWindow::showExportButton()
 {
     if (sofaimgui::widgets::Button(ICON_FA_FILE_EXPORT))
@@ -185,11 +199,15 @@ void LogWindow::showLogs()
     }();
 
     std::size_t nbRows = 0;
+<<<<<<< HEAD
     ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY;
     if (!m_ws_wrapText)
         tableFlags |= ImGuiTableFlags_ScrollX ;
 
     if (ImGui::BeginTable("logTable", 4, tableFlags))
+=======
+    if (ImGui::BeginTable("logTable", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
+>>>>>>> robotics
     {
         static std::string messageToCopy;
         bool openMessageContextMenu = false;
@@ -197,6 +215,7 @@ void LogWindow::showLogs()
         ImGui::TableSetupColumn("logId", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("sender", ImGuiTableColumnFlags_WidthFixed);
+<<<<<<< HEAD
         ImGui::TableSetupColumn("message", m_ws_wrapText? ImGuiTableColumnFlags_WidthStretch: ImGuiTableColumnFlags_WidthFixed);
         for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
         {
@@ -206,6 +225,16 @@ void LogWindow::showLogs()
 
             if (m_ws_showLogLevelOnly && message.type() != m_logLevel)
                 continue;
+=======
+        ImGui::TableSetupColumn("message", ImGuiTableColumnFlags_WidthStretch);
+        for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
+        {
+            const auto& message = m_messages[index];
+            if (!m_ws_showInfo && message.type() == sofa::helper::logging::Message::Info)
+            {
+                continue;
+            }
+>>>>>>> robotics
 
             ImGui::TableNextRow();
             nbRows++;
