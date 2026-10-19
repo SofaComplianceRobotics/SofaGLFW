@@ -433,7 +433,7 @@ void SceneGraphWindow::showNode(sofa::simulation::Node* parent, sofa::simulation
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 
     ImVec4 nodeColor;
-    std::string nodeIcon = "";
+    std::string nodeIcon = isDeactivated? " " ICON_FA_BAN :"";
     std::string objectMessage = getObjectIconAlert(node, nodeColor, nodeIcon);
 
     if (!objectMessage.empty())
