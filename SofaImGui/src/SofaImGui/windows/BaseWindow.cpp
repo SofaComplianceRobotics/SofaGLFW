@@ -155,7 +155,7 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
-void BaseWindow::dropGUIData()
+void BaseWindow::dropGUIData(const std::string& group)
 {
     if (ImGui::BeginDragDropTarget())
     {
@@ -168,7 +168,7 @@ void BaseWindow::dropGUIData()
                         std::pair<sofa::core::BaseData*, bool>(data, false),
                         std::pair<sofa::core::BaseData*, bool>(nullptr, false),
                         std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                        data->getOwner()? data->getOwner()->getPathName(): models::guidata::GUIData::DEFAULTGROUP,
+                        ((group == models::guidata::GUIData::DEFAULTGROUP) && data->getOwner())? data->getOwner()->getPathName(): group,
                         data->getHelp());
                 resetGUIDataWindowSettings();
             }
@@ -189,6 +189,12 @@ void BaseWindow::clearGUIData()
     resetGUIDataWindowSettings();
 }
 
+void BaseWindow::changeGUIDataGroup(models::guidata::GUIData::SPtr data, const std::string& group)
+{
+    models::guidata::GUIDataManager::changeGUIDataGroup(data, group);
+    resetGUIDataWindowSettings();
+}
+
 void BaseWindow::registerAndLoadGUIDataWindowSettings()
 {
     // Load GUIData size
@@ -201,6 +207,8 @@ void BaseWindow::registerAndLoadGUIDataWindowSettings()
     for (auto i=0; i<m_ws_guiDataSize; i++)
     {
         std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
+        std::string guiDataGroup = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)+"Group").c_str(), std::string());
+
         if (!guiDataPath.empty())
         {
             sofa::core::BaseData* data;
@@ -210,7 +218,7 @@ void BaseWindow::registerAndLoadGUIDataWindowSettings()
                         std::pair<sofa::core::BaseData*, bool>(data, false),
                         std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
                         std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
-                        data->getOwner()->getPathName(),
+                        guiDataGroup,
                         data->getHelp());
             }
         }
@@ -229,7 +237,10 @@ void BaseWindow::resetGUIDataWindowSettings()
 
     int i=0;
     for (auto it=m_GUIData.begin(); it!=m_GUIData.end(); it++)
-        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)).c_str(), it->get()->getData()->getPathName());
+    {
+        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), it->get()->getData()->getPathName());
+        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)+"Group").c_str(), it->get()->getGroup());
+    }
 }
 
 }

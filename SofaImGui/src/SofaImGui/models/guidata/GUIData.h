@@ -146,6 +146,10 @@ public:
     const std::string& getGroup() {return m_group;}
     const std::string& getHelp() {return m_help;}
 
+    void setLabel(const std::string& label) {m_label=label;}
+    void setGroup(const std::string& group) {m_group=group;}
+    void setHelp(const std::string& help) {m_help=help;}
+
     double getMin() {return (m_min && m_min->isValid())? m_min->getData()->getValueTypeInfo()->getScalarValue(m_min->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::min();}
     double getMax() {return (m_max && m_max->isValid())? m_max->getData()->getValueTypeInfo()->getScalarValue(m_max->getData()->getValueVoidPtr(), 0): std::numeric_limits<float>::max();}
 
