@@ -27,7 +27,7 @@
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/models/actions/Move.h>
 #include <SofaImGui/models/actions/StartMove.h>
-#include <SofaImGui/models/IPController.h>
+#include <SofaImGui/models/guidata/KinematicsGUIDataManager.h>
 
 #include <SofaGLFW/SofaGLFWBaseGUI.h>
 #include <sofa/core/objectmodel/DataFileName.h>
@@ -42,8 +42,10 @@ class Track
 
    public:
 
-    Track(models::IPController::SPtr IPController);
-    Track(models::IPController::SPtr IPController, std::shared_ptr<actions::StartMove> startMove);
+    typedef std::shared_ptr<Track> SPtr;
+
+    Track(models::guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager);
+    Track(std::shared_ptr<actions::StartMove> startMove);
     ~Track() = default;
 
     void clear();
@@ -64,8 +66,7 @@ class Track
     void swapActions(const sofa::Index& actionIndex1, const sofa::Index& actionIndex2);
 
    protected:
-    
-    models::IPController::SPtr m_IPController;
+
     std::shared_ptr<actions::StartMove> m_startmove;
     std::vector<std::shared_ptr<actions::Action>> m_actions;
     std::vector<std::shared_ptr<modifiers::Modifier>> m_modifiers;

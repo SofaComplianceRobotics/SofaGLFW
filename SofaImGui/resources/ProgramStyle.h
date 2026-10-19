@@ -5,6 +5,7 @@ namespace sofaimgui {
 struct ProgramColors
 {
     ImVec4 FrameBg;
+    ImVec4 CustomBlockBg;
     ImVec4 MoveBlockBg;
     ImVec4 PickBlockBg;
     ImVec4 WaitBlockBg;

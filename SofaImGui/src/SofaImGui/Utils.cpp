@@ -47,7 +47,7 @@ void loadFile(sofaglfw::SofaGLFWBaseGUI *baseGUI, const bool& reload, const std:
 
         groot = sofa::simulation::node::load(filePathName.c_str(), reload, sceneArgs);
         if(!groot)
-            groot = sofa::simulation::getSimulation()->createNewGraph("");
+            groot = sofa::simulation::MainSimulation::getSimulation()->createNewGraph("");
         baseGUI->setSimulation(groot, filePathName);
         baseGUI->setWindowTitle(nullptr, std::string("SOFA - " + filePathName).c_str());
 

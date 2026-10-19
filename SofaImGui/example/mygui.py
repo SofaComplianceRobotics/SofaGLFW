@@ -50,7 +50,7 @@ def createScene(root):
     # 1. The node of your effector's target (templated Rigid3)
     # 2. The node of the effector (templated Rigid3)
     # 3. The QPInverseProblemSolver
-    MyGui.setIPController(target, effector, root.QPInverseProblemSolver)
+    MyGui.setKinematicsController(target, effector, root.QPInverseProblemSolver)
 
     # __My Robot__ Window
     # In this window you can display information and settings

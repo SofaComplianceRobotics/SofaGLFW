@@ -23,7 +23,7 @@
 #include <sofa/core/objectmodel/Data.h>
 #include <imgui.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 inline bool showIntWidget(const std::string& id, int& value)

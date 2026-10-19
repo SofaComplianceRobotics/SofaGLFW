@@ -20,13 +20,14 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "GUIColors.h"
-#include "IconsFontAwesome6.h"
-#include <SofaImGui/models/actions/Wait.h>
+#include <GUIColors.h>
+#include <IconsFontAwesome6.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+
 #include <ProgramStyle.h>
-#include <SofaImGui/widgets/Widgets.h>
+#include <SofaImGui/models/actions/Wait.h>
+#include <SofaImGui/widgets/ProgramWidget.h>
 
 
 namespace sofaimgui::models::actions {
@@ -36,88 +37,25 @@ bool Wait::WaitView::showBlock(const std::string &label,
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    float x = window->DC.CursorPos.x ;
-    float y = window->DC.CursorPos.y ;
+    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().WaitBlockBg);
+    sofaimgui::widgets::BlockHeader(ICON_FA_CIRCLE_PAUSE, wait.getComment(), hasValuesChanged);
 
-    ImVec2 padding(ImGui::GetStyle().FramePadding);
-    ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
-    ImVec2 topRight = ImVec2(x + size.x, y);
-
-    ImGui::ActionBlock(label.c_str(), bb, ProgramColors().WaitBlockBg);
-
-    auto rectMin = ImGui::GetItemRectMin();
-    auto rectMax = ImGui::GetItemRectMax();
-    rectMax.x -= padding.x;
-    ImGui::PushClipRect(rectMin, rectMax, true);
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().Text);
-    { // Wait
-        x += padding.y;
-        y += padding.y;
-
-        window->DC.CursorPos.x = x;
-        window->DC.CursorPos.y = y;
-
-        auto rectMin = ImGui::GetItemRectMin();
-        auto rectMax = ImGui::GetItemRectMax();
-        rectMax.x -= padding.x * 2 + ImGui::GetFrameHeight(); // leave space for option button
-        ImGui::PushClipRect(rectMin, rectMax, true);
-
-        std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
-        std::string text = " " ICON_FA_CIRCLE_PAUSE"  ";
-        text += wait.getComment();
-        if(ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))
-        {
-            hasValuesChanged = true;
-        }
-        ImGui::PopStyleColor();
-
-        ImGui::PopClipRect();
-    }
-    ImGui::PopStyleColor();
-
-    std::string text = "duration";
-    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
-    y += textSize.y + padding.y * 3;
+    sofaimgui::widgets::BlockNewLine();
 
     { // Duration
-        bb.Min = ImVec2(x, y);
-        bb.Max = ImVec2(x + textSize.x + padding.x * 2,
-                        y + textSize.y + padding.y * 2);
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().Text);
-        drawList->AddText(ImVec2(x + padding.x,
-                                 y + padding.y),
-                          ImGui::GetColorU32(ImGuiCol_Text), text.c_str());
-        ImGui::PopStyleColor();
-
-        window->DC.CursorPos.x = x + ProgramSizes().AlignWidth;
-        window->DC.CursorPos.y = y;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
-        ImGui::PushItemWidth(ProgramSizes().InputWidth);
-        std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
-        ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
+        sofaimgui::widgets::BeginBlockLine("duration");
         double duration = wait.getDuration();
+        std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
         if (ImGui::InputDouble(id.c_str(), &duration, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
         {
             hasValuesChanged = true;
             wait.setDuration(duration);
         }
-        ImGui::PopStyleColor(2);
-        ImGui::SameLine();
-        ImGui::PopItemWidth();
-        ImGui::PopStyleVar();
+        sofaimgui::widgets::EndBlockLine();
     }
 
-    window->DC.CursorPosPrevLine.x = topRight.x;
-    window->DC.CursorPosPrevLine.y = topRight.y;
-
-    ImGui::PopClipRect();
+    sofaimgui::widgets::EndBlock(size);
     return hasValuesChanged;
 }
 

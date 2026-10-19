@@ -32,7 +32,8 @@ void setStyleVars()
 
     style.WindowPadding                     = ImVec2(10.00f, 10.00f);
     style.FramePadding                      = ImVec2(10.00f, 10.00f);
-    style.CellPadding                       = ImVec2(6.00f, 6.00f);
+    style.CellPadding                       = ImVec2(16.00f, 6.00f);
+    style.DragDropTargetPadding             = 6.00f;
 
     style.ItemSpacing                       = ImVec2(16.00f, 16.00f);
     style.ItemInnerSpacing                  = ImVec2(12.00f, 12.00f);
@@ -45,6 +46,7 @@ void setStyleVars()
     style.PopupBorderSize                   = 2;
     style.FrameBorderSize                   = 0;
     style.TabBorderSize                     = 0;
+    style.DragDropTargetBorderSize          = 2;
     style.DockingSeparatorSize              = 5;
 
     style.WindowRounding                    = 14;
@@ -53,6 +55,7 @@ void setStyleVars()
     style.PopupRounding                     = 8;
     style.ScrollbarRounding                 = 8;
     style.GrabRounding                      = 8;
+    style.DragDropTargetRounding            = 14;
     style.TabRounding                       = 14;
     style.TabBarBorderSize                  = 1;
 
@@ -179,6 +182,7 @@ void setLightStyle()
     colors[ImGuiCol_TableHeaderBg]          = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBg]             = ImColor(COLOR_WHITE);
     colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.96f, 0.96f, 0.96f, 0.50f);
+    colors[ImGuiCol_DragDropTarget]         = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
     colors[ImGuiCol_NavCursor]              = ImColor(COLOR_TRANSPARENT);
 
     colors[ImGuiCol_NavWindowingHighlight]  = ImColor(COLOR_BLACK); // Highlight window border color when using Ctrl+Tab

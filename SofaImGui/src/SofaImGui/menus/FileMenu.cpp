@@ -57,9 +57,7 @@ void FileMenu::addMenu()
     {
         ImGui::PopStyleColor();
 
-        { // Project
-            saveProject();
-        }
+        saveProject();
 
         ImGui::Separator();
 

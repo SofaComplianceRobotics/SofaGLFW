@@ -155,7 +155,7 @@ void FooterStatusBar::showPath()
         }
         else if (m_tempMessagePath.starts_with("http"))
         {
-            ImGui::LocalTextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
+            sofaimgui::widgets::TextLinkOpenURL(m_tempMessagePath.c_str(), m_tempMessagePath.c_str());
         }
         else
         {
@@ -225,17 +225,17 @@ void FooterStatusBar::setTempMessage(const std::string &message, const MessageTy
 void FooterStatusBar::showLogStatus()
 {
     // update log status if logs have changed
-    if (m_previousLogMessagesCount < m_logMessages.size())
+    if (m_previousLogMessagesIndex < m_logMessages.size())
     {
-        auto higherStatus = std::max_element(m_logMessages.begin() + m_previousLogMessagesCount,
+        auto higherStatus = std::max_element(m_logMessages.begin() + m_previousLogMessagesIndex,
                                             m_logMessages.end(),
                                             [](const auto& m1, const auto& m2) {return m1.type() < m2.type();}); // get max priority messsage
-        if(higherStatus->type() > m_logStatus)
-            m_logStatus = higherStatus->type();
+        if(higherStatus->type() > m_highestLogStatus)
+            m_highestLogStatus = higherStatus->type();
     }
 
     // show button if needed
-    if (m_logStatus >= sofa::helper::logging::Message::Type::Deprecated)
+    if (m_highestLogStatus >= sofa::helper::logging::Message::Type::Deprecated)
     {
         if (ImGui::Begin("##FooterStatusBar"))
         {
@@ -243,12 +243,12 @@ void FooterStatusBar::showLogStatus()
             {
                 const char* icon;
                 ImColor color;
-                if (m_logStatus >= sofa::helper::logging::Message::Type::Error) 
+                if (m_highestLogStatus >= sofa::helper::logging::Message::Type::Error)
                 {
                     icon = ICON_FA_CIRCLE_EXCLAMATION;
                     color = ImColor(COLOR_RED);
                 }
-                else if (m_logStatus >= sofa::helper::logging::Message::Type::Warning) 
+                else if (m_highestLogStatus >= sofa::helper::logging::Message::Type::Warning)
                 {
                     icon = ICON_FA_TRIANGLE_EXCLAMATION;
                     color = ImColor(COLOR_ORANGE);
@@ -284,12 +284,18 @@ void FooterStatusBar::showLogStatus()
         }
     }
 
-    m_previousLogMessagesCount = m_logMessages.size();
+    m_previousLogMessagesIndex = m_logMessages.size();
 }
 
 void FooterStatusBar::setLogStatusCallback(std::function<void()> f)
 {
     m_logStatusCallback = f;
+}
+
+void FooterStatusBar::clearLogStatus(const sofa::Index& index)
+{
+    m_previousLogMessagesIndex=index;
+    m_highestLogStatus=sofa::helper::logging::Message::Info;
 }
 
 }

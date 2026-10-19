@@ -24,7 +24,7 @@
 #include <imgui.h>
 #include <SofaImGui/widgets/Widgets.h>
 
-namespace sofaimgui
+namespace sofaimgui::widgets
 {
 
 inline bool showScalarWidget(const std::string& id, float& value)

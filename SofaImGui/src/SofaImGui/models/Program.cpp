@@ -26,6 +26,7 @@
 #include <SofaImGui/models/modifiers/Repeat.h>
 #include <SofaImGui/models/actions/Pick.h>
 #include <SofaImGui/models/actions/Wait.h>
+#include <SofaImGui/models/actions/Custom.h>
 #include <SofaImGui/FooterStatusBar.h>
 
 
@@ -34,11 +35,8 @@ namespace sofaimgui::models {
 void Program::clearTracks()
 {
     m_tracks.clear();
-    if (m_IPController)
-    {
-        std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_IPController);
-        addTrack(track);
-    }
+    std::shared_ptr<models::Track> track = std::make_shared<models::Track>(m_kinematicsGUIDataManager);
+    addTrack(track);
 }
 
 bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * root)
@@ -64,9 +62,9 @@ bool Program::checkDocument(const std::string &filename, tinyxml2::XMLNode * roo
     return true;
 }
 
-bool Program::importProgram(const std::string &filename)
+bool Program::importProgram(const std::string &filename, sofa::simulation::Node::SPtr groot)
 {
-    if (checkExtension(filename))
+    if (checkExtension(filename) && isValid())
     {
         // Temporarily set the numeric formatting locale to ensure that
         // floating-point values are interpreted correctly by tinyXML. (I.e. the
@@ -83,7 +81,7 @@ bool Program::importProgram(const std::string &filename)
                 std::vector<std::shared_ptr<Track>> tracks;
                 for(auto* t = root->FirstChildElement("track"); t != nullptr; t = t->NextSiblingElement("track"))
                 {
-                    std::shared_ptr<Track> track = std::make_shared<Track>(m_IPController);
+                    std::shared_ptr<Track> track = std::make_shared<Track>(m_kinematicsGUIDataManager);
 
                     for(const auto* e = t->FirstChildElement("action"); e != nullptr; e = e->NextSiblingElement("action"))
                     {
@@ -126,7 +124,7 @@ bool Program::importProgram(const std::string &filename)
                                 move = std::make_shared<actions::Move>(RigidCoord(),
                                                                        wp,
                                                                        duration,
-                                                                       m_IPController,
+                                                                       m_kinematicsGUIDataManager,
                                                                        freeInRotation,
                                                                        type);
 
@@ -168,6 +166,23 @@ bool Program::importProgram(const std::string &filename)
                             if (e->FindAttribute("comment"))
                                 wait->setComment(e->Attribute("comment"));
                             wait->pushToTrack(track);
+                        }
+                        else if (strcmp(e->FirstAttribute()->Value(), "custom") == 0)
+                        {
+                            if (!e->FindAttribute("duration"))
+                                return false;
+                            double duration = e->FindAttribute("duration")->DoubleValue();
+
+                            std::shared_ptr<actions::Custom> custom = std::make_shared<actions::Custom>(duration);
+                            if (e->FindAttribute("comment"))
+                                custom->setComment(e->Attribute("comment"));
+                            if (e->FindAttribute("data"))
+                                custom->setData(e->Attribute("data"), groot);
+                            if (e->FindAttribute("start"))
+                                custom->setStartValue(e->FindAttribute("start")->DoubleValue());
+                            if (e->FindAttribute("end"))
+                                custom->setEndValue(e->FindAttribute("end")->DoubleValue());
+                            custom->pushToTrack(track);
                         }
                     }
 
@@ -337,6 +352,32 @@ void Program::exportProgram(const std::string &filename)
                     }
                     continue;
                 }
+
+                std::shared_ptr<actions::Custom> custom = std::dynamic_pointer_cast<actions::Custom>(action);
+                if (custom) // CUSTOM
+                {
+                    if (custom->getData())
+                    {
+                        tinyxml2::XMLElement * xmlCustom = document.NewElement("action");
+                        if (xmlCustom != nullptr)
+                        {
+                            xmlCustom->SetAttribute("name", "custom");
+                            xmlCustom->SetAttribute("duration", custom->getDuration());
+                            xmlCustom->SetAttribute("comment", custom->getComment());
+                            xmlCustom->SetAttribute("data", custom->getData()->getData()->getPathName().c_str());
+                            xmlCustom->SetAttribute("start", custom->getStartValue());
+                            xmlCustom->SetAttribute("end", custom->getEndValue());
+                            xmlCustom->InsertEndChild(xmlCustom);
+                            xmlTrack->InsertEndChild(xmlCustom);
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        std::string comment = custom->getComment();
+                        FooterStatusBar::getInstance().setTempMessage("Cannot export " + comment + " block because no data was provided", FooterStatusBar::MessageType::MWARNING);
+                    }
+                }
             }
             const auto modifiers = track->getModifiers();
             for (const auto& modifier: modifiers)
@@ -405,6 +446,12 @@ bool Program::isEmpty()
 
     return true;
 }
+
+bool Program::isValid()
+{
+    return !m_tracks.empty() && m_tracks[0] && m_tracks[0]->getStartMove();
+}
+
 
 } // namespace
 

@@ -28,7 +28,7 @@ SOFTWARE.
 #include <cmath>
 #include <cstring>
 
-namespace sofaimgui::widget {
+namespace sofaimgui::widgets {
 
 namespace internal {
 

@@ -21,36 +21,33 @@
  ******************************************************************************/
 #pragma once
 
-#include <sofa/type/Vec.h>
-#include <sofa/defaulttype/RigidTypes.h>
-#include <SofaGLFW/SofaGLFWBaseGUI.h>
-#include <sofa/core/behavior/BaseMechanicalState.h>
-#include <SofaImGui/config.h>
+#include <SofaImGui/windows/BaseWindow.h>
+#include <imgui.h>
 
-namespace sofaimgui::models {
+namespace sofaimgui::windows {
 
-class SOFAIMGUI_API SimulationState
+class SOFAIMGUI_API DashboardWindow : public BaseWindow
 {
-   public:
+public:
+    DashboardWindow(const std::string& name);
+    ~DashboardWindow() = default;
 
-    struct StateData {
-        std::string group;
-        std::string description;
-        sofa::core::BaseData* data;
-    };
+    std::string getDescription() override;
 
-    SimulationState() = default;
-    ~SimulationState() = default;
+protected:
 
-    void clearData();
-    void addStateData(StateData &data);
-    const std::vector<StateData>& getStateData() const;
+    bool m_expandAll{false};
+    bool m_collapseAll{false};
 
-   protected:
-    std::vector<StateData> m_stateData;
+    void internalShowWindow() override;
 
+    void showWidget(models::guidata::GUIData::SPtr data);
+    void showOptionButtons();
+    void showGUIData();
+
+    void addDashbordContextMenu();
 };
 
-} // namespace
+}
 
 

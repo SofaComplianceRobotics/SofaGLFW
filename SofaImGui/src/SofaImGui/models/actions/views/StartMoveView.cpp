@@ -20,12 +20,13 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "GUIColors.h"
-#include <SofaImGui/models/actions/StartMove.h>
+#include <IconsFontAwesome6.h>
+#include <GUIColors.h>
 #include <imgui_internal.h>
 #include <ProgramStyle.h>
-#include <SofaImGui/widgets/Widgets.h>
-#include <IconsFontAwesome6.h>
+
+#include <SofaImGui/models/actions/StartMove.h>
+#include <SofaImGui/widgets/ProgramWidget.h>
 
 namespace sofaimgui::models::actions {
 
@@ -34,120 +35,48 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    double x = window->DC.CursorPos.x ;
-    double y = window->DC.CursorPos.y ;
+    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().StartMoveBlockBg);
+    sofaimgui::widgets::BlockHeader(ICON_FA_FLAG, start.getComment(), hasValuesChanged);
 
-    ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
-    ImVec2 topRight = ImVec2(x + size.x, y);
-
-    ImGui::ActionBlock(label.c_str(), bb, ProgramColors().StartMoveBlockBg);
-
-    ImVec2 padding(ImGui::GetStyle().FramePadding);
-    ImVec2 spacing(ImGui::GetStyle().ItemSpacing);
-
-    auto rectMin = ImGui::GetItemRectMin();
-    auto rectMax = ImGui::GetItemRectMax();
-    rectMax.x -= padding.x;
-    ImGui::PushClipRect(rectMin, rectMax, true);
-
-    { // Move
-        x += padding.y;
-        y += padding.y;
-
-        window->DC.CursorPos.x = x;
-        window->DC.CursorPos.y = y;
-
-        auto rectMin = ImGui::GetItemRectMin();
-        auto rectMax = ImGui::GetItemRectMax();
-        rectMax.x -= padding.x * 2 + ImGui::GetFrameHeight(); // leave space for option button
-        ImGui::PushClipRect(rectMin, rectMax, true);
-
-        std::string id = "##comment" + std::to_string(window->DC.CursorPos.x);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
-        std::string text = " " ICON_FA_FLAG"  ";
-        text += start.getComment();
-        if (ImGui::InputText(id.c_str(), text.data(), models::actions::Action::COMMENTSIZE))
-        {
-            hasValuesChanged = true;
-        }
-        ImGui::PopStyleColor();
-
-        ImGui::PopClipRect();
-    }
-
-    std::string text = "wp.pos";
-    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
-    y += textSize.y + padding.y * 3;
+    sofaimgui::widgets::BlockNewLine();
 
     { // Way point position
-        bb.Min = ImVec2(x, y);
-        bb.Max = ImVec2(x + textSize.x + padding.x * 2,
-                        y + textSize.y + padding.y * 2);
+        sofaimgui::widgets::BeginBlockLine("wp.pos");
 
-        drawList->AddText(ImVec2(x + padding.x,
-                                 y + padding.y),
-                          ImGui::GetColorU32(ImGuiCol_Text), text.c_str());
-
-        window->DC.CursorPos.x = x + ProgramSizes().AlignWidth;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
         RigidCoord waypoint = start.getWaypoint();
         for (int i=0; i<3; i++)
         {
-            window->DC.CursorPos.y = y;
             std::string id = "##wp" + std::to_string(window->DC.CursorPos.x + i);
-
-            ImGui::PushItemWidth(ProgramSizes().InputWidth);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
-            ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
             if (ImGui::InputDouble(id.c_str(), &waypoint[i], 0, 0, "%0.f", ImGuiInputTextFlags_CharsNoBlank))
             {
                 hasValuesChanged = true;
                 start.setWaypoint(waypoint);
                 start.computeSpeed();
             }
-            ImGui::PopStyleColor(2);
-            ImGui::PopItemWidth();
-
             ImGui::SameLine();
         }
-        ImGui::PopStyleVar();
+
+        sofaimgui::widgets::EndBlockLine();
     }
 
-    text = "wp.rot";
-    textSize = ImGui::CalcTextSize(text.c_str());
-    y = spacing.y + bb.Max.y;
+    sofaimgui::widgets::BlockNewLine();
 
     { // Way point rotation
-        bb.Min = ImVec2(x, y);
-        bb.Max = ImVec2(x + textSize.x + padding.x * 2,
-                        y + textSize.y + padding.y * 2);
+        std::string label = "wp.rot ";
+        label += (start.isFreeInRotation()? ICON_FA_LOCK_OPEN: ICON_FA_LOCK);
+        label += "##wp.rot" + std::to_string(window->DC.CursorPos.x);
 
-        window->DC.CursorPos.x = x;
-        window->DC.CursorPos.y = y;
-
-        std::string label = text + " " + (start.isFreeInRotation()? ICON_FA_LOCK_OPEN: ICON_FA_LOCK) + "##wp.rot" + std::to_string(window->DC.CursorPos.x);
-        if (ImGui::Button(label.c_str()))
+        if (sofaimgui::widgets::BeginBlockLockLine(label.c_str()))
         {
             start.setFreeInRotation(!start.isFreeInRotation());
         }
         ImGui::SetItemTooltip("When unlocked, TCP movement is free in rotation.");
 
-        window->DC.CursorPos.x = x + ProgramSizes().AlignWidth;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
         RigidCoord waypoint = start.getWaypoint();
         for (int i=3; i<7; i++)
         {
-            window->DC.CursorPos.y = y;
             std::string id = "##wp" + std::to_string(window->DC.CursorPos.x + i);
-
-            ImGui::PushItemWidth(ProgramSizes().InputWidth);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
-            ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
-
             if(start.isFreeInRotation())
                 ImGui::BeginDisabled();
             if (ImGui::InputDouble(id.c_str(), &waypoint[i], 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -158,19 +87,13 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
             }
             if(start.isFreeInRotation())
                 ImGui::EndDisabled();
-
-            ImGui::PopStyleColor(2);
-            ImGui::PopItemWidth();
-
             ImGui::SameLine();
         }
-        ImGui::PopStyleVar();
+
+        sofaimgui::widgets::EndBlockLine();
     }
 
-    window->DC.CursorPosPrevLine.x = topRight.x;
-    window->DC.CursorPosPrevLine.y = topRight.y;
-
-    ImGui::PopClipRect();
+    sofaimgui::widgets::EndBlock(size);
     return hasValuesChanged;
 }
 
