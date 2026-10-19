@@ -86,7 +86,6 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
 
     { // Data
         sofaimgui::widgets::BeginBlockLine("data");
-
         std::string label = (data && data->isValid())? data->getLabel(): "drop a data here";
         std::string tooltip = (data && data->isValid())? data->getData()->getPathName(): "Data";
 
