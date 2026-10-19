@@ -208,6 +208,7 @@ void BaseWindow::registerAndLoadGUIDataWindowSettings()
     {
         std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
         std::string guiDataGroup = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)+"Group").c_str(), std::string());
+
         if (!guiDataPath.empty())
         {
             sofa::core::BaseData* data;

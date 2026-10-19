@@ -49,6 +49,7 @@ protected:
     std::map<std::string, std::vector<GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
 
     virtual void changeGUIDataGroup(GUIData::SPtr data, const std::string& group);
+
 };
 
 }

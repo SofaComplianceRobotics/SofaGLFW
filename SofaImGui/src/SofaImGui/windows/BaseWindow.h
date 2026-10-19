@@ -98,7 +98,6 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     /// Called once, the first time we draw the window.
     virtual void registerAndLoadWindowSettings() {};
-
     virtual void changeGUIDataGroup(models::guidata::GUIData::SPtr data, const std::string& group);
 
     /// Structured message display (info icon + message)
