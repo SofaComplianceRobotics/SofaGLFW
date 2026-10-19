@@ -387,7 +387,6 @@ void SceneGraphWindow::internalShowWindow()
             ImGui::TableNextColumn();
         ImVec2 dropRegion = ImGui::GetContentRegionAvail();
         ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
-
         ImGui::EndTable();
     }
 }
