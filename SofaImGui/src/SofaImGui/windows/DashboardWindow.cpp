@@ -111,7 +111,11 @@ void DashboardWindow::showGUIData()
 
 void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 {
-    bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+    bool noOwner = false;
+
+    if (auto* component = data->getData()->getOwner()->toBaseComponent())
+        if (component->getContext()==sofa::core::objectmodel::BaseContext::getDefault())
+            noOwner = true;
 
     ImGui::TableNextColumn();
     ImGui::AlignTextToFramePadding();
