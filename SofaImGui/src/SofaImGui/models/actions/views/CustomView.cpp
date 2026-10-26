@@ -71,17 +71,27 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
 
     auto data = custom.m_data;
 
-    if (data && data->isValid() && data->getData()->getValueTypeInfo()->size()>1)
-    { // Index
-        sofaimgui::widgets::BeginBlockLine("index");
-        std::string id = "##index" + std::to_string(window->DC.CursorPos.x);
-        int index = custom.m_index;
-        if (ImGui::InputInt(id.c_str(), &index, 0, 0))
+    if (data && data->isValid())
+    {
+        const int dataSize = data->getData()->getValueTypeInfo()->size();
+        if (dataSize > 1)
         {
-            custom.m_index = index;
-            hasValuesChanged = true;
+            // Index
+            sofaimgui::widgets::BeginBlockLine("index");
+            std::string id = "##index" + std::to_string(window->DC.CursorPos.x);
+            int index = custom.m_index;
+            if (ImGui::InputInt(id.c_str(), &index, 0, 0))
+            {
+                if (dataSize <= index)
+                    index = dataSize - 1;
+                if (index < 0)
+                    index = 0;
+                custom.m_index = index;
+                hasValuesChanged = true;
+            }
+            ImGui::SetItemTooltip("Index in the vector (size: %i)", dataSize);
+            sofaimgui::widgets::EndBlockLine();
         }
-        sofaimgui::widgets::EndBlockLine();
     }
 
     { // Data

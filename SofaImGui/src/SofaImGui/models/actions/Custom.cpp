@@ -20,7 +20,6 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-#include "IconsFontAwesome6.h"
 #include <SofaImGui/models/actions/Custom.h>
 #include <SofaImGui/FooterStatusBar.h>
 
