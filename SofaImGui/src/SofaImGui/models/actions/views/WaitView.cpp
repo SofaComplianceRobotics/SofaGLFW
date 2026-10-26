@@ -57,7 +57,6 @@ bool Wait::WaitView::showBlockInternal(const std::string &label,
     }
 
     widgets::EndBlock(label, size);
-
     return hasValuesChanged;
 }
 

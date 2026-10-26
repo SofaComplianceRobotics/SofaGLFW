@@ -27,5 +27,3 @@ namespace sofaimgui::models
 {
 
 } // namespace
-
-

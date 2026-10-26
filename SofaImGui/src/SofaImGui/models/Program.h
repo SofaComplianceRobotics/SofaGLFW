@@ -74,7 +74,6 @@ class SOFAIMGUI_API Program
 
     guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
     std::vector<Track::SPtr> m_tracks;
-
     int m_selectedTrack{-1};
 
     bool checkExtension(const std::string &filename);

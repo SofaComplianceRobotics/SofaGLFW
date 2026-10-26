@@ -95,7 +95,6 @@ bool StartMove::StartMoveView::showBlockInternal(const std::string &label,
     }
 
     widgets::EndBlock(label, size);
-
     return hasValuesChanged;
 }
 

@@ -36,7 +36,6 @@ bool Move::MoveView::showBlockInternal(const std::string &label,
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-
     widgets::BeginBlock(label, size, ProgramColors().MoveBlockBg, isSelected);
 
     if (ImGui::IsItemHovered())
@@ -127,7 +126,6 @@ bool Move::MoveView::showBlockInternal(const std::string &label,
     }
 
     widgets::EndBlock(label, size);
-
     return hasValuesChanged;
 }
 

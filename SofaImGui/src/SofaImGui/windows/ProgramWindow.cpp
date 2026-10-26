@@ -107,6 +107,7 @@ void ProgramWindow::internalShowWindow()
         ProgramSizes().BlockHeaderHeight = ImGui::GetStyle().FramePadding.y + ImGui::GetFrameHeight();
         ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 3 + ProgramSizes().BlockHeaderHeight * 2;
         ProgramSizes().TrackMinHeight = ProgramSizes().BlockHeaderHeight * 2;
+
         static bool firstTime = true;
         if (firstTime)
         {
@@ -121,6 +122,7 @@ void ProgramWindow::internalShowWindow()
 
         float width = ImGui::GetWindowWidth();
         float height = ImGui::GetContentRegionAvail().y;
+
         static const float defaultZoomCoef = 6.5;
         static float zoomCoef = defaultZoomCoef;
         static float minSize = ImGui::GetFrameHeight() * 1.5;

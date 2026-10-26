@@ -408,6 +408,7 @@ void Program::clearTrackSelected()
         m_tracks[m_selectedTrack]->clearSelectedActions();
     m_selectedTrack = -1;
 }
+
 } // namespace
 
 
