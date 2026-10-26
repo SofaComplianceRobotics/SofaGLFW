@@ -108,30 +108,28 @@ void DashboardWindow::showGUIData()
 
 void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 {
-    bool noOwner = false;
+    bool hasOwner = false;
 
     if (data && data->isValid())
     {
         if (auto* component = data->getData()->getOwner()->toBaseComponent())
         {
-            if (component->getContext()==sofa::core::objectmodel::BaseContext::getDefault())
-                noOwner = true;
+            if (component->getContext()!=sofa::core::objectmodel::BaseContext::getDefault())
+                hasOwner = true;
         }
         else if (auto* node = data->getData()->getOwner()->toBaseNode())
         {
-            if (node->getContext()==sofa::core::objectmodel::BaseContext::getDefault())
-                noOwner = true;
+            if (node->getContext()!=sofa::core::objectmodel::BaseContext::getDefault())
+                hasOwner = true;
         }
     }
-    else
-        noOwner = true;
 
     ImGui::TableNextColumn();
     ImGui::AlignTextToFramePadding();
 
     // Warning message
     {
-        if (noOwner)
+        if (!hasOwner)
         {
             ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
             ImGui::SetItemTooltip("Data is not used in the simulation");
