@@ -28,6 +28,7 @@
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <ImGuiAddOn.h>
 #include <IconsFontAwesome6.h>
 #include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
@@ -922,16 +923,10 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                     ImGui::PopStyleColor();
 
                     if (workbench == Workbench::LIVE_CONTROL)
-                    {
-                        ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, true);
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                    }
+                        sofaimgui::BeginReadOnly();
                     sofaimgui::widgets::showWidget(*data);
                     if (workbench == Workbench::LIVE_CONTROL)
-                    {
-                        ImGui::PopStyleColor();
-                        ImGui::PopItemFlag();
-                    }
+                        sofaimgui::EndReadOnly();
 
                     ImGui::Unindent();
                 }
