@@ -122,6 +122,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     void addActionsContextMenu(const std::string &label, const int &actionIndex);
 
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
+    const double& getTime();
     void setTime(const double &time);
 };
 

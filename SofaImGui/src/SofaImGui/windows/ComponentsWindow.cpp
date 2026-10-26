@@ -228,6 +228,12 @@ void ComponentsWindow::showComponentData(sofa::core::ClassEntry::SPtr selectedCo
                     allData[data->getGroup()][data->getName()].defaultValue = data->getDefaultValueString();
                     allData[data->getGroup()][data->getName()].type = data->getValueTypeString();
                 }
+                for (const auto& data : object->getLinks())
+                {
+                    allData["Links"][data->getName()].templateType.push_back(templateInstance);
+                    allData["Links"][data->getName()].description = data->getHelp();
+                    allData["Links"][data->getName()].type = data->getValueTypeString();
+                }
             }
         }
     }

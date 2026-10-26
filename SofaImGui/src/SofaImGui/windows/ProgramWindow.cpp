@@ -974,7 +974,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         double dt = reverse? -groot->getDt(): groot->getDt();
         double programDuration = m_program.getDuration();
 
-        if (groot->getTime() >= programDuration - eps) // if we've reached the end of the program
+        if (getTime() >= programDuration - eps) // if we've reached the end of the program
         {
             if (m_ws_repeat) // start from beginning
             {
@@ -994,7 +994,7 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 
         if (reverse)
         {
-            if (groot->getTime() <= eps)
+            if (getTime() <= eps)
             {
                 reverse = false;
                 dt = groot->getDt();
@@ -1011,14 +1011,16 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
 void ProgramWindow::animateEndEvent(sofa::simulation::Node *groot)
 {
     SOFA_UNUSED(groot);
-    if (isDrivingSimulation())
-        groot->setTime(m_time);
 }
 
 void ProgramWindow::setTime(const double &time)
 {
     m_time = time;
-    m_baseGUI->getRootNode().get()->setTime(m_time);
+}
+
+const double& ProgramWindow::getTime()
+{
+    return m_time;
 }
 
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
