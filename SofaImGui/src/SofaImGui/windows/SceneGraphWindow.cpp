@@ -359,7 +359,8 @@ void SceneGraphWindow::internalShowWindow()
         ImGui::PopStyleColor();
     }
 
-    if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
+    int nbColumn = (workbench == Workbench::SCENE_EDITOR)? 3: 2;
+    if (ImGui::BeginTable("SceneGraphTable", nbColumn, flags))
     {
         ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Add | Name": "Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Type  /  Template", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
@@ -380,6 +381,12 @@ void SceneGraphWindow::internalShowWindow()
 
         m_baseGUI->setCurrentSelection(m_selection);
 
+        // Fill the available window space with an invisible item defining a area to drop component
+        ImGui::TableNextRow();
+        for (int i=0; i<nbColumn; i++)
+            ImGui::TableNextColumn();
+        ImVec2 dummyRegion = ImGui::GetContentRegionAvail();
+        ImGui::Dummy(ImVec2(dummyRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dummyRegion.y)));
         ImGui::EndTable();
     }
 }
