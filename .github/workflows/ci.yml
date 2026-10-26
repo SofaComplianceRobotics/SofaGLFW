@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
+        os: [ubuntu-24.04, macos-latest, windows-latest]
         sofa_branch: [master]
         
     steps:
@@ -161,7 +161,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022] 
+        os: [ubuntu-24.04, macos-latest, windows-latest]
         sofa_branch: [master]
 
     steps:        
