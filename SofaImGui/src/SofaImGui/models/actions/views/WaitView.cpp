@@ -32,19 +32,20 @@
 
 namespace sofaimgui::models::actions {
 
-bool Wait::WaitView::showBlock(const std::string &label,
-                               const ImVec2 &size)
+bool Wait::WaitView::showBlockInternal(const std::string &label,
+                                       const ImVec2 &size,
+                                       const bool & isSelected)
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().WaitBlockBg);
-    sofaimgui::widgets::BlockHeader(ICON_FA_CIRCLE_PAUSE, wait.getComment(), hasValuesChanged);
+    widgets::BeginBlock(label, size, ProgramColors().WaitBlockBg, isSelected);
+    widgets::BlockHeader(ICON_FA_CIRCLE_PAUSE, wait.getComment(), hasValuesChanged);
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Duration
-        sofaimgui::widgets::BeginBlockLine("duration");
+        widgets::BeginBlockLine("duration");
         double duration = wait.getDuration();
         std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
         if (ImGui::InputDouble(id.c_str(), &duration, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -52,10 +53,10 @@ bool Wait::WaitView::showBlock(const std::string &label,
             hasValuesChanged = true;
             wait.setDuration(duration);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::EndBlock(size);
+    widgets::EndBlock(label, size);
     return hasValuesChanged;
 }
 

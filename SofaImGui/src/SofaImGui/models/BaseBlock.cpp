@@ -21,37 +21,9 @@
  ******************************************************************************/
 #pragma once
 
+#include <SofaImGui/models/BaseBlock.h>
 
-#include <SofaImGui/models/modifiers/Modifier.h>
-#include <SofaImGui/models/Track.h>
-
-
-namespace sofaimgui::models::modifiers {
-
-void Modifier::pushToTrack(std::shared_ptr<models::Track> track)
+namespace sofaimgui::models
 {
-    auto& modifiers = track->getModifiers();
-    modifiers.push_back(shared_from_this());
-}
-
-void Modifier::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
-{
-    auto& modifiers = track->getModifiers();
-    if (modifierIndex < modifiers.size())
-        modifiers.insert(modifiers.begin() + modifierIndex, shared_from_this());
-    else
-        pushToTrack(track);
-}
-
-void Modifier::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &modifierIndex)
-{
-    auto& modifiers = track->getModifiers();
-    if (modifierIndex < modifiers.size())
-        modifiers.erase(modifiers.begin() + modifierIndex);
-    else
-        dmsg_error("Track") << "modifierIndex";
-}
 
 } // namespace
-
-

@@ -23,7 +23,6 @@
 
 #include <memory>
 
-#include <SofaImGui/models/modifiers/Modifier.h>
 #include <SofaImGui/models/actions/Action.h>
 #include <SofaImGui/models/actions/Move.h>
 #include <SofaImGui/models/actions/StartMove.h>
@@ -52,11 +51,9 @@ class Track
 
     std::shared_ptr<actions::StartMove> getStartMove() {return m_startmove;}
 
-    std::vector<std::shared_ptr<actions::Action>>& getActions() {return m_actions;}
-    std::shared_ptr<actions::Action> getAction(const sofa::Index& actionIndex) {return m_actions[actionIndex];}
-
-    std::vector<std::shared_ptr<modifiers::Modifier>>& getModifiers() {return m_modifiers;}
-    std::shared_ptr<modifiers::Modifier> getModifier(const sofa::Index& modifierIndex) {return m_modifiers[modifierIndex];}
+    std::vector<actions::Action::SPtr>& getActions() {return m_actions;}
+    actions::Action::SPtr getAction(const sofa::Index& actionIndex) {return m_actions[actionIndex];}
+    sofa::Index getActionIndex(actions::Action::SPtr action);
 
     void updateNextMoveInitialPoint(const sofa::Index &actionIndex, const RigidCoord &initialPoint);
 
@@ -65,11 +62,30 @@ class Track
 
     void swapActions(const sofa::Index& actionIndex1, const sofa::Index& actionIndex2);
 
+    bool hasSelectedActions() {return m_selectedActions.first != -1;}
+    bool isActionSelected(const sofa::Index &actionIndex);
+    void setActionSelected(const sofa::Index &index);
+    void clearSelectedActions();
+
+    void group();
+    void ungroup(const int& actionIndex);
+    bool canGroup(const int& actionIndex);
+    bool canUngroup(const int& actionIndex);
+    bool isInGroup(const int& actionIndex, bool strictly = false);
+
+    int getGroupLength(actions::Action::SPtr action) {return m_groups.contains(action)? m_groups[action]: 0;}
+
    protected:
 
     std::shared_ptr<actions::StartMove> m_startmove;
-    std::vector<std::shared_ptr<actions::Action>> m_actions;
-    std::vector<std::shared_ptr<modifiers::Modifier>> m_modifiers;
+    std::vector<actions::Action::SPtr> m_actions;
+    std::map<actions::Action::SPtr, int> m_groups; /// Map of groups: key = first action sptr, value = length of the group
+
+    std::pair<int, int> m_selectedActions{-1,-1};
+
+    bool canGroupSelectedActions();
+    bool canUngroupSelectedActions();
+    bool isInGroup(const int& actionIndex, std::pair<actions::Action::SPtr, int> group, bool strictly = false);
 };
 
 } // namespace

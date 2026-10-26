@@ -55,7 +55,7 @@ class SOFAIMGUI_API Program
     const std::vector<Track::SPtr>& getTracks() {return m_tracks;}
     int getNbTracks() {return m_tracks.size();}
 
-    void addTrack(Track::SPtr track) {m_tracks.push_back(track);}
+    void addTrack(Track::SPtr track, const sofa::Index &index=0) {m_tracks.insert(m_tracks.begin() + index, track);}
     void removeTrack(const sofa::Index &index) {m_tracks.erase(m_tracks.begin() + index);}
     void clearTracks();
 
@@ -65,10 +65,16 @@ class SOFAIMGUI_API Program
 
     std::string getExtension() {return ".crprog";}
 
+    bool isTrackSelected(sofa::Index index) {return ((int)index == m_selectedTrack);}
+    void setTrackSelected(sofa::Index index) {m_selectedTrack = index;}
+    int getTrackSelected() {return m_selectedTrack;}
+    void clearTrackSelected();
+
    protected:
 
     guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager;
     std::vector<Track::SPtr> m_tracks;
+    int m_selectedTrack{-1};
 
     bool checkExtension(const std::string &filename);
     bool checkDocument(const std::string &filename, tinyxml2::XMLNode *root);

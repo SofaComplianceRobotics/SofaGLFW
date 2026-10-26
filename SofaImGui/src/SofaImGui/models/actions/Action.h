@@ -22,9 +22,12 @@
 #pragma once
 
 #include <sofa/defaulttype/RigidTypes.h>
+
+#include <SofaImGui/models/BaseBlock.h>
 #include <SofaImGui/config.h>
+
 #include <imgui.h>
-#include <string>
+#include <imgui_internal.h>
 
 namespace sofaimgui::models {
     class Track;
@@ -32,30 +35,29 @@ namespace sofaimgui::models {
 
 namespace sofaimgui::models::actions {
 
-class Action: public std::enable_shared_from_this< Action >
+class Action: public std::enable_shared_from_this< Action >, public BaseBlock
 {
     typedef sofa::defaulttype::RigidCoord<3, double> RigidCoord;
 
    public:
 
-    inline static const int COMMENTSIZE = 18;
-    inline static const double DEFAULTDURATION = 1.;
+    typedef std::shared_ptr<Action> SPtr;
+
+    using BaseBlock::m_duration;
 
     Action(const double& duration=DEFAULTDURATION):
-                                  m_duration(duration)
+           BaseBlock(duration)
     {
        checkDuration();
     }
 
     virtual ~Action() = default;
-    virtual std::shared_ptr<Action> duplicate() = 0;
     
     virtual bool apply(RigidCoord &/*position*/, const double &/*time*/){return false;}
     virtual void computeDuration(){}
     virtual void computeSpeed(){}
 
-    const double& getDuration() {return m_duration;}
-    virtual void setDuration(const double& duration)
+    void setDuration(const double& duration) override
     {
         m_duration = duration;
         checkDuration();
@@ -69,22 +71,15 @@ class Action: public std::enable_shared_from_this< Action >
         computeDuration();
     }
 
-    virtual void pushToTrack(std::shared_ptr<models::Track> track);
-    virtual void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex);
-    virtual void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex);
-    virtual void swapWith(std::shared_ptr<actions::Action> action);
-
-    void setComment(const char* comment) {strncpy(m_comment, comment, COMMENTSIZE); m_comment[COMMENTSIZE-1]='\0';}
-    void getComment(char* comment) {strncpy(comment, m_comment, COMMENTSIZE); comment[COMMENTSIZE-1]='\0';}
-
-    char* getComment() {return m_comment;}
+    void pushToTrack(std::shared_ptr<models::Track> track) override;
+    void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+    void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
+    void swapWith(models::BaseBlock::SPtr action) override;
 
    protected:
 
-    double m_duration;
     double m_minDuration{0.2};
     double m_speed;
-    char m_comment[COMMENTSIZE];
 
     void checkDuration()
     {
@@ -92,16 +87,14 @@ class Action: public std::enable_shared_from_this< Action >
             m_duration = m_minDuration;
     }
 
-    class ActionView
+    class ActionView: public BaseBlockView
     {
-       public:
-        virtual bool showBlock(const std::string &, const ImVec2 &) {return false;}
     };
     ActionView view;
 
    public :
 
-    virtual ActionView* getView() {return &view;}
+    ActionView* getView() override {return &view;}
 };
 
 } // namespace

@@ -20,9 +20,7 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 
-
 #include <SofaImGui/models/guidata/AccessoryFeatureGUIData.h>
-
 
 namespace sofaimgui::models::guidata
 {

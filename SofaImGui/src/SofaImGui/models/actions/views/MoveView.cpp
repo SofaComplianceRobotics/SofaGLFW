@@ -30,25 +30,25 @@
 
 namespace sofaimgui::models::actions {
 
-bool Move::MoveView::showBlock(const std::string &label,
-                               const ImVec2 &size)
+bool Move::MoveView::showBlockInternal(const std::string &label,
+                                       const ImVec2 &size,
+                                       const bool & isSelected)
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().MoveBlockBg);
+    widgets::BeginBlock(label, size, ProgramColors().MoveBlockBg, isSelected);
 
     if (ImGui::IsItemHovered())
         move.highlightTrajectory(true);
     else
         move.highlightTrajectory(false);
 
-    sofaimgui::widgets::BlockHeader(ICON_FA_ARROWS_TURN_TO_DOTS, move.getComment(), hasValuesChanged);
+    widgets::BlockHeader(ICON_FA_ARROWS_TURN_TO_DOTS, move.getComment(), hasValuesChanged);
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Duration
-        sofaimgui::widgets::BeginBlockLine("duration");
+        widgets::BeginBlockLine("duration");
         double duration = move.getDuration();
         std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
         if (ImGui::InputDouble(id.c_str(), &duration, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -56,11 +56,11 @@ bool Move::MoveView::showBlock(const std::string &label,
             hasValuesChanged = true;
             move.setDuration(duration);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
     { // Speed
-        sofaimgui::widgets::BeginBlockLine("speed");
+        widgets::BeginBlockLine("speed");
         std::string id = "##speed" + std::to_string(window->DC.CursorPos.x);
         double speed = move.getSpeed();
         if (ImGui::InputDouble(id.c_str(), &speed, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -68,13 +68,13 @@ bool Move::MoveView::showBlock(const std::string &label,
             hasValuesChanged = true;
             move.setSpeed(speed);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Way point position
-        sofaimgui::widgets::BeginBlockLine("wp.pos");
+        widgets::BeginBlockLine("wp.pos");
 
         RigidCoord waypoint = move.getWaypoint();
         for (int i=0; i<3; i++)
@@ -89,17 +89,17 @@ bool Move::MoveView::showBlock(const std::string &label,
             ImGui::SameLine();
         }
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Way point rotation
         std::string label = "wp.rot ";
         label += (move.isFreeInRotation()? ICON_FA_LOCK_OPEN: ICON_FA_LOCK);
         label += "##wp.rot" + std::to_string(window->DC.CursorPos.x);
 
-        if (sofaimgui::widgets::BeginBlockLockLine(label.c_str()))
+        if (widgets::BeginBlockLockLine(label.c_str()))
         {
             move.setFreeInRotation(!move.isFreeInRotation());
         }
@@ -122,10 +122,10 @@ bool Move::MoveView::showBlock(const std::string &label,
             ImGui::SameLine();
         }
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    widgets::EndBlock(size);
+    widgets::EndBlock(label, size);
     return hasValuesChanged;
 }
 

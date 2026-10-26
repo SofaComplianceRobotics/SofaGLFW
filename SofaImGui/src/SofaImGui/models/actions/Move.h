@@ -38,6 +38,8 @@ class Move : public StartMove
 
    public:
 
+    typedef std::shared_ptr<Move> SPtr;
+
     enum Type {
         LINE
     };
@@ -51,7 +53,7 @@ class Move : public StartMove
 
     virtual ~Move();
 
-    std::shared_ptr<Action> duplicate() override;
+    std::shared_ptr<BaseBlock> duplicate() override;
 
     void setInitialPoint(const RigidCoord& initialPoint) override;
     void setWaypoint(const RigidCoord& waypoint) override;
@@ -67,7 +69,7 @@ class Move : public StartMove
     void pushToTrack(std::shared_ptr<models::Track> track) override;
     void insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
     void deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex) override;
-    void swapWith(std::shared_ptr<Action> action) override;
+    void swapWith(std::shared_ptr<BaseBlock> action) override;
 
    protected:
 
@@ -80,11 +82,12 @@ class Move : public StartMove
     {
        public:
         MoveView(Move &_move) : move(_move) {}
-        bool showBlock(const std::string &label,
-                       const ImVec2 &size);
 
        protected:
         Move &move;
+        bool showBlockInternal(const std::string &label,
+                               const ImVec2 &size,
+                               const bool & = false) override;
     };
     MoveView view;
 

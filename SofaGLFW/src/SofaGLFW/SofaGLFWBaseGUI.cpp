@@ -839,10 +839,7 @@ void SofaGLFWBaseGUI::mouse_button_callback(GLFWwindow* window, int button, int 
     {
         // Check if the animation is running
         if (!currentGUI->second->simulationIsRunning())
-        {
-            msg_info("SofaGLFWBaseGUI") << "Animation is not running. Ignoring mouse interaction.";
             return;
-        }
 
         const auto currentSofaWindow = s_mapWindows.find(window);
         if (currentSofaWindow != s_mapWindows.end() && currentSofaWindow->second)

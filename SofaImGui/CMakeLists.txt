@@ -152,9 +152,8 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Pick.h
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/StartMove.h
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Wait.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Modifier.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Repeat.h
 
+    ${SOFAIMGUI_SOURCE_DIR}/models/BaseBlock.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.h
     ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.h
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.h
@@ -216,16 +215,14 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Pick.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/StartMove.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/Wait.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Modifier.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/Repeat.cpp
 
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/CustomView.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/MoveView.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/PickView.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/StartMoveView.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/actions/views/WaitView.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/modifiers/views/RepeatView.cpp
 
+    ${SOFAIMGUI_SOURCE_DIR}/models/BaseBlock.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Program.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp

@@ -37,6 +37,8 @@ class StartMove : public Action
 
    public:
 
+    typedef std::shared_ptr<StartMove> SPtr;
+
     StartMove(const RigidCoord& initialPoint,
               const RigidCoord& waypoint,
               const double& duration,
@@ -45,7 +47,7 @@ class StartMove : public Action
 
     virtual ~StartMove();
     
-    std::shared_ptr<Action> duplicate() override {return nullptr;}
+    models::BaseBlock::SPtr duplicate() override {return nullptr;}
 
     bool apply(RigidCoord&, const double &time) override;
     void computeDuration() override;
@@ -82,11 +84,12 @@ class StartMove : public Action
     {
        public:
         StartMoveView(StartMove &_start) : start(_start) {}
-        bool showBlock(const std::string &label,
-                       const ImVec2 &size);
 
        protected:
         StartMove &start;
+        bool showBlockInternal(const std::string &label,
+                               const ImVec2 &size,
+                               const bool & = false) override;
     };
     StartMoveView view;
 

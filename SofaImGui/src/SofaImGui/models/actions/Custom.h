@@ -37,7 +37,7 @@ public:
     Custom(const double& duration = Action::DEFAULTDURATION);
     ~Custom() = default;
 
-    std::shared_ptr<Action> duplicate() override;
+    std::shared_ptr<BaseBlock> duplicate() override;
     bool apply(RigidCoord &position, const double &time) override;
     void computeDuration() override;
     void computeSpeed() override;
@@ -61,11 +61,12 @@ protected:
     {
     public:
         CustomView(Custom &_custom) : custom(_custom) {}
-        bool showBlock(const std::string &label,
-                       const ImVec2 &size) override;
 
     protected:
         Custom &custom;
+        bool showBlockInternal(const std::string &label,
+                               const ImVec2 &size,
+                               const bool & = false) override;
     };
     CustomView view;
 

@@ -20,7 +20,6 @@
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
 #include <SofaImGui/models/Track.h>
-#include <SofaImGui/models/modifiers/Repeat.h>
 
 
 namespace sofaimgui::models {
@@ -51,7 +50,12 @@ Track::Track(std::shared_ptr<actions::StartMove> startMove)
 void Track::clear()
 {
     m_actions.clear();
-    m_modifiers.clear();
+}
+
+sofa::Index Track::getActionIndex(actions::Action::SPtr action)
+{
+    auto it = std::find(m_actions.begin(), m_actions.end(), action);
+    return it - m_actions.begin();
 }
 
 std::shared_ptr<actions::Move> Track::getPreviousMove(const sofa::Index &actionIndex)
@@ -99,6 +103,109 @@ void Track::swapActions(const sofa::Index& actionIndex1, const sofa::Index& acti
         iter_swap(m_actions.begin() + actionIndex1, m_actions.begin() + actionIndex2);
         m_actions[actionIndex1]->swapWith(m_actions[actionIndex2]);
     }
+}
+
+bool Track::isActionSelected(const sofa::Index& actionIndex)
+{
+    int i = actionIndex;
+    return (m_selectedActions.first == i || (m_selectedActions.first <= i && i <= m_selectedActions.second));
+}
+
+void Track::setActionSelected(const sofa::Index &index)
+{
+    int i = index;
+    if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) && m_selectedActions.first != -1 && m_selectedActions.second == -1 && m_selectedActions.first < i)
+        || (ImGui::IsKeyDown(ImGuiKey_LeftShift) && m_selectedActions.first != -1 && m_selectedActions.second != -1 && m_selectedActions.second < i)
+        )
+    {
+        m_selectedActions.second = i;
+    }
+    else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && m_selectedActions.first != -1 && m_selectedActions.second == -1 && m_selectedActions.first > i)
+    {
+        m_selectedActions.second = m_selectedActions.first;
+        m_selectedActions.first = i;
+    }
+    else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && m_selectedActions.first != -1 && m_selectedActions.second != -1 && m_selectedActions.first > i)
+    {
+        m_selectedActions.first = i;
+    }
+    else if(m_selectedActions.first == i)
+    {
+        clearSelectedActions();
+    }
+    else
+    {
+        clearSelectedActions();
+        m_selectedActions.first = i;
+    }
+}
+
+void Track::clearSelectedActions()
+{
+    m_selectedActions.first = -1;
+    m_selectedActions.second = -1;
+}
+
+void Track::group()
+{
+    if (canGroupSelectedActions())
+        m_groups[m_actions[m_selectedActions.first]] = m_selectedActions.second - m_selectedActions.first;
+}
+
+void Track::ungroup(const int &actionIndex)
+{
+    for (auto [key, length]: m_groups)
+    {
+        if (isInGroup(actionIndex, std::pair<actions::Action::SPtr, int>(key, length)))
+        {
+            m_groups.erase(key);
+            return;
+        }
+    }
+}
+
+bool Track::canGroup(const int& actionIndex)
+{
+    return isActionSelected(actionIndex) && !canUngroupSelectedActions() && canGroupSelectedActions();
+}
+
+bool Track::canUngroup(const int& actionIndex)
+{
+    return isInGroup(actionIndex);
+}
+
+bool Track::isInGroup(const int& actionIndex, bool strictly)
+{
+    for (auto [key, length]: m_groups)
+    {
+        if (isInGroup(actionIndex, std::pair<actions::Action::SPtr, int>(key, length), strictly))
+            return true;
+    }
+    return false;
+}
+
+bool Track::isInGroup(const int& actionIndex, std::pair<actions::Action::SPtr, int> group, bool strictly)
+{
+    int firstIndex = getActionIndex(group.first);
+    int lastIndex = firstIndex + group.second;
+
+    if (strictly)
+        return (firstIndex < actionIndex && actionIndex < lastIndex);
+
+    return (firstIndex <= actionIndex && actionIndex <= lastIndex);
+}
+
+bool Track::canGroupSelectedActions()
+{
+    return m_selectedActions.first != -1 && m_selectedActions.second != -1 && m_selectedActions.first < m_selectedActions.second;
+}
+
+bool Track::canUngroupSelectedActions()
+{
+    for (int i = m_selectedActions.first ; i <= m_selectedActions.second ; i++)
+        if (isInGroup(i))
+            return true;
+    return false;
 }
 
 } // namespace
