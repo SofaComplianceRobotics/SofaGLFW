@@ -141,7 +141,11 @@ void PlottingWindow::internalShowWindow()
 {
     showButtons();
     showPlots();
-    dropGUIData("0");
+
+    // Check drop
+    models::guidata::GUIData::SPtr droppedData;
+    if (dropGUIData(droppedData))
+        changeGUIDataGroup(droppedData, "0");
 }
 
 void PlottingWindow::showButtons()

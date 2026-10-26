@@ -155,26 +155,29 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
-void BaseWindow::dropGUIData(const std::string& group)
+bool BaseWindow::dropGUIData(models::guidata::GUIData::SPtr& data)
 {
+    bool dropped = false;
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
         {
-            sofa::core::objectmodel::BaseData* data = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
-            if (data)
+            sofa::core::objectmodel::BaseData* droppedData = static_cast<sofa::core::objectmodel::BaseData*>(payload->Data);
+            if (droppedData)
             {
-                addData(data->getName(),
-                        std::pair<sofa::core::BaseData*, bool>(data, false),
-                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                        std::pair<sofa::core::BaseData*, bool>(nullptr, false),
-                        ((group == models::guidata::GUIData::DEFAULTGROUP) && data->getOwner())? data->getOwner()->getPathName(): group,
-                        data->getHelp());
+                data = addData(droppedData->getName(),
+                               std::pair<sofa::core::BaseData*, bool>(droppedData, false),
+                               std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                               std::pair<sofa::core::BaseData*, bool>(nullptr, false),
+                               models::guidata::GUIData::DEFAULTGROUP,
+                               droppedData->getHelp());
                 resetGUIDataWindowSettings();
+                dropped = true;
             }
         }
         ImGui::EndDragDropTarget();
     }
+    return dropped;
 }
 
 void BaseWindow::removeGUIData(models::guidata::GUIData::SPtr data)

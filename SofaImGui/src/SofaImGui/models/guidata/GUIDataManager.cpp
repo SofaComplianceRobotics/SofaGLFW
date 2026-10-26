@@ -96,6 +96,8 @@ void GUIDataManager::changeGUIDataGroup(GUIData::SPtr data, const std::string& g
         if( it != dataList.end())
         {
             dataList.erase(it);
+            if(dataList.empty())
+                m_groupedGUIData.erase(group.first);
             break;
         }
     }
