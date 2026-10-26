@@ -165,13 +165,6 @@ set(HEADER_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/guidata/EffectorGUIData.h
     ${SOFAIMGUI_SOURCE_DIR}/models/guidata/KinematicsGUIDataManager.h
 
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIData.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIDataManager.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/ActuatorGUIData.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/AccessoryFeatureGUIData.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/EffectorGUIData.h
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/KinematicsGUIDataManager.h
-
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUI.h
     ${SOFAIMGUI_SOURCE_DIR}/ImGuiGUIEngine.h
     ${SOFAIMGUI_SOURCE_DIR}/ObjectColor.h
@@ -234,12 +227,6 @@ set(SOURCE_FILES
     ${SOFAIMGUI_SOURCE_DIR}/models/KinematicsController.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Track.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/Trajectory.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIDataManager.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/ActuatorGUIData.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/AccessoryFeatureGUIData.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/EffectorGUIData.cpp
-    ${SOFAIMGUI_SOURCE_DIR}/models/guidata/KinematicsGUIDataManager.cpp
-
     ${SOFAIMGUI_SOURCE_DIR}/models/guidata/GUIDataManager.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/guidata/ActuatorGUIData.cpp
     ${SOFAIMGUI_SOURCE_DIR}/models/guidata/AccessoryFeatureGUIData.cpp
