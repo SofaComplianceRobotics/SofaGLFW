@@ -172,7 +172,6 @@ jobs:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_scope: 'standard'     
-          pybind11_version: "${{ runner.os == 'Windows' && '2.9.1' || '2.12.0' }}"
 
       - name: Install SoftRobots
         shell: bash
