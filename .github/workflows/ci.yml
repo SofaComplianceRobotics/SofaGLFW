@@ -226,6 +226,8 @@ jobs:
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
             mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT" 
+            echo "ls $TinyXML2_ROOT :"
+            ls "$TinyXML2_ROOT"
             echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
             echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
           fi
