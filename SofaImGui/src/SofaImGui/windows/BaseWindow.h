@@ -98,6 +98,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
 
     /// Called once, the first time we draw the window.
     virtual void registerAndLoadWindowSettings() {};
+    virtual void changeGUIDataGroup(models::guidata::GUIData::SPtr data, const std::string& group);
 
     /// Structured message display (info icon + message)
     void showInfoMessage(const char* message);
@@ -110,7 +111,7 @@ class SOFAIMGUI_API BaseWindow: sofaimgui::models::guidata::GUIDataManager
         m_registeredSettings[settingName] = std::pair<void*, WindowsSettings::SettingType>(&setting, settingType); // Register setting to be saved
         setting = WindowsSettings::getInstance().getSetting(m_name.c_str(), settingName.c_str(), setting); // Load setting
     }
-    void dropGUIData();
+    bool dropGUIData(models::guidata::GUIData::SPtr &data);
 
     using models::guidata::GUIDataManager::m_GUIData;
     using models::guidata::GUIDataManager::m_groupedGUIData;

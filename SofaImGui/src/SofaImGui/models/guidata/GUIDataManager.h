@@ -47,6 +47,9 @@ protected:
 
     std::unordered_set<GUIData::SPtr, GUIDataHash, GUIDataEqual> m_GUIData; /// A set of GUIData to use in the window
     std::map<std::string, std::vector<GUIData::SPtr>> m_groupedGUIData; /// A map of grouped GUIData for easier access in the window by group name
+
+    virtual void changeGUIDataGroup(GUIData::SPtr data, const std::string& group);
+
 };
 
 }

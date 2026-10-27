@@ -50,7 +50,11 @@ void DashboardWindow::internalShowWindow()
     // Fill the available window space with an invisible item defining a area to drop data
     ImVec2 dropRegion = ImGui::GetContentRegionAvail();
     ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
-    dropGUIData();
+
+    // Check drop
+    models::guidata::GUIData::SPtr droppedData;
+    if (dropGUIData(droppedData) && droppedData && droppedData->isValid())
+        changeGUIDataGroup(droppedData, droppedData->getData()->getOwner()->getPathName());
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
         ImGui::OpenPopup("##DashboardContextMenu");

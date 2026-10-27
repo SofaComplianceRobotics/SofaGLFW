@@ -94,16 +94,14 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
                                                        const std::pair<sofa::core::BaseData*, bool>& data,
                                                        const int& subplotIndex)
 {
+    size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
     models::guidata::GUIData::SPtr newData = BaseWindow::addData(label,
                                                                  data,
                                                                  std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
                                                                  std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
-                                                                 "", "");
-    size_t index = (subplotIndex >= MAX_NB_PLOT) ? 0: subplotIndex;
+                                                                 std::to_string(index),
+                                                                 "");
     m_ws_nbRows = ((size_t)m_ws_nbRows < index + 1)? index + 1: m_ws_nbRows;
-
-    if (index > 0)
-        setDataSubplot(newData, index);
 
     return newData;;
 }
@@ -111,7 +109,6 @@ models::guidata::GUIData::SPtr PlottingWindow::addData(const std::string& label,
 models::guidata::GUIData::SPtr PlottingWindow::addGUIData(models::guidata::GUIData::SPtr guidata)
 {
     models::guidata::GUIData::SPtr newData = BaseWindow::addGUIData(guidata);
-    m_data[0].insert(newData);
     return newData;
 }
 
@@ -144,7 +141,11 @@ void PlottingWindow::internalShowWindow()
 {
     showButtons();
     showPlots();
-    dropGUIData();
+
+    // Check drop
+    models::guidata::GUIData::SPtr droppedData;
+    if (dropGUIData(droppedData))
+        changeGUIDataGroup(droppedData, "0");
 }
 
 void PlottingWindow::showButtons()
@@ -241,7 +242,7 @@ void PlottingWindow::showPlots()
     {
         for (size_t i=0; i< (size_t)m_ws_nbRows*m_nbCols; i++)
         {
-            const auto& plots = m_data[i];
+            const auto& plots = m_groupedGUIData[std::to_string(i)];
             if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
                                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
             {
@@ -284,7 +285,7 @@ void PlottingWindow::showPlots()
                     if (ImGui::AcceptDragDropPayload("_PLOTTINGSUBDROP"))
                     {
                         if (dragedData)
-                            setDataSubplot(dragedData, i);
+                            changeGUIDataGroup(dragedData, std::to_string(i));
                     }
                     ImPlot::EndDragDropTarget();
                 }
@@ -318,19 +319,6 @@ void PlottingWindow::showPlots()
         ImPlot::EndSubplots();
     }
     ImGui::PopStyleColor();
-}
-
-void PlottingWindow::setDataSubplot(models::guidata::GUIData::SPtr data, const int& subplotIndex)
-{
-    for (auto& subplots : m_data)
-    {
-        if (subplots.second.contains(data))
-        {
-            subplots.second.erase(data);
-            break;
-        }
-    }
-    m_data[subplotIndex].insert(data);
 }
 
 void PlottingWindow::showMenu()
@@ -419,7 +407,8 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
             {
                 if (data && data->isValid())
                 {
-                    if (m_data[idSubplot].contains(data))
+                    auto& dataList = m_groupedGUIData[std::to_string(idSubplot)];
+                    if (std::find(dataList.begin(), dataList.end(), data) != dataList.end())
                     {
                         auto& buffer = m_buffers[data];
                         for (auto& point: buffer.data)
@@ -463,7 +452,6 @@ void PlottingWindow::showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot)
 void PlottingWindow::removeAllData()
 {
     clearGUIData();
-    m_data.clear();
     m_buffers.clear();
 }
 
