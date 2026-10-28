@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
+        os: [ubuntu-24.04, macos-latest, windows-latest]
         sofa_branch: [master]
 
     steps:
@@ -161,7 +161,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022] 
+        os: [ubuntu-24.04, macos-latest, windows-latest]
         sofa_branch: [master]
 
     steps:          
@@ -171,9 +171,7 @@ jobs:
         with:
           sofa_root: ${{ github.workspace }}/sofa
           sofa_version: ${{ matrix.sofa_branch }}
-          sofa_scope: 'standard'      
-          python_version: '3.10'
-          pybind11_version: "${{ runner.os == 'Windows' && '2.9.1' || '2.12.0' }}"
+          sofa_scope: 'standard'
 
       - name: Install SoftRobots
         shell: bash
@@ -222,15 +220,12 @@ jobs:
             brew update 
             brew install tinyxml2
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            TinyXML2_ROOT=$GITHUB_WORKSPACE/TinyXML2
-            mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries" "$TinyXML2_ROOT"
+            mkdir -p "${{ runner.temp }}/tinyxml_tmp/zip" "${{ runner.temp }}/tinyxml_tmp/binaries"
             url="https://www.sofa-framework.org/download/WinDepPack/VS-2017/latest"
             echo "Getting TinyXML2 from Windows dependencies pack: $url"
             curl --output "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -L $url
             unzip -qq "${{ runner.temp }}/tinyxml_tmp/win_dependencies.zip" -d "${{ runner.temp }}/tinyxml_tmp/binaries"
-            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/* "$TinyXML2_ROOT" 
-            echo "$TinyXML2_ROOT/include" >> $GITHUB_PATH
-            echo "$TinyXML2_ROOT/lib/win64" >> $GITHUB_PATH
+            mv "${{ runner.temp }}"/tinyxml_tmp/binaries/SOFA_WinDepPack_*/include/tinyxml2.h "$SOFA_ROOT/include/extlibs/WinDepPack/tinyxml2.h" 
           fi
 
       - name: Build and install
