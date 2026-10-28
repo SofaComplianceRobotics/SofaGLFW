@@ -906,7 +906,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
         {
             for (auto& data : datas)
             {
-                if (ImGui::CollapsingHeader(data->m_name.c_str()))
+                if (data->isDisplayed() && ImGui::CollapsingHeader(data->m_name.c_str()))
                 {
                     ImGui::Indent();
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
