@@ -175,15 +175,6 @@ void LogWindow::showClearButton()
 
 void LogWindow::showLogs()
 {
-    unsigned int i {};
-    const int digits = [this]()
-    {
-        int d = 0;
-        auto s = this->m_messages.size();
-        while (s != 0) { s /= 10; d++; }
-        return d;
-    }();
-
     std::size_t nbRows = 0;
     ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY;
     if (!m_ws_wrapText)
@@ -194,13 +185,20 @@ void LogWindow::showLogs()
         static std::string messageToCopy;
         bool openMessageContextMenu = false;
 
+        // Table setup
         ImGui::TableSetupColumn("logId", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("message type", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("sender", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("message", m_ws_wrapText? ImGuiTableColumnFlags_WidthStretch: ImGuiTableColumnFlags_WidthFixed);
-        for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
+
+        sofa::Index nbMessages = m_messages.size();
+        const float messageNumberMaxSize = ImGui::CalcTextSize(std::to_string(nbMessages-m_firstMessageIndex).c_str()).x;
+
+        sofa::Index i = 0;
+        for (sofa::Index index = m_firstMessageIndex; index<nbMessages; index++)
         {
             const auto& message = m_messages[index];
+
             if (message.type() < m_logLevel)
                 continue;
 
@@ -212,62 +210,73 @@ void LogWindow::showLogs()
 
             ImGui::TableNextColumn();
 
-            std::stringstream ss;
-            ss << std::setfill('0') << std::setw(digits) << i++;
-            ImGui::TextDisabled("%s", ss.str().c_str());
+            { // Message index
+                std::stringstream ss;
+                ss << i++;
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                ImGui::TextAligned(1., messageNumberMaxSize, ss.str().c_str());
+                ImGui::PopStyleColor();
+            }
 
             ImGui::TableNextColumn();
 
-            constexpr auto writeMessageType = [](const sofa::helper::logging::Message::Type t)
-            {
-                switch (t)
+            { // Message type
+                constexpr auto writeMessageType = [](const sofa::helper::logging::Message::Type t)
                 {
-                case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREEN), "[SUGGESTION]");
-                case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
-                case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
-                case sofa::helper::logging::Message::Info       : return ImGui::TextColored(ImGui::GetStyle().Colors[ImGuiCol_TextDisabled], "[INFO]");
-                case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
-                case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
-                case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
-                default: return;
+                    switch (t)
+                    {
+                    case sofa::helper::logging::Message::Advice     : return ImGui::TextColored(ImColor(COLOR_DARK_GREEN), "[SUGGESTION]");
+                    case sofa::helper::logging::Message::Deprecated : return ImGui::TextColored(ImColor(COLOR_BLUE), "[DEPRECATED]");
+                    case sofa::helper::logging::Message::Warning    : return ImGui::TextColored(ImColor(COLOR_ORANGE), "[WARNING]");
+                    case sofa::helper::logging::Message::Info       : return ImGui::TextColored(ImGui::GetStyle().Colors[ImGuiCol_TextDisabled], "[INFO]");
+                    case sofa::helper::logging::Message::Error      : return ImGui::TextColored(ImColor(COLOR_RED), "[ERROR]");
+                    case sofa::helper::logging::Message::Fatal      : return ImGui::TextColored(ImColor(COLOR_RED), "[FATAL]");
+                    case sofa::helper::logging::Message::TEmpty     : return ImGui::Text("[EMPTY]");
+                    default: return;
+                    }
+                };
+                writeMessageType(message.type());
+            }
+
+            ImGui::TableNextColumn();
+
+            { // Message sender
+                auto sender = message.sender();
+                auto* nfo = dynamic_cast<sofa::helper::logging::SofaComponentInfo*>(message.componentInfo().get());
+                if (nfo)
+                {
+                    sender.append("(" + nfo->name() + ")");
                 }
-            };
-            writeMessageType(message.type());
+                ImGui::TextDisabled("[%s]", sender.c_str());
 
-            auto sender = message.sender();
-            auto* nfo = dynamic_cast<sofa::helper::logging::SofaComponentInfo*>(message.componentInfo().get());
-            if (nfo)
-            {
-                sender.append("(" + nfo->name() + ")");
+                if (nfo && ImGui::IsItemHovered() && nfo->m_component)
+                {
+                    ImGui::SetTooltip("Path: %s", nfo->m_component->getPathName().c_str());
+                }
             }
 
             ImGui::TableNextColumn();
-            ImGui::TextDisabled("[%s]", sender.c_str());
 
-            if (nfo && ImGui::IsItemHovered() && nfo->m_component)
-            {
-                ImGui::SetTooltip("Path: %s", nfo->m_component->getPathName().c_str());
+            { // Message
+                std::string msgStr = message.message().str();
+
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
+
+                if (m_ws_wrapText)
+                    ImGui::TextWrapped("%s", msgStr.c_str());
+                else
+                    ImGui::Text("%s", msgStr.c_str());
+
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                {
+                    openMessageContextMenu = true;
+                    messageToCopy = msgStr;
+                }
+
+                ImGui::PopStyleColor();
+                ImGui::PopStyleVar();
             }
-
-            ImGui::TableNextColumn();
-            std::string msgStr = message.message().str();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, COLOR_TRANSPARENT);
-
-            if (m_ws_wrapText)
-                ImGui::TextWrapped("%s", msgStr.c_str());
-            else
-                ImGui::Text("%s", msgStr.c_str());
-
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-            {
-                openMessageContextMenu = true;
-                messageToCopy = msgStr;
-            }
-
-            ImGui::PopStyleColor();
-            ImGui::PopStyleVar();
         }
 
         static std::size_t lastNbRows = 0;
@@ -323,8 +332,9 @@ void LogWindow::messagesToStringStream(std::stringstream& output)
                                                                                           {sofa::helper::logging::Message::TEmpty, "EMPTY"},
                                                                                           };
 
-    for (const auto& message : m_messages)
+    for (sofa::Index index = m_firstMessageIndex; index<m_messages.size(); index++)
     {
+        const auto& message = m_messages[index];
         output << "[" << labelMap[message.type()] << "] [" << message.sender() << "] ";
         output << message.messageAsString() << std::endl;
     }
