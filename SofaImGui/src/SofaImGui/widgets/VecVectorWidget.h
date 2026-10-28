@@ -22,6 +22,7 @@
 #pragma once
 #include "GUIColors.h"
 #include "IconsFontAwesome6.h"
+#include "SimpleIni.h"
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaImGui/widgets/ScalarWidget.h>
 #include <imgui.h>
@@ -279,12 +280,18 @@ void showVectorWidget(Data<T>& data)
 
     if (dataSize > 0)
     {
-        static int start{0};
-        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        static CSimpleIniA vectorWidgetSettings;
+        int start = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "start", 0);
+        int end = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "end", std::min(dataSize, maxNbIndicesLoaded));
+
         ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
 
         if (dataSize > maxNbRowsDisplayed)
+        {
             showStartEnd(data.getData(), dataSize, start, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "start", start);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
 
         if (ImGui::BeginTable(tableLabel.c_str(), nbColumns, tableflags | ImGuiTableFlags_ScrollY, outerSize))
         {
@@ -316,7 +323,10 @@ void showVectorWidget(Data<T>& data)
         }
 
         if (dataSize > maxNbRowsDisplayed && loadMore)
+        {
             showLoadMore(data.getData(), dataSize, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
     }
 }
 
@@ -463,20 +473,27 @@ void showRigidLine(defaulttype::RigidDeriv<N, ValueType>& vec, const unsigned in
 template<typename ValueType>
 void showWidgetT(Data<type::vector<ValueType> >& data)
 {
+    const auto tableLabel = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     static bool loadMore = false;
 
     if (dataSize > 0)
     {
-        static int start{0};
-        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        static CSimpleIniA vectorWidgetSettings;
+        int start = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "start", 0);
+        int end = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "end", std::min(dataSize, maxNbIndicesLoaded));
+
         ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
 
         if (dataSize > maxNbRowsDisplayed)
+        {
             showStartEnd(data.getData(), dataSize, start, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "start", start);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
 
-        if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(),
+        if (ImGui::BeginTable(tableLabel.c_str(),
                               ValueType::total_size + 1,
                               tableflags | ImGuiTableFlags_ScrollY,
                               outerSize))
@@ -501,7 +518,10 @@ void showWidgetT(Data<type::vector<ValueType> >& data)
         }
 
         if (dataSize > maxNbRowsDisplayed && loadMore)
+        {
             showLoadMore(data.getData(), dataSize, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
     }
 }
 
@@ -512,21 +532,27 @@ void showWidgetT(Data<type::vector<ValueType> >& data)
 template< typename GeometryElement>
 void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement> > >& data)
 {
+    const auto tableLabel = data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "");
     auto accessor = helper::getWriteAccessor(data);
     int dataSize = accessor->size();
     static bool loadMore = false;
 
     if (dataSize > 0)
     {
-        static int start{0};
-        static int end{std::min(dataSize, maxNbIndicesLoaded)};
+        static CSimpleIniA vectorWidgetSettings;
+        int start = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "start", 0);
+        int end = vectorWidgetSettings.GetLongValue(tableLabel.c_str(), "end", std::min(dataSize, maxNbIndicesLoaded));
         ImVec2 outerSize = ImVec2(0.0f, (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.y) * std::fmin(end - start + 0.75, maxNbRowsDisplayed));
 
         if (dataSize > maxNbRowsDisplayed)
+        {
             showStartEnd(data.getData(), dataSize, start, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "start", start);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
 
         constexpr auto N = sofa::topology::Element<GeometryElement>::static_size;
-        if (ImGui::BeginTable((data.getName() + (data.getOwner() ? data.getOwner()->getPathName() : "")).c_str(),
+        if (ImGui::BeginTable(tableLabel.c_str(),
                               N + 1,
                               tableflags | ImGuiTableFlags_ScrollY,
                               outerSize))
@@ -567,7 +593,10 @@ void showWidgetT(Data<sofa::type::vector<sofa::topology::Element<GeometryElement
         }
 
         if (dataSize > maxNbRowsDisplayed && loadMore)
+        {
             showLoadMore(data.getData(), dataSize, end);
+            vectorWidgetSettings.SetLongValue(tableLabel.c_str(), "end", end);
+        }
     }
 }
 
