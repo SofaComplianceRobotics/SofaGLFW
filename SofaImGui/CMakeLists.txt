@@ -90,6 +90,7 @@ set(IMGUI_HEADER_FILES
     resources/OpenSans-Regular.h
     resources/Style.h
     resources/ProgramStyle.h
+    resources/ImGuiAddOn.h
 )
 
 set(IMGUI_SOURCE_FILES
@@ -106,6 +107,7 @@ set(IMGUI_SOURCE_FILES
     ${implot_SOURCE_DIR}/implot_items.cpp
     resources/Style.cpp
     resources/ProgramStyle.cpp
+    resources/ImGuiAddOn.cpp
 )
 
 set(SOFAIMGUI_SOURCE_DIR src/SofaImGui)

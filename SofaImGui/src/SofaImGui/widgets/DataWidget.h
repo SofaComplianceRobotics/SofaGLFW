@@ -20,6 +20,7 @@
 * Contact information: contact@sofa-framework.org                             *
 ******************************************************************************/
 #pragma once
+#include <ImGuiAddOn.h>
 #include <imgui.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/config.h>
@@ -56,10 +57,7 @@ struct DataWidget : BaseDataWidget
     void showWidget(sofa::core::objectmodel::BaseData& data) override
     {
         if (data.isReadOnly())
-        {
-            ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, true);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-        }
+            sofaimgui::BeginReadOnly();
 
         if (MyData* d = dynamic_cast<MyData*>(&data))
         {
@@ -79,10 +77,7 @@ struct DataWidget : BaseDataWidget
         }
 
         if (data.isReadOnly())
-        {
-            ImGui::PopStyleColor();
-            ImGui::PopItemFlag();
-        }
+            sofaimgui::EndReadOnly();
     }
 
     void showWidget(MyData& data)

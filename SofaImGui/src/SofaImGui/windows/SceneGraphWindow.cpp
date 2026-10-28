@@ -28,6 +28,7 @@
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <ImGuiAddOn.h>
 #include <IconsFontAwesome6.h>
 #include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
@@ -278,9 +279,7 @@ void SceneGraphWindow::internalShowWindow()
         showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
 
     if (workbench == Workbench::SCENE_EDITOR)
-    {
         showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window");
-    }
 
     // Top option buttons
 
@@ -931,10 +930,10 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                     ImGui::PopStyleColor();
 
                     if (workbench == Workbench::LIVE_CONTROL)
-                        ImGui::BeginDisabled();
+                        sofaimgui::BeginReadOnly();
                     sofaimgui::widgets::showWidget(*data);
                     if (workbench == Workbench::LIVE_CONTROL)
-                        ImGui::EndDisabled();
+                        sofaimgui::EndReadOnly();
 
                     ImGui::Unindent();
                 }

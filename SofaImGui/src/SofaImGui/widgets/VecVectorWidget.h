@@ -22,6 +22,7 @@
 #pragma once
 #include "GUIColors.h"
 #include "IconsFontAwesome6.h"
+#include "ImGuiAddOn.h"
 #include <sofa/core/objectmodel/Data.h>
 #include <SofaImGui/widgets/ScalarWidget.h>
 #include <imgui.h>
@@ -82,11 +83,11 @@ void showTableHeadersRow(core::objectmodel::BaseData* data)
 
 void showStartEnd(sofa::core::objectmodel::BaseData* data, const int&dataSize, int& start, int& end)
 {
-    if (data->isReadOnly())
-    {
-        ImGui::PushItemFlag(ImGuiItemFlags_ReadOnly, false);
-        ImGui::PopStyleColor();
-    }
+    ImGuiContext& g = *GImGui;
+    const bool isReadOnly = (g.CurrentItemFlags & ImGuiItemFlags_ReadOnly) != 0;
+
+    if (isReadOnly) // Start and end options are never read only
+        sofaimgui::EndReadOnly();
 
     auto sizeStr = std::to_string(dataSize);
     int inputWidth = ImGui::CalcTextSize(sizeStr.c_str()).x + ImGui::GetFrameHeightWithSpacing() * 2;
@@ -117,11 +118,8 @@ void showStartEnd(sofa::core::objectmodel::BaseData* data, const int&dataSize, i
     ImGui::SameLine();
     ImGui::TextDisabled("%s", (" / " + sizeStr).c_str());
 
-    if (data->isReadOnly())
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-        ImGui::PopItemFlag();
-    }
+    if (isReadOnly)
+        sofaimgui::BeginReadOnly();
 }
 
 void showLoadMore(sofa::core::objectmodel::BaseData* data, const int& dataSize, int& end)
