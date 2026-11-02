@@ -207,23 +207,25 @@ void BaseWindow::registerAndLoadGUIDataWindowSettings()
     // Load GUIData
     auto& windowsSettings = WindowsSettings::getInstance();
 
-    auto groot = m_baseGUI->getRootNode();
-    for (auto i=0; i<m_ws_guiDataSize; i++)
+    if (auto groot = m_baseGUI->getRootNode())
     {
-        std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
-        std::string guiDataGroup = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)+"Group").c_str(), std::string());
-
-        if (!guiDataPath.empty())
+        for (auto i=0; i<m_ws_guiDataSize; i++)
         {
-            sofa::core::BaseData* data;
-            if (groot->findDataLinkDest(data, "@" + guiDataPath, nullptr))
+            std::string guiDataPath = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), std::string());
+            std::string guiDataGroup = windowsSettings.getSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)+"Group").c_str(), std::string());
+
+            if (!guiDataPath.empty())
             {
-                addData(data->getName(),
-                        std::pair<sofa::core::BaseData*, bool>(data, false),
-                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
-                        std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
-                        guiDataGroup,
-                        data->getHelp());
+                sofa::core::BaseData* data;
+                if (groot->findDataLinkDest(data, "@" + guiDataPath, nullptr))
+                {
+                    addData(data->getName(),
+                            std::pair<sofa::core::BaseData*, bool>(data, false),
+                            std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                            std::pair<sofa::core::BaseData*, bool>(nullptr, nullptr),
+                            guiDataGroup,
+                            data->getHelp());
+                }
             }
         }
     }
@@ -242,8 +244,11 @@ void BaseWindow::resetGUIDataWindowSettings()
     int i=0;
     for (auto it=m_GUIData.begin(); it!=m_GUIData.end(); it++)
     {
-        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), it->get()->getData()->getPathName());
-        windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)+"Group").c_str(), it->get()->getGroup());
+        if (it->get() && it->get()->isValid())
+        {
+            windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i)).c_str(), it->get()->getData()->getPathName());
+            windowsSettings.setSetting(m_name.c_str(), (WS_WINDOWS_GUIDATA+std::to_string(i++)+"Group").c_str(), it->get()->getGroup());
+        }
     }
 }
 

@@ -71,13 +71,20 @@ void GUIDataManager::removeGUIData(GUIData::SPtr data)
 {
     if (data)
     {
-        m_GUIData.erase(data);
-        std::vector<GUIData::SPtr>& group = m_groupedGUIData[data->getGroup()];
-        auto it = std::find(group.begin(), group.end(), data);
-        if(it != group.end())
-            group.erase(it);
-        if(group.empty())
-            m_groupedGUIData.erase(data->getGroup());
+        { // Remove from m_GUIData
+            const auto it = std::find_if(m_GUIData.begin(), m_GUIData.end(), [data](GUIData::SPtr d){return data == d;});
+            if (it != m_GUIData.end())
+                m_GUIData.erase(it);
+        }
+
+        { // Remove from m_groupedGUIData
+            std::vector<GUIData::SPtr>& group = m_groupedGUIData[data->getGroup()];
+            const auto it = std::find(group.begin(), group.end(), data);
+            if(it != group.end())
+                group.erase(it);
+            if(group.empty())
+                m_groupedGUIData.erase(data->getGroup());
+        }
     }
 }
 

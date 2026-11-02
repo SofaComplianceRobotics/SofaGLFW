@@ -45,7 +45,11 @@ namespace sofaimgui::windows
     protected:
 
         bool m_ws_autoScroll{true};
-        bool m_ws_showInfo{true};
+        bool m_ws_showLogLevelOnly{false};
+        bool m_ws_wrapText{true};
+
+        const char* m_logLevelList[5]{"Info", "Suggestion", "Deprecated", "Warning", "Error"};
+        sofa::helper::logging::Message::Type m_logLevel = sofa::helper::logging::Message::Type::Info;
 
         sofa::Index m_firstMessageIndex{0};
 
@@ -54,6 +58,7 @@ namespace sofaimgui::windows
 
         void showButtons();
         void showSettingsButton();
+        void showLogLevelDropdown();
         void showExportButton();
         void showCopyLogButton();
         void showClearButton();

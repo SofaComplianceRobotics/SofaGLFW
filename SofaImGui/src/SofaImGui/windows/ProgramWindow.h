@@ -128,6 +128,7 @@ class SOFAIMGUI_API ProgramWindow : public BaseWindow
     sofa::Index addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track);
 
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::PROGRAM;}
+    const double& getTime();
     void setTime(const double &time);
 
 };

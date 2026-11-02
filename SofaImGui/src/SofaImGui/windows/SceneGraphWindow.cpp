@@ -28,6 +28,7 @@
 #include <SofaImGui/windows/SceneGraphWindow.h>
 #include <SofaImGui/widgets/Widgets.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <ImGuiAddOn.h>
 #include <IconsFontAwesome6.h>
 #include <IconsDejaVuSans.h>
 #include <SofaImGui/ObjectColor.h>
@@ -278,9 +279,7 @@ void SceneGraphWindow::internalShowWindow()
         showInfoMessage("Modifying the simulation parameters is disabled in the active workbench.");
 
     if (workbench == Workbench::SCENE_EDITOR)
-    {
         showInfoMessage("Editing the scene graph is enabled in the active workbench. Drag and drop components from the Component Window");
-    }
 
     // Top option buttons
 
@@ -359,7 +358,8 @@ void SceneGraphWindow::internalShowWindow()
         ImGui::PopStyleColor();
     }
 
-    if (ImGui::BeginTable("SceneGraphTable", (workbench == Workbench::SCENE_EDITOR)? 3: 2, flags))
+    int nbColumn = (workbench == Workbench::SCENE_EDITOR)? 3: 2;
+    if (ImGui::BeginTable("SceneGraphTable", nbColumn, flags))
     {
         ImGui::TableSetupColumn(workbench == Workbench::SCENE_EDITOR? "Add | Name": "Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Type  /  Template", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthStretch);
@@ -380,6 +380,12 @@ void SceneGraphWindow::internalShowWindow()
 
         m_baseGUI->setCurrentSelection(m_selection);
 
+        // Fill the available window space with an invisible item defining a area to drop component
+        ImGui::TableNextRow();
+        for (int i=0; i<nbColumn; i++)
+            ImGui::TableNextColumn();
+        ImVec2 dummyRegion = ImGui::GetContentRegionAvail();
+        ImGui::Dummy(ImVec2(dummyRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dummyRegion.y)));
         ImGui::EndTable();
     }
 }
@@ -433,7 +439,7 @@ void SceneGraphWindow::showNode(sofa::simulation::Node* parent, sofa::simulation
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 
     ImVec4 nodeColor;
-    std::string nodeIcon = "";
+    std::string nodeIcon = isDeactivated? " " ICON_FA_BAN :"";
     std::string objectMessage = getObjectIconAlert(node, nodeColor, nodeIcon);
 
     if (!objectMessage.empty())
@@ -899,7 +905,7 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
         {
             for (auto& data : datas)
             {
-                if (ImGui::CollapsingHeader(data->m_name.c_str()))
+                if (data->isDisplayed() && ImGui::CollapsingHeader(data->m_name.c_str()))
                 {
                     ImGui::Indent();
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
@@ -924,10 +930,10 @@ void SceneGraphWindow::addGroupTab(const std::map<std::string, std::vector<sofa:
                     ImGui::PopStyleColor();
 
                     if (workbench == Workbench::LIVE_CONTROL)
-                        ImGui::BeginDisabled();
+                        sofaimgui::BeginReadOnly();
                     sofaimgui::widgets::showWidget(*data);
                     if (workbench == Workbench::LIVE_CONTROL)
-                        ImGui::EndDisabled();
+                        sofaimgui::EndReadOnly();
 
                     ImGui::Unindent();
                 }
