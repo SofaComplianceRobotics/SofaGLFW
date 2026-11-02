@@ -155,9 +155,10 @@ void BaseWindow::showInfoMessage(const char* message)
     ImGui::EndDisabled();
 }
 
-bool BaseWindow::dropGUIData(models::guidata::GUIData::SPtr& data)
+models::guidata::GUIData::SPtr BaseWindow::getDroppedGUIData()
 {
-    bool dropped = false;
+    models::guidata::GUIData::SPtr data{nullptr};
+
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_DATAWIDGET"))
@@ -172,12 +173,12 @@ bool BaseWindow::dropGUIData(models::guidata::GUIData::SPtr& data)
                                models::guidata::GUIData::DEFAULTGROUP,
                                droppedData->getHelp());
                 resetGUIDataWindowSettings();
-                dropped = true;
             }
         }
         ImGui::EndDragDropTarget();
     }
-    return dropped;
+
+    return data;
 }
 
 void BaseWindow::removeGUIData(models::guidata::GUIData::SPtr data)

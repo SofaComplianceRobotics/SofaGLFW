@@ -143,8 +143,8 @@ void PlottingWindow::internalShowWindow()
     showPlots();
 
     // Check drop
-    models::guidata::GUIData::SPtr droppedData;
-    if (dropGUIData(droppedData))
+    models::guidata::GUIData::SPtr droppedData = getDroppedGUIData();
+    if (droppedData && droppedData->isValid())
         changeGUIDataGroup(droppedData, "0");
 }
 

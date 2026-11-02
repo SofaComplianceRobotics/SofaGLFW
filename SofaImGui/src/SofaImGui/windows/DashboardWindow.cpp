@@ -52,8 +52,8 @@ void DashboardWindow::internalShowWindow()
     ImGui::Dummy(ImVec2(dropRegion.x, fmax(ImGui::GetFrameHeightWithSpacing() * 5, dropRegion.y)));
 
     // Check drop
-    models::guidata::GUIData::SPtr droppedData;
-    if (dropGUIData(droppedData) && droppedData && droppedData->isValid())
+    models::guidata::GUIData::SPtr droppedData = getDroppedGUIData();
+    if (droppedData && droppedData->isValid())
         changeGUIDataGroup(droppedData, droppedData->getData()->getOwner()->getPathName());
 
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
