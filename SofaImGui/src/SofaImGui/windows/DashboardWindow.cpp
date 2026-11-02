@@ -92,12 +92,9 @@ void DashboardWindow::showGUIData()
                 int i = 0;
                 for (models::guidata::GUIData::SPtr data : itGroup.second)
                 {
-                    if (data && data->isValid())
-                    {
-                        ImGui::PushID(i++);
-                        showWidget(data);
-                        ImGui::PopID();
-                    }
+                    ImGui::PushID(i++);
+                    showWidget(data);
+                    ImGui::PopID();
                 }
 
                 ImGui::EndTable();
@@ -111,14 +108,28 @@ void DashboardWindow::showGUIData()
 
 void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
 {
-    bool noOwner = (data->getData()->getOwner()->toBaseComponent()->getContext()==sofa::core::objectmodel::BaseContext::getDefault());
+    bool hasOwner = false;
+
+    if (data && data->isValid())
+    {
+        if (auto* component = data->getData()->getOwner()->toBaseComponent())
+        {
+            if (component->getContext()!=sofa::core::objectmodel::BaseContext::getDefault())
+                hasOwner = true;
+        }
+        else if (auto* node = data->getData()->getOwner()->toBaseNode())
+        {
+            if (node->getContext()!=sofa::core::objectmodel::BaseContext::getDefault())
+                hasOwner = true;
+        }
+    }
 
     ImGui::TableNextColumn();
     ImGui::AlignTextToFramePadding();
 
     // Warning message
     {
-        if (noOwner)
+        if (!hasOwner)
         {
             ImGui::Text(ICON_FA_TRIANGLE_EXCLAMATION);
             ImGui::SetItemTooltip("Data is not used in the simulation");
@@ -130,6 +141,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
     ImGui::TableNextColumn();
 
     // Data name
+    if (data)
     {
         ImGui::Text("%s ", data->getLabel().c_str()); // Value description
         ImGui::SetItemTooltip("%s", data->getHelp().c_str());
@@ -146,6 +158,7 @@ void DashboardWindow::showWidget(models::guidata::GUIData::SPtr data)
     ImGui::TableNextColumn();
 
     // Data widget
+    if (data && data->isValid())
     {
         sofaimgui::widgets::showWidget(*data->getData());
     }
