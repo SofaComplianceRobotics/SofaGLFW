@@ -200,13 +200,14 @@ PYBIND11_MODULE(ImGui, m)
 {
     // Deprecated
     m.def("setIPController", &setIPController
-          ,"[DEPRECATED] Use setInverseProblemSolver instead.");
+          , "[DEPRECATED] Use setInverseProblemSolver instead.");
 
     m.def("setInverseProblemSolver", &setInverseProblemSolver
+          , "solver"_a
           , "Set the inverse problem solver for piloting TCP from the GUI.");
     m.def("addTCP", &addTCP
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
-          , "minRotation"_a = - 2 * std::numbers::pi, "minRotation"_a = 2 * std::numbers::pi
+          , "minRotation"_a = - 2 * std::numbers::pi, "maxRotation"_a = 2 * std::numbers::pi
           , "Add a TCP to pilot from the Move, Program or IO windows.");
     m.def("addActuator", &addActuator
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
@@ -215,8 +216,10 @@ PYBIND11_MODULE(ImGui, m)
           , "accessoryLabel"_a, "featureLabel"_a, "data"_a, "min"_a=py::none(), "max"_a=py::none(),  "type"_a = "double"
           , "Add an accessory (e.g. gripper) feature (e.g. opening) to the Move, Program or IO windows.");
 
-    m.def("getRobotConnectionToggle", &getRobotConnectionToggle);
-    m.def("setRobotConnectionToggle", &setRobotConnectionToggle);
+    m.def("getRobotConnectionToggle", &getRobotConnectionToggle
+          , "Get the value of the GUI simulation/robot connection toggle.");
+    m.def("setRobotConnectionToggle", &setRobotConnectionToggle
+          , "Set the value of the GUI simulation/robot connection toggle.");
 
     moduleAddDashboardWindow(m);
     moduleAddIOWindow(m);
