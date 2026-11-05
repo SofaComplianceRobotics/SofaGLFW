@@ -33,18 +33,20 @@
 
 namespace sofaimgui::models::actions {
 
-bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
+bool Custom::CustomView::showBlockInternal(const std::string &label,
+                                           const ImVec2 &size,
+                                           const bool & isSelected)
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().CustomBlockBg);
-    sofaimgui::widgets::BlockHeader(ICON_FA_SLIDERS, custom.getComment(), hasValuesChanged);
+    widgets::BeginBlock(label, size, ProgramColors().CustomBlockBg, isSelected);
+    widgets::BlockHeader(ICON_FA_SLIDERS, custom.getComment(), hasValuesChanged);
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Duration
-        sofaimgui::widgets::BeginBlockLine("duration");
+        widgets::BeginBlockLine("duration");
         double duration = custom.getDuration();
         std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
         if (ImGui::InputDouble(id.c_str(), &duration, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -52,11 +54,11 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
             hasValuesChanged = true;
             custom.setDuration(duration);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
     { // Speed
-        sofaimgui::widgets::BeginBlockLine("speed");
+        widgets::BeginBlockLine("speed");
         std::string id = "##speed" + std::to_string(window->DC.CursorPos.x);
         double speed = custom.getSpeed();
         if (ImGui::InputDouble(id.c_str(), &speed, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -64,10 +66,10 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
             hasValuesChanged = true;
             custom.setSpeed(speed);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     auto data = custom.m_data;
 
@@ -77,7 +79,7 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
         if (dataSize > 1)
         {
             // Index
-            sofaimgui::widgets::BeginBlockLine("index");
+            widgets::BeginBlockLine("index");
             std::string id = "##index" + std::to_string(window->DC.CursorPos.x);
             int index = custom.m_index;
             if (ImGui::InputInt(id.c_str(), &index, 0, 0))
@@ -90,12 +92,12 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
                 hasValuesChanged = true;
             }
             ImGui::SetItemTooltip("Index in the vector (size: %i)", dataSize);
-            sofaimgui::widgets::EndBlockLine();
+            widgets::EndBlockLine();
         }
     }
 
     { // Data
-        sofaimgui::widgets::BeginBlockLine("data");
+        widgets::BeginBlockLine("data");
         std::string label = (data && data->isValid())? data->getLabel(): "drop a data here";
         std::string tooltip = (data && data->isValid())? data->getData()->getPathName(): "Data";
 
@@ -124,13 +126,13 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
             }
             ImGui::EndDragDropTarget();
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Values
-        sofaimgui::widgets::BeginBlockLine("start-end");
+        widgets::BeginBlockLine("start-end");
         std::string idStart = "##startValue" + std::to_string(window->DC.CursorPos.x);
         if (ImGui::InputDouble(idStart.c_str(), &custom.m_startValue, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
         {
@@ -153,10 +155,10 @@ bool Custom::CustomView::showBlock(const std::string &label, const ImVec2 &size)
         }
         ImGui::SetItemTooltip("End Value");
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    widgets::EndBlock(size);
+    widgets::EndBlock(label, size);
 
     return hasValuesChanged;
 }

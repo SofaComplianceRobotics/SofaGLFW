@@ -11,7 +11,7 @@ ProgramColors::ProgramColors()
     PickBlockBg         = ImVec4(0.84f, 0.73f, 0.52f, 0.6f);
     StartMoveBlockBg    = ImVec4(0.86f, 0.86f, 0.86f, 0.6f);
     WaitBlockBg         = ImVec4(0.84f, 0.68f, 0.66f, 0.6f);
-    RepeatBlockBg       = ImVec4(0.58f, 0.50f, 0.92f, 0.6f);
+    GroupColorBg        = ImVec4(0.58f, 0.50f, 0.92f, 0.6f);
     EmptyTrackBg        = ImVec4(0.86f, 0.86f, 0.86f, 0.2f);
     Text                = ImColor(COLOR_WHITE);
     FrameText           = ImColor(COLOR_BLACK);

@@ -41,7 +41,7 @@ class SOFAIMGUI_API Pick : public Action
          const double& openingDistance = maxOpeningDistance);
     ~Pick() = default;
 
-    std::shared_ptr<Action> duplicate() override;
+    std::shared_ptr<BaseBlock> duplicate() override;
 
     void setDuration(const double &duration) override;
     bool getState() {return m_release;}
@@ -66,11 +66,12 @@ class SOFAIMGUI_API Pick : public Action
     {
        public:
         PickView(Pick &_pick) : pick(_pick) {}
-        bool showBlock(const std::string &label,
-                       const ImVec2 &size) override;
 
        protected:
         Pick &pick;
+        bool showBlockInternal(const std::string &label,
+                               const ImVec2 &size,
+                               const bool & = false) override;
     };
     PickView view;
 

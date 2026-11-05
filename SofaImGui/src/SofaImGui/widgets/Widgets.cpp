@@ -2,6 +2,7 @@
 #include "IconsFontAwesome6.h"
 #include <sofa/helper/logging/Messaging.h>
 #include <SofaImGui/widgets/Widgets.h>
+#include <ProgramStyle.h>
 #include <string>
 
 

@@ -30,7 +30,6 @@
 #include <SofaImGui/models/actions/Move.h>
 #include <SofaImGui/models/actions/Pick.h>
 #include <SofaImGui/models/actions/Wait.h>
-#include <SofaImGui/models/modifiers/Repeat.h>
 
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/helper/Utils.h>
@@ -57,7 +56,7 @@ ProgramWindow::ProgramWindow(const std::string& name,
     : BaseWindow(name)
 {
     m_enabledWorkbenches = Workbench::LIVE_CONTROL | Workbench::SIMULATION_MODE;
-    m_windowFlags = ImGuiWindowFlags_AlwaysAutoResize;
+    m_windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     m_kinematicsGUIDataManager = kinematicsGUIDataManager;
 }
 
@@ -105,8 +104,10 @@ void ProgramWindow::internalShowWindow()
 {
     if (isEnabledByState())
     {
-        ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.;
-        ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
+        ProgramSizes().BlockHeaderHeight = ImGui::GetStyle().FramePadding.y + ImGui::GetFrameHeight();
+        ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 3 + ProgramSizes().BlockHeaderHeight * 2;
+        ProgramSizes().TrackMinHeight = ProgramSizes().BlockHeaderHeight * 2;
+
         static bool firstTime = true;
         if (firstTime)
         {
@@ -116,10 +117,12 @@ void ProgramWindow::internalShowWindow()
         ProgramSizes().InputWidth = ImGui::CalcTextSize("10000").x;
         ProgramSizes().AlignWidth = ImGui::CalcTextSize("iterations    ").x;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, ImGui::GetStyle().ItemSpacing.y * 0.5));
         showProgramButtons();
 
         float width = ImGui::GetWindowWidth();
-        float height = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 3.;
+        float height = ImGui::GetContentRegionAvail().y;
+
         static const float defaultZoomCoef = 6.5;
         static float zoomCoef = defaultZoomCoef;
         static float minSize = ImGui::GetFrameHeight() * 1.5;
@@ -127,12 +130,13 @@ void ProgramWindow::internalShowWindow()
         ProgramSizes().StartMoveBlockSize = defaultZoomCoef * minSize;
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_WindowBg));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         if (ImGui::BeginChild("Timeline", ImVec2(width, height), ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_AlwaysHorizontalScrollbar))
         {
             ImGui::PopStyleColor();
+            ImGui::PopStyleVar(2);
 
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, 0.));
             if (m_ws_timeBasedDisplay)
                 showTimeline();
             else // Keep the space the timeline would have taken, empty
@@ -140,17 +144,19 @@ void ProgramWindow::internalShowWindow()
                 ImGui::NewLine();
                 ImGui::NewLine();
             }
+            ImGui::PopStyleVar();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
             int nbCollaspedTracks = showTracks();
+            ImGui::PopStyleVar();
 
             if (m_ws_timeBasedDisplay)
                 showCursorMarker(nbCollaspedTracks);
-
-            ImGui::PopStyleVar();
         }
         else
         {
             ImGui::PopStyleColor();
+            ImGui::PopStyleVar(2);
         }
         ImGui::EndChild();
 
@@ -167,14 +173,14 @@ void ProgramWindow::internalShowWindow()
     }
     else
     {
-        showInfoMessage("This window is designed for programming a robot using action and modifier blocks arranged on time-based tracks. "
+        showInfoMessage("This window is designed for programming a robot using action blocks arranged on time-based tracks. "
                         "The scene is missing elements for this window to work properly.");
     }
 }
 
 void ProgramWindow::showProgramButtons()
 {
-    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::GetFrameHeight() * 4 - ImGui::GetStyle().ItemSpacing.y * 5.5; // Get position for right buttons
+    auto positionRight = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::GetFrameHeight() * 4 - ImGui::GetStyle().ItemSpacing.x * 5.5; // Get position for right buttons
     auto positionMiddle = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x / 2.f; // Get position for middle button
 
             // Left buttons
@@ -202,13 +208,6 @@ void ProgramWindow::showProgramButtons()
     if (ImGui::Button("Restart"))
     {
         setTime(0);
-
-        for (const auto& track: m_program.getTracks())
-        {
-            const auto& modifiers = track->getModifiers();
-            for (const auto& modifier: modifiers)
-                modifier->reset();
-        }
     }
     ImGui::SetItemTooltip("Restart the program");
 
@@ -272,8 +271,6 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     double max = ImGui::GetWindowWidth() + ImGui::GetScrollX();
     ImRect grab_bb(ImVec2(m_trackBeginPos.x + m_cursorPos - widthTri / 2., m_trackBeginPos.y - widthTri),
                    ImVec2(m_trackBeginPos.x + m_cursorPos + widthTri / 2., m_trackBeginPos.y));
-    const ImRect frame_bb(ImVec2(m_trackBeginPos.x - widthTri / 2., m_trackBeginPos.y - widthTri),
-                          ImVec2(m_trackBeginPos.x + max, m_trackBeginPos.y));
 
     ImVec2 p0Rect(grab_bb.Min.x + widthTri / 2., grab_bb.Min.y);
     ImVec2 p1Rect(p0Rect.x + thicknessRect,
@@ -281,7 +278,10 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
 
     ImVec2 p0Tri(p0Rect.x + thicknessRect / 2.f, grab_bb.Max.y);
     ImVec2 p1Tri(p0Tri.x - widthTri / 2.f, p0Tri.y - widthTri);
-    ImVec2 p2Tri(p0Tri.x + widthTri / 2.f,  p0Tri.y - widthTri);
+    ImVec2 p2Tri(p0Tri.x + widthTri / 2.f, p0Tri.y - widthTri);
+
+    ImRect frame_bb(ImVec2(m_trackBeginPos.x - widthTri / 2., p0Rect.y),
+                    ImVec2(m_trackBeginPos.x + max, p1Rect.y));
 
     ImGui::ItemSize(ImVec2(widthTri, widthTri));
     const ImGuiID id = ImGui::GetID("##cursormarker");
@@ -304,6 +304,7 @@ void ProgramWindow::showCursorMarker(const int& nbCollaspedTracks)
     }
 
     ImGuiContext& g = *GImGui;
+    frame_bb.Max.y = m_trackBeginPos.y;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
     const bool clicked = hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left, ImGuiInputFlags_None, id);
     const bool make_active = (clicked || g.NavActivateId == id);
@@ -340,12 +341,6 @@ void ProgramWindow::showTimeline()
     int nbSteps = width / ProgramSizes().TimelineOneSecondSize + 1;
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    const ImRect frame_bb(ImVec2(m_trackBeginPos.x, m_trackBeginPos.y - ImGui::GetFrameHeight() * 1.5),
-                          ImVec2(m_trackBeginPos.x + width, m_trackBeginPos.y));
-    const ImGuiID id = ImGui::GetID("##timeline");
-    if (!ImGui::ItemAdd(frame_bb, id))
-        return;
-    ImGui::SetItemTooltip("Simulation time");
     window->DC.CursorPos.x = m_trackBeginPos.x;
 
     ImGui::BeginGroup(); // Timeline's number (seconds)
@@ -359,6 +354,7 @@ void ProgramWindow::showTimeline()
         ImGui::PopStyleVar();
     }
     ImGui::EndGroup();
+    ImGui::SetItemTooltip("Simulation time");
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -390,53 +386,94 @@ void ProgramWindow::showTimeline()
 
 int ProgramWindow::showTracks()
 {
-    const auto& tracks = m_program.getTracks();
-
-    int trackIndex = 0;
     int nbCollapsedTrack = 0;
 
-    for (const auto& track: tracks)
-    {
-        // Track options menu
-        std::string menuLabel = "##TrackMenu" + std::to_string(trackIndex);
-        trackIndex = addTrackMenu(menuLabel, trackIndex, track);
+    { // Tracks
+        const auto& tracks = m_program.getTracks();
 
-        bool collapsed = showTrackButtons(trackIndex, menuLabel.c_str());
-        if (collapsed)
+        int trackIndex = 0;
+
+        for (auto track: tracks)
         {
-            nbCollapsedTrack++;
-        }
+            ImGui::PushID(trackIndex);
 
-        ImGui::SameLine();
-        m_trackBeginPos = ImGui::GetCurrentWindow()->DC.CursorPos;
-        showBlocks(track, trackIndex);
+            // Track options menu
+            std::string menuLabel = "##TrackMenu" + std::to_string(trackIndex);
 
-        float x = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x ;
-        float y = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.y ;
-
-        { // Empty track background
-            ImGui::SameLine();
-            std::string trackLabel = "##Track" + std::to_string(trackIndex) + "Empty";
-            ImVec2 size(ImGui::GetWindowWidth() + ImGui::GetScrollX(), ProgramSizes().TrackHeight);
-
-            float x = ImGui::GetCurrentWindow()->DC.CursorPos.x ;
-            float y = ImGui::GetCurrentWindow()->DC.CursorPos.y ;
-            ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
-
-            ImGui::ItemSize(size);
-            if (ImGui::ItemAdd(bb, ImGui::GetID(trackLabel.c_str())))
-            { // Backgroung
-                ImGui::GetWindowDrawList()->AddRectFilled(bb.Min, bb.Max,
-                                                          ImGui::GetColorU32(ProgramColors().EmptyTrackBg),
-                                                          ImGui::GetStyle().FrameRounding,
-                                                          ImDrawFlags_None);
+            bool collapsed = showTrackButtons(trackIndex, menuLabel.c_str());
+            if (collapsed)
+            {
+                nbCollapsedTrack++;
             }
+
+            ImGui::SameLine();
+
+            if (trackIndex == 0)
+            {
+                m_trackBeginPos = ImGui::GetCurrentWindow()->DC.CursorPos;
+                if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
+                    m_trackBeginPos.x += ProgramSizes().StartMoveBlockSize;
+            }
+            else
+            {
+                ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x += ProgramSizes().StartMoveBlockSize + ImGui::GetStyle().ItemSpacing.x;
+            }
+
+            float blockHeight = ProgramSizes().TrackHeight - ProgramSizes().BlockHeaderHeight;
+
+            { // Show blocks
+                showBlocks(track, trackIndex);
+            }
+
+            // Store position
+            float x = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x ;
+            float y = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.y ;
+
+            { // Empty track background
+                ImGui::SameLine();
+                std::string trackLabel = "##Track" + std::to_string(trackIndex) + "Empty";
+                ImVec2 size(ImGui::GetWindowWidth() + ImGui::GetScrollX(), blockHeight);
+
+                float x = ImGui::GetCurrentWindow()->DC.CursorPos.x ;
+                float y = ImGui::GetCurrentWindow()->DC.CursorPos.y ;
+                ImRect bb(ImVec2(x, y), ImVec2(x + size.x, y + size.y));
+
+                ImGui::ItemSize(size);
+                if (ImGui::ItemAdd(bb, ImGui::GetID(trackLabel.c_str())))
+                { // Backgroung
+                    ImGui::GetWindowDrawList()->AddRectFilled(bb.Min, bb.Max,
+                                                              ImGui::GetColorU32(ProgramColors().EmptyTrackBg),
+                                                              ImGui::GetStyle().FrameRounding,
+                                                              ImDrawFlags_None);
+                }
+            }
+
+            { // Show between blocks button
+                const std::vector<models::actions::Action::SPtr> &actions = track->getActions();
+                showBetweenBlocksButtons(ImVec2(x + ImGui::GetStyle().ItemSpacing.x, y + blockHeight / 2.f), actions.size(), track, trackIndex);
+            }
+
+            trackIndex++;
+
+            ImGui::PopID();
         }
+    }
 
-        const std::vector<std::shared_ptr<models::actions::Action>> &actions = track->getActions();
-        showBetweenBlocksButtons(ImVec2(x + ImGui::GetStyle().ItemSpacing.x, y + ProgramSizes().TrackHeight / 2.f), actions.size(), track, trackIndex);
+    { // Tracks menu
+        const auto& tracks = m_program.getTracks();
+        int trackIndex = 0;
+        for (auto track: tracks)
+        {
+            ImGui::PushID(trackIndex);
 
-        trackIndex++;
+            // Track options menu
+            std::string menuLabel = "##TrackMenu" + std::to_string(trackIndex);
+            addTrackMenu(menuLabel, trackIndex, track);
+
+            trackIndex++;
+
+            ImGui::PopID();
+        }
     }
 
     return nbCollapsedTrack;
@@ -447,7 +484,7 @@ bool ProgramWindow::showTrackButtons(const int &trackIndex, const char* const me
     static bool collapsed = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImDrawList* drawList = ImGui::GetWindowDrawList();
-    ImVec2 size(ImGui::GetFrameHeight(), ProgramSizes().TrackHeight);
+    ImVec2 size(ImGui::GetFrameHeight() * 2, ProgramSizes().TrackHeight);
 
     float x = window->DC.CursorPos.x ;
     float y = window->DC.CursorPos.y ;
@@ -474,8 +511,7 @@ bool ProgramWindow::showTrackButtons(const int &trackIndex, const char* const me
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(ImGuiCol_Header)); // Color of track button
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetColorU32(ImGuiCol_Header)); // Color of track button
 
-    if (!collapsed || ProgramSizes().TrackHeight > ProgramSizes().TrackMinHeight) // hide the button at the end of the collapsing animation
-    {
+    { // Option button
         std::string optionlabel = ICON_FA_BARS"##TrackOption" + std::to_string(trackIndex);
         if(ImGui::Button(optionlabel.c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
         {
@@ -484,17 +520,24 @@ bool ProgramWindow::showTrackButtons(const int &trackIndex, const char* const me
     }
 
     window->DC.CursorPos.x = x;
-    window->DC.CursorPos.y = y + (collapsed? (ProgramSizes().TrackHeight - ImGui::GetFrameHeight()) / 2.f :
-                                      ProgramSizes().TrackHeight - ImGui::GetFrameHeight()) ;
+    window->DC.CursorPos.y = y + ProgramSizes().TrackHeight - ImGui::GetFrameHeightWithSpacing();
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5, 1)); // Align icon down middle
 
     std::string collapselabel = "##TrackCollapse" + std::to_string(trackIndex);
     std::vector<std::string> icons{ICON_FA_COMPRESS, ICON_FA_EXPAND};
     static std::string icon = icons[collapsed];
-    ImGui::Button((icon + collapselabel).c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
-    if (ImGui::IsItemClicked())
-    {
-        collapsed = !collapsed;
+
+    { // Collapse button
+        ImGui::Button((icon + collapselabel).c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()));
+        ImGui::SetItemTooltip(collapsed? "Expend track": "Collapse track");
+
+        if (ImGui::IsItemClicked())
+            collapsed = !collapsed;
+    }
+
+    { // Track Name
+        ImGui::SameLine(0, 0);
+        showTrackName(trackIndex);
     }
 
     // Animate collapse
@@ -509,7 +552,6 @@ bool ProgramWindow::showTrackButtons(const int &trackIndex, const char* const me
             icon = icons[collapsed];
     }
 
-    ImGui::SetItemTooltip(collapsed? "Expend track": "Collapse track");
     ImGui::PopStyleVar(); // End align icon down middle
     ImGui::PopStyleColor(3); // Color of track button
 
@@ -519,35 +561,21 @@ bool ProgramWindow::showTrackButtons(const int &trackIndex, const char* const me
     return collapsed;
 }
 
-void ProgramWindow::showBlocks(std::shared_ptr<models::Track> track,
-                               const int& trackIndex)
+void ProgramWindow::showBlocks(models::Track::SPtr track, const int& trackIndex)
 {
-    float blockHeight = ProgramSizes().TrackHeight;
+    float blockHeight = ProgramSizes().TrackHeight - ProgramSizes().BlockHeaderHeight;
 
-    if (m_kinematicsGUIDataManager->hasTCP())
-    {
-        m_trackBeginPos.x += ProgramSizes().StartMoveBlockSize;
+    if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP() && trackIndex == 0)
         showStartMoveBlock(blockHeight, trackIndex, track);
-    }
-
-    float x = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x ;
-    float y = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.y ;
-
-    showModifierBlocks(blockHeight, trackIndex, track);
-
-    ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x = x;
-    ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.y = y;
 
     showActionBlocks(blockHeight, trackIndex, track);
 }
 
-void ProgramWindow::showStartMoveBlock(const float& blockHeight,
-                                       const sofa::Index& trackIndex,
-                                       std::shared_ptr<models::Track> track)
+void ProgramWindow::showStartMoveBlock(const float& blockHeight, const sofa::Index& trackIndex, models::Track::SPtr track)
 {
-    std::shared_ptr<models::actions::StartMove> startmove = track->getStartMove();
+    auto startmove = track->getStartMove();
 
-    {
+    { // Start Move
         std::string blockLabel = "##StartMove" + std::to_string(trackIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
 
@@ -564,41 +592,23 @@ void ProgramWindow::showStartMoveBlock(const float& blockHeight,
     }
 }
 
-void ProgramWindow::showModifierBlocks(const float& blockHeight,
-                                      const sofa::Index& trackIndex,
-                                      std::shared_ptr<models::Track> track)
+void ProgramWindow::showActionBlocks(const float& blockHeight, const sofa::Index& trackIndex, models::Track::SPtr track)
 {
-    const std::vector<std::shared_ptr<models::modifiers::Modifier>> &modifiers = track->getModifiers();
-    sofa::Index modifierIndex = 0;
-
-    while(modifierIndex < modifiers.size())
-    {
-        std::shared_ptr<models::modifiers::Modifier> modifier = modifiers[modifierIndex];
-        float blockWidth = modifier->getDuration() * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
-        std::string blockLabel = "##Modifier" + std::to_string(trackIndex) + std::to_string(modifierIndex);
-        std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
-
-        modifierIndex = addModifierBlockMenu(menuLabel, modifierIndex, track, modifier);
-
-        ImGui::SameLine();
-        modifier->getView()->showBlock(blockLabel, ImVec2(blockWidth, blockHeight), m_trackBeginPos);
-        if (blockWidth > ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2.0f)
-            showBlockOptionButton(menuLabel, blockLabel);
-    }
-}
-
-void ProgramWindow::showActionBlocks(const float& blockHeight,
-                                   const sofa::Index& trackIndex,
-                                   std::shared_ptr<models::Track> track)
-{
-    const std::vector<std::shared_ptr<models::actions::Action>> &actions = track->getActions();
+    const auto &actions = track->getActions();
     sofa::Index actionIndex = 0;
+
+    bool actionSelected = false;
+    static sofa::Index actionIndexContextMenu = 0;
+    const std::string actionContextMenuLabel = "##ActionContextMenuLabel";
 
     while(actionIndex < actions.size())
     {
         ImGui::PushID(actionIndex);
 
-        std::shared_ptr<models::actions::Action> action = actions[actionIndex];
+        models::actions::Action::SPtr action = actions[actionIndex];
+        bool isSelected = track->isActionSelected(actionIndex);
+        bool openPopUp = false;
+
         float blockWidth = (m_ws_timeBasedDisplay? action->getDuration(): 1.f) * ProgramSizes().TimelineOneSecondSize - ImGui::GetStyle().ItemSpacing.x;
         std::string blockLabel = "##Action" + std::to_string(trackIndex) + std::to_string(actionIndex);
         std::string menuLabel = std::string("##OptionsMenu" + blockLabel);
@@ -609,33 +619,69 @@ void ProgramWindow::showActionBlocks(const float& blockHeight,
         float y = window->DC.CursorPos.y ;
         ImVec2 blockSize(blockWidth, blockHeight);
 
-        std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
-        if (move)
-        {
-            move->setDrawTrajectory(m_ws_drawTrajectory);
-            if(move->getView()->showBlock(blockLabel, blockSize))
+        { // Show group if any
+            if (const int length = track->getGroupLength(action) > 0)
             {
-                track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
             }
         }
-        else
-        {
-            action->getView()->showBlock(blockLabel, blockSize);
+
+        { // Show action block
+            models::actions::Move::SPtr move = std::dynamic_pointer_cast<models::actions::Move>(action);
+            if (move)
+            {
+                move->setDrawTrajectory(m_ws_drawTrajectory);
+                if(move->getView()->showBlock(blockLabel, blockSize, isSelected))
+                {
+                    track->updateNextMoveInitialPoint(actionIndex, move->getWaypoint());
+                }
+            }
+            else
+            {
+                action->getView()->showBlock(blockLabel, blockSize, isSelected);
+            }
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                openPopUp = true;
+
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                if (!m_program.isTrackSelected(trackIndex))
+                {
+                    m_program.clearTrackSelected();
+                    m_program.setTrackSelected(trackIndex);
+                }
+                track->setActionSelected(actionIndex);
+                actionSelected = true;
+            }
         }
 
-        actionIndex = addActionBlockMenu(menuLabel, actionIndex, trackIndex, track, action);
-        if (blockWidth > ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2.0f)
-            showBlockOptionButton(menuLabel, blockLabel);
+        { // Menu
+            actionIndex = addActionBlockMenu(menuLabel, actionIndex, trackIndex, track, action);
+            if (blockWidth > ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.x * 2.0f)
+                showBlockOptionButton(menuLabel, blockLabel);
+        }
 
-        showBetweenBlocksButtons(ImVec2(x, y + blockHeight / 2.f), actionIndex - 1, track, trackIndex);
+        { // Between blocks buttons
+            showBetweenBlocksButtons(ImVec2(x, y + blockHeight / 2.f), actionIndex - 1, track, trackIndex);
+        }
 
         ImGui::PopID();
+
+        if (openPopUp)
+        {
+            ImGui::OpenPopup(actionContextMenuLabel.c_str());
+            actionIndexContextMenu = actionIndex - 1;
+        }
     }
+
+    addActionsContextMenu(actionContextMenuLabel, actionIndexContextMenu);
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !actionSelected)
+        track->clearSelectedActions();
 }
 
 void ProgramWindow::showBetweenBlocksButtons(const ImVec2 &position,
                                             const unsigned int &actionIndex,
-                                            std::shared_ptr<models::Track> track,
+                                            models::Track::SPtr track,
                                             const int& trackIndex)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -712,10 +758,10 @@ void ProgramWindow::showBetweenBlocksButtons(const ImVec2 &position,
     }
 
     window->DC.CursorPosPrevLine = backuppos;
+    window->DC.CursorPos.y = backuppos.y + ProgramSizes().TrackHeight + ImGui::GetStyle().ItemSpacing.x;
 }
 
-void ProgramWindow::showBlockOptionButton(const std::string &menulabel,
-                                           const std::string &label)
+void ProgramWindow::showBlockOptionButton(const std::string &menulabel, const std::string &label)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     auto backuppos = window->DC.CursorPosPrevLine;
@@ -724,7 +770,7 @@ void ProgramWindow::showBlockOptionButton(const std::string &menulabel,
     ImVec2 buttonSize(ysize, ysize);
     window->DC.CursorPos = window->DC.CursorPosPrevLine;
     window->DC.CursorPos.x -= buttonSize.x + ImGui::GetStyle().FramePadding.x;
-    window->DC.CursorPos.y += ImGui::GetStyle().FramePadding.y;
+    window->DC.CursorPos.y += ImGui::GetStyle().FramePadding.y * 0.5;
     ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.05f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
@@ -737,6 +783,16 @@ void ProgramWindow::showBlockOptionButton(const std::string &menulabel,
     ImGui::PopStyleColor(3);
 
     window->DC.CursorPosPrevLine = backuppos;
+}
+
+void ProgramWindow::showTrackName(const int& trackIndex)
+{
+    ImGui::BeginDisabled();
+    ImGui::PushStyleColor(ImGuiCol_ButtonText, COLOR_BLACK);
+    ImGui::PushStyleColor(ImGuiCol_Button, COLOR_WHITE);
+    ImGui::Button(("T"+std::to_string(trackIndex + 1)).c_str());
+    ImGui::PopStyleColor(2);
+    ImGui::EndDisabled();
 }
 
 void ProgramWindow::initFilePath(const std::string& filename)
@@ -876,12 +932,13 @@ void ProgramWindow::stepProgram(const double &dt, const bool &reverse)
     if (isDrivingSimulation())
     {
         double eps = 1e-5;
-        for (const auto& track: m_program.getTracks())
+        const auto& tracks = m_program.getTracks();
+        for (auto track: tracks)
         {
             double blockEnd = 0;
             double blockStart = 0;
             const auto& actions = track->getActions();
-            for (const auto& action: actions)
+            for (auto action: actions)
             {
                 blockEnd += action->getDuration();
                 if ((!reverse && (blockEnd - m_time) > eps) || (reverse && (blockEnd - m_time - dt) > eps))
@@ -917,29 +974,11 @@ void ProgramWindow::animateBeginEvent(sofa::simulation::Node *groot)
         double dt = reverse? -groot->getDt(): groot->getDt();
         double programDuration = m_program.getDuration();
 
-        for (const auto& track: m_program.getTracks()) // allow the mofifiers to do their jobs first
-        {
-            const auto& modifiers = track->getModifiers();
-            for (const auto& modifier: modifiers)
-            {
-                double time = m_time;
-                modifier->modify(time);
-                setTime(time);
-            }
-        }
-
         if (getTime() >= programDuration - eps) // if we've reached the end of the program
         {
             if (m_ws_repeat) // start from beginning
             {
                 setTime(0.);
-
-                for (const auto& track: m_program.getTracks())
-                {
-                    const auto& modifiers = track->getModifiers();
-                    for (const auto& modifier: modifiers)
-                        modifier->reset();
-                }
             }
             else if (m_ws_reverse)
             {
@@ -986,8 +1025,8 @@ const double& ProgramWindow::getTime()
 
 void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
                                         const sofa::Index& trackIndex,
-                                        std::shared_ptr<models::Track> track,
-                                        std::shared_ptr<models::actions::StartMove> startmove)
+                                        models::Track::SPtr track,
+                                        models::actions::StartMove::SPtr startmove)
 {
     if (ImGui::BeginPopup(menuLabel.c_str()))
     {
@@ -1006,32 +1045,11 @@ void ProgramWindow::addStartMoveBlockMenu(const std::string& menuLabel,
     }
 }
 
-sofa::Index ProgramWindow::addModifierBlockMenu(const std::string& menuLabel,
-                                             const sofa::Index& modifierIndex,
-                                             std::shared_ptr<models::Track> track,
-                                             std::shared_ptr<models::modifiers::Modifier> modifier)
-{
-    sofa::Index index = modifierIndex;
-    if (ImGui::BeginPopup(menuLabel.c_str()))
-    {
-        if (ImGui::MenuItem("Delete"))
-        {
-            modifier->deleteFromTrack(track, index);
-        }
-        else
-            index++;
-        ImGui::EndPopup();
-    } else {
-        index++;
-    }
-    return index;
-}
-
 sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
-                                           const sofa::Index& actionIndex,
-                                           const sofa::Index& trackIndex,
-                                           std::shared_ptr<models::Track> track,
-                                           std::shared_ptr<models::actions::Action> action)
+                                              const sofa::Index& actionIndex,
+                                              const sofa::Index& trackIndex,
+                                              models::Track::SPtr track,
+                                              models::actions::Action::SPtr action)
 {
     sofa::Index index = actionIndex;
 
@@ -1089,7 +1107,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
         ImGui::EndPopup();
     }
 
-    std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+    models::actions::Move::SPtr move = std::dynamic_pointer_cast<models::actions::Move>(action);
     if (move)
     {
         if (ImGui::BeginPopup(menuLabel.c_str()))
@@ -1120,7 +1138,7 @@ sofa::Index ProgramWindow::addActionBlockMenu(const std::string& menuLabel,
     return index;
 }
 
-bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const int &trackIndex, const int &actionIndex)
+bool ProgramWindow::addAddActionMenu(models::Track::SPtr track, const int &trackIndex, const int &actionIndex)
 {
     if (m_kinematicsGUIDataManager->hasTCP() && ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
@@ -1166,7 +1184,7 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
     return false;
 }
 
-sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, std::shared_ptr<models::Track> track)
+sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa::Index& trackIndex, models::Track::SPtr track)
 {
     auto index = trackIndex;
     if (ImGui::BeginPopup(menuLabel.c_str()))
@@ -1175,9 +1193,9 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
         {
             track->clear();
         }
-        if (ImGui::MenuItem(("Add track##" + std::to_string(index)).c_str(), nullptr, false, false))
+        if (ImGui::MenuItem(("Add track after##" + std::to_string(index)).c_str(), nullptr, false))
         {
-            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsGUIDataManager));
+            m_program.addTrack(std::make_shared<models::Track>(m_kinematicsGUIDataManager), index+1);
         }
         if (ImGui::MenuItem(("Remove track##" + std::to_string(index)).c_str(), nullptr, false, (index>0)? true : false))
         {
@@ -1191,25 +1209,58 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
             addAddActionMenu(track, index, track->getActions().size());
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(("Add modifier##" + std::to_string(index)).c_str()))
-        {
-            if (track->getActions().empty() || !track->getModifiers().empty()) // TODO: handle showing multiple modifiers
-                ImGui::BeginDisabled();
-
-            if (ImGui::MenuItem(("Repeat##" + std::to_string(index)).c_str()))
-            {
-                std::shared_ptr<models::modifiers::Repeat> repeat = std::make_shared<models::modifiers::Repeat>(1, 0);
-                repeat->pushToTrack(track);
-            }
-
-            if (track->getActions().empty() || !track->getModifiers().empty())
-                ImGui::EndDisabled();
-
-            ImGui::EndMenu();
-        }
         ImGui::EndPopup();
     }
     return index;
+}
+
+void ProgramWindow::addActionsContextMenu(const std::string& label, const int& actionIndex)
+{
+    if (ImGui::BeginPopup(label.c_str()))
+    {
+        auto tracks = m_program.getTracks();
+        int trackIndex = m_program.getTrackSelected();
+
+        models::Track::SPtr track = nullptr;
+        if (trackIndex>=0 && trackIndex<(int)tracks.size())
+            track = tracks[trackIndex];
+
+        { // Group
+            bool disabled = (track == nullptr) || !track->canGroup(actionIndex);
+
+            if (disabled)
+                ImGui::BeginDisabled();
+
+            ImGui::MenuItem("Group");
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) // These two steps are required to capture the click before clearing the selected actions
+            {
+                if (track)
+                    track->group();
+            }
+
+            if (disabled)
+                ImGui::EndDisabled();
+        }
+
+        { // Ungroup
+            bool disabled = (track == nullptr) || !track->canUngroup(actionIndex) || track->hasSelectedActions();
+
+            if (disabled)
+                ImGui::BeginDisabled();
+
+            ImGui::MenuItem("Ungroup");
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            {
+                if (track)
+                    track->ungroup(actionIndex);
+            }
+
+            if (disabled)
+                ImGui::EndDisabled();
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 } // namespace

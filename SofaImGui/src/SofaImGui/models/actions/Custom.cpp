@@ -43,7 +43,7 @@ void Custom::computeDuration()
     checkDuration();
 }
 
-std::shared_ptr<Action> Custom::duplicate()
+std::shared_ptr<BaseBlock> Custom::duplicate()
 {
     auto custom = std::make_shared<models::actions::Custom>(m_duration);
     return custom;

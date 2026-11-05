@@ -54,7 +54,7 @@ Move::~Move()
     }
 }
 
-std::shared_ptr<Action> Move::duplicate()
+std::shared_ptr<BaseBlock> Move::duplicate()
 {
     auto move = std::make_shared<models::actions::Move>(m_initialPoint,
                                                         m_waypoint,
@@ -65,7 +65,7 @@ std::shared_ptr<Action> Move::duplicate()
     return move;
 }
 
-void Move::pushToTrack(std::shared_ptr<models::Track> track)
+void Move::pushToTrack(models::Track::SPtr track)
 {
     auto actions = track->getActions();
     std::shared_ptr<actions::Move> previous = track->getPreviousMove(actions.size());
@@ -73,7 +73,7 @@ void Move::pushToTrack(std::shared_ptr<models::Track> track)
     Action::pushToTrack(track);
 }
 
-void Move::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+void Move::insertInTrack(models::Track::SPtr track, const sofa::Index &actionIndex)
 {
     std::shared_ptr<actions::Move> previous = track->getPreviousMove(actionIndex);
     setInitialPoint((previous!=nullptr)? previous->getWaypoint(): track->getStartMove()->getWaypoint());
@@ -87,13 +87,13 @@ void Move::insertInTrack(std::shared_ptr<models::Track> track, const sofa::Index
         next->setInitialPoint(m_waypoint);
 }
 
-void Move::deleteFromTrack(std::shared_ptr<models::Track> track, const sofa::Index &actionIndex)
+void Move::deleteFromTrack(models::Track::SPtr track, const sofa::Index &actionIndex)
 {
     track->updateNextMoveInitialPoint(actionIndex, m_initialPoint);
     Action::deleteFromTrack(track, actionIndex);
 }
 
-void Move::swapWith(std::shared_ptr<actions::Action> action)
+void Move::swapWith(std::shared_ptr<BaseBlock> action)
 {
     auto move = std::dynamic_pointer_cast<Move>(action);
     if(move)
