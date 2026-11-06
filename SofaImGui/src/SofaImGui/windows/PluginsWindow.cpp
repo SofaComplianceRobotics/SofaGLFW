@@ -55,9 +55,16 @@ void PluginsWindow::beforeShowWindow()
 
 void PluginsWindow::internalShowWindow()
 {
-    static std::string configPluginPath = "plugin_list.conf.default";
-
+    static std::string configPluginPath = "plugin_list.conf"; // Used in generated binaries
+    static std::string configPluginPathDefault = "plugin_list.conf.default"; // Used when compiling from source
+    // These filenames are defined in a cmake file and a post install script. TODO (Sofa): store in a variable
     static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
+    if (!configExists && configPluginPath!=configPluginPathDefault)
+    {
+        configPluginPath = configPluginPathDefault;
+        configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
+    }
+
     static sofa::type::vector<std::string> listDefaultPlugins = (configExists)? getPluginsFromIniFile(configPluginPath): sofa::type::vector<std::string>();
     const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
     static bool isSelectedPluginDefault;
@@ -79,8 +86,15 @@ void PluginsWindow::internalShowWindow()
             ImGui::TextWrapped("A plugin can be loaded by either:");
             ImGui::TextWrapped("\t 1. adding the component RequiredPlugin in the scene");
             ImGui::TextWrapped("\t 2. using the - l option of the runSofa command");
-            ImGui::TextWrapped("\t 3. adding the plugin to the default plugins config file");
-            ImGui::TextWrapped("\t 4. adding the plugin from the Plugins Manager");
+            ImGui::TextWrapped("\t 3. adding the plugin from the Plugins Manager");
+
+            ImGui::TextWrapped("\t 4. adding the plugin to the ");
+            ImGui::SameLine(0, 0);
+            ImGui::TextLink("default plugins config file");
+            ImGui::SetItemTooltip("%s", configPluginPath.c_str());
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                sofa::helper::system::FileSystem::openFileWithDefaultApplication(configPluginPath);
+
             ImGui::PopStyleColor();
         }
         ImGui::EndChild();
@@ -172,7 +186,7 @@ void PluginsWindow::internalShowWindow()
                             std::ofstream outfile(configPluginPath.c_str(), std::ios_base::app);
                             if (outfile.is_open())
                             {
-                                FooterStatusBar::getInstance().setTempMessage("Saving default plugins file: " + configPluginPath);
+                                FooterStatusBar::getInstance().setTempMessage("Saving default plugins file:", FooterStatusBar::MINFO, configPluginPath);
                                 outfile << "\n" << pluginIt->second.getModuleName() << " " << pluginIt->second.getModuleVersion();
                                 outfile.close();
 

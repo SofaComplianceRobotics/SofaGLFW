@@ -246,6 +246,7 @@ void PlottingWindow::showPlots()
             if (ImPlot::BeginPlot(("##" + std::to_string(i)).c_str(), ImVec2(-1, 0),
                                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus))
             {
+
                 ImPlot::SetupLegend(ImPlotLocation_NorthEast, ImPlotLegendFlags_Sort | ImPlotLegendFlags_Outside);
                 ImPlot::SetupAxes("Time (s)", nullptr,
                                   ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoSideSwitch | ImPlotAxisFlags_NoHighlight,
@@ -261,11 +262,13 @@ void PlottingWindow::showPlots()
                         spec.Stride = 2 * sizeof(float);
                         std::string dataPath = data->getData()->getPathName();
                         std::string label = data->getLabel() + "##" + dataPath;
+
                         ImPlot::PlotLine(label.c_str(),
                                          &buffer.data[0].x,
                                          &buffer.data[0].y,
                                          buffer.data.size(),
                                          spec);
+
                         if (ImGui::IsWindowHovered() && ImGui::GetHoveredID() == ImGui::GetID(label.c_str()))
                             ImGui::SetTooltip("%s", dataPath.c_str());
 
