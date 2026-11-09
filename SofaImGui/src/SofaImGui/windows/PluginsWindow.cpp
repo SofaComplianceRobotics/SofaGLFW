@@ -64,7 +64,7 @@ void PluginsWindow::internalShowWindow()
         std::string configPluginPathDefault = "plugin_list.conf.default"; // Used when compiling from source
 
         m_configExists = (sofa::helper::system::PluginRepository.findFile(m_pluginsConfigPath, "", nullptr));
-        if (!m_configExists && m_pluginsConfigPath!=configPluginPathDefault)
+        if (!m_configExists)
         {
             m_pluginsConfigPath = configPluginPathDefault;
             m_configExists = (sofa::helper::system::PluginRepository.findFile(m_pluginsConfigPath, "", nullptr));
@@ -94,7 +94,7 @@ void PluginsWindow::showLeftPanel()
 
         showLoadPluginButton();
 
-        showListOfPlugins();
+        showListOfLoadedPlugins();
 
         ImGui::PopStyleColor();
     }
@@ -223,7 +223,7 @@ void PluginsWindow::showLoadPluginButton()
     }
 }
 
-void PluginsWindow::showListOfPlugins()
+void PluginsWindow::showListOfLoadedPlugins()
 {
     if (ImGui::BeginChild("#LoadPluginsList", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
     {

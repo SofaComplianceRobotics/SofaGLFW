@@ -48,7 +48,7 @@ protected:
 
     void showInstructionsHelp();
     void showLoadPluginButton();
-    void showListOfPlugins();
+    void showListOfLoadedPlugins();
 
     sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
 
