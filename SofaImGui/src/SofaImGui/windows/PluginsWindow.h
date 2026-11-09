@@ -22,6 +22,8 @@
 #pragma once
 
 #include <SofaImGui/windows/BaseWindow.h>
+#include <sofa/helper/system/PluginManager.h>
+
 #include <imgui.h>
 #include <implot.h>
 #include <implot_internal.h>
@@ -40,8 +42,21 @@ public:
 protected:
     void beforeShowWindow() override;
     void internalShowWindow() override;
+
+    void showLeftPanel();
+    void showRightPanel();
+
+    void showInstructionsHelp();
+    void showLoadPluginButton();
+    void showListOfPlugins();
+
     sofa::type::vector<std::string> getPluginsFromIniFile(const std::string& path);
 
+    std::string m_pluginsConfigPath; /// Plugins config file path
+    bool m_configExists; /// Did we find a config file
+    sofa::type::vector<std::string> m_defaultPlugins; /// List of default plugins
+    std::string m_selectedPlugin; /// Plugin selected by the user (clicked on the GUI)
+    bool m_isSelectedPluginDefault; /// Is selected plugin loaded by default
 };
 
 }

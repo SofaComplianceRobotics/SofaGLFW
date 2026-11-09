@@ -19,16 +19,17 @@
  *                                                                             *
  * Contact information: contact@sofa-framework.org                             *
  ******************************************************************************/
-#include <sofa/helper/system/FileRepository.h>
-#include <nfd.h>
+
 #include <SofaImGui/windows/PluginsWindow.h>
-#include <sofa/helper/system/PluginManager.h>
+
 #include <sofa/helper/system/FileSystem.h>
 #include <sofa/core/ObjectFactory.h>
 #include <sofa/gui/common/BaseGUI.h>
 #include <SofaImGui/FooterStatusBar.h>
+#include <sofa/helper/system/FileRepository.h>
 
 #include <fstream>
+#include <nfd.h>
 
 namespace sofaimgui::windows {
 
@@ -55,112 +56,65 @@ void PluginsWindow::beforeShowWindow()
 
 void PluginsWindow::internalShowWindow()
 {
-    static std::string configPluginPath = "plugin_list.conf"; // Used in generated binaries
-    static std::string configPluginPathDefault = "plugin_list.conf.default"; // Used when compiling from source
-    // These filenames are defined in a cmake file and a post install script. TODO (Sofa): store in a variable
-    static bool configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
-    if (!configExists && configPluginPath!=configPluginPathDefault)
+    static bool firstTime = true;
+    if (firstTime)
     {
-        configPluginPath = configPluginPathDefault;
-        configExists = (sofa::helper::system::PluginRepository.findFile(configPluginPath, "", nullptr));
+        // These filenames are defined in a cmake file and a post install script. TODO (Sofa): store in a variable
+        m_pluginsConfigPath = "plugin_list.conf"; // Used in binaries
+        std::string configPluginPathDefault = "plugin_list.conf.default"; // Used when compiling from source
+
+        m_configExists = (sofa::helper::system::PluginRepository.findFile(m_pluginsConfigPath, "", nullptr));
+        if (!m_configExists && m_pluginsConfigPath!=configPluginPathDefault)
+        {
+            m_pluginsConfigPath = configPluginPathDefault;
+            m_configExists = (sofa::helper::system::PluginRepository.findFile(m_pluginsConfigPath, "", nullptr));
+        }
+
+        m_defaultPlugins = (m_configExists)? getPluginsFromIniFile(m_pluginsConfigPath): sofa::type::vector<std::string>();
+        firstTime = false;
     }
 
-    static sofa::type::vector<std::string> listDefaultPlugins = (configExists)? getPluginsFromIniFile(configPluginPath): sofa::type::vector<std::string>();
-    const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
-    static bool isSelectedPluginDefault;
+    showLeftPanel();
 
-    static std::string selectedPlugin;
-    const auto& pluginMap = sofa::helper::system::PluginManager::getInstance().getPluginMap();
+    ImGui::SameLine();
 
+    showRightPanel();
+}
+
+void PluginsWindow::showLeftPanel()
+{
     if (ImGui::BeginChild("#LoadedPlugins", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_None))
     {
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
 
-        std::string buttonText = "Load Plugin";
-        float rightPosition = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::CalcTextSize(buttonText.c_str()).x - ImGui::GetStyle().FramePadding.x * 2;
-
-        // Instructions / help
-        if (ImGui::BeginChild("#LoadPluginsInstructions", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x * 0.32), ImGuiChildFlags_AlwaysUseWindowPadding))
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-            ImGui::TextWrapped("A plugin can be loaded by either:");
-            ImGui::TextWrapped("\t 1. adding the component RequiredPlugin in the scene");
-            ImGui::TextWrapped("\t 2. using the - l option of the runSofa command");
-            ImGui::TextWrapped("\t 3. adding the plugin from the Plugins Manager");
-
-            ImGui::TextWrapped("\t 4. adding the plugin to the ");
-            ImGui::SameLine(0, 0);
-            ImGui::TextLink("default plugins config file");
-            ImGui::SetItemTooltip("%s", configPluginPath.c_str());
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-                sofa::helper::system::FileSystem::openFileWithDefaultApplication(configPluginPath);
-
-            ImGui::PopStyleColor();
-        }
-        ImGui::EndChild();
+        showInstructionsHelp();
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text("List of Loaded Plugins:");
 
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(rightPosition); // Set the position to the right of the area
+        showLoadPluginButton();
 
-        if (ImGui::Button(buttonText.c_str()))
-        {
-            std::vector<nfdfilteritem_t> nfd_filters{ {"SOFA plugin", sofa::helper::system::DynamicLibrary::extension.c_str()} };
+        showListOfPlugins();
 
-            nfdchar_t* outPath;
-            auto defaultPath = sofa::helper::system::PluginRepository.getFirstPath();
-
-            nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), defaultPath.c_str());
-            if (result == NFD_OKAY)
-            {
-                if (sofa::helper::system::FileSystem::exists(outPath))
-                {
-                    sofa::helper::system::PluginManager::getInstance().loadPluginByPath(outPath);
-                    sofa::helper::system::PluginManager::getInstance().writeToIniFile(sofa::gui::common::BaseGUI::getConfigDirectoryPath() + "/loadedPlugins.ini");
-                }
-            }
-        }
-
-        // List of plugins
-        if (ImGui::BeginChild("#LoadPluginsList", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
-        {
-            static std::map<std::string, bool> isSelected;
-            for (const auto& [path, plugin] : pluginMap)
-            {
-                const auto& pluginName = plugin.getModuleName();
-                const auto& isDefault = (std::find(listDefaultPlugins.begin(), listDefaultPlugins.end(), pluginName) != listDefaultPlugins.end());
-                if (isDefault)
-                    ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
-
-                if (ImGui::Selectable(pluginName, selectedPlugin == path))
-                {
-                    selectedPlugin = path;
-                    isSelectedPluginDefault = isDefault;
-                }
-
-                if (isDefault)
-                    ImGui::PopStyleColor();
-            }
-        }
-        ImGui::EndChild();
         ImGui::PopStyleColor();
     }
 
     ImGui::EndChild();
-    ImGui::SameLine();
+}
 
-    if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
+void PluginsWindow::showRightPanel()
+{
+    if (ImGui::BeginChild("#SelectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoScrollbar))
     {
         ImGui::Text("Plugin Info:");
 
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-        if (ImGui::BeginChild("selectedPlugin", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
+        if (ImGui::BeginChild("#SelectedPluginInfo", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
         {
-            if (!selectedPlugin.empty())
+            if (!m_selectedPlugin.empty())
             {
-                const auto pluginIt = pluginMap.find(selectedPlugin);
+                const sofa::helper::system::PluginManager::PluginMap& pluginMap = sofa::helper::system::PluginManager::getInstance().getPluginMap();
+                const auto pluginIt = pluginMap.find(m_selectedPlugin);
                 if (pluginIt != pluginMap.end())
                 {
                     ImGui::TextDisabled("Name:"); ImGui::SameLine(); ImGui::Text("%s", pluginIt->second.getModuleName());
@@ -174,39 +128,126 @@ void PluginsWindow::internalShowWindow()
                     ImGui::TextWrapped("%s", sofa::core::ObjectFactory::getInstance()->listClassesFromTarget(pluginIt->second.getModuleName()).c_str());
                     ImGui::Spacing();
                     ImGui::TextDisabled("Path:");
-                    ImGui::TextWrapped("%s", selectedPlugin.c_str());
+                    ImGui::TextWrapped("%s", m_selectedPlugin.c_str());
 
-                    if(isSelectedPluginDefault)
+                    if(m_isSelectedPluginDefault)
                         ImGui::BeginDisabled();
 
-                    if (ImGui::Button((isSelectedPluginDefault)? "Loaded by Default": "Load by Default"))
+                    if (ImGui::Button((m_isSelectedPluginDefault)? "Loaded by Default": "Load by Default"))
                     {
-                        if (configExists)
+                        if (m_configExists)
                         {
-                            std::ofstream outfile(configPluginPath.c_str(), std::ios_base::app);
+                            std::ofstream outfile(m_pluginsConfigPath.c_str(), std::ios_base::app);
                             if (outfile.is_open())
                             {
-                                FooterStatusBar::getInstance().setTempMessage("Saving default plugins file:", FooterStatusBar::MINFO, configPluginPath);
-                                outfile << "\n" << pluginIt->second.getModuleName() << " " << pluginIt->second.getModuleVersion();
+                                FooterStatusBar::getInstance().setTempMessage("Saving default plugins file:", FooterStatusBar::MINFO, m_pluginsConfigPath);
+                                outfile << "\n" << pluginIt->first << " " << pluginIt->second.getModuleVersion();
                                 outfile.close();
 
-                                listDefaultPlugins.push_back(pluginIt->second.getModuleName());
-                                isSelectedPluginDefault = true;
+                                m_defaultPlugins.push_back(pluginIt->second.getModuleName());
+                                m_isSelectedPluginDefault = true;
                                 ImGui::BeginDisabled();
                             }
                         }
                         else {
-                            FooterStatusBar::getInstance().setTempMessage("Could not find default plugins file: " + configPluginPath, FooterStatusBar::MERROR);
+                            FooterStatusBar::getInstance().setTempMessage("Could not find default plugins file: " + m_pluginsConfigPath, FooterStatusBar::MERROR);
                         }
                     }
 
-                    if(isSelectedPluginDefault)
+                    if(m_isSelectedPluginDefault)
                         ImGui::EndDisabled();
                 }
             }
         }
         ImGui::EndChild();
         ImGui::PopStyleColor();
+    }
+    ImGui::EndChild();
+}
+
+void PluginsWindow::showInstructionsHelp()
+{
+    if (ImGui::BeginChild("#LoadPluginsInstructions", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x * 0.32), ImGuiChildFlags_AlwaysUseWindowPadding))
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+
+        ImGui::TextWrapped("A plugin can be loaded by either:");
+        ImGui::TextWrapped("\t 1. adding the component RequiredPlugin in the scene");
+        ImGui::TextWrapped("\t 2. using the - l option of the runSofa command");
+        ImGui::TextWrapped("\t 3. adding the plugin from the Plugins Manager");
+
+        ImGui::TextWrapped("\t 4. adding the plugin to the ");
+        ImGui::SameLine(0, 0);
+        ImGui::TextLink("default plugins config file");
+        ImGui::SetItemTooltip("%s", m_pluginsConfigPath.c_str());
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            sofa::helper::system::FileSystem::openFileWithDefaultApplication(m_pluginsConfigPath);
+
+        ImGui::PopStyleColor();
+    }
+    ImGui::EndChild();
+}
+
+void PluginsWindow::showLoadPluginButton()
+{
+    // Align rigth
+    std::string buttonText = "Load Plugin";
+    float rightPosition = ImGui::GetCursorPosX() + ImGui::GetWindowSize().x - ImGui::CalcTextSize(buttonText.c_str()).x - ImGui::GetStyle().FramePadding.x * 2;
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(rightPosition);
+
+    if (ImGui::Button(buttonText.c_str()))
+    {
+        std::vector<nfdfilteritem_t> nfd_filters{ {"SOFA plugin", sofa::helper::system::DynamicLibrary::extension.c_str()} };
+
+        nfdchar_t* outPath;
+        auto defaultPath = sofa::helper::system::PluginRepository.getFirstPath();
+
+        nfdresult_t result = NFD_OpenDialog(&outPath, nfd_filters.data(), nfd_filters.size(), defaultPath.c_str());
+        if (result == NFD_OKAY)
+        {
+            // Check if file exists
+            if (sofa::helper::system::FileSystem::exists(outPath))
+            {
+                // Load plugin
+                if (sofa::helper::system::PluginManager::getInstance().loadPluginByPath(outPath) == sofa::helper::system::PluginManager::PluginLoadStatus::SUCCESS)
+                {
+                    auto plugin = sofa::helper::system::PluginManager::getInstance().getPluginMap()[outPath];
+
+                    // Register components
+                    sofa::core::ObjectFactory* objectFactory = sofa::core::ObjectFactory::getInstance();
+                    objectFactory->registerObjectsFromPlugin(plugin.getModuleName());
+                }
+            }
+        }
+    }
+}
+
+void PluginsWindow::showListOfPlugins()
+{
+    if (ImGui::BeginChild("#LoadPluginsList", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_HorizontalScrollbar))
+    {
+        const sofa::helper::system::PluginManager::PluginMap& pluginMap = sofa::helper::system::PluginManager::getInstance().getPluginMap();
+        const ImVec4 highlightColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+
+        static std::map<std::string, bool> isSelected;
+        for (const auto& [path, plugin] : pluginMap)
+        {
+            const auto& pluginName = plugin.getModuleName();
+            bool isDefault = (std::find(m_defaultPlugins.begin(), m_defaultPlugins.end(), pluginName) != m_defaultPlugins.end());
+            isDefault = isDefault || (std::find(m_defaultPlugins.begin(), m_defaultPlugins.end(), path) != m_defaultPlugins.end());
+            if (isDefault)
+                ImGui::PushStyleColor(ImGuiCol_Text, highlightColor);
+
+            if (ImGui::Selectable(pluginName, m_selectedPlugin == path))
+            {
+                m_selectedPlugin = path;
+                m_isSelectedPluginDefault = isDefault;
+            }
+
+            if (isDefault)
+                ImGui::PopStyleColor();
+        }
     }
     ImGui::EndChild();
 }

@@ -256,8 +256,6 @@ void ImGuiGUIEngine::init()
         iniGUISettings.SetValue("Style", "darkMode", (m_darkMode)? "on": "off");
     }
     applyDarkMode(m_darkMode);
-
-    sofa::helper::system::PluginManager::getInstance().readFromIniFile(sofa::gui::common::BaseGUI::getConfigDirectoryPath() + "/loadedPlugins.ini");
 }
 
 void ImGuiGUIEngine::initBackend(GLFWwindow* glfwWindow)

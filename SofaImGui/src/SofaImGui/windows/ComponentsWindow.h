@@ -57,8 +57,6 @@ protected:
     void showComponentData(sofa::core::ObjectFactory::ClassEntry::SPtr selectedComponent);
 
     void showExampleContextMenu(const std::filesystem::path &examplePath);
-
-    void saveFile();
 };
 
 } // namespace 
