@@ -33,19 +33,20 @@
 
 namespace sofaimgui::models::actions {
 
-bool Pick::PickView::showBlock(const std::string &label,
-                               const ImVec2 &size)
+bool Pick::PickView::showBlockInternal(const std::string &label,
+                                       const ImVec2 &size,
+                                       const bool & isSelected)
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().PickBlockBg);
-    sofaimgui::widgets::BlockHeader(ICON_FA_HAND, pick.getComment(), hasValuesChanged);
+    widgets::BeginBlock(label, size, ProgramColors().PickBlockBg, isSelected);
+    widgets::BlockHeader(ICON_FA_HAND, pick.getComment(), hasValuesChanged);
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Duration
-        sofaimgui::widgets::BeginBlockLine("duration");
+        widgets::BeginBlockLine("duration");
         std::string id = "##duration" + std::to_string(window->DC.CursorPos.x);
         double duration = pick.getDuration();
         if (ImGui::InputDouble(id.c_str(), &duration, 0, 0, "%0.2f", ImGuiInputTextFlags_CharsNoBlank))
@@ -53,13 +54,13 @@ bool Pick::PickView::showBlock(const std::string &label,
             hasValuesChanged = true;
             pick.setDuration(duration);
         }
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Closing/opening distances
-        sofaimgui::widgets::BeginBlockLine("distances");
+        widgets::BeginBlockLine("distances");
 
         std::string idClosing = "##closing" + std::to_string(window->DC.CursorPos.x);
         double distance = pick.getClosingDistance();
@@ -81,22 +82,22 @@ bool Pick::PickView::showBlock(const std::string &label,
         }
         ImGui::SetItemTooltip("Opening distance");
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Release
-        sofaimgui::widgets::BeginBlockLine("release");
+        widgets::BeginBlockLine("release");
         std::string id = "##release" + std::to_string(window->DC.CursorPos.x);
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ProgramColors().FrameBg);
         ImGui::PushStyleColor(ImGuiCol_Text, ProgramColors().FrameText);
-        sofaimgui::widgets::ToggleButton(id.c_str(), &pick.m_release);
+        widgets::ToggleButton(id.c_str(), &pick.m_release);
         ImGui::PopStyleColor(2);
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    widgets::EndBlock(size);
+    widgets::EndBlock(label, size);
 
     return hasValuesChanged;
 }

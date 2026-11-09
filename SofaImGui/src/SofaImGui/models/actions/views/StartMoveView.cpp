@@ -30,19 +30,20 @@
 
 namespace sofaimgui::models::actions {
 
-bool StartMove::StartMoveView::showBlock(const std::string &label,
-                                         const ImVec2 &size)
+bool StartMove::StartMoveView::showBlockInternal(const std::string &label,
+                                                 const ImVec2 &size,
+                                                 const bool & isSelected)
 {
     bool hasValuesChanged = false;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    sofaimgui::widgets::BeginBlock(label, size, ProgramColors().StartMoveBlockBg);
-    sofaimgui::widgets::BlockHeader(ICON_FA_FLAG, start.getComment(), hasValuesChanged);
+    widgets::BeginBlock(label, size, ProgramColors().StartMoveBlockBg, isSelected);
+    widgets::BlockHeader(ICON_FA_FLAG, start.getComment(), hasValuesChanged);
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Way point position
-        sofaimgui::widgets::BeginBlockLine("wp.pos");
+        widgets::BeginBlockLine("wp.pos");
 
         RigidCoord waypoint = start.getWaypoint();
         for (int i=0; i<3; i++)
@@ -57,17 +58,17 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
             ImGui::SameLine();
         }
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::BlockNewLine();
+    widgets::BlockNewLine();
 
     { // Way point rotation
         std::string label = "wp.rot ";
         label += (start.isFreeInRotation()? ICON_FA_LOCK_OPEN: ICON_FA_LOCK);
         label += "##wp.rot" + std::to_string(window->DC.CursorPos.x);
 
-        if (sofaimgui::widgets::BeginBlockLockLine(label.c_str()))
+        if (widgets::BeginBlockLockLine(label.c_str()))
         {
             start.setFreeInRotation(!start.isFreeInRotation());
         }
@@ -90,10 +91,10 @@ bool StartMove::StartMoveView::showBlock(const std::string &label,
             ImGui::SameLine();
         }
 
-        sofaimgui::widgets::EndBlockLine();
+        widgets::EndBlockLine();
     }
 
-    sofaimgui::widgets::EndBlock(size);
+    widgets::EndBlock(label, size);
     return hasValuesChanged;
 }
 

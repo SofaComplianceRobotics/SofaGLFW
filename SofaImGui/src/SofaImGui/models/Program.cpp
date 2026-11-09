@@ -23,7 +23,6 @@
 #include <filesystem>
 #include <sofa/helper/system/Locale.h>
 #include <SofaImGui/models/Program.h>
-#include <SofaImGui/models/modifiers/Repeat.h>
 #include <SofaImGui/models/actions/Pick.h>
 #include <SofaImGui/models/actions/Wait.h>
 #include <SofaImGui/models/actions/Custom.h>
@@ -115,7 +114,7 @@ bool Program::importProgram(const std::string &filename, sofa::simulation::Node:
                             }
                             else
                             {
-                                std::shared_ptr<actions::Move> move;
+                                actions::Move::SPtr move;
                                 if (!e->FindAttribute("type"))
                                     return false;
                                 actions::Move::Type type = static_cast<actions::Move::Type>(e->FindAttribute("type")->IntValue());
@@ -183,34 +182,6 @@ bool Program::importProgram(const std::string &filename, sofa::simulation::Node:
                             if (e->FindAttribute("end"))
                                 custom->setEndValue(e->FindAttribute("end")->DoubleValue());
                             custom->pushToTrack(track);
-                        }
-                    }
-
-                    for(const auto* e = t->FirstChildElement("modifier"); e != nullptr; e = e->NextSiblingElement("modifier"))
-                    {
-                        if (strcmp(e->FirstAttribute()->Value(), "repeat") == 0)
-                        {
-                            if (!e->FindAttribute("iterations"))
-                                return false;
-                            int iterations = e->FindAttribute("iterations")->IntValue();
-
-                            if (!e->FindAttribute("endTime"))
-                                return false;
-                            double endTime = e->FindAttribute("endTime")->DoubleValue();
-
-                            if (!e->FindAttribute("startTime"))
-                                return false;
-                            double startTime = e->FindAttribute("startTime")->DoubleValue();
-
-                            if (!e->FindAttribute("type"))
-                                return false;
-                            modifiers::Repeat::Type type = static_cast<modifiers::Repeat::Type>(e->FindAttribute("type")->IntValue());
-
-                            std::shared_ptr<modifiers::Repeat> repeat = std::make_shared<modifiers::Repeat>(iterations, endTime, startTime, type);
-                            if (e->FindAttribute("comment"))
-                                repeat->setComment(e->Attribute("comment"));
-
-                            repeat->pushToTrack(track);
                         }
                     }
 
@@ -379,27 +350,6 @@ void Program::exportProgram(const std::string &filename)
                     }
                 }
             }
-            const auto modifiers = track->getModifiers();
-            for (const auto& modifier: modifiers)
-            {
-                std::shared_ptr<modifiers::Repeat> repeat = std::dynamic_pointer_cast<modifiers::Repeat>(modifier);
-                if (repeat) // REPEAT
-                {
-                    tinyxml2::XMLElement * xmlRepeat = document.NewElement("modifier");
-                    if (xmlRepeat != nullptr)
-                    {
-                        xmlRepeat->SetAttribute("name", "repeat");
-                        xmlRepeat->SetAttribute("iterations", repeat->getIterations());
-                        xmlRepeat->SetAttribute("endTime", repeat->getEndTime());
-                        xmlRepeat->SetAttribute("startTime", repeat->getStartTime());
-                        xmlRepeat->SetAttribute("type", repeat->getType());
-                        xmlRepeat->SetAttribute("comment", repeat->getComment());
-                        xmlRepeat->InsertEndChild(xmlRepeat);
-                        xmlTrack->InsertEndChild(xmlRepeat);
-                    }
-                    continue;
-                }
-            }
         }
 
         document.SaveFile(filename.c_str());
@@ -452,6 +402,12 @@ bool Program::isValid()
     return !m_tracks.empty() && m_tracks[0] && m_tracks[0]->getStartMove();
 }
 
+void Program::clearTrackSelected()
+{
+    if (m_selectedTrack >= 0 && m_selectedTrack < (int)m_tracks.size())
+        m_tracks[m_selectedTrack]->clearSelectedActions();
+    m_selectedTrack = -1;
+}
 
 } // namespace
 
