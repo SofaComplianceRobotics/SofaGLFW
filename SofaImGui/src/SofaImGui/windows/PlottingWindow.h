@@ -40,7 +40,6 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     {
         float span = 20.f;
         float xStart = 0.f;
-        float ratio = 1.f;
         ImVector<ImVec2> data;
         RollingBuffer()
         {
@@ -54,7 +53,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
                 xStart = data.front().x;
                 data.erase(data.begin());
             }
-            data.push_back(ImVec2(x, y * ratio));
+            data.push_back(ImVec2(x, y));
         }
         void clear()
         {
@@ -81,7 +80,6 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
 
    protected:
     std::map<sofaimgui::models::guidata::GUIData::SPtr, RollingBuffer> m_buffers;
-    float m_ratio[MAX_NB_PLOT] = {1, 1, 1, 1};
 
     long m_ws_nbRows{1};
     long m_nbCols{1};
@@ -94,7 +92,7 @@ class SOFAIMGUI_API PlottingWindow : public BaseWindow
     void showButtons();
     void showPlots();
     void showMenu();
-    void showMenu(ImPlotPlot &plot, const sofa::Index &idSubplot);
+    void showMenu(ImPlotPlot &plot);
 
     void removeAllData();
 };
