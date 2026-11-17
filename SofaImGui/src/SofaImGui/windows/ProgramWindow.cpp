@@ -105,6 +105,8 @@ void ProgramWindow::internalShowWindow()
 {
     if (isEnabledByState())
     {
+        showContextMenu();
+
         ProgramSizes().TrackMaxHeight = ImGui::GetFrameHeightWithSpacing() * 4.;
         ProgramSizes().TrackMinHeight = ImGui::GetFrameHeight() + ImGui::GetStyle().FramePadding.y * 2.;
         static bool firstTime = true;
@@ -200,16 +202,7 @@ void ProgramWindow::showProgramButtons()
         ImGui::BeginDisabled();
 
     if (ImGui::Button("Restart"))
-    {
-        setTime(0);
-
-        for (const auto& track: m_program.getTracks())
-        {
-            const auto& modifiers = track->getModifiers();
-            for (const auto& modifier: modifiers)
-                modifier->reset();
-        }
-    }
+        restartProgram();
     ImGui::SetItemTooltip("Restart the program");
 
     if (!isDrivingSimulation())
@@ -1210,6 +1203,129 @@ sofa::Index ProgramWindow::addTrackMenu(const std::string& menuLabel, const sofa
         ImGui::EndPopup();
     }
     return index;
+}
+
+void ProgramWindow::showContextMenu()
+{
+    static bool openDurationPopUp = false;
+    static bool openSpeedPopUp = false;
+
+    if (ImGui::BeginPopup("##ProgramContextMenu"))
+    {
+        if(ImGui::MenuItem("Scale durations..."))
+            openDurationPopUp = true;
+
+        if(ImGui::MenuItem("Set speeds..."))
+            openSpeedPopUp = true;
+
+        ImGui::EndPopup();
+    }
+
+    if (openDurationPopUp)
+    {
+        ImGui::OpenPopup("Scale durations");
+        openDurationPopUp = false;
+    }
+
+    if (openSpeedPopUp)
+    {
+        ImGui::OpenPopup("Set speeds");
+        openSpeedPopUp = false;
+    }
+
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        ImGui::OpenPopup("##ProgramContextMenu");
+    }
+
+    if (ImGui::BeginPopupModal("Scale durations", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::TextDisabled(ICON_FA_CIRCLE_INFO " Multiply the duration of each block of the program by the given scaling factor.");
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Scaling factor");
+        ImGui::SameLine();
+
+        static double scale = 1.;
+        ImGui::InputDouble("##Scaling factor", &scale);
+
+        if (ImGui::Button("Apply"))
+        {
+            scaleDurations(scale);
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("Set speeds", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::TextDisabled(ICON_FA_CIRCLE_INFO " Change the speed of each move block of the program by the given value.");
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Speed");
+        ImGui::SameLine();
+
+        static double speed = 1.;
+        ImGui::InputDouble("##Speed", &speed);
+
+        if (ImGui::Button("Apply"))
+        {
+            setSpeeds(speed);
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+}
+
+void ProgramWindow::restartProgram()
+{
+    setTime(0);
+
+    for (const auto& track: m_program.getTracks())
+    {
+        const auto& modifiers = track->getModifiers();
+        for (const auto& modifier: modifiers)
+            modifier->reset();
+    }
+}
+
+void ProgramWindow::scaleDurations(const double& scale)
+{
+    for (const auto& track: m_program.getTracks())
+    {
+        const auto& actions = track->getActions();
+        for (const auto& action: actions)
+        {
+            double duration = action->getDuration() * scale;
+            action->setDuration(duration);
+        }
+    }
+}
+
+void ProgramWindow::setSpeeds(const double& speed)
+{
+    for (const auto& track: m_program.getTracks())
+    {
+        const auto& actions = track->getActions();
+        for (const auto& action: actions)
+        {
+            std::shared_ptr<models::actions::Move> move = std::dynamic_pointer_cast<models::actions::Move>(action);
+            if (move)
+                action->setSpeed(speed);
+        }
+    }
 }
 
 } // namespace
