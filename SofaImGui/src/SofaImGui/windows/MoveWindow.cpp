@@ -304,55 +304,65 @@ bool MoveWindow::showSliderDouble(const char* name, const char* label1, const ch
 
 void MoveWindow::showOptions()
 {
-    if (ImGui::BeginTable("##option", 2, ImGuiTableFlags_None))
-    {
-        ImGui::TableNextColumn();
-        sofaimgui::widgets::CheckBox("Free roll", &m_freeRoll);
+    { // Free all
+        bool freeAll = m_freeRoll && m_freePitch && m_freeYaw;
+        if (sofaimgui::widgets::CheckBox("Free all", &freeAll))
+        {
+            m_freeRoll = freeAll;
+            m_freePitch = freeAll;
+            m_freeYaw = freeAll;
+        }
+    }
+
+    float indentWidth = ImGui::GetFrameHeightWithSpacing() * 0.5 + ImGui::GetStyle().ItemSpacing.x;
+    ImGui::Indent(indentWidth);
+
+    { // Roll Pitch Yaw
+        sofaimgui::widgets::CheckBox("Roll", &m_freeRoll);
+
         if (m_freeRoll)
             ImGui::BeginDisabled();
-        ImGui::TableNextColumn();
         showWeightOption(3);
         if (m_freeRoll)
             ImGui::EndDisabled();
 
-        ImGui::TableNextColumn();
-        sofaimgui::widgets::CheckBox("Free pitch", &m_freePitch);
+        sofaimgui::widgets::CheckBox("Pitch", &m_freePitch);
+
         if (m_freePitch)
             ImGui::BeginDisabled();
-        ImGui::TableNextColumn();
         showWeightOption(4);
         if (m_freePitch)
             ImGui::EndDisabled();
 
-        ImGui::TableNextColumn();
-        sofaimgui::widgets::CheckBox("Free yaw", &m_freeYaw);
+        sofaimgui::widgets::CheckBox("Yaw", &m_freeYaw);
+
         if (m_freeYaw)
             ImGui::BeginDisabled();
-        ImGui::TableNextColumn();
         showWeightOption(5);
         if (m_freeYaw)
             ImGui::EndDisabled();
-
-        ImGui::EndTable();
     }
+
+    ImGui::Unindent(indentWidth);
 }
 
 void MoveWindow::showWeightOption(const int &index)
 {
-    ImGui::SameLine();
-    ImGui::AlignTextToFramePadding();
-    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine();
+    float indentWidth = ImGui::GetFrameHeightWithSpacing() * 0.5 + ImGui::GetStyle().ItemSpacing.x;
+    ImGui::Indent(indentWidth);
 
+    ImGui::AlignTextToFramePadding();
     models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
     double w = TCPGUIData->getWeight(index);
     ImGui::AlignTextToFramePadding();
-    ImGui::Text("weight");
+    ImGui::Text("Weight");
     ImGui::SameLine();
     ImGui::PushID(index);
     if (sofaimgui::widgets::InputDouble("##Input ", &w))
         TCPGUIData->setWeight(index, w);
     ImGui::PopID();
+
+    ImGui::Unindent(indentWidth);
 }
 
 void MoveWindow::showPad()

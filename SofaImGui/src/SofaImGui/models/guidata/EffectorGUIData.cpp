@@ -156,6 +156,18 @@ bool EffectorGUIData::hasRotation()
     return OwnedBaseData::isDataValid(m_useDirections) && m_useDirections->getData()->getValueTypeInfo()->size()==RigidDeriv::total_size;
 }
 
+bool EffectorGUIData::hasOneRotationNotFree()
+{
+    bool hasOneRotationFree = false;
+    if(hasRotation())
+    {
+        auto duseDirections = static_cast<sofa::Data<sofa::type::Vec<RigidDeriv::total_size, bool>>*>(m_useDirections->getData());
+        auto d = sofa::helper::getReadAccessor(*duseDirections);
+        hasOneRotationFree = (d[3] || d[4] || d[5]) ;
+    }
+    return hasOneRotationFree;
+}
+
 void EffectorGUIData::getFreeInRotation(bool &freeRoll, bool &freePitch, bool &freeYaw)
 {
     if(hasRotation())

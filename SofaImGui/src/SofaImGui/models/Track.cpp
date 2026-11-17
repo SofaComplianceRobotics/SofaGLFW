@@ -41,6 +41,15 @@ Track::Track(guidata::KinematicsGUIDataManager::SPtr kinematicsGUIDataManager)
                                                            0.5,
                                                            kinematicsGUIDataManager,
                                                            true);
+
+    if (kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
+    {
+        auto tcp = kinematicsGUIDataManager->getTCPs()[0];
+        if (tcp->hasRotation())
+        {
+            m_startmove->setFreeInRotation(!tcp->hasOneRotationNotFree());
+        }
+    }
 }
 
 Track::Track(std::shared_ptr<actions::StartMove> startMove)

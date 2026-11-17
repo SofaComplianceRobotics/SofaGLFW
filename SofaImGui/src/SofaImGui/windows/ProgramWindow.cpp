@@ -1124,11 +1124,18 @@ bool ProgramWindow::addAddActionMenu(std::shared_ptr<models::Track> track, const
 {
     if (m_kinematicsGUIDataManager->hasTCP() && ImGui::MenuItem(("Move##" + std::to_string(trackIndex)).c_str()))
     {
+        bool isFreeInRotation = true;
+        if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
+        {
+            auto tcp = m_kinematicsGUIDataManager->getTCPs()[0];
+            if (tcp->hasOneRotationNotFree())
+                isFreeInRotation = false;
+        }
         auto move = std::make_shared<models::actions::Move>(RigidCoord(),
                                                             m_kinematicsGUIDataManager->getTCPGUIData()->getTCPTargetPosition(),
                                                             models::actions::Action::DEFAULTDURATION,
                                                             m_kinematicsGUIDataManager,
-                                                            true,
+                                                            isFreeInRotation,
                                                             models::actions::Move::Type::LINE);
         move->insertInTrack(track, actionIndex);
         return true;
