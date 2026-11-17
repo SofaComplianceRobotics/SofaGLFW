@@ -1265,7 +1265,7 @@ void ProgramWindow::showContextMenu()
 
     if (ImGui::BeginPopupModal("Set speeds", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::TextDisabled(ICON_FA_CIRCLE_INFO " Change the speed of each move block of the program by the given value.");
+        ImGui::TextDisabled(ICON_FA_CIRCLE_INFO " Set the speed of each move block of the program to the given value.");
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Speed");
