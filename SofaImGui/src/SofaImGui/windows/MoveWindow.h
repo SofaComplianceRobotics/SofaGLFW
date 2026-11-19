@@ -49,6 +49,8 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     models::guidata::KinematicsGUIDataManager::SPtr m_kinematicsGUIDataManager{nullptr};
 
+    bool m_ws_localframe{false};
+
     double m_x;
     double m_y;
     double m_z;
@@ -60,16 +62,24 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
     bool m_freePitch{true};
     bool m_freeYaw{true};
 
+    sofa::defaulttype::RigidCoord<3, SReal> m_globalTCPPosition; // Used to store the position of the TCP in global frame when starting to move a slider in local frame mode
+
     sofaimgui::widgets::MovePad m_movePad;
 
     void internalShowWindow() override;
+    void registerAndLoadWindowSettings() override;
 
     bool showSliderDouble(const char *name, const char* label1, const char *label2, double* v, const double& min, const double& max, const ImU32 &color);
     void showOptions();
     void showWeightOption(const int &index);
-    void showPad();
+    bool showPad();
     bool showVerticalTab(const std::string& label, const std::string& tooltip, const bool &active);
     bool isDrivingSimulation() {return drivingWindow == DrivingWindow::MOVE;}
+
+    void setTCPSliders(const double& x, const double& y, const double& z, const double& rx, const double& ry, const double& rz);
+    void clampTCPSliders(double& x, double& y, double& z, double& rx, double& ry, double& rz);
+    void manageRelativeTCPSliders(const bool &valueChanged);
+    void localToGlobalFrame(double &x, double &y, double &z, double &rx, double &ry, double &rz);
 };
 
 }

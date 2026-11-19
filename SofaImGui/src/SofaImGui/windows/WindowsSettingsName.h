@@ -22,3 +22,6 @@
 #define WS_LOG_AUTOSCROLL "autoScroll"
 #define WS_LOG_SHOWLOGLEVELONLY "showLogLevelOnly"
 #define WS_LOG_WRAPTEXT "wrapText"
+
+// Move Window
+#define WS_MOVE_LOCALFRAME "localFrame"

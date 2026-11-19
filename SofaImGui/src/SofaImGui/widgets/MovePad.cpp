@@ -90,6 +90,10 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     if (!ImGui::ItemAdd(totalBB, idPad, &frameBB, 0))
         return false;
 
+    // Slider behavior
+    bool valuePadHChanged = false;
+    bool valuePadVChanged = false;
+    bool valueSliderChanged = false;
 
     { // Show sliders
         ImGui::PushStyleColor(ImGuiCol_ButtonText, ImGui::GetColorU32(ImGuiCol_Text));
@@ -101,10 +105,10 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 m_flippedAxis["PadH"] = !m_flippedAxis["PadH"];
             }
             ImGui::PopStyleColor();
-            show1DPadSlider(m_mappedAxis["PadH"], m_values["PadH"],
-                            (m_flippedAxis["PadH"])?&m_maxValues["PadH"]:& m_minValues["PadH"],
-                            (m_flippedAxis["PadH"])?&m_minValues["PadH"]:& m_maxValues["PadH"],
-                            framePadHBB, totalBB, m_grabBBPadH, idPadH, window);
+            valuePadHChanged |= show1DPadSlider(m_mappedAxis["PadH"], m_values["PadH"],
+                                (m_flippedAxis["PadH"])?&m_maxValues["PadH"]:& m_minValues["PadH"],
+                                (m_flippedAxis["PadH"])?&m_minValues["PadH"]:& m_maxValues["PadH"],
+                                framePadHBB, totalBB, m_grabBBPadH, idPadH, window);
         }
 
         { // PadV
@@ -115,10 +119,10 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 m_flippedAxis["PadV"] = !m_flippedAxis["PadV"];
             }
             ImGui::PopStyleColor();
-            show1DPadSlider(m_mappedAxis["PadV"], m_values["PadV"],
-                            (m_flippedAxis["PadV"]) ? &m_maxValues["PadV"] : &m_minValues["PadV"],
-                            (m_flippedAxis["PadV"]) ? &m_minValues["PadV"] : &m_maxValues["PadV"],
-                            framePadVBB, totalBB, m_grabBBPadV, idPadV, window, ImGuiSliderFlags_Vertical);
+            valuePadVChanged |= show1DPadSlider(m_mappedAxis["PadV"], m_values["PadV"],
+                                (m_flippedAxis["PadV"]) ? &m_maxValues["PadV"] : &m_minValues["PadV"],
+                                (m_flippedAxis["PadV"]) ? &m_minValues["PadV"] : &m_maxValues["PadV"],
+                                framePadVBB, totalBB, m_grabBBPadV, idPadV, window, ImGuiSliderFlags_Vertical);
         }
 
         { // Slider
@@ -129,10 +133,10 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
                 m_flippedAxis["Slider"] = !m_flippedAxis["Slider"];
             }
             ImGui::PopStyleColor();
-            show1DPadSlider(m_mappedAxis["Slider"], m_values["Slider"],
-                            (m_flippedAxis["Slider"]) ? &m_maxValues["Slider"] : &m_minValues["Slider"],
-                            (m_flippedAxis["Slider"]) ? &m_minValues["Slider"] : &m_maxValues["Slider"],
-                            frameSliderBB, totalBB, m_grabBBSlider, idSlider, window, ImGuiSliderFlags_Vertical);
+            valueSliderChanged |= show1DPadSlider(m_mappedAxis["Slider"], m_values["Slider"],
+                                (m_flippedAxis["Slider"]) ? &m_maxValues["Slider"] : &m_minValues["Slider"],
+                                (m_flippedAxis["Slider"]) ? &m_minValues["Slider"] : &m_maxValues["Slider"],
+                                frameSliderBB, totalBB, m_grabBBSlider, idSlider, window, ImGuiSliderFlags_Vertical);
         }
         ImGui::PopStyleColor();
     }
@@ -157,11 +161,6 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     ImGui::RenderNavCursor(framePadBB, idPad);
     ImGui::RenderFrame(framePadBB.Min, framePadBB.Max, frameColor, true, g.Style.FrameRounding);
 
-    // Slider behavior
-    bool valuePadHChanged = false;
-    bool valuePadVChanged = false;
-    bool valueSliderChanged = false;
-
     if (padHovered && ImGui::IsKeyPressed(ImGuiKey_LeftCtrl, false))
     {
         // With setMousePos, the parameter value is relative to the window top left corner
@@ -172,7 +171,7 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
     }
     else if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
     {
-        valueSliderChanged = ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["Slider"],
+        valueSliderChanged |= ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["Slider"],
                                                     (m_flippedAxis["Slider"]) ? &m_maxValues["Slider"] : &m_minValues["Slider"],
                                                     (m_flippedAxis["Slider"]) ? &m_minValues["Slider"] : &m_maxValues["Slider"],
                                                    NULL, ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat | ImGuiSliderFlags_Vertical, &m_grabBBSlider);
@@ -187,12 +186,12 @@ bool MovePad::showPad(sofaglfw::SofaGLFWBaseGUI* baseGUI)
             m_mousePosPad = ImVec2(-1, -1);
         }
 
-        valuePadHChanged = ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["PadH"],
+        valuePadHChanged |= ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["PadH"],
                                                 (m_flippedAxis["PadH"]) ? &m_maxValues["PadH"] : &m_minValues["PadH"],
                                                 (m_flippedAxis["PadH"]) ? &m_minValues["PadH"] : &m_maxValues["PadH"],
                                                  NULL, ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat, &m_grabPad);
         ImRect tempGrab(m_grabPad);
-        valuePadVChanged = ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["PadV"],
+        valuePadVChanged |= ImGui::SliderBehavior(framePadBB, idPad, ImGuiDataType_Double, m_values["PadV"],
                                                 (m_flippedAxis["PadV"]) ? &m_maxValues["PadV"] : &m_minValues["PadV"],
                                                 (m_flippedAxis["PadV"]) ? &m_minValues["PadV"] : &m_maxValues["PadV"],
                                                  NULL, ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat | ImGuiSliderFlags_Vertical, &m_grabPad);
@@ -294,8 +293,6 @@ bool MovePad::show1DPadSlider(char const* label,
     if (!ImGui::ItemAdd(containerBB, id, &bb, 0))
         return false;
 
-    bool valueChanged = false;
-
     ImRect expandedBB(bb.Min-ImVec2(grabRadius, grabRadius), bb.Max+ ImVec2(grabRadius, grabRadius));
     bool hovered = ImGui::ItemHoverable( expandedBB, id, g.LastItemData.ItemFlags);
 
@@ -317,8 +314,8 @@ bool MovePad::show1DPadSlider(char const* label,
     ImGui::RenderFrame(bb.Min, bb.Max, frameColor, true, g.Style.FrameRounding);
 
     // Render grab
-    valueChanged = ImGui::SliderBehavior(bb, id, ImGuiDataType_Double, p_value, p_min, p_max, NULL,
-                                         ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat | flags, &grabBB);
+    bool valueChanged = ImGui::SliderBehavior(bb, id, ImGuiDataType_Double, p_value, p_min, p_max, NULL,
+                                                ImGuiSliderFlags_NoInput | ImGuiSliderFlags_NoRoundToFormat | flags, &grabBB);
     window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius * 1.2f, ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_Button));
     window->DrawList->AddCircleFilled(grabBB.GetCenter(), grabRadius, ImGui::GetColorU32(ImGuiCol_SliderGrab));
 

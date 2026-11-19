@@ -31,6 +31,7 @@
 #include <SofaImGui/FooterStatusBar.h>
 #include <SofaImGui/Workbench.h>
 #include <GUIColors.h>
+#include <SofaImGui/windows/WindowsSettingsName.h>
 
 namespace sofaimgui::windows {
 
@@ -43,6 +44,62 @@ MoveWindow::MoveWindow(const std::string& name,
     m_moveType = MoveType::SLIDERS;
 }
 
+void MoveWindow::setTCPSliders(const double& x, const double& y, const double& z, const double& rx, const double& ry, const double& rz)
+{
+    m_x=x; m_y=y; m_z=z;
+    m_rx=rx; m_ry=ry; m_rz=rz;
+}
+
+void MoveWindow::clampTCPSliders(double& x, double& y, double& z, double& rx, double& ry, double& rz)
+{
+    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
+    const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
+    const double& min = TCPGUIData->getMin();
+    const double& max = TCPGUIData->getMax();
+    x = std::max(x, min + initPosition[0]); x = std::min(x, max + initPosition[0]);
+    y = std::max(y, min + initPosition[1]); y = std::min(y, max + initPosition[1]);
+    z = std::max(z, min + initPosition[2]); z = std::min(z, max + initPosition[2]);
+    rx = std::max(rx, min); rx = std::min(rx, max);
+    ry = std::max(ry, min); ry = std::min(ry, max);
+    rz = std::max(rz, min); rz = std::min(rz, max);
+}
+
+void MoveWindow::manageRelativeTCPSliders(const bool& valueChanged)
+{
+    static bool pressed = false;
+    if (valueChanged || pressed)
+    {
+        models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
+        static bool firstTime = true;
+
+        if(ImGui::IsMouseDown(ImGuiMouseButton_Left) && firstTime)
+        {
+            m_globalTCPPosition = TCPGUIData->getTCPTargetPosition();
+            firstTime = false;
+            pressed = true;
+        }
+        else if(ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+        {
+            m_globalTCPPosition = TCPGUIData->getTCPTargetPosition();
+            setTCPSliders(0.,0.,0.,0.,0.,0.); // We are in relative control
+            firstTime = true;
+            pressed = false;
+        }
+    }
+}
+
+void MoveWindow::localToGlobalFrame(double& x, double& y, double& z, double& rx, double& ry, double& rz)
+{
+    sofa::defaulttype::RigidCoord<3, SReal> p_local(sofa::type::Vec3(m_x, m_y, m_z), sofa::type::Quat<SReal>::createQuaterFromEuler(sofa::type::Vec3(m_rx, m_ry, m_rz)));
+    sofa::defaulttype::RigidCoord<3, SReal> result;
+    result.getCenter() = m_globalTCPPosition.getOrientation().rotate(p_local.getCenter()) + m_globalTCPPosition.getCenter();
+    result.getOrientation() = m_globalTCPPosition.getOrientation() * p_local.getOrientation() ;
+
+    sofa::type::Vec3 euler_result = result.getOrientation().toEulerVector();
+    x=result[0]; y=result[1]; z=result[2];
+    rx=euler_result[0]; ry=euler_result[1]; rz=euler_result[2];
+}
+
 std::string MoveWindow::getDescription()
 {
     return "Move the target of a robot's tool center position (TCP), its actuators, or accessories.";
@@ -52,6 +109,11 @@ void MoveWindow::onEndSimulationLoad()
 {
     if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
         m_kinematicsGUIDataManager->getTCPGUIData()->getFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+}
+
+void MoveWindow::registerAndLoadWindowSettings()
+{
+    registerAndLoadWindowSetting(WS_MOVE_LOCALFRAME, m_ws_localframe, WindowsSettings::BOOL);
 }
 
 void MoveWindow::internalShowWindow()
@@ -82,9 +144,37 @@ void MoveWindow::internalShowWindow()
 
             ImGui::Spacing();
 
-            if(isDrivingSimulation())
+            { // Local frame
+                if(sofaimgui::widgets::ToggleButton("Local frame", &m_ws_localframe))
+                {
+                    if (m_ws_localframe)
+                    {
+                        m_globalTCPPosition = TCPGUIData->getTCPTargetPosition();
+                        setTCPSliders(0.,0.,0.,0.,0.,0.); // We switch to relative control
+                    }
+                }
+
+                ImGui::SetItemTooltip("Either to move the TCP in the local or global frame.");
+                ImGui::SameLine();
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("Local frame");
+
+                if (m_ws_localframe)
+                {
+                    double x = m_x; double y = m_y; double z = m_z;
+                    double rx = m_rx; double ry = m_ry; double rz = m_rz;
+                    localToGlobalFrame(x, y, z, rx, ry, rz);
+                    clampTCPSliders(x, y, z, rx, ry, rz);
+                    ImGui::SameLine();
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("(X:%.1f, Y:%.1f, Z:%.1f, R:%.1f, P:%.1f, Y:%.1f)", x, y, z, rx, ry, rz);
+                }
+            }
+
+            if(isDrivingSimulation() && !m_ws_localframe)
                 TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
+            // TCP Target Position
             if (ImGui::CollapsingHeader((TCPGUIData->getLabel() + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
             {
                 { // Vertical tabs (buttons)
@@ -106,24 +196,29 @@ void MoveWindow::internalShowWindow()
                     const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
                     const double& min = TCPGUIData->getMin();
                     const double& max = TCPGUIData->getMax();
+                    bool valueChanged = false;
 
                     if (m_moveType == MoveType::PAD)
                     {
-                        m_movePad.setBounds("X", min + initPosition[0], max + initPosition[0]);
-                        m_movePad.setBounds("Y", min + initPosition[1], max + initPosition[1]);
-                        m_movePad.setBounds("Z", min + initPosition[2], max + initPosition[2]);
-                        showPad();
+                        m_movePad.setBounds("X", m_ws_localframe? min: min + initPosition[0], m_ws_localframe? max: max + initPosition[0]);
+                        m_movePad.setBounds("Y", m_ws_localframe? min: min + initPosition[1], m_ws_localframe? max: max + initPosition[1]);
+                        m_movePad.setBounds("Z", m_ws_localframe? min: min + initPosition[2], m_ws_localframe? max: max + initPosition[2]);
+                        valueChanged |= showPad();
                     }
                     else if (m_moveType == MoveType::SLIDERS)
                     {
                         ImGui::Indent();
-                        showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], COLOR_RED);
+                        valueChanged |= showSliderDouble("X", "##XSlider", "##XInput", &m_x, m_ws_localframe? min: min + initPosition[0], m_ws_localframe? max: max + initPosition[0], COLOR_RED);
                         ImGui::Spacing();
-                        showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], COLOR_GREEN);
+                        valueChanged |= showSliderDouble("Y", "##YSlider", "##YInput", &m_y, m_ws_localframe? min: min + initPosition[1], m_ws_localframe? max: max + initPosition[1], COLOR_GREEN);
                         ImGui::Spacing();
-                        showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], COLOR_BLUE);
+                        valueChanged |= showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, m_ws_localframe? min: min + initPosition[2], m_ws_localframe? max: max + initPosition[2], COLOR_BLUE);
                         ImGui::Unindent();
                     }
+
+                    if (m_ws_localframe)
+                        manageRelativeTCPSliders(valueChanged);
+
                     ImGui::EndChild();
                     ImGui::PopStyleColor();
                 }
@@ -131,6 +226,7 @@ void MoveWindow::internalShowWindow()
 
             TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 
+            // TCP Target Orientation
             if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap | orientationDefaultOpen))
             {
                 ImGui::SameLine();
@@ -156,9 +252,10 @@ void MoveWindow::internalShowWindow()
                     ImGui::EndPopup();
                 }
 
+                bool valueChanged = false;
                 if (m_freeRoll)
                     ImGui::BeginDisabled();
-                showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_RED);
+                valueChanged |= showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_RED);
                 if (m_freeRoll)
                     ImGui::EndDisabled();
 
@@ -166,7 +263,7 @@ void MoveWindow::internalShowWindow()
 
                 if (m_freePitch)
                     ImGui::BeginDisabled();
-                showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_GREEN);
+                valueChanged |= showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_GREEN);
                 if (m_freePitch)
                     ImGui::EndDisabled();
 
@@ -174,24 +271,39 @@ void MoveWindow::internalShowWindow()
 
                 if (m_freeYaw)
                     ImGui::BeginDisabled();
-                showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_BLUE);
+                valueChanged |= showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_BLUE);
                 if (m_freeYaw)
                     ImGui::EndDisabled();
+
+                if (m_ws_localframe)
+                    manageRelativeTCPSliders(valueChanged);
 
                 sofaimgui::widgets::EndCollapsingHeader();
             }
 
+            // Apply user changes to TCP target
             if (isDrivingSimulation())
             {
                 sofa::type::Quat<SReal> q = TCPGUIData->getTCPPosition().getOrientation();
                 sofa::type::Vec3 rotation = q.toEulerVector();
-                TCPGUIData->setTCPTargetPosition(m_x, m_y, m_z,
-                                                 m_freeRoll? rotation[0]: m_rx,
-                                                 m_freePitch? rotation[1]: m_ry,
-                                                 m_freeYaw? rotation[2]: m_rz);
+
+                double x = m_x; double y = m_y; double z = m_z;
+                double rx = m_rx; double ry = m_ry; double rz = m_rz;
+
+                if (m_ws_localframe)
+                {
+                    localToGlobalFrame(x, y, z, rx, ry, rz);
+                    clampTCPSliders(x, y, z, rx, ry, rz);
+                }
+
+                TCPGUIData->setTCPTargetPosition(x, y, z,
+                                                 m_freeRoll? rotation[0]: rx,
+                                                 m_freePitch? rotation[1]: ry,
+                                                 m_freeYaw? rotation[2]: rz);
             }
         }
 
+        // Actuators
         if (m_kinematicsGUIDataManager->hasActuator())
         {
             const auto& actuatorsGUIData = m_kinematicsGUIDataManager->getActuators();
@@ -235,6 +347,7 @@ void MoveWindow::internalShowWindow()
             }
         }
 
+        // Accessories
         if (m_kinematicsGUIDataManager->hasAccessory())
         {
             if (sofaimgui::widgets::BeginCollapsingHeader("Accessories", ImGuiTreeNodeFlags_DefaultOpen))
@@ -365,9 +478,9 @@ void MoveWindow::showWeightOption(const int &index)
     ImGui::Unindent(indentWidth);
 }
 
-void MoveWindow::showPad()
+bool MoveWindow::showPad()
 {
-    m_movePad.showPad(m_baseGUI);
+    return m_movePad.showPad(m_baseGUI);
 }
 
 bool MoveWindow::showVerticalTab(const std::string& label, const std::string& tooltip, const bool& active)
