@@ -51,7 +51,8 @@ std::string MoveWindow::getDescription()
 void MoveWindow::onEndSimulationLoad()
 {
     if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
-        m_kinematicsGUIDataManager->getTCPGUIData()->getFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+        if (auto tcp=m_kinematicsGUIDataManager)
+            tcp->getTCPGUIData()->getFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
 }
 
 void MoveWindow::internalShowWindow()
@@ -60,135 +61,137 @@ void MoveWindow::internalShowWindow()
     {
         if (m_kinematicsGUIDataManager->hasInverseProblemSolverAndTCP())
         {
-            models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
-
-            static bool firstTime = true;
-            static ImGuiTreeNodeFlags orientationDefaultOpen = ImGuiTreeNodeFlags_None;
-            if (firstTime)
+            if (models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData())
             {
-                firstTime = false;
-                const double& min = TCPGUIData->getMin();
-                const double& max = TCPGUIData->getMax();
 
-                if (!m_freeRoll || !m_freePitch || !m_freeYaw)
-                    orientationDefaultOpen = ImGuiTreeNodeFlags_DefaultOpen;
-
-                m_movePad = sofaimgui::widgets::MovePad("##MovePad", "X", "Z", "Y",
-                                                       &m_x, &m_z, &m_y,
-                                                       min, max,
-                                                       min, max,
-                                                       min, max);
-            }
-
-            ImGui::Spacing();
-
-            if(isDrivingSimulation())
-                TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
-
-            if (ImGui::CollapsingHeader((TCPGUIData->getLabel() + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                { // Vertical tabs (buttons)
-                    ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
-
-                    if (showVerticalTab(ICON_FA_SLIDERS, "Sliders", m_moveType == MoveType::SLIDERS))
-                        m_moveType = MoveType::SLIDERS;
-                    if (showVerticalTab(ICON_FA_TABLE_CELLS_LARGE, "Pad", m_moveType == MoveType::PAD))
-                        m_moveType = MoveType::PAD;
-
-                    ImGui::EndChild();
-                }
-
-                ImGui::SameLine();
-
-                { // Method area (sliders or pad)
-                    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
-                    ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
-                    const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
+                static bool firstTime = true;
+                static ImGuiTreeNodeFlags orientationDefaultOpen = ImGuiTreeNodeFlags_None;
+                if (firstTime)
+                {
+                    firstTime = false;
                     const double& min = TCPGUIData->getMin();
                     const double& max = TCPGUIData->getMax();
 
-                    if (m_moveType == MoveType::PAD)
-                    {
-                        m_movePad.setBounds("X", min + initPosition[0], max + initPosition[0]);
-                        m_movePad.setBounds("Y", min + initPosition[1], max + initPosition[1]);
-                        m_movePad.setBounds("Z", min + initPosition[2], max + initPosition[2]);
-                        showPad();
-                    }
-                    else if (m_moveType == MoveType::SLIDERS)
-                    {
-                        ImGui::Indent();
-                        showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], COLOR_RED);
-                        ImGui::Spacing();
-                        showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], COLOR_GREEN);
-                        ImGui::Spacing();
-                        showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], COLOR_BLUE);
-                        ImGui::Unindent();
-                    }
-                    ImGui::EndChild();
-                    ImGui::PopStyleColor();
+                    if (!m_freeRoll || !m_freePitch || !m_freeYaw)
+                        orientationDefaultOpen = ImGuiTreeNodeFlags_DefaultOpen;
+
+                    m_movePad = sofaimgui::widgets::MovePad("##MovePad", "X", "Z", "Y",
+                                                           &m_x, &m_z, &m_y,
+                                                           min, max,
+                                                           min, max,
+                                                           min, max);
                 }
-            }
-
-            TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
-
-            if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap | orientationDefaultOpen))
-            {
-                ImGui::SameLine();
-
-                ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
-
-                bool openOptions = false;
-                ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
-                if (sofaimgui::widgets::Button(ICON_FA_BARS))
-                    openOptions = true;
-                ImGui::PopStyleColor(3);
-
-                if (openOptions)
-                {
-                    ImGui::OpenPopup("##RotationOptions");
-                }
-
-                if (ImGui::BeginPopup("##RotationOptions"))
-                {
-                    showOptions();
-                    ImGui::EndPopup();
-                }
-
-                if (m_freeRoll)
-                    ImGui::BeginDisabled();
-                showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_RED);
-                if (m_freeRoll)
-                    ImGui::EndDisabled();
 
                 ImGui::Spacing();
 
-                if (m_freePitch)
-                    ImGui::BeginDisabled();
-                showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_GREEN);
-                if (m_freePitch)
-                    ImGui::EndDisabled();
+                if(isDrivingSimulation())
+                    TCPGUIData->getTCPTargetPosition(m_x, m_y, m_z, m_rx, m_ry, m_rz);
 
-                ImGui::Spacing();
+                if (ImGui::CollapsingHeader((TCPGUIData->getLabel() + " Position").c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    { // Vertical tabs (buttons)
+                        ImGui::BeginChild("##MethodButtonsArea", ImVec2(ImGui::GetFrameHeight() * 1.5, 0), ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoScrollbar);
 
-                if (m_freeYaw)
-                    ImGui::BeginDisabled();
-                showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_BLUE);
-                if (m_freeYaw)
-                    ImGui::EndDisabled();
+                        if (showVerticalTab(ICON_FA_SLIDERS, "Sliders", m_moveType == MoveType::SLIDERS))
+                            m_moveType = MoveType::SLIDERS;
+                        if (showVerticalTab(ICON_FA_TABLE_CELLS_LARGE, "Pad", m_moveType == MoveType::PAD))
+                            m_moveType = MoveType::PAD;
 
-                sofaimgui::widgets::EndCollapsingHeader();
-            }
+                        ImGui::EndChild();
+                    }
 
-            if (isDrivingSimulation())
-            {
-                sofa::type::Quat<SReal> q = TCPGUIData->getTCPPosition().getOrientation();
-                sofa::type::Vec3 rotation = q.toEulerVector();
-                TCPGUIData->setTCPTargetPosition(m_x, m_y, m_z,
-                                                 m_freeRoll? rotation[0]: m_rx,
-                                                 m_freePitch? rotation[1]: m_ry,
-                                                 m_freeYaw? rotation[2]: m_rz);
+                    ImGui::SameLine();
+
+                    { // Method area (sliders or pad)
+                        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(ImGuiCol_TableRowBgAlt));
+                        ImGui::BeginChild("##MethodArea", ImVec2(ImGui::GetContentRegionAvail().x, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_AlwaysUseWindowPadding);
+                        const auto &initPosition = TCPGUIData->getTCPTargetInitPosition();
+                        const double& min = TCPGUIData->getMin();
+                        const double& max = TCPGUIData->getMax();
+
+                        if (m_moveType == MoveType::PAD)
+                        {
+                            m_movePad.setBounds("X", min + initPosition[0], max + initPosition[0]);
+                            m_movePad.setBounds("Y", min + initPosition[1], max + initPosition[1]);
+                            m_movePad.setBounds("Z", min + initPosition[2], max + initPosition[2]);
+                            showPad();
+                        }
+                        else if (m_moveType == MoveType::SLIDERS)
+                        {
+                            ImGui::Indent();
+                            showSliderDouble("X", "##XSlider", "##XInput", &m_x, min + initPosition[0], max + initPosition[0], COLOR_RED);
+                            ImGui::Spacing();
+                            showSliderDouble("Y", "##YSlider", "##YInput", &m_y, min + initPosition[1], max + initPosition[1], COLOR_GREEN);
+                            ImGui::Spacing();
+                            showSliderDouble("Z", "##ZSlider", "##ZInput", &m_z, min + initPosition[2], max + initPosition[2], COLOR_BLUE);
+                            ImGui::Unindent();
+                        }
+                        ImGui::EndChild();
+                        ImGui::PopStyleColor();
+                    }
+                }
+
+                TCPGUIData->setFreeInRotation(m_freeRoll, m_freePitch, m_freeYaw);
+
+                if (TCPGUIData->hasRotation() && sofaimgui::widgets::BeginCollapsingHeader((TCPGUIData->getLabel() + " Orientation").c_str(), ImGuiTreeNodeFlags_AllowOverlap | orientationDefaultOpen))
+                {
+                    ImGui::SameLine();
+
+                    ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - ImGui::GetStyle().FramePadding.x); // Set position to right of the line
+
+                    bool openOptions = false;
+                    ImGui::PushStyleColor(ImGuiCol_Button, COLOR_TRANSPARENT);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, COLOR_TRANSPARENT);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, COLOR_TRANSPARENT);
+                    if (sofaimgui::widgets::Button(ICON_FA_BARS))
+                        openOptions = true;
+                    ImGui::PopStyleColor(3);
+
+                    if (openOptions)
+                    {
+                        ImGui::OpenPopup("##RotationOptions");
+                    }
+
+                    if (ImGui::BeginPopup("##RotationOptions"))
+                    {
+                        showOptions();
+                        ImGui::EndPopup();
+                    }
+
+                    if (m_freeRoll)
+                        ImGui::BeginDisabled();
+                    showSliderDouble("R", "##RSlider", "##RInput", &m_rx, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_RED);
+                    if (m_freeRoll)
+                        ImGui::EndDisabled();
+
+                    ImGui::Spacing();
+
+                    if (m_freePitch)
+                        ImGui::BeginDisabled();
+                    showSliderDouble("P", "##PSlider", "##PInput", &m_ry, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_GREEN);
+                    if (m_freePitch)
+                        ImGui::EndDisabled();
+
+                    ImGui::Spacing();
+
+                    if (m_freeYaw)
+                        ImGui::BeginDisabled();
+                    showSliderDouble("Y", "##YawSlider", "##YawInput", &m_rz, TCPGUIData->getMinRotation(), TCPGUIData->getMaxRotation(), COLOR_BLUE);
+                    if (m_freeYaw)
+                        ImGui::EndDisabled();
+
+                    sofaimgui::widgets::EndCollapsingHeader();
+                }
+
+                if (isDrivingSimulation())
+                {
+                    sofa::type::Quat<SReal> q = TCPGUIData->getTCPPosition().getOrientation();
+                    sofa::type::Vec3 rotation = q.toEulerVector();
+                    TCPGUIData->setTCPTargetPosition(m_x, m_y, m_z,
+                                                     m_freeRoll? rotation[0]: m_rx,
+                                                     m_freePitch? rotation[1]: m_ry,
+                                                     m_freeYaw? rotation[2]: m_rz);
+                }
             }
         }
 
@@ -352,14 +355,16 @@ void MoveWindow::showWeightOption(const int &index)
     ImGui::Indent(indentWidth);
 
     ImGui::AlignTextToFramePadding();
-    models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData();
-    double w = TCPGUIData->getWeight(index);
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("Weight");
-    ImGui::SameLine();
-    ImGui::PushID(index);
-    if (sofaimgui::widgets::InputDouble("##Input ", &w))
-        TCPGUIData->setWeight(index, w);
+    if (models::guidata::EffectorGUIData::SPtr TCPGUIData = m_kinematicsGUIDataManager->getTCPGUIData())
+    {
+        double w = TCPGUIData->getWeight(index);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Weight");
+        ImGui::SameLine();
+        ImGui::PushID(index);
+        if (sofaimgui::widgets::InputDouble("##Input ", &w))
+            TCPGUIData->setWeight(index, w);
+    }
     ImGui::PopID();
 
     ImGui::Unindent(indentWidth);
