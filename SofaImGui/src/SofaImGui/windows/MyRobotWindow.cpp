@@ -165,7 +165,7 @@ void MyRobotWindow::internalShowWindow()
         if (!m_sectionedGUIData.empty())
         {
             // Information
-            if (sofaimgui::widgets::BeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
+            if (!m_sectionedGUIData[Section::INFORMATION].empty() && sofaimgui::widgets::BeginCollapsingHeader("Information", ImGuiTreeNodeFlags_None))
             {
                 std::string groups;
                 int k=0;
@@ -212,7 +212,7 @@ void MyRobotWindow::internalShowWindow()
             }
 
             // Settings
-            if (sofaimgui::widgets::BeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            if (!m_sectionedGUIData[Section::SETTINGS].empty() && sofaimgui::widgets::BeginCollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 std::string groups;
                 int k = 0;
