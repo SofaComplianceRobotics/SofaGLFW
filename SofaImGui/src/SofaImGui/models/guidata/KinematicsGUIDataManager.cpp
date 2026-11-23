@@ -130,6 +130,21 @@ void KinematicsGUIDataManager::addAccessoryFeature(const std::string &accessoryL
         msg_error("addAccessoryFeature") << "Something went wrong. Expects a valid data as the third parameter.";
 }
 
+void KinematicsGUIDataManager::clearTCPs()
+{
+    m_effectorsGUIData.clear();
+}
+
+void KinematicsGUIDataManager::clearActuators()
+{
+    m_actuatorsGUIData.clear();
+}
+
+void KinematicsGUIDataManager::clearAccessoryFeatures()
+{
+    m_accessoriesFeatureGUIData.clear();
+}
+
 bool KinematicsGUIDataManager::hasInverseProblemSolver()
 {
     if (m_inverseProblemSolver == nullptr)

@@ -61,7 +61,8 @@ bool StartMove::apply(RigidCoord &position, const double &time)
         position = getInterpolatedPosition(time);
     }
 
-    m_kinematicsGUIDataManager->getTCPGUIData()->setFreeInRotation(m_freeInRotation, m_freeInRotation, m_freeInRotation);
+    if (auto tcp = m_kinematicsGUIDataManager->getTCPGUIData())
+        tcp->setFreeInRotation(m_freeInRotation, m_freeInRotation, m_freeInRotation);
 
     return hasChanged;
 }

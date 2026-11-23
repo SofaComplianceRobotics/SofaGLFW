@@ -89,6 +89,17 @@ void addTCP(std::string label,
     }
 }
 
+void clearTCPs()
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+    if (engine)
+    {
+        engine->m_kinematicsGUIDataManager->clearTCPs();
+    }
+}
+
 void addActuator(std::string label,
                  softrobots::behavior::SoftRobotsBaseConstraint *constraint,
                  py::object min,
@@ -112,6 +123,17 @@ void addActuator(std::string label,
         } else {
             msg_error("[addActuator]") << "Expects an Actuator component as the second argument.";
         }
+    }
+}
+
+void clearActuators()
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+    if (engine)
+    {
+        engine->m_kinematicsGUIDataManager->clearActuators();
     }
 }
 
@@ -139,6 +161,17 @@ void addAccessoryFeature(std::string accessoryLabel,
         {
             msg_error("[addAccessoryFeature]") << "Expects a data as the third argument.";
         }
+    }
+}
+
+void clearAccessoryFeatures()
+{
+    ImGuiGUI* gui = ImGuiGUI::getGUI();
+    std::shared_ptr<ImGuiGUIEngine> engine = gui? gui->getGUIEngine() : nullptr;
+
+    if (engine)
+    {
+        engine->m_kinematicsGUIDataManager->clearAccessoryFeatures();
     }
 }
 
@@ -209,12 +242,15 @@ PYBIND11_MODULE(ImGui, m)
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "minRotation"_a = - 2 * std::numbers::pi, "maxRotation"_a = 2 * std::numbers::pi
           , "Add a TCP to pilot from the Move, Program or IO windows.");
+    m.def("clearTCPs", &clearTCPs, "Clear all added TCPs.");
     m.def("addActuator", &addActuator
           , "label"_a, "constraint"_a, "min"_a, "max"_a, "group"_a = models::guidata::GUIData::DEFAULTGROUP, "help"_a = ""
           , "Add an actuator to pilot from the Move, Program or IO windows.");
+    m.def("clearActuators", &clearActuators, "Clear all added actuators.");
     m.def("addAccessoryFeature", &addAccessoryFeature
           , "accessoryLabel"_a, "featureLabel"_a, "data"_a, "min"_a=py::none(), "max"_a=py::none(),  "type"_a = "double"
           , "Add an accessory (e.g. gripper) feature (e.g. opening) to the Move, Program or IO windows.");
+    m.def("clearAccessoryFeatures", &clearAccessoryFeatures, "Clear all added accessory features.");
 
     m.def("getRobotConnectionToggle", &getRobotConnectionToggle
           , "Get the value of the GUI simulation/robot connection toggle.");

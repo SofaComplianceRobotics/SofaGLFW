@@ -53,16 +53,19 @@ public:
                 const std::string& help,
                 const double& minRotation,
                 const double& maxRotation);
+    void clearTCPs();
     void addActuator(const std::string &label, softrobots::behavior::SoftRobotsBaseConstraint::SPtr actuator,
                      const std::pair<sofa::core::BaseData*, bool>& min,
                      const std::pair<sofa::core::BaseData*, bool>& max,
                      const std::string& group,
                      const std::string& help);
+    void clearActuators();
     void addAccessoryFeature(const std::string &accessoryLabel,
                              const std::string &featureLabel,
                              const std::pair<sofa::core::BaseData*, bool> &data,
                              const std::pair<sofa::core::BaseData*, bool>& min,
                              const std::pair<sofa::core::BaseData*, bool>& max);
+    void clearAccessoryFeatures();
 
     bool hasInverseProblemSolver();
     bool hasTCP();
