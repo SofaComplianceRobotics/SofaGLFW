@@ -78,7 +78,7 @@ class SOFAIMGUI_API MoveWindow : public BaseWindow
 
     void setTCPSliders(const double& x, const double& y, const double& z, const double& rx, const double& ry, const double& rz);
     void clampTCPSliders(double& x, double& y, double& z, double& rx, double& ry, double& rz);
-    void manageRelativeTCPSliders(const bool &valueChanged);
+    void manageTCPSlidersInLocalFrame(const bool &valueChanged);
     void localToGlobalFrame(double &x, double &y, double &z, double &rx, double &ry, double &rz);
 };
 

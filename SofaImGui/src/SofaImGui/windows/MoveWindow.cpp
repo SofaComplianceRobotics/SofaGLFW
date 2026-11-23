@@ -64,7 +64,7 @@ void MoveWindow::clampTCPSliders(double& x, double& y, double& z, double& rx, do
     rz = std::max(rz, min); rz = std::min(rz, max);
 }
 
-void MoveWindow::manageRelativeTCPSliders(const bool& valueChanged)
+void MoveWindow::manageTCPSlidersInLocalFrame(const bool& valueChanged)
 {
     static bool pressed = false;
     if (valueChanged || pressed)
@@ -217,7 +217,7 @@ void MoveWindow::internalShowWindow()
                     }
 
                     if (m_ws_localframe)
-                        manageRelativeTCPSliders(valueChanged);
+                        manageTCPSlidersInLocalFrame(valueChanged);
 
                     ImGui::EndChild();
                     ImGui::PopStyleColor();
@@ -276,7 +276,7 @@ void MoveWindow::internalShowWindow()
                     ImGui::EndDisabled();
 
                 if (m_ws_localframe)
-                    manageRelativeTCPSliders(valueChanged);
+                    manageTCPSlidersInLocalFrame(valueChanged);
 
                 sofaimgui::widgets::EndCollapsingHeader();
             }
