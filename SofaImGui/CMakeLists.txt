@@ -53,8 +53,8 @@ endif()
 
 
 FetchContent_Declare(ImPlot
-        GIT_REPOSITORY https://github.com/epezent/implot
-        GIT_TAG        bd99f8d8b9a80c493782ab8cb3335af102f61304
+        GIT_REPOSITORY https://github.com/SofaComplianceRobotics/implot
+        GIT_TAG        internalmain
 )
 FetchContent_MakeAvailable(ImPlot)
 

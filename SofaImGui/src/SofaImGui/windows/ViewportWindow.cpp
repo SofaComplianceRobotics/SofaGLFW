@@ -204,15 +204,15 @@ void ViewportWindow::addCameraButtons()
 
     // Left buttons background
     // Clip down
-    auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-    color.w = 0.6f;
+    ImVec4 color = ImColor(COLOR_BLACK);
+    color.w = 0.2f;
     ImGui::PushClipRect(ImVec2(ImGui::GetWindowContentRegionMin().x, ImGui::GetWindowContentRegionMin().y),
                         ImVec2(ImGui::GetWindowContentRegionMax().x + ImGui::GetWindowPos().x,
                                ImGui::GetWindowContentRegionMax().y + ImGui::GetWindowPos().y - ImGui::GetStyle().FramePadding.y),
                         true);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
-    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
+    ImGui::PushStyleColor(ImGuiCol_Border, COLOR_TRANSPARENT);
 
     // When clicking these buttons, the mouse only moves into the current window area
     // We allow the mouse to cross walls and reapear on the other side
@@ -475,11 +475,11 @@ bool ViewportWindow::addAnimateButton(bool *animate, const float &shift_x)
 
                 // Middle buttons background
                 // Clip down
-                auto color = ImGui::GetStyle().Colors[ImGuiCol_TabActive];
-                color.w = 0.6f;
+                ImVec4 color = ImColor(COLOR_BLACK);
+                color.w = 0.2f;
                 ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1); // Work around to add padding
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetColorU32(color));
-                ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetColorU32(color));
+                ImGui::PushStyleColor(ImGuiCol_Border, COLOR_TRANSPARENT);
 
                 if (ImGui::Begin("ViewportChildMiddleButtons", &isOpen(), ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_AlwaysAutoResize |
                                                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))

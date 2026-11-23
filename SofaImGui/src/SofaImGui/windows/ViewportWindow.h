@@ -60,8 +60,8 @@ class SOFAIMGUI_API ViewportWindow : public BaseWindow
 
     ImTextureID m_textureID;
 
-    bool m_ws_orientationGizmoEnabled{false};
-    bool m_ws_cameraButtonsCollapsed{true};
+    bool m_ws_orientationGizmoEnabled{true};
+    bool m_ws_cameraButtonsCollapsed{false};
     long m_ws_drivingWindow{1};
 
     void internalShowWindow() override;
