@@ -139,7 +139,7 @@ protected:
 
     CSimpleIniA iniGUISettings;
 
-    void initDockSpace(const bool& firstTime);
+    void initDockSpace(const bool& resizeDocks);
     void setupIOConfig();
     void changeWorkbench(Workbench wb);
 

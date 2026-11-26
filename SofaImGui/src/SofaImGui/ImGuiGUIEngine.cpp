@@ -491,7 +491,7 @@ type::Vec2i ImGuiGUIEngine::getFrameBufferPixels(std::vector<uint8_t>& pixels)
     return {viewport[2], viewport[3]};
 }
 
-void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
+void ImGuiGUIEngine::initDockSpace(const bool& resizeDocks)
 {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
@@ -506,8 +506,10 @@ void ImGuiGUIEngine::initDockSpace(const bool& firstTime)
     ImGuiID dockspaceID = ImGui::GetID("WorkSpaceDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-    if (firstTime)
+    static bool initialized = false;
+    if ((!initialized || resizeDocks) && viewport->Size.x > 0. && viewport->Size.y > 0.)
     {
+        initialized = true;
         ImGui::DockBuilderRemoveNode(dockspaceID); // clear any previous layout
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
